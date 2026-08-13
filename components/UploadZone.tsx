@@ -349,7 +349,7 @@ export default function UploadZone({
           Sign In / Register
         </button>
         <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
-          Free plan: 3 masters per day · No credit card required
+          100% free · 10 masters per day · No credit card required
         </p>
       </div>
     );

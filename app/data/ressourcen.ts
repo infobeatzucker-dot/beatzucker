@@ -325,8 +325,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Schritt 2: KI-Parameterberechnung", en: "Step 2: AI Parameter Calculation" },
           body: {
-            de: "Auf Basis der Analyse berechnet das KI-Sprachmodell die optimalen Mastering-Parameter. Es berücksichtigt dabei:\n\nDas gewählte Genre (Electronic, Hip-Hop, Rock, Jazz, Klassik, etc.) — jedes Genre hat andere typische Klangcharakeristika und Lautstärkenormen.\n\nDie Zielplattform (Spotify, Apple Music, Club, Broadcast) — jede Plattform hat andere LUFS-Zielwerte und True-Peak-Grenzen.\n\nDen aktuellen Zustand des Tracks — ein bereits stark komprimierter Track braucht eine andere Behandlung als ein dynamischer Mix.\n\nDas Ergebnis ist ein Set von spezifischen Parametern: EQ-Frequenzkurven, Kompressionsverhältnisse, Stereobreiten-Werte, Limiting-Threshold und Export-LUFS.",
-            en: "Based on the analysis, the AI language model calculates the optimal mastering parameters. It takes into account:\n\nThe selected genre (Electronic, Hip-Hop, Rock, Jazz, Classical, etc.) — each genre has different typical sonic characteristics and loudness norms.\n\nThe target platform (Spotify, Apple Music, Club, Broadcast) — each platform has different LUFS target values and True Peak limits.\n\nThe current state of the track — an already heavily compressed track needs different treatment than a dynamic mix.\n\nThe result is a set of specific parameters: EQ frequency curves, compression ratios, stereo width values, limiting threshold, and export LUFS.",
+            de: "Auf Basis der Analyse berechnet die Mastering-Engine die optimalen Parameter. Sie berücksichtigt dabei:\n\nDas gewählte Genre (Electronic, Hip-Hop, Rock, Jazz, Klassik, etc.) — jedes Genre hat andere typische Klangcharakeristika und Lautstärkenormen.\n\nDie Zielplattform (Spotify, Apple Music, Club, Broadcast) — jede Plattform hat andere LUFS-Zielwerte und True-Peak-Grenzen.\n\nDen aktuellen Zustand des Tracks — ein bereits stark komprimierter Track braucht eine andere Behandlung als ein dynamischer Mix.\n\nDas Ergebnis ist ein Set von spezifischen Parametern: EQ-Frequenzkurven, Kompressionsverhältnisse, Stereobreiten-Werte, Limiting-Threshold und Export-LUFS.",
+            en: "Based on the analysis, the mastering engine calculates the optimal parameters. It takes into account:\n\nThe selected genre (Electronic, Hip-Hop, Rock, Jazz, Classical, etc.) — each genre has different typical sonic characteristics and loudness norms.\n\nThe target platform (Spotify, Apple Music, Club, Broadcast) — each platform has different LUFS target values and True Peak limits.\n\nThe current state of the track — an already heavily compressed track needs different treatment than a dynamic mix.\n\nThe result is a set of specific parameters: EQ frequency curves, compression ratios, stereo width values, limiting threshold, and export LUFS.",
           },
         },
         {
@@ -709,14 +709,14 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Professionelles Mastering muss nicht teuer sein", en: "Professional Mastering Doesn't Have to Be Expensive" },
           body: {
-            de: "Traditionell kostete professionelles Mastering €100–300 pro Track und dauerte 1–2 Tage. Für Independent-Künstler mit limitiertem Budget war das oft ein Problem: Entweder man veröffentlicht ohne Mastering (und klingt amateurhaft) oder man gibt einen großen Teil des Budgets für einen einzigen Track aus.\n\nMit UpMaDo hat sich das geändert. Unsere KI-Mastering-Plattform analysiert deinen Track und wendet eine professionelle 12-stufige DSP-Pipeline an — kostenlos für deinen ersten Track, und ab €7.99 pro Monat für unbegrenzte Masters.\n\nDein Hit-verdächtiger Song verdient ein professionelles Mastering. Und jetzt ist es so zugänglich wie nie zuvor.",
-            en: "Traditionally, professional mastering cost €100–300 per track and took 1–2 days. For independent artists with a limited budget, this was often a problem: either you release without mastering (and sound amateurish) or you spend a large portion of your budget on a single track.\n\nWith UpMaDo, that has changed. Our AI mastering platform analyzes your track and applies a professional 12-stage DSP pipeline — free for your first track, and from €7.99 per month for unlimited masters.\n\nYour hit-potential song deserves professional mastering. And now it's more accessible than ever.",
+            de: "Traditionell kostete professionelles Mastering €100–300 pro Track und dauerte 1–2 Tage. Für Independent-Künstler mit limitiertem Budget war das oft ein Problem: Entweder man veröffentlicht ohne Mastering (und klingt amateurhaft) oder man gibt einen großen Teil des Budgets für einen einzigen Track aus.\n\nMit UpMaDo hat sich das geändert. Unsere Mastering-Plattform analysiert deinen Track und wendet eine professionelle 12-stufige DSP-Pipeline an — komplett kostenlos, ohne Limit auf die Anzahl deiner Releases.\n\nDein Hit-verdächtiger Song verdient ein professionelles Mastering. Und jetzt ist es so zugänglich wie nie zuvor.",
+            en: "Traditionally, professional mastering cost €100–300 per track and took 1–2 days. For independent artists with a limited budget, this was often a problem: either you release without mastering (and sound amateurish) or you spend a large portion of your budget on a single track.\n\nWith UpMaDo, that has changed. Our mastering platform analyzes your track and applies a professional 12-stage DSP pipeline — completely free, with no limit on how many releases you master.\n\nYour hit-potential song deserves professional mastering. And now it's more accessible than ever.",
           },
         },
       ],
       conclusion: {
-        de: "Dein nächster Track könnte der Durchbruch sein. Lass ihn nicht an fehlendem Mastering scheitern. Lade ihn jetzt bei UpMaDo hoch — kostenlos, ohne Registrierung für deinen ersten Master.",
-        en: "Your next track could be your breakthrough. Don't let it fail because of missing mastering. Upload it to UpMaDo now — free, no registration required for your first master.",
+        de: "Dein nächster Track könnte der Durchbruch sein. Lass ihn nicht an fehlendem Mastering scheitern. Lade ihn jetzt bei UpMaDo hoch — komplett kostenlos, mit kostenloser Registrierung.",
+        en: "Your next track could be your breakthrough. Don't let it fail because of missing mastering. Upload it to UpMaDo now — completely free, with a free account.",
       },
     },
   },
@@ -1073,7 +1073,7 @@ export const ARTICLES: RessourceArticle[] = [
               [{ de: "Streaming-Release mit Plattform-Zielwert", en: "Streaming release with platform target" }, { de: "UpMaDo", en: "UpMaDo" }],
               [{ de: "Mastering mit eigenem LUFS-Zielwert", en: "Mastering with custom LUFS target" }, { de: "re-beatz.com", en: "re-beatz.com" }],
               [{ de: "Club-Master mit maximaler Lautheit", en: "Club master with maximum loudness" }, { de: "re-beatz.com", en: "re-beatz.com" }],
-              [{ de: "Batch-Mastering mehrerer Tracks", en: "Batch mastering of multiple tracks" }, { de: "UpMaDo (Studio-Plan)", en: "UpMaDo (Studio plan)" }],
+              [{ de: "Batch-Mastering mehrerer Tracks", en: "Batch mastering of multiple tracks" }, { de: "UpMaDo", en: "UpMaDo" }],
               [{ de: "Erste Schritte, kein Vorwissen", en: "First steps, no prior knowledge" }, { de: "UpMaDo", en: "UpMaDo" }],
               [{ de: "Erfahrener Produzent mit eigenen Vorgaben", en: "Experienced producer with own specs" }, { de: "re-beatz.com", en: "re-beatz.com" }],
             ],

@@ -415,13 +415,13 @@ export default function AdminPage() {
                     <label style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase",
                       letterSpacing: "0.05em", display: "block", marginBottom: "0.3rem" }}>Button-Text</label>
                     <input value={promoCtaText} onChange={e => setPromoCtaText(e.target.value)}
-                      placeholder="z.B. Jetzt upgraden" style={inputStyle} />
+                      placeholder="z.B. Jetzt mastern" style={inputStyle} />
                   </div>
                   <div>
                     <label style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase",
                       letterSpacing: "0.05em", display: "block", marginBottom: "0.3rem" }}>Button-URL</label>
                     <input value={promoCtaUrl} onChange={e => setPromoCtaUrl(e.target.value)}
-                      placeholder="/#preise" style={inputStyle} />
+                      placeholder="/" style={inputStyle} />
                   </div>
                 </div>
 

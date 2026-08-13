@@ -116,6 +116,10 @@ export interface ProgressStep {
 type Lang = "de" | "en";
 
 const T = {
+  hero_free_badge: {
+    de: "100% kostenlos · Kein Abo · Keine Kreditkarte",
+    en: "100% free · No subscription · No credit card",
+  },
   hero_badge:  { de: "KI-gestütztes Professionelles Mastering", en: "AI-Powered Professional Mastering" },
   hero_tagline: {
     de: [
@@ -130,8 +134,8 @@ const T = {
     ],
   },
   hero_desc: {
-    de: "Professionelle Mastering-Pipeline powered by KI. Spotify-konformer Lautstärkepegel, Multiband-Kompression, M/S-Processing — in Sekunden.",
-    en: "Professional-grade mastering chain powered by AI. Spotify-compliant loudness, multiband compression, M/S processing — in seconds.",
+    de: "Professionelle Mastering-Pipeline powered by KI. Spotify-konformer Lautstärkepegel, Multiband-Kompression, M/S-Processing — in Sekunden. Und zwar komplett kostenlos.",
+    en: "Professional-grade mastering chain powered by AI. Spotify-compliant loudness, multiband compression, M/S processing — in seconds. Completely free.",
   },
   free_limit: {
     de: (used: number, limit: number) => used >= limit
@@ -312,6 +316,38 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
+          {/* Free badge — first thing visitors see */}
+          <motion.div
+            className="flex justify-center mb-5"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div
+              className="flex items-center gap-2 px-4 py-2 rounded-full"
+              style={{
+                background: "linear-gradient(135deg, rgba(0,229,196,0.15), rgba(124,111,255,0.1))",
+                border: "1px solid rgba(0,229,196,0.45)",
+                boxShadow: "0 0 24px rgba(0,229,196,0.25), inset 0 1px 0 rgba(255,255,255,0.06)",
+              }}
+            >
+              <span
+                className="flex items-center justify-center rounded-full flex-shrink-0"
+                style={{ width: 18, height: 18, background: "rgba(0,229,196,0.25)" }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+              <span
+                className="text-xs sm:text-sm font-bold"
+                style={{ color: "var(--accent-cyan)", letterSpacing: "0.01em" }}
+              >
+                {T.hero_free_badge[lang]}
+              </span>
+            </div>
+          </motion.div>
+
           {/* Language Toggle */}
           <div className="flex justify-center mb-4 gap-1">
             {(["de", "en"] as Lang[]).map((l) => (

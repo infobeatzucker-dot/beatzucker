@@ -458,8 +458,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Werden meine Audiodateien gespeichert?",
         qEn: "Are my audio files stored?",
-        aDe: "Nein. Hochgeladene Original-Audiodateien werden sofort nach Abschluss der Verarbeitung vom Server gelöscht (max. 60 Minuten). Gemasterte Ausgabedateien werden je nach Tarif 2 Stunden (Standard) oder 24 Stunden (Studio) vorgehalten und dann automatisch gelöscht. Keine dauerhafte Speicherung, keine Weitergabe.",
-        aEn: "No. Uploaded original audio files are deleted immediately after processing is complete (max. 60 minutes). Mastered output files are kept for 2 hours (standard) or 24 hours (Studio plan) and then automatically deleted. No permanent storage, no sharing.",
+        aDe: "Nein. Hochgeladene Original-Audiodateien werden sofort nach Abschluss der Verarbeitung vom Server gelöscht (max. 60 Minuten). Gemasterte Ausgabedateien werden 24 Stunden vorgehalten und dann automatisch gelöscht. Keine dauerhafte Speicherung, keine Weitergabe.",
+        aEn: "No. Uploaded original audio files are deleted immediately after processing is complete (max. 60 minutes). Mastered output files are kept for 24 hours and then automatically deleted. No permanent storage, no sharing.",
       },
       {
         qDe: "Welche Browser werden unterstützt?",

@@ -3,8 +3,8 @@
 /**
  * ReferenceTrack — Upload a professional reference track.
  * The app will AI-match loudness, tonal balance and dynamics to it.
- * Pro+/Studio users can also save reference analyses to their library
- * and reload them without re-uploading the audio file.
+ * Users can also save reference analyses to their library and reload
+ * them later without re-uploading the audio file.
  */
 
 import { useRef, useState, useEffect } from "react";

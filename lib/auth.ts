@@ -1,5 +1,5 @@
 /**
- * Auth helpers — password hashing, tier resolution, download token signing
+ * Auth helpers — password hashing, HMAC session tokens
  */
 
 import { cookies } from "next/headers";
