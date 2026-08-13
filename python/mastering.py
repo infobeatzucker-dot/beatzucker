@@ -293,13 +293,45 @@ def apply_bus_compression(audio: np.ndarray, sr: int, params: MasteringParams) -
 
 # ─── 11. LIMITING ──────────────────────────────────────────────────────────────
 
+def _true_peak_envelope(audio: np.ndarray, oversample: int = 4) -> np.ndarray:
+    """Per-sample true-peak envelope via 4x oversampling (ITU-R BS.1770-4 method).
+
+    Sample-peak detection (plain max(abs(x))) misses inter-sample peaks that
+    occur between two adjacent samples of the reconstructed analog waveform.
+    Those peaks are inaudible in the PCM/WAV file itself but can clip after
+    lossy re-encoding (MP3/AAC), whose decoder reconstructs the same
+    inter-sample overshoot. Oversampling approximates that reconstructed
+    waveform so the limiter can catch — and duck — those overs before export.
+    """
+    if audio.ndim == 2:
+        up = scipy_signal.resample_poly(audio, oversample, 1, axis=-1).astype(np.float32)
+        peak_up = np.max(np.abs(up), axis=0)
+    else:
+        up = scipy_signal.resample_poly(audio, oversample, 1).astype(np.float32)
+        peak_up = np.abs(up).astype(np.float32)
+    del up
+
+    n = audio.shape[-1]
+    usable = (len(peak_up) // oversample) * oversample
+    # Max over each block of `oversample` interpolated points = true peak
+    # for the original sample at that block's position.
+    peak_per_sample = peak_up[:usable].reshape(-1, oversample).max(axis=1)
+    del peak_up
+
+    if len(peak_per_sample) < n:
+        peak_per_sample = np.pad(peak_per_sample, (0, n - len(peak_per_sample)), mode="edge")
+    else:
+        peak_per_sample = peak_per_sample[:n]
+    return peak_per_sample.astype(np.float32)
+
+
 def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, target_lufs: float) -> np.ndarray:
     """
     True Peak limiter with proper lookahead + smooth attack/release.
 
     Pipeline:
       1. LUFS normalization (ITU-R BS.1770-4 via pyloudnorm)
-      2. 5 ms forward-looking peak detection (scipy maximum_filter1d)
+      2. True-peak detection via 4x oversampling + 5 ms forward lookahead
       3. Smooth gain reduction: instant attack, 50 ms release (IIR)
       4. Hard safety clip as final guard
     """
@@ -312,11 +344,8 @@ def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, targe
 
     ceiling_lin = db_to_linear(ceiling_db)
 
-    # ── 2. Compute per-sample peak (max of L/R channels) ────────────────────
-    if audio.ndim == 2:
-        peak_sig = np.max(np.abs(audio), axis=0).astype(np.float32)
-    else:
-        peak_sig = np.abs(audio).astype(np.float32)
+    # ── 2. Compute per-sample true-peak envelope (4x oversampled) ───────────
+    peak_sig = _true_peak_envelope(audio, oversample=4)
 
     # ── 3. 5 ms forward lookahead with scipy (O(n), no Python loop) ─────────
     lookahead = max(1, int(sr * 0.005))  # 5 ms in samples
