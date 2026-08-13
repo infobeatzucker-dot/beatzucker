@@ -3,6 +3,9 @@ import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { rateLimit } from "@/lib/rateLimit";
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 const MAX_SIZE = 200 * 1024 * 1024; // 200MB
@@ -15,7 +18,45 @@ const ACCEPTED_MIMES = [
   "audio/mp4", "audio/x-m4a",
 ];
 
+/**
+ * Validate audio file magic bytes server-side.
+ * Returns true if the buffer matches a known audio container signature.
+ * This prevents renaming arbitrary files to .wav/.mp3 etc. to bypass MIME checks.
+ */
+function hasValidAudioMagicBytes(buf: Buffer): boolean {
+  if (buf.length < 12) return false;
+  // WAV / AIFF: RIFF....WAVE  or  FORM....AIFF
+  const riff = buf.slice(0, 4).toString("ascii");
+  const ftype = buf.slice(8, 12).toString("ascii");
+  if ((riff === "RIFF" && ftype === "WAVE") || (riff === "FORM" && (ftype === "AIFF" || ftype === "AIFC"))) return true;
+  // FLAC
+  if (buf.slice(0, 4).toString("ascii") === "fLaC") return true;
+  // OGG (Vorbis, Opus)
+  if (buf.slice(0, 4).toString("ascii") === "OggS") return true;
+  // MP3: ID3v2 tag header
+  if (buf[0] === 0x49 && buf[1] === 0x44 && buf[2] === 0x33) return true; // "ID3"
+  // MP3: MPEG sync word (0xFF followed by 0xE0–0xFF for MPEG-1/2/2.5 layers)
+  // Check first 3 bytes to avoid false positives
+  if (buf[0] === 0xFF && (buf[1] & 0xE0) === 0xE0 && (buf[1] & 0x06) !== 0) return true;
+  // MP4 / M4A / AAC-in-MP4: ftyp box (box size + "ftyp" at bytes 4–7)
+  if (buf.slice(4, 8).toString("ascii") === "ftyp") return true;
+  // AAC / ADTS: sync word 0xFFF1 (MPEG-4 AAC) or 0xFFF9 (MPEG-2 AAC)
+  if (buf[0] === 0xFF && (buf[1] === 0xF1 || buf[1] === 0xF9)) return true;
+  return false;
+}
+
 export async function POST(req: NextRequest) {
+  // Require authentication — no anonymous uploads
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Anmeldung erforderlich" }, { status: 401 });
+  }
+
+  // Rate limit: 10 uploads per 10 minutes per user
+  if (!rateLimit(`upload:${session.user.id}`, 10, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: "Zu viele Uploads. Bitte warte kurz." }, { status: 429 });
+  }
+
   try {
     const contentType = req.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
@@ -44,12 +85,28 @@ export async function POST(req: NextRequest) {
       await mkdir(UPLOAD_DIR, { recursive: true });
     }
 
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    // Validate actual file content via magic bytes (prevents MIME spoofing)
+    if (!hasValidAudioMagicBytes(buffer)) {
+      return NextResponse.json({
+        error: "File content does not match a supported audio format.",
+      }, { status: 415 });
+    }
+
     const fileId = randomUUID();
-    const ext = file.name.split(".").pop()?.toLowerCase() || "wav";
+    // Derive extension from validated MIME type, not client filename
+    const MIME_TO_EXT: Record<string, string> = {
+      "audio/wav": "wav", "audio/x-wav": "wav", "audio/wave": "wav",
+      "audio/flac": "flac", "audio/x-flac": "flac",
+      "audio/mpeg": "mp3", "audio/mp3": "mp3",
+      "audio/aiff": "aiff", "audio/x-aiff": "aiff",
+      "audio/ogg": "ogg", "application/ogg": "ogg",
+      "audio/mp4": "m4a", "audio/x-m4a": "m4a",
+    };
+    const ext = MIME_TO_EXT[file.type] ?? "wav";
     const filename = `${fileId}.${ext}`;
     const filePath = path.join(UPLOAD_DIR, filename);
-
-    const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(filePath, buffer);
 
     // Get basic info from Python service if available

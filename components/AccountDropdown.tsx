@@ -5,23 +5,9 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
 interface AccountInfo {
-  plan: string;
-  mastersUsed: number;
-  mastersLimit: number;
+  dailyUsed: number;
+  dailyLimit: number;
 }
-
-const PLAN_LABELS: Record<string, string> = {
-  free:             "Free",
-  ppu:              "Pay per Track",
-  creator_monthly:  "Creator",
-  creator_annual:   "Creator",
-  pro_monthly:      "Pro",
-  pro_annual:       "Pro",
-  proplus_monthly:  "Pro+",
-  proplus_annual:   "Pro+",
-  studio_monthly:   "Studio",
-  studio_annual:    "Studio",
-};
 
 export default function AccountDropdown() {
   const { data: session } = useSession();
@@ -33,7 +19,7 @@ export default function AccountDropdown() {
     if (!session) return;
     fetch("/api/account")
       .then(r => r.json())
-      .then(d => setInfo({ plan: d.plan ?? "free", mastersUsed: d.mastersUsed ?? 0, mastersLimit: d.mastersLimit ?? 0 }))
+      .then(d => setInfo({ dailyUsed: d.dailyUsed ?? 0, dailyLimit: d.dailyLimit ?? 0 }))
       .catch(() => {});
   }, [session]);
 
@@ -50,11 +36,8 @@ export default function AccountDropdown() {
 
   const user      = session.user;
   const initial   = (user.name ?? user.email ?? "U")[0].toUpperCase();
-  const planKey   = info?.plan ?? "free";
-  const planLabel = PLAN_LABELS[planKey] ?? planKey;
-  const isPro     = planKey.startsWith("proplus") || planKey.startsWith("studio");
-  const hasLimit  = info && info.mastersLimit > 0;
-  const pct       = hasLimit ? Math.min(100, Math.round((info!.mastersUsed / info!.mastersLimit) * 100)) : 0;
+  const hasLimit  = info && info.dailyLimit > 0;
+  const pct       = hasLimit ? Math.min(100, Math.round((info!.dailyUsed / info!.dailyLimit) * 100)) : 0;
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
@@ -111,18 +94,6 @@ export default function AccountDropdown() {
                 {user.email}
               </div>
             )}
-            {/* Plan badge */}
-            <div style={{ marginTop: "0.4rem" }}>
-              <span style={{
-                fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em",
-                padding: "0.2rem 0.5rem", borderRadius: "4px",
-                background: isPro ? "rgba(245,200,66,0.15)" : "rgba(124,111,255,0.15)",
-                color: isPro ? "#f5c842" : "var(--accent-purple)",
-                border: `1px solid ${isPro ? "rgba(245,200,66,0.3)" : "rgba(124,111,255,0.3)"}`,
-              }}>
-                {isPro ? "⭐ " : "🤖 "}{planLabel}
-              </span>
-            </div>
           </div>
 
           {/* Masters counter */}
@@ -130,9 +101,9 @@ export default function AccountDropdown() {
             <div style={{ padding: "0.65rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
               <div style={{ display: "flex", justifyContent: "space-between",
                             fontSize: "0.72rem", color: "var(--text-muted)", marginBottom: "0.3rem" }}>
-                <span>Masters diesen Monat</span>
+                <span>Masters heute</span>
                 <span style={{ color: pct >= 90 ? "#f87171" : "#fff" }}>
-                  {info!.mastersUsed} / {info!.mastersLimit}
+                  {info!.dailyUsed} / {info!.dailyLimit}
                 </span>
               </div>
               <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2 }}>
@@ -159,17 +130,6 @@ export default function AccountDropdown() {
               }}
             >
               👤 Mein Konto
-            </Link>
-            <Link
-              href="/pricing"
-              onClick={() => setOpen(false)}
-              style={{
-                display: "block", padding: "0.55rem 1rem",
-                fontSize: "0.85rem", color: "var(--text-secondary)",
-                textDecoration: "none",
-              }}
-            >
-              ⬆️ Upgrade
             </Link>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}

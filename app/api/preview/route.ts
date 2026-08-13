@@ -19,11 +19,21 @@ export async function GET(req: NextRequest) {
   const fileId = req.nextUrl.searchParams.get("file_id");
   if (!fileId) return new Response("file_id required", { status: 400 });
 
+  // Path traversal protection
+  if (fileId.includes("..") || fileId.includes("/") || fileId.includes("\\")) {
+    return new Response("Invalid file_id", { status: 400 });
+  }
+
   const files = existsSync(UPLOAD_DIR) ? await readdir(UPLOAD_DIR) : [];
   const filename = files.find((f) => f.startsWith(fileId));
   if (!filename) return new Response("Not found", { status: 404 });
 
   const filePath = path.resolve(path.join(UPLOAD_DIR, filename));
+  // Ensure resolved path stays within upload directory
+  const resolvedUpload = path.resolve(UPLOAD_DIR);
+  if (!filePath.startsWith(resolvedUpload)) {
+    return new Response("Invalid path", { status: 400 });
+  }
   if (!existsSync(filePath)) return new Response("Not found", { status: 404 });
 
   const ext = filename.split(".").pop()?.toLowerCase() ?? "wav";

@@ -45,7 +45,7 @@ export default function MasteringIntensity({ value, onChange }: Props) {
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <span className="label">Mastering Intensity</span>
+        <span className="label" title="Steuert wie stark das Mastering den Track beeinflusst. Niedrig = transparent, Hoch = laut & punchy.">Mastering Intensity</span>
         <div className="flex items-center gap-1.5">
           <span
             className="mono text-xs font-bold tabular-nums"

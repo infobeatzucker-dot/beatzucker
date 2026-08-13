@@ -1,86 +1,11 @@
 """
-AI Parameter Selection via Claude API.
-Takes audio analysis data and returns professional mastering parameters.
+Rule-based mastering parameter selection.
+Takes audio analysis data and returns professional mastering parameters
+based on genre presets, spectral/dynamic analysis, and reference-track matching.
 """
 
-import json
-import os
 from dataclasses import dataclass, asdict
 from typing import Optional
-import anthropic
-
-
-SYSTEM_PROMPT = """You are a world-class audio mastering engineer with 30 years experience.
-You receive technical audio analysis data and must return precise, professional mastering parameters as JSON.
-When a Reference Track section is present, shape the tonal balance, dynamic character, and stereo width to match it as closely as possible — EQ bands, compression ratios and stereo width must directly compensate for differences between source and reference spectra.
-Consider genre, energy, dynamics, and spectral balance. Aim for a sound that is:
-- Punchy, clear, and wide
-- Tonally balanced and genre-appropriate
-- Loud enough for the target platform without pumping or distortion
-- Preserved transients where the genre demands it
-Return ONLY valid JSON, no explanation."""
-
-USER_PROMPT_TEMPLATE = """Audio Analysis:
-- Integrated LUFS: {integrated_lufs:.1f}
-- True Peak: {true_peak:.1f} dBTP
-- Dynamic Range: DR{dr_value:.0f}
-- Crest Factor: {crest_factor:.1f} dB
-- BPM: {bpm:.0f}
-- Key: {key}
-- Spectral Centroid: {spectral_centroid:.0f} Hz
-- Spectral Rolloff: {spectral_rolloff:.0f} Hz
-- Spectral Flatness: {spectral_flatness:.3f}
-- Stereo Width: {stereo_width:.2f}
-- Mono Compatibility: {mono_compatibility:.2f}
-- RMS Sub (20-80Hz): {rms_sub:.1f} dB
-- RMS Low (80-500Hz): {rms_low:.1f} dB
-- RMS Mid (500-5kHz): {rms_mid:.1f} dB
-- RMS High (5-12kHz): {rms_high:.1f} dB
-- RMS Air (12-20kHz): {rms_air:.1f} dB
-- Clipping Detected: {clipping_detected}
-- Duration: {duration_seconds:.1f} sec
-- Sample Rate: {sample_rate} Hz
-- Channels: {channels}
-
-Target Platform: {platform}
-Genre Preset: {preset}
-
-Return JSON mastering parameters:
-{{
-  "genre": "detected genre string",
-  "style": "processing style description",
-  "target_lufs": <float, e.g. -14.0>,
-  "true_peak_ceiling": <float, e.g. -1.0>,
-  "highpass_freq": <int, e.g. 30>,
-  "low_shelf_freq": <int>, "low_shelf_gain": <float>,
-  "mid_notch_freq": <int>, "mid_notch_gain": <float>, "mid_notch_q": <float>,
-  "presence_freq": <int>, "presence_gain": <float>,
-  "air_freq": <int>, "air_gain": <float>,
-  "mb_sub_threshold": <float>, "mb_sub_ratio": <float>, "mb_sub_attack": <int>, "mb_sub_release": <int>,
-  "mb_low_threshold": <float>, "mb_low_ratio": <float>,
-  "mb_mid_threshold": <float>, "mb_mid_ratio": <float>,
-  "mb_high_threshold": <float>, "mb_high_ratio": <float>,
-  "stereo_width": <float, 0.5-2.0>,
-  "saturation_amount": <float, 0.0-0.5>,
-  "bus_comp_threshold": <float>, "bus_comp_ratio": <float>,
-  "notes": "brief description of mastering approach"
-}}"""
-
-
-REFERENCE_SECTION_TEMPLATE = """
-Reference Track (match this tonal character and dynamics):
-- Ref Integrated LUFS: {ref_integrated_lufs:.1f}
-- Ref True Peak: {ref_true_peak:.1f} dBTP
-- Ref Sub RMS (20-80Hz): {ref_rms_sub:.1f} dB
-- Ref Low RMS (80-500Hz): {ref_rms_low:.1f} dB
-- Ref Mid RMS (500-5kHz): {ref_rms_mid:.1f} dB
-- Ref High RMS (5-12kHz): {ref_rms_high:.1f} dB
-- Ref Air RMS (12-20kHz): {ref_rms_air:.1f} dB
-- Ref Spectral Centroid: {ref_spectral_centroid:.0f} Hz
-- Ref Spectral Flatness: {ref_spectral_flatness:.3f}
-- Ref Stereo Width: {ref_stereo_width:.2f}
-
-Use these reference values to compensate: if ref has more high-end (higher centroid), increase air/presence EQ; if ref is narrower/wider, adjust stereo_width accordingly; match the relative band energies by setting EQ shelves and multiband ratios."""
 
 
 @dataclass
@@ -173,72 +98,12 @@ def get_mastering_params(
     intensity: int = 65,
     reference_analysis: Optional[dict] = None,
 ) -> MasteringParams:
-    """Get AI-selected mastering parameters from Claude API."""
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        return get_default_params(analysis, platform, preset, intensity, reference_analysis)
-
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-
-        prompt = USER_PROMPT_TEMPLATE.format(**{**analysis, "platform": platform, "preset": preset})
-
-        # Append reference track section if provided
-        if reference_analysis:
-            ref = reference_analysis
-            prompt += REFERENCE_SECTION_TEMPLATE.format(
-                ref_integrated_lufs=ref.get("integrated_lufs", -14.0),
-                ref_true_peak=ref.get("true_peak", -1.0),
-                ref_rms_sub=ref.get("rms_sub", -24.0),
-                ref_rms_low=ref.get("rms_low", -20.0),
-                ref_rms_mid=ref.get("rms_mid", -18.0),
-                ref_rms_high=ref.get("rms_high", -24.0),
-                ref_rms_air=ref.get("rms_air", -30.0),
-                ref_spectral_centroid=ref.get("spectral_centroid", 2000.0),
-                ref_spectral_flatness=ref.get("spectral_flatness", 0.1),
-                ref_stereo_width=ref.get("stereo_width", 1.0),
-            )
-
-        message = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=1024,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": prompt}],
-            timeout=10.0,  # fall back to defaults within 10s if API is slow
-        )
-
-        response_text = message.content[0].text.strip()
-
-        # Extract JSON (handle potential markdown code blocks)
-        if "```json" in response_text:
-            response_text = response_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in response_text:
-            response_text = response_text.split("```")[1].split("```")[0].strip()
-
-        params_dict = json.loads(response_text)
-
-        # Build MasteringParams from response
-        params = MasteringParams()
-        for key, value in params_dict.items():
-            if hasattr(params, key):
-                setattr(params, key, value)
-
-        # Override target LUFS from platform
-        params.target_lufs = PLATFORM_LUFS.get(platform, -14.0)
-
-        return apply_intensity_scaling(params, intensity)
-
-    except Exception as e:
-        print(f"Claude API error: {e}, using default params")
-        params = get_default_params(analysis, platform, preset, intensity, reference_analysis)
-        # Prepend a visible marker so the frontend can show a warning
-        params.notes = f"[Preset-Fallback — KI-Parameter nicht verfügbar: {type(e).__name__}] " + params.notes
-        return params
+    """Rule-based mastering parameters from genre presets + audio analysis."""
+    return get_default_params(analysis, platform, preset, intensity, reference_analysis)
 
 
 def get_default_params(analysis: dict, platform: str, preset: str, intensity: int = 65, reference_analysis: Optional[dict] = None) -> MasteringParams:
-    """Fallback parameters based on preset and analysis."""
+    """Parameters based on preset and analysis."""
     params = MasteringParams()
     params.target_lufs = PLATFORM_LUFS.get(platform, -14.0)
 

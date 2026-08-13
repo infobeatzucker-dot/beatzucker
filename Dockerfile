@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -
 
 COPY . .
 RUN npx prisma generate
+
 RUN npm run build
 
 
@@ -59,10 +60,20 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY start.sh ./start.sh
 RUN chmod +x ./start.sh
 
+# ── Create non-root user (UID 1000 matches host volume owner) ────────────────
+RUN groupadd --gid 1000 appuser && \
+    useradd --uid 1000 --gid appuser --home /home/appuser --create-home --shell /bin/false appuser
+
 # ── Persistent storage dir (overridden by volume at /app/uploads) ─────────────
-RUN mkdir -p /app/uploads/masters
+RUN mkdir -p /app/uploads/masters && \
+    chown -R appuser:appuser /app /home/appuser
 
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
+
+USER appuser
 
 # start.sh: runs prisma db push, then starts supervisord
 CMD ["./start.sh"]

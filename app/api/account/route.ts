@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
-import { hashPassword, verifyPassword, getTierFromPlan } from "@/lib/auth";
+import { hashPassword, verifyPassword } from "@/lib/auth";
+import { DAILY_MASTER_LIMIT } from "@/lib/constants";
 
 // ── GET /api/account ─────────────────────────────────────────────────
-// Returns user profile + active subscription + last 30 masters
+// Returns user profile + usage stats + master history
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email)
@@ -14,17 +15,12 @@ export async function GET() {
   const user = await db.user.findUnique({
     where: { email: session.user.email },
     include: {
-      subscriptions: {
-        where: { status: "active" },
-        orderBy: { createdAt: "desc" },
-        take: 1,
-      },
       masters: {
         orderBy: { createdAt: "desc" },
         take: 30,
         select: {
           id: true, originalName: true, platform: true, preset: true,
-          status: true, preAnalysis: true, postAnalysis: true, createdAt: true,
+          status: true, preAnalysis: true, postAnalysis: true, createdAt: true, notes: true,
         },
       },
     },
@@ -32,7 +28,16 @@ export async function GET() {
 
   if (!user) return NextResponse.json({ error: "Nutzer nicht gefunden" }, { status: 404 });
 
-  const sub = user.subscriptions[0] ?? null;
+  // Fair-use daily counter
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const dailyUsed = await db.master.count({
+    where: {
+      userId: user.id,
+      status: { in: ["done", "processing"] },
+      createdAt: { gte: startOfDay },
+    },
+  });
 
   // Parse LUFS from analysis JSON
   const mastersWithLufs = user.masters.map((m: typeof user.masters[number]) => {
@@ -41,7 +46,13 @@ export async function GET() {
     try { const post = JSON.parse(m.postAnalysis ?? "{}"); lufsOut = post.integrated_lufs ?? post.integrated_loudness ?? null; } catch {}
     return { id: m.id, originalName: m.originalName, platform: m.platform,
              preset: m.preset, status: m.status, lufsIn, lufsOut,
-             createdAt: m.createdAt };
+             createdAt: m.createdAt, notes: m.notes ?? "" };
+  });
+
+  const savedRefs = await db.savedReference.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, name: true, analysisJson: true, createdAt: true },
   });
 
   return NextResponse.json({
@@ -53,13 +64,12 @@ export async function GET() {
       hasPassword: !!user.password,
       createdAt: user.createdAt,
     },
-    plan:         sub?.planType ?? "free",
-    tier:         getTierFromPlan(sub?.planType),
-    mastersUsed:  sub?.mastersUsed ?? 0,
-    mastersLimit: sub?.mastersLimit ?? 0,
-    validUntil:   sub?.validUntil ?? null,
-    subStatus:    sub?.status ?? null,
-    masters: mastersWithLufs,
+    twoFactor:      user.twoFactorEnabled,
+    dailyUsed,
+    dailyLimit:     DAILY_MASTER_LIMIT,
+    masters:        mastersWithLufs,
+    savedRefs,
+    savedRefsLimit: 100,
   });
 }
 
@@ -74,11 +84,26 @@ export async function PATCH(req: NextRequest) {
   const user = await db.user.findUnique({ where: { email: session.user.email } });
   if (!user) return NextResponse.json({ error: "Nutzer nicht gefunden" }, { status: 404 });
 
-  const updates: Record<string, string> = {};
+  const updates: Record<string, string | boolean> = {};
 
   // Update name
   if (typeof body.name === "string") {
     updates.name = body.name.trim().slice(0, 80);
+  }
+
+  // Toggle 2FA — requires current password confirmation to enable
+  if (typeof body.twoFactor === "boolean") {
+    if (!user.password)
+      return NextResponse.json({ error: "2FA nur für Passwort-Konten verfügbar" }, { status: 400 });
+    if (body.twoFactor && !body.currentPassword)
+      return NextResponse.json({ error: "Aktuelles Passwort erforderlich um 2FA zu aktivieren" }, { status: 400 });
+    if (body.twoFactor) {
+      const valid = await verifyPassword(body.currentPassword, user.password);
+      if (!valid)
+        return NextResponse.json({ error: "Aktuelles Passwort falsch" }, { status: 400 });
+    }
+    console.log(`[2fa] ${user.email} toggled twoFactorEnabled: ${user.twoFactorEnabled} → ${body.twoFactor}`);
+    updates.twoFactorEnabled = body.twoFactor;
   }
 
   // Change password
@@ -88,9 +113,10 @@ export async function PATCH(req: NextRequest) {
     const valid = await verifyPassword(body.currentPassword, user.password);
     if (!valid)
       return NextResponse.json({ error: "Aktuelles Passwort falsch" }, { status: 400 });
-    if (body.newPassword.length < 8)
-      return NextResponse.json({ error: "Neues Passwort muss mindestens 8 Zeichen haben" }, { status: 400 });
+    if (body.newPassword.length < 8 || !/[A-Z]/.test(body.newPassword) || !/[a-z]/.test(body.newPassword) || !/[0-9]/.test(body.newPassword))
+      return NextResponse.json({ error: "Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten" }, { status: 400 });
     updates.password = await hashPassword(body.newPassword);
+    updates.passwordChangedAt = new Date().toISOString();
   }
 
   if (Object.keys(updates).length === 0)
@@ -110,7 +136,7 @@ export async function DELETE() {
   const user = await db.user.findUnique({ where: { email: session.user.email } });
   if (!user) return NextResponse.json({ error: "Nutzer nicht gefunden" }, { status: 404 });
 
-  // Cascade deletes handle subscriptions, sessions, masters, orders
+  // Cascade deletes handle sessions, masters, saved references
   await db.user.delete({ where: { id: user.id } });
 
   return NextResponse.json({ ok: true });

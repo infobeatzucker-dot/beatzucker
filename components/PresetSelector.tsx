@@ -49,6 +49,7 @@ export default function PresetSelector({ value, onChange }: Props) {
           boxShadow: isAuto
             ? "0 0 20px rgba(124,111,255,0.25), inset 0 1px 0 rgba(255,255,255,0.05)"
             : "none",
+          cursor: "pointer",
           position: "relative",
           overflow: "hidden",
         }}
@@ -80,7 +81,7 @@ export default function PresetSelector({ value, onChange }: Props) {
         </span>
         {!isAuto && (
           <span style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginLeft: "auto" }}>
-            KI erkennt Genre automatisch
+            Analysiert Genre automatisch
           </span>
         )}
       </button>

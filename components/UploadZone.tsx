@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { signIn } from "next-auth/react";
 import { AppState, AnalysisData, UploadedFile } from "@/app/page";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   onAnalysisComplete: (data: AnalysisData) => void;
   setAppState: (state: AppState) => void;
   uploadedFile: UploadedFile | null;
+  isAuthenticated?: boolean;
 }
 
 const ACCEPTED_FORMATS = [".wav", ".flac", ".mp3", ".aiff", ".ogg", ".m4a"];
@@ -57,6 +59,7 @@ export default function UploadZone({
   onAnalysisComplete,
   setAppState,
   uploadedFile,
+  isAuthenticated = false,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -307,6 +310,47 @@ export default function UploadZone({
           accept={ACCEPTED_FORMATS.join(",")}
           onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
         />
+      </div>
+    );
+  }
+
+  // Auth gate — not logged in
+  if (!isAuthenticated) {
+    return (
+      <div
+        className="upload-zone p-8 text-center"
+        style={{ minHeight: 220 }}
+        onDragOver={(e) => e.preventDefault()}
+      >
+        <IdleWaveform />
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          style={{ background: "rgba(124,111,255,0.1)", border: "1px solid var(--border-subtle)" }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="var(--accent-purple)" strokeWidth="1.5"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="var(--accent-purple)" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <h3 className="text-base font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+          Sign in to upload
+        </h3>
+        <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
+          Create a free account to start mastering your tracks
+        </p>
+        <button
+          onClick={() => signIn()}
+          className="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+          style={{
+            background: "linear-gradient(135deg, var(--accent-purple), #5a4fd0)",
+            color: "#fff",
+          }}
+        >
+          Sign In / Register
+        </button>
+        <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
+          Free plan: 3 masters per day · No credit card required
+        </p>
       </div>
     );
   }

@@ -14,12 +14,33 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 255;
 }
 
-function isValidPassword(pw: string) {
-  return typeof pw === "string" && pw.length >= 8 && pw.length <= 128;
+function isValidPassword(pw: string): boolean {
+  if (typeof pw !== "string" || pw.length < 8 || pw.length > 128) return false;
+  // Require at least one uppercase, one lowercase, one digit
+  if (!/[A-Z]/.test(pw)) return false;
+  if (!/[a-z]/.test(pw)) return false;
+  if (!/[0-9]/.test(pw)) return false;
+  return true;
+}
+
+// ── CSRF: reject requests from unknown origins ───────────────────────
+function isValidOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  // Same-origin fetch or non-browser clients (curl, server-side) have no Origin header — allow
+  if (!origin) return true;
+  const allowed = process.env.NEXTAUTH_URL ?? "https://upmado.com";
+  try {
+    return new URL(origin).host === new URL(allowed).host;
+  } catch {
+    return false;
+  }
 }
 
 // ── POST /api/auth ───────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  if (!isValidOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const body = await req.json();
     const { action } = body;
@@ -32,7 +53,7 @@ export async function POST(req: NextRequest) {
       if (!isValidEmail(email))
         return NextResponse.json({ error: "Ungültige E-Mail-Adresse" }, { status: 400 });
       if (!isValidPassword(password))
-        return NextResponse.json({ error: "Passwort muss mindestens 8 Zeichen haben" }, { status: 400 });
+        return NextResponse.json({ error: "Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten" }, { status: 400 });
 
       const existing = await db.user.findUnique({ where: { email } });
       if (existing)
@@ -44,7 +65,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Fire-and-forget welcome email
-      sendWelcomeEmail(email).catch(() => {});
+      sendWelcomeEmail(email).catch((err) => console.error("[email] welcome:", err));
 
       return NextResponse.json({ ok: true, user: { id: user.id, email: user.email } });
     }
@@ -69,7 +90,7 @@ export async function POST(req: NextRequest) {
         const baseUrl  = process.env.NEXTAUTH_URL ?? "https://upmado.com";
         const resetUrl = `${baseUrl}/?reset=${token}`;
 
-        sendPasswordResetEmail(email, resetUrl).catch(() => {});
+        sendPasswordResetEmail(email, resetUrl).catch((err) => console.error("[email] password-reset:", err));
       }
 
       // Always return OK — prevents email enumeration
@@ -84,7 +105,7 @@ export async function POST(req: NextRequest) {
       if (!token)
         return NextResponse.json({ error: "Ungültiger Token" }, { status: 400 });
       if (!isValidPassword(newPassword))
-        return NextResponse.json({ error: "Passwort muss mindestens 8 Zeichen haben" }, { status: 400 });
+        return NextResponse.json({ error: "Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten" }, { status: 400 });
 
       const user = await db.user.findFirst({
         where: { passwordResetToken: token },

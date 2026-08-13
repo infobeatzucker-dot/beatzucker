@@ -11,19 +11,30 @@ interface LegalSection {
 
 interface LegalLayoutProps {
   title: string;
-  activePage?: "agb" | "datenschutz" | "widerruf" | "impressum";
+  activePage?: "agb" | "datenschutz" | "widerruf" | "impressum" | "terms" | "privacy";
   sections?: LegalSection[];
   children: React.ReactNode;
+  lang?: "de" | "en";
 }
 
-const NAV_ITEMS = [
+const NAV_ITEMS_DE = [
   { key: "agb",         href: "/agb",         label: "AGB" },
   { key: "datenschutz", href: "/datenschutz",  label: "Datenschutz" },
   { key: "widerruf",    href: "/widerruf",     label: "Widerruf" },
   { key: "impressum",   href: "/impressum",    label: "Impressum" },
 ];
 
-export default function LegalLayout({ title, activePage, sections, children }: LegalLayoutProps) {
+const NAV_ITEMS_EN = [
+  { key: "terms",   href: "/terms",   label: "Terms of Service" },
+  { key: "privacy", href: "/privacy", label: "Privacy Policy" },
+];
+
+export default function LegalLayout({ title, activePage, sections, children, lang = "de" }: LegalLayoutProps) {
+  const NAV_ITEMS = lang === "en" ? NAV_ITEMS_EN : NAV_ITEMS_DE;
+  const tocLabel  = lang === "en" ? "Table of Contents" : "Inhaltsverzeichnis";
+  const badge     = lang === "en" ? "Legal" : "Rechtliches";
+  const dateLabel = lang === "en" ? "As of March 2026" : "Stand: März 2026";
+
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>
       <Header />
@@ -43,7 +54,7 @@ export default function LegalLayout({ title, activePage, sections, children }: L
             letterSpacing: "0.1em",
             textTransform: "uppercase" as const,
           }}>
-            Rechtliches
+            {badge}
           </div>
           <div style={{
             display: "inline-flex",
@@ -60,7 +71,7 @@ export default function LegalLayout({ title, activePage, sections, children }: L
             <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
               <circle cx="4" cy="4" r="4" fill="#10b981"/>
             </svg>
-            Stand: März 2026
+            {dateLabel}
           </div>
         </div>
 
@@ -116,7 +127,7 @@ export default function LegalLayout({ title, activePage, sections, children }: L
               color: "var(--text-muted)",
               marginBottom: "0.75rem",
             }}>
-              Inhaltsverzeichnis
+              {tocLabel}
             </div>
             <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexWrap: "wrap", gap: "0.4rem 1.5rem" }}>
               {sections.map((sec, i) => (

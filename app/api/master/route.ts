@@ -6,16 +6,16 @@ import { randomUUID } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
-import { getMastersLimit } from "@/lib/auth";
+import { rateLimit } from "@/lib/rateLimit";
+import { sendMasteringErrorEmail } from "@/lib/email";
+import { sendMasteringCompleteEmail } from "@/lib/email";
+import { DAILY_MASTER_LIMIT } from "@/lib/constants";
 
 // Allow up to 10 minutes – mastering a full track can take 3–5 min
 export const maxDuration = 600;
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 const PYTHON_URL = process.env.PYTHON_SERVICE_URL || "http://localhost:8001";
-
-// Free tier: max 3 masters per calendar day
-const FREE_DAILY_LIMIT = 3;
 
 // SSE helper
 function encodeSSE(data: object) {
@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const fileId    = body.file_id    as string | undefined;
   const platform  = (body.platform  as string) || "spotify";
-  const preset    = (body.preset    as string) || "auto";
-  const intensity = Number(body.intensity ?? 65);
+  const presetRaw = (body.preset    as string) || "auto";
+  const intensity = Math.min(100, Math.max(0, Number(body.intensity ?? 65)));
   const format    = (body.format    as string) || "mp3128";
   const originalName      = (body.original_name     as string) || "track";
   const analysis          = body.analysis           as object | undefined;
@@ -41,35 +41,45 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const userId  = session?.user?.id ?? null;
 
-  if (userId) {
-    // Authenticated: check subscription quota
-    const sub = await db.subscription.findFirst({
-      where: { userId, status: "active", validUntil: { gt: new Date() } },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (sub) {
-      // Subscription plan: check monthly limit
-      if (sub.mastersUsed >= sub.mastersLimit) {
-        return new Response(
-          JSON.stringify({
-            error: "Monatliches Limit erreicht",
-            used: sub.mastersUsed,
-            limit: sub.mastersLimit,
-            plan: sub.planType,
-          }),
-          { status: 429, headers: { "Content-Type": "application/json" } }
-        );
-      }
-    }
-    // If no active subscription, fall through to free-tier daily limit below
+  // Rate limit: 5 master requests per minute per user
+  const rlKey = userId ? `master:${userId}` : `master:ip:${req.headers.get("x-forwarded-for") ?? "unknown"}`;
+  if (!rateLimit(rlKey, 5, 60 * 1000)) {
+    return new Response(
+      JSON.stringify({ error: "Zu viele Anfragen. Bitte warte einen Moment." }),
+      { status: 429, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   if (!userId) {
-    // Anonymous: enforce free-tier daily limit (3 per day, keyed by IP)
-    // We rely on client-side enforcement + honor system — no strict IP tracking needed
-    // (a real app would use Redis/rate-limiting middleware here)
+    // Upload API already requires auth — this path should not be reached
+    return new Response(JSON.stringify({ error: "Anmeldung erforderlich" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
   }
+
+  // ── Fair-use daily limit (abuse protection, applies to every account equally) ──
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const todayCount = await db.master.count({
+    where: {
+      userId,
+      status: { in: ["done", "processing"] },
+      createdAt: { gte: startOfDay },
+    },
+  });
+  if (todayCount >= DAILY_MASTER_LIMIT) {
+    return new Response(
+      JSON.stringify({
+        error: `Tageslimit erreicht (${DAILY_MASTER_LIMIT} Masters/Tag). Bitte versuche es morgen wieder.`,
+        used: todayCount,
+        limit: DAILY_MASTER_LIMIT,
+      }),
+      { status: 429, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const preset = presetRaw;
 
   // ── Set up SSE response ──────────────────────────────────────────────────
   const encoder = new TextEncoder();
@@ -135,7 +145,7 @@ export async function POST(req: NextRequest) {
 
         if (!res.ok || !res.body) {
           await simulateMockProgress(send, format, masterId);
-          await finalizeMaster(dbMasterId, userId, masterId, sub_of(userId));
+          await finalizeMaster(dbMasterId, userId, masterId);
           controller.close();
           return;
         }
@@ -195,12 +205,19 @@ export async function POST(req: NextRequest) {
           finalPayload = null; // mock — no real LUFS
         }
 
-        // Persist results + increment quota
-        await finalizeMaster(dbMasterId, userId, masterId, null, finalPayload);
+        // Persist results
+        await finalizeMaster(dbMasterId, userId, masterId, finalPayload);
 
       } catch (err) {
         console.error("Mastering error:", err);
         if (dbMasterId) await db.master.update({ where: { id: dbMasterId }, data: { status: "error" } }).catch(() => {});
+        // Notify user about the failure
+        if (userId) {
+          try {
+            const user = await db.user.findUnique({ where: { id: userId }, select: { email: true } });
+            if (user?.email) sendMasteringErrorEmail(user.email, originalName).catch((err) => console.error("[email] mastering-error:", err));
+          } catch { /* ignore */ }
+        }
         await simulateMockProgress(send, format, masterId);
         controller.close();
         return;
@@ -220,14 +237,10 @@ export async function POST(req: NextRequest) {
   });
 }
 
-// Dummy helper — real subscription is fetched inside the route body above
-function sub_of(_userId: string | null) { return null; }
-
 async function finalizeMaster(
   dbMasterId: string | null,
   userId: string | null,
   _masterId: string,
-  _sub: null,
   payload?: Record<string, unknown> | null,
 ) {
   if (!dbMasterId || !userId) return;
@@ -244,17 +257,22 @@ async function finalizeMaster(
       data:  {
         status:       "done",
         postAnalysis: postAnalysis ? JSON.stringify(postAnalysis) : null,
-        notes:        typeof payload?.notes === "string" ? payload.notes : null,
+        notes:        typeof payload?.genre === "string" ? payload.genre : (typeof payload?.notes === "string" ? payload.notes.slice(0, 80) : null),
       },
     });
 
-    // Increment mastersUsed on active subscription
-    await db.subscription.updateMany({
-      where: { userId, status: "active", validUntil: { gt: new Date() } },
-      data:  { mastersUsed: { increment: 1 } },
-    });
-
-    console.log(`Master done: dbId=${dbMasterId} user=${userId} lufsOut=${lufsOut}`);
+    // Send completion email
+    try {
+      const [user, masterRecord] = await Promise.all([
+        db.user.findUnique({ where: { id: userId }, select: { email: true } }),
+        db.master.findUnique({ where: { id: dbMasterId }, select: { originalName: true, platform: true } }),
+      ]);
+      if (user?.email && masterRecord) {
+        await sendMasteringCompleteEmail(user.email, masterRecord.originalName, masterRecord.platform, lufsOut);
+      }
+    } catch (mailErr) {
+      console.error("Failed to send mastering complete email:", mailErr);
+    }
   } catch (e) {
     console.error("finalizeMaster error:", e);
   }

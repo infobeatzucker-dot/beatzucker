@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import LegalLayout from "../components/LegalLayout";
+import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
   title: "Datenschutzerklärung – UpMaDo",
   description: "Datenschutzerklärung des automatisierten Audio-Mastering-Dienstes UpMaDo gemäß DSGVO.",
+  alternates: { canonical: "https://upmado.com/datenschutz" },
 };
 
 const SECTIONS = [
@@ -11,8 +12,8 @@ const SECTIONS = [
   { id: "audiodaten",        label: "2.1 Audio-Dateien" },
   { id: "nutzungsdaten",     label: "2.2 Nutzungsdaten" },
   { id: "serverlogs",        label: "2.3 Server-Logs" },
-  { id: "kontodaten",        label: "2.4 Konto- & Vertragsdaten" },
-  { id: "paypal",            label: "2.5 PayPal" },
+  { id: "kontodaten",        label: "2.4 Konto-Daten" },
+  { id: "hosting",           label: "2.5 Hosting" },
   { id: "localstorage",      label: "3. LocalStorage" },
   { id: "rechte",            label: "4. Ihre Rechte" },
   { id: "automatisierung",   label: "5. Keine Automatisierung" },
@@ -41,11 +42,11 @@ export default function DatenschutzPage() {
           Server gelöscht (spätestens nach 60 Minuten).
         </p>
         <p>
-          Gemasterte Ausgabedateien werden nach Abschluss der Verarbeitung für einen Zeitraum
-          von <strong style={{ color: "var(--text-primary)" }}>2 Stunden</strong> auf dem Server
-          vorgehalten, um den Download zu ermöglichen. Nach Ablauf dieser Frist werden die Dateien
-          automatisch und dauerhaft gelöscht. Es wird keine permanente Audio-Bibliothek oder
-          dauerhaftes Dateiarchiv geführt.
+          Gemasterte Ausgabedateien werden nach Abschluss der Verarbeitung für
+          <strong style={{ color: "var(--text-primary)" }}> 24 Stunden</strong>
+          auf dem Server vorgehalten, um den Download zu ermöglichen. Nach Ablauf dieser Frist
+          werden die Dateien automatisch und dauerhaft gelöscht. Es wird keine permanente
+          Audio-Bibliothek oder dauerhaftes Dateiarchiv geführt.
         </p>
         <p>
           Keine dauerhafte Speicherung, keine Weitergabe, keine Analyse der Audioinhalte.
@@ -75,43 +76,42 @@ export default function DatenschutzPage() {
       </div>
 
       <div className="legal-section" id="kontodaten">
-        <h2>2.4 Konto- und Vertragsdaten</h2>
+        <h2>2.4 Kontodaten</h2>
         <p>
-          Für registrierte Nutzer (Tarife Creator, Pro, Pro+, Studio) werden folgende Daten
-          gespeichert:
+          Für registrierte Nutzer werden folgende Daten gespeichert:
         </p>
         <ul>
           <li>E-Mail-Adresse (Pflichtangabe zur Kontoerstellung)</li>
           <li>Name (optional)</li>
-          <li>Abo-Status, Tariftyp und Abrechnungszeitraum</li>
-          <li>Verbrauchte Masters im laufenden Monat (Quota-Zähler)</li>
+          <li>Tägliche Nutzungszähler (Fair-Use-Limit)</li>
           <li>
             <strong style={{ color: "var(--text-primary)" }}>Mastering-Verlauf (Metadaten):</strong>{" "}
             Dateiname, Datum, gewählte Plattform, Mastering-Intensität, LUFS-Messwerte vor/nach
-            der Verarbeitung, KI-Parameter — ausdrücklich <em>kein</em> Audiomaterial
+            der Verarbeitung, Mastering-Parameter — ausdrücklich <em>kein</em> Audiomaterial
           </li>
         </ul>
         <p>
           Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
-          Speicherdauer: bis zur Löschung des Nutzerkontos. Abrechnungsdaten (Kaufbelege,
-          Abonnementnachweise) werden gemäß § 147 AO für 10 Jahre aufbewahrt.
+          Speicherdauer: bis zur Löschung des Nutzerkontos.
         </p>
       </div>
 
-      <div className="legal-section" id="paypal">
-        <h2>2.5 PayPal als Zahlungsdienstleister</h2>
+      <div className="legal-section" id="hosting">
+        <h2>2.5 Hosting (Auftragsverarbeiter)</h2>
         <p>
-          Die Zahlungsabwicklung erfolgt über PayPal (Europe) S.à r.l. et Cie, S.C.A.,
-          22–24 Boulevard Royal, L-2449 Luxemburg. PayPal ist Auftragsverarbeiter gemäß
-          Art. 28 DSGVO. Bei der Bezahlung werden die für die Transaktion erforderlichen
-          Daten (Name, E-Mail, Betrag) an PayPal übertragen. UpMaDo speichert keine
-          Zahlungsmittel (Kartennummern, Bankdaten).
+          Diese Website wird auf Servern der{" "}
+          <strong style={{ color: "var(--text-primary)" }}>DomainFactory GmbH</strong>{" "}
+          (df.eu), Oskar-Messter-Str. 33, 85737 Ismaning, Deutschland gehostet.
+          DomainFactory ist Auftragsverarbeiter gemäß Art. 28 DSGVO; ein entsprechender
+          Auftragsverarbeitungsvertrag (AVV) ist abgeschlossen. Die Server befinden
+          sich innerhalb der Europäischen Union. Eine Übertragung in Drittländer
+          findet durch den Hoster nicht statt.
         </p>
         <p>
-          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
-          Datenschutzerklärung PayPal:{" "}
-          <a href="https://www.paypal.com/de/webapps/mpp/ua/privacy-full" target="_blank" rel="noopener noreferrer">
-            paypal.com/de/webapps/mpp/ua/privacy-full
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse —
+          zuverlässiger Betrieb der Website). Datenschutzrichtlinie DomainFactory:{" "}
+          <a href="https://www.df.eu/de/datenschutz/" target="_blank" rel="noopener noreferrer">
+            df.eu/de/datenschutz
           </a>
         </p>
       </div>
@@ -169,10 +169,9 @@ export default function DatenschutzPage() {
         </p>
         <ul>
           <li><strong>Upload-Audiodatei:</strong> sofortige Löschung nach Verarbeitung (max. 60 Min.)</li>
-          <li><strong>Gemasterte Ausgabedatei:</strong> 2 Stunden nach Verarbeitungsabschluss</li>
+          <li><strong>Gemasterte Ausgabedatei:</strong> 24 Stunden nach Verarbeitungsabschluss</li>
           <li><strong>Server-Logs:</strong> 7 Tage</li>
           <li><strong>Konto- und Mastering-Metadaten:</strong> bis zur Konto-Löschung</li>
-          <li><strong>Abrechnungsdaten:</strong> 10 Jahre (§ 147 AO)</li>
         </ul>
         <p>
           Zur EU-Streitbeilegung: Die Europäische Kommission stellt eine Plattform zur
@@ -185,7 +184,7 @@ export default function DatenschutzPage() {
       </div>
 
       <div className="legal-meta">
-        Stand: März 2026 · Michael Clas · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
+        Stand: März 2026 · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
       </div>
     </LegalLayout>
   );

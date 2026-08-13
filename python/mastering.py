@@ -553,6 +553,7 @@ def master_audio(
     progress_callback: Optional[Callable[[str, int], None]] = None,
     selected_format: str = "mp3128",
     pre_analysis: Optional[dict] = None,
+    master_id: Optional[str] = None,
 ) -> MasteringResult:
     """Execute the full 12-stage mastering chain."""
 
@@ -613,8 +614,9 @@ def master_audio(
 
     emit("rendering", 88)
 
-    # 12. Export all formats
-    master_id = str(uuid.uuid4())
+    # 12. Export all formats — use provided master_id or generate a fallback UUID
+    if not master_id:
+        master_id = str(uuid.uuid4())
     paths = export_formats(audio, sr, output_dir, master_id, selected_format)
 
     # Post-analysis — lightweight in-memory measurement (skip BPM/key, they don't change)

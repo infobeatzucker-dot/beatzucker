@@ -1,15 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
 import { MasterData } from "@/app/page";
 import ABPlayer from "./ABPlayer";
-
-const PayPalDownloadButton = dynamic(
-  () => import("./PayPalButton").then((m) => m.PayPalDownloadButton),
-  { ssr: false }
-);
 
 interface Props {
   masterData:  MasterData;
@@ -24,27 +17,19 @@ interface Props {
 }
 
 const FORMAT_CONFIG = [
-  { key: "wav32",  label: "WAV 32-bit Float", desc: "Highest quality", tier: "pro",  ext: "wav" },
-  { key: "wav24",  label: "WAV 24-bit",        desc: "Studio quality",  tier: "paid", ext: "wav" },
-  { key: "wav16",  label: "WAV 16-bit",        desc: "CD quality",      tier: "paid", ext: "wav" },
-  { key: "flac",   label: "FLAC",              desc: "Lossless",        tier: "paid", ext: "flac" },
-  { key: "mp3320", label: "MP3 320kbps",       desc: "High quality",    tier: "paid", ext: "mp3" },
-  { key: "mp3128", label: "MP3 128kbps",       desc: "Free tier",       tier: "free", ext: "mp3" },
-  { key: "aac256", label: "AAC 256kbps",       desc: "Streaming",       tier: "paid", ext: "m4a" },
+  { key: "wav32",  label: "WAV 32-bit Float", desc: "Highest quality", ext: "wav" },
+  { key: "wav24",  label: "WAV 24-bit",        desc: "Studio quality", ext: "wav" },
+  { key: "wav16",  label: "WAV 16-bit",        desc: "CD quality",     ext: "wav" },
+  { key: "flac",   label: "FLAC",              desc: "Lossless",       ext: "flac" },
+  { key: "mp3320", label: "MP3 320kbps",       desc: "High quality",   ext: "mp3" },
+  { key: "mp3128", label: "MP3 128kbps",       desc: "Standard",       ext: "mp3" },
+  { key: "aac256", label: "AAC 256kbps",       desc: "Streaming",      ext: "m4a" },
 ] as const;
 
 type FormatKey = keyof MasterData["formats"];
 
 export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster }: Props) {
-  const [downloadToken, setDownloadToken] = useState<string | null>(null);
-  const [showPayPal,    setShowPayPal]    = useState(false);
-
-  // Detect Claude API fallback
-  const isFallback = masterData.notes?.includes("[Preset-Fallback");
-  // Strip the [Preset-Fallback ...] prefix for display
-  const displayNotes = isFallback
-    ? masterData.notes.replace(/^\[Preset-Fallback[^\]]*\]\s*/, "")
-    : masterData.notes;
+  const displayNotes = masterData.notes;
 
   // Build clean base name: strip extension + sanitize for filename
   const cleanName = filename
@@ -69,9 +54,8 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
 
   // fmtKey = "mp3128", ext = "mp3"  →  upmado_trackname_mp3128.mp3
   const handleDownload = (fmtKey: string, ext: string, url: string) => {
-    const finalUrl = downloadToken ? `${url}&token=${downloadToken}` : url;
     const a = document.createElement("a");
-    a.href = finalUrl;
+    a.href = url;
     a.download = `upmado_${cleanName}_${fmtKey}.${ext}`;
     a.click();
   };
@@ -110,36 +94,6 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
         </div>
       </div>
 
-      {/* Claude API Fallback Warning */}
-      {isFallback && (
-        <div
-          className="rounded-xl p-3 mb-4 flex items-start gap-2.5"
-          style={{
-            background: "rgba(245,180,0,0.07)",
-            border: "1px solid rgba(245,180,0,0.3)",
-          }}
-        >
-          <svg
-            className="flex-shrink-0 mt-0.5"
-            width="15" height="15" viewBox="0 0 24 24"
-            fill="none" stroke="#f5b800" strokeWidth="2.5"
-            strokeLinecap="round" strokeLinejoin="round"
-          >
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          <div>
-            <div className="text-xs font-semibold mb-0.5" style={{ color: "#f5b800" }}>
-              KI-Parameter nicht verfügbar
-            </div>
-            <div className="text-xs" style={{ color: "rgba(245,184,0,0.75)" }}>
-              Claude API konnte nicht erreicht werden — Preset-Fallback wurde verwendet. Das Ergebnis basiert auf vordefinierten Parametern.
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Report button row */}
       <div className="flex justify-end mb-4">
         <button
@@ -167,8 +121,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {FORMAT_CONFIG.map((fmt) => {
           const url = masterData.formats[fmt.key as FormatKey];
-          const isLocked = fmt.tier !== "free" && !url;
-          const isFree = fmt.tier === "free";
+          const isLocked = !url;
 
           return (
             <button
@@ -196,100 +149,44 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1">
-                {isFree && (
-                  <span
-                    className="text-xs px-1.5 py-0.5 rounded"
-                    style={{
-                      background: "rgba(0,229,196,0.1)",
-                      color: "var(--accent-cyan)",
-                      border: "1px solid rgba(0,229,196,0.2)",
-                    }}
-                  >
-                    FREE
-                  </span>
-                )}
-                {fmt.tier === "pro" && (
-                  <span className="text-xs tier-pro border rounded px-1.5 py-0.5">PRO</span>
-                )}
-                {isLocked ? (
-                  <span style={{ color: "var(--text-muted)", fontSize: 14 }}>🔒</span>
-                ) : (
-                  <span style={{ color: "var(--accent-purple)", fontSize: 14 }}>↓</span>
-                )}
+                <span
+                  className="text-xs px-1.5 py-0.5 rounded"
+                  style={{
+                    background: "rgba(0,229,196,0.1)",
+                    color: "var(--accent-cyan)",
+                    border: "1px solid rgba(0,229,196,0.2)",
+                  }}
+                >
+                  FREE
+                </span>
+                {!isLocked && <span style={{ color: "var(--accent-purple)", fontSize: 14 }}>↓</span>}
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* Pay-per-Download section */}
-      {!downloadToken && (
-        <div
-          className="mt-4 p-4 rounded-xl"
-          style={{
-            background: "rgba(245,200,66,0.05)",
-            border: "1px solid rgba(245,200,66,0.15)",
-          }}
-        >
-          {showPayPal ? (
-            <div>
-              <div className="label mb-3 text-center" style={{ color: "var(--accent-gold)" }}>
-                Pay €2.99 to unlock all formats
-              </div>
-              <PayPalDownloadButton
-                masterId={masterData.master_id}
-                onSuccess={(token) => {
-                  setDownloadToken(token);
-                  setShowPayPal(false);
-                }}
-              />
-              <button
-                onClick={() => setShowPayPal(false)}
-                className="w-full mt-2 text-xs py-1"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-              <span className="text-sm text-center sm:text-left" style={{ color: "var(--text-secondary)" }}>
-                Get all formats with{" "}
-                <span className="font-semibold" style={{ color: "var(--accent-gold)" }}>
-                  Pay-per-Download (€2.99)
-                </span>
-                {" "}or{" "}
-                <a href="/pricing" className="font-semibold hover:opacity-80" style={{ color: "var(--accent-gold)" }}>
-                  subscribe for unlimited
-                </a>
-              </span>
-              <button
-                onClick={() => setShowPayPal(true)}
-                className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
-                style={{
-                  background: "linear-gradient(135deg, var(--accent-gold), #e8a000)",
-                  color: "#000",
-                }}
-              >
-                Unlock all formats
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {downloadToken && (
-        <div
-          className="mt-4 p-3 rounded-xl text-center text-sm"
-          style={{
-            background: "rgba(0,229,196,0.08)",
-            border: "1px solid rgba(0,229,196,0.2)",
-            color: "var(--accent-cyan)",
-          }}
-        >
-          ✓ All formats unlocked · Download link valid for 7 days
-        </div>
-      )}
+      {/* Remaster-Hinweis: anderes Format wählen und erneut mastern */}
+      <div
+        className="mt-4 p-3 rounded-xl flex items-center gap-3"
+        style={{
+          background: "rgba(124,111,255,0.06)",
+          border: "1px solid rgba(124,111,255,0.18)",
+        }}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+          Möchtest du ein anderes Format? Wähle es oben aus und{" "}
+          {onRemaster ? (
+            <button onClick={onRemaster} className="font-semibold hover:opacity-80" style={{ color: "var(--accent-purple)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+              mastere erneut
+            </button>
+          ) : "mastere erneut"}.
+          {" "}Alle Funktionen sind kostenlos und unbegrenzt oft nutzbar.
+        </p>
+      </div>
 
       {/* Action buttons row */}
       <div className={`mt-6 flex gap-3 ${onRemaster ? "flex-col sm:flex-row" : ""}`}>

@@ -5,6 +5,16 @@ import { NextRequest, NextResponse } from "next/server";
  * Returns a printable HTML mastering report page.
  * The client calls window.open(url) then window.print() for PDF export.
  */
+/** Escape all HTML special characters to prevent XSS. */
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get("data");
   if (!raw) return NextResponse.json({ error: "data required" }, { status: 400 });
@@ -26,7 +36,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "invalid data" }, { status: 400 });
   }
 
-  const { filename, platform, preset, intensity, pre, post, notes, date } = payload;
+  // Escape all user-supplied string fields before HTML injection
+  const filename  = esc(payload.filename);
+  const platform  = esc(payload.platform);
+  const preset    = esc(payload.preset);
+  const intensity = Number(payload.intensity) || 0;
+  const notes     = esc(payload.notes);
+  const date      = esc(payload.date);
+  const pre       = payload.pre  ?? {};
+  const post      = payload.post ?? null;
 
   const row = (label: string, preVal: string, postVal?: string) => `
     <tr>
@@ -130,7 +148,7 @@ export async function GET(req: NextRequest) {
       <thead><tr><th>Property</th><th>Value</th></tr></thead>
       <tbody>
         <tr><td>BPM</td><td class="num">${Number(pre.bpm).toFixed(0)}</td></tr>
-        <tr><td>Key</td><td class="num">${pre.key}</td></tr>
+        <tr><td>Key</td><td class="num">${esc(pre.key)}</td></tr>
         <tr><td>Sample Rate</td><td class="num">${(Number(pre.sample_rate) / 1000).toFixed(1)} kHz</td></tr>
         <tr><td>Channels</td><td class="num">${Number(pre.channels) === 2 ? "Stereo" : "Mono"}</td></tr>
         <tr><td>Duration</td><td class="num">${Math.floor(Number(pre.duration_seconds) / 60)}:${String(Math.floor(Number(pre.duration_seconds) % 60)).padStart(2, "0")}</td></tr>

@@ -117,13 +117,7 @@ const PLATFORMS = [
 
 /* ─── Format table ─────────────────────────────────────────────────────────── */
 const FORMATS = [
-  { fmt: "WAV 32-bit Float", free: false, ppu: false, creator: false, pro: false, proplus: true,  studio: true },
-  { fmt: "WAV 24-bit",       free: false, ppu: true,  creator: true,  pro: true,  proplus: true,  studio: true },
-  { fmt: "WAV 16-bit",       free: false, ppu: true,  creator: true,  pro: true,  proplus: true,  studio: true },
-  { fmt: "FLAC 24-bit",      free: false, ppu: true,  creator: true,  pro: true,  proplus: true,  studio: true },
-  { fmt: "MP3 320 kbps",     free: false, ppu: true,  creator: true,  pro: true,  proplus: true,  studio: true },
-  { fmt: "MP3 128 kbps",     free: true,  ppu: true,  creator: true,  pro: true,  proplus: true,  studio: true },
-  { fmt: "AAC 256 kbps",     free: false, ppu: true,  creator: true,  pro: true,  proplus: true,  studio: true },
+  "WAV 32-bit Float", "WAV 24-bit", "WAV 16-bit", "FLAC 24-bit", "MP3 320 kbps", "MP3 128 kbps", "AAC 256 kbps",
 ];
 
 /* ─── Feature cards ─────────────────────────────────────────────────────────── */
@@ -135,7 +129,7 @@ const FEATURES = [
       de: "Die KI analysiert dein Audio und wählt automatisch optimale EQ-Korrekturen, Kompression, Stereobreite und Limiting — angepasst an Genre, Plattform und Dynamik.",
       en: "AI analyzes your audio and automatically selects optimal EQ corrections, compression, stereo width and limiting — adapted to genre, platform and dynamics.",
     },
-    tags: ["Auto AI", "Genre-aware", "Plattform-optimiert"],
+    tags: ["Auto AI", "Genre-aware", "Plattform-optimiert", "Kostenlos"],
     visual: "ai",
   },
   {
@@ -195,7 +189,7 @@ const FEATURES = [
       de: "Lade einen Referenz-Track hoch — die KI matched Loudness, Spektralbalance, Dynamik und Stereobreite automatisch.",
       en: "Upload a reference track — AI automatically matches loudness, spectral balance, dynamics and stereo width.",
     },
-    tags: ["AI Matching", "Reference", "Spectral"],
+    tags: ["AI Matching", "Reference", "Spectral", "Kostenlos"],
     visual: "reference",
   },
   {
@@ -210,12 +204,12 @@ const FEATURES = [
   },
   {
     color: "#f59e0b",
-    title: { de: "Mastering Report", en: "Mastering Report" },
+    title: { de: "Mastering Analyse", en: "Mastering Analysis" },
     desc: {
-      de: "Detaillierter PDF-Report mit Pre/Post-Analyse, KI-Notizen, Loudness-Tabelle und allen verwendeten Mastering-Parametern.",
-      en: "Detailed PDF report with pre/post analysis, AI notes, loudness table and all mastering parameters used.",
+      de: "Detaillierter Pre/Post-Vergleich mit LUFS-Werten, KI-Parametern, Loudness-Tabelle, Dynamic Range und allen verwendeten Mastering-Einstellungen — direkt im Browser.",
+      en: "Detailed pre/post comparison with LUFS values, AI parameters, loudness table, dynamic range and all mastering settings used — directly in the browser.",
     },
-    tags: ["PDF", "Pre/Post", "Dokumentation"],
+    tags: ["Pre/Post", "LUFS", "Parameter"],
     visual: "report",
   },
   {
@@ -247,6 +241,16 @@ const FEATURES = [
     },
     tags: ["M", "Space", "A/B"],
     visual: "keyboard",
+  },
+  {
+    color: "#22c55e",
+    title: { de: "Privacy by Design", en: "Privacy by Design" },
+    desc: {
+      de: "Kein Tracking, keine Werbe-Cookies, kein Analytics. Audiodateien werden nicht dauerhaft gespeichert. Alle Fonts werden lokal ausgeliefert — kein externer Request, kein IP-Leak.",
+      en: "No tracking, no ad cookies, no analytics. Audio files are never permanently stored. All fonts are served locally — no external request, no IP leak.",
+    },
+    tags: ["No Tracking", "No Cookies", "DSGVO-konform", "EU-Server"],
+    visual: "privacy",
   },
 ];
 
@@ -470,6 +474,30 @@ function VisualKeyboard() {
   );
 }
 
+function VisualPrivacy() {
+  const badges = ["🚫 Tracking", "🍪 Cookies", "📊 Analytics"];
+  return (
+    <div className="h-16 flex flex-col items-center justify-center gap-2">
+      <div className="flex gap-2">
+        {badges.map((b) => (
+          <span key={b} className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
+            style={{
+              background: "rgba(239,68,68,0.12)",
+              border: "1px solid rgba(239,68,68,0.3)",
+              color: "#f87171",
+              textDecoration: "line-through",
+            }}>
+            {b}
+          </span>
+        ))}
+      </div>
+      <span className="text-[9px] font-bold" style={{ color: "#22c55e", letterSpacing: "0.05em" }}>
+        ✓ EU-Server · DSGVO · Privacy by Design
+      </span>
+    </div>
+  );
+}
+
 const VISUALS: Record<string, () => React.ReactElement> = {
   ai: VisualAI,
   pipeline: VisualPipeline,
@@ -483,6 +511,7 @@ const VISUALS: Record<string, () => React.ReactElement> = {
   formats: VisualFormats,
   mobile: VisualMobile,
   keyboard: VisualKeyboard,
+  privacy: VisualPrivacy,
 };
 
 /* ─── Page ──────────────────────────────────────────────────────────────────── */
@@ -831,48 +860,22 @@ export default function FeaturesPage() {
           <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>{t.format_sub}</p>
         </div>
 
-        <div className="glass-panel" style={{ overflow: "hidden" }}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <th style={{ padding: "0.65rem 1rem", textAlign: "left", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-muted)", minWidth: 120 }}>
-                    Format
-                  </th>
-                  {[
-                    { id: "free", label: "Free", color: "var(--text-muted)" },
-                    { id: "ppu", label: "Pay/Track", color: "var(--accent-cyan)" },
-                    { id: "creator", label: "Creator", color: "var(--accent-purple)" },
-                    { id: "pro", label: "Pro", color: "#06b6d4" },
-                    { id: "proplus", label: "Pro+", color: "var(--accent-gold)" },
-                    { id: "studio", label: "Studio", color: "#a855f7" },
-                  ].map((plan) => (
-                    <th key={plan.id} style={{ padding: "0.65rem 0.5rem", textAlign: "center", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: plan.color }}>
-                      {plan.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {FORMATS.map((row, i) => (
-                  <tr key={row.fmt} style={{ borderBottom: i < FORMATS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-                    <td style={{ padding: "0.55rem 1rem", fontFamily: "monospace", color: "var(--text-primary)", fontSize: "0.8rem", fontWeight: 600 }}>
-                      {row.fmt}
-                    </td>
-                    {([row.free, row.ppu, row.creator, row.pro, row.proplus, row.studio] as boolean[]).map((has, ci) => {
-                      const colors = ["var(--text-muted)", "var(--accent-cyan)", "var(--accent-purple)", "#06b6d4", "var(--accent-gold)", "#a855f7"];
-                      return (
-                        <td key={ci} style={{ padding: "0.55rem 0.5rem", textAlign: "center" }}>
-                          <span style={{ color: has ? colors[ci] : "rgba(255,255,255,0.1)", fontSize: "0.9rem" }}>
-                            {has ? "✓" : "✗"}
-                          </span>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="glass-panel" style={{ overflow: "hidden", padding: "1.5rem" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", justifyContent: "center" }}>
+            {FORMATS.map((fmt) => (
+              <span
+                key={fmt}
+                style={{
+                  display: "flex", alignItems: "center", gap: "0.4rem",
+                  padding: "0.5rem 1rem", borderRadius: "8px",
+                  background: "rgba(0,229,196,0.08)", border: "1px solid rgba(0,229,196,0.2)",
+                  fontFamily: "monospace", fontSize: "0.85rem", fontWeight: 600, color: "var(--text-primary)",
+                }}
+              >
+                <span style={{ color: "var(--accent-cyan)" }}>✓</span>
+                {fmt}
+              </span>
+            ))}
           </div>
         </div>
       </section>

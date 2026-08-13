@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import UploadZone from "@/components/UploadZone";
@@ -11,13 +12,16 @@ import ABPlayer from "@/components/ABPlayer";
 import PlatformTargets from "@/components/PlatformTargets";
 import PresetSelector from "@/components/PresetSelector";
 import MasteringIntensity from "@/components/MasteringIntensity";
-import ReferenceTrack from "@/components/ReferenceTrack";
+import ReferenceTrack, { type SavedRef, type ReferenceAnalysis as RefAnalysis } from "@/components/ReferenceTrack";
 import FeaturesSection from "@/components/FeaturesSection";
-import PricingSection from "@/components/PricingSection";
 import Footer from "@/components/Footer";
+import TestimonialsSection from "@/components/TestimonialsSection";
 import ScrollToTop from "@/components/ScrollToTop";
 import MasteringProgressModal from "@/components/MasteringProgressModal";
+import PromoPopup from "@/components/PromoPopup";
 import { AudioEngineProvider, useAudioEngine } from "@/contexts/AudioEngineContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { DAILY_MASTER_LIMIT } from "@/lib/constants";
 
 // ── Auto-play master after mastering completes ─────────────────────────────────
 // Must live inside AudioEngineProvider so it can access the audio engine hook.
@@ -109,17 +113,56 @@ export interface ProgressStep {
   progress: number;
 }
 
+type Lang = "de" | "en";
+
+const T = {
+  hero_badge:  { de: "KI-gestütztes Professionelles Mastering", en: "AI-Powered Professional Mastering" },
+  hero_tagline: {
+    de: [
+      { text: "Upload",   color: "var(--accent-purple)" },
+      { text: "Mastern",  color: "var(--accent-cyan)" },
+      { text: "Download", color: "#f59e0b" },
+    ],
+    en: [
+      { text: "Upload",   color: "var(--accent-purple)" },
+      { text: "Master",   color: "var(--accent-cyan)" },
+      { text: "Download", color: "#f59e0b" },
+    ],
+  },
+  hero_desc: {
+    de: "Professionelle Mastering-Pipeline powered by KI. Spotify-konformer Lautstärkepegel, Multiband-Kompression, M/S-Processing — in Sekunden.",
+    en: "Professional-grade mastering chain powered by AI. Spotify-compliant loudness, multiband compression, M/S processing — in seconds.",
+  },
+  free_limit: {
+    de: (used: number, limit: number) => used >= limit
+      ? `Tageslimit erreicht (${used}/${limit} Masters heute).`
+      : `${used} von ${limit} Masters heute genutzt`,
+    en: (used: number, limit: number) => used >= limit
+      ? `Daily limit reached (${used}/${limit} masters today).`
+      : `${used} of ${limit} masters used today`,
+  },
+  neue_datei: { de: "Neue Datei", en: "New File" },
+  download_window: {
+    de: () => `⏱ Nach Fertigstellung 24 Stunden zum Download verfügbar — danach automatische Löschung`,
+    en: () => `⏱ Download available for 24 hours after completion — then automatically deleted`,
+  },
+  lang_toggle: { de: "DE", en: "EN" },
+};
+
 const FORMAT_OPTIONS = [
-  { key: "mp3128",  label: "MP3 128",    tier: "free", desc: "kostenlos" },
-  { key: "mp3320",  label: "MP3 320",    tier: "paid", desc: "Premium" },
-  { key: "wav16",   label: "WAV 16-bit", tier: "paid", desc: "CD-Qualität" },
-  { key: "wav24",   label: "WAV 24-bit", tier: "paid", desc: "Studio" },
-  { key: "flac",    label: "FLAC",       tier: "paid", desc: "Lossless" },
-  { key: "aac256",  label: "AAC 256",    tier: "paid", desc: "Streaming" },
-  { key: "wav32",   label: "WAV 32-bit", tier: "pro",  desc: "Pro" },
+  { key: "mp3128",  label: "MP3 128" },
+  { key: "mp3320",  label: "MP3 320" },
+  { key: "wav16",   label: "WAV 16-bit" },
+  { key: "wav24",   label: "WAV 24-bit" },
+  { key: "flac",    label: "FLAC" },
+  { key: "aac256",  label: "AAC 256" },
+  { key: "wav32",   label: "WAV 32-bit" },
 ] as const;
 
 export default function Home() {
+  const { data: session, status: sessionStatus } = useSession();
+  const [lang, setLang] = useState<Lang>("de");
+  const [dailyUsed, setDailyUsed] = useState<number | null>(null);
   const [appState,         setAppState]         = useState<AppState>("idle");
   const [uploadedFile,     setUploadedFile]     = useState<UploadedFile | null>(null);
   const [analysis,         setAnalysis]         = useState<AnalysisData | null>(null);
@@ -130,10 +173,47 @@ export default function Home() {
   const [currentProgress,  setCurrentProgress]  = useState<ProgressStep | null>(null);
   const [selectedFormat,   setSelectedFormat]   = useState<string>("mp3128");
   const [referenceAnalysis, setReferenceAnalysis] = useState<AnalysisData | null>(null);
+  const [savedRefs, setSavedRefs] = useState<SavedRef[]>([]);
 
   // Scroll targets
   const mainPanelRef  = useRef<HTMLDivElement>(null);
   const downloadRef   = useRef<HTMLDivElement>(null);  // scroll-to after mastering
+
+  // Fetch today's usage count when authenticated
+  useEffect(() => {
+    if (sessionStatus !== "authenticated") return;
+    fetch("/api/account")
+      .then(r => r.json())
+      .then(d => {
+        if (typeof d.dailyUsed === "number") setDailyUsed(d.dailyUsed);
+      })
+      .catch(() => {});
+  }, [sessionStatus, session?.user?.id]);
+
+  // Fetch saved reference library
+  useEffect(() => {
+    if (sessionStatus !== "authenticated") return;
+    fetch("/api/references")
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.refs)) setSavedRefs(d.refs); })
+      .catch(() => {});
+  }, [sessionStatus]);
+
+  const handleSaveRef = useCallback(async (analysis: RefAnalysis, name: string) => {
+    const r = await fetch("/api/references", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, analysis }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error ?? "Fehler beim Speichern");
+    if (d.ref) setSavedRefs(prev => [d.ref, ...prev]);
+  }, []);
+
+  const handleDeleteRef = useCallback(async (id: string) => {
+    await fetch(`/api/references?id=${id}`, { method: "DELETE" });
+    setSavedRefs(prev => prev.filter(r => r.id !== id));
+  }, []);
 
   // Guard: prevents stale handleMasteringComplete / handleMasteringError
   // callbacks from updating state after a reset or remaster.
@@ -232,6 +312,30 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
+          {/* Language Toggle */}
+          <div className="flex justify-center mb-4 gap-1">
+            {(["de", "en"] as Lang[]).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                style={{
+                  padding: "0.25rem 0.7rem",
+                  borderRadius: "6px",
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  transition: "all 0.15s",
+                  background: lang === l ? "rgba(124,111,255,0.2)" : "rgba(255,255,255,0.05)",
+                  borderColor: lang === l ? "rgba(124,111,255,0.5)" : "rgba(255,255,255,0.1)",
+                  color: lang === l ? "var(--accent-purple)" : "var(--text-muted)",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
           <motion.div
             className="label mb-4"
             style={{ color: "var(--accent-cyan)" }}
@@ -239,7 +343,7 @@ export default function Home() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            AI-Powered Professional Mastering
+            {T.hero_badge[lang]}
           </motion.div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-2">
             <span style={{ color: "var(--accent-purple)" }}>Up</span>
@@ -247,21 +351,22 @@ export default function Home() {
             <span style={{ color: "#f59e0b" }}>Do</span>
           </h1>
           <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "var(--text-muted)", fontSize: "0.85rem", letterSpacing: "0.05em" }}>
-            <span style={{ color: "var(--accent-purple)" }}>Upload</span>
-            <span style={{ opacity: 0.35 }}>·</span>
-            <span style={{ color: "var(--accent-cyan)" }}>Mastern</span>
-            <span style={{ opacity: 0.35 }}>·</span>
-            <span style={{ color: "#f59e0b" }}>Download</span>
+            {T.hero_tagline[lang].map((item, i, arr) => (
+              <span key={i} className="flex items-center gap-2">
+                <span style={{ color: item.color }}>{item.text}</span>
+                {i < arr.length - 1 && <span style={{ opacity: 0.35 }}>·</span>}
+              </span>
+            ))}
           </div>
           <p className="text-lg md:text-xl max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-            Professional-grade mastering chain powered by AI. Spotify-compliant loudness,
-            multiband compression, M/S processing — in seconds.
+            {T.hero_desc[lang]}
           </p>
         </motion.div>
       </section>
 
       {/* Main Mastering Interface */}
       <main className="max-w-6xl mx-auto px-4 pb-32" ref={mainPanelRef}>
+        <ErrorBoundary>
         <AudioEngineProvider originalUrl={originalUrl} masteredUrl={masteredUrl}>
           <div
             className="glass-panel-elevated p-6 md:p-8 relative"
@@ -271,6 +376,30 @@ export default function Home() {
                 : "0 4px 40px rgba(0,0,0,0.4)",
             }}
           >
+            {/* Daily usage counter (fair-use limit, applies to everyone) */}
+            {sessionStatus === "authenticated" && dailyUsed !== null && (
+              <div style={{
+                marginBottom: "1rem",
+                padding: "0.55rem 0.9rem",
+                borderRadius: "8px",
+                background: dailyUsed >= DAILY_MASTER_LIMIT
+                  ? "rgba(239,68,68,0.08)"
+                  : dailyUsed >= DAILY_MASTER_LIMIT - 1
+                  ? "rgba(245,158,11,0.08)"
+                  : "rgba(124,111,255,0.07)",
+                border: `1px solid ${dailyUsed >= DAILY_MASTER_LIMIT ? "rgba(239,68,68,0.25)" : dailyUsed >= DAILY_MASTER_LIMIT - 1 ? "rgba(245,158,11,0.25)" : "rgba(124,111,255,0.2)"}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: "0.5rem",
+              }}>
+                <span style={{ fontSize: "0.8rem", color: dailyUsed >= DAILY_MASTER_LIMIT ? "#f87171" : dailyUsed >= DAILY_MASTER_LIMIT - 1 ? "#fbbf24" : "var(--text-secondary)" }}>
+                  {T.free_limit[lang](dailyUsed, DAILY_MASTER_LIMIT)}
+                </span>
+              </div>
+            )}
+
             {/* Panel header row — Platform + Preset + optional "Neue Datei" link */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <PlatformTargets value={platform} onChange={setPlatform} />
@@ -291,7 +420,7 @@ export default function Home() {
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
                       </svg>
-                      Neue Datei
+                      {T.neue_datei[lang]}
                     </motion.button>
                   )}
                 </AnimatePresence>
@@ -303,6 +432,9 @@ export default function Home() {
               <MasteringIntensity value={intensity} onChange={setIntensity} />
               <ReferenceTrack
                 onReference={(a) => setReferenceAnalysis(a as AnalysisData | null)}
+                savedRefs={savedRefs}
+                onSaveRef={handleSaveRef}
+                onDeleteRef={handleDeleteRef}
               />
             </div>
 
@@ -321,6 +453,7 @@ export default function Home() {
                     onAnalysisComplete={handleAnalysisComplete}
                     setAppState={setAppState}
                     uploadedFile={uploadedFile}
+                    isAuthenticated={sessionStatus === "authenticated"}
                   />
                 </motion.div>
               )}
@@ -394,6 +527,7 @@ export default function Home() {
             />
           </div>
         </AudioEngineProvider>
+        </ErrorBoundary>
       </main>
 
       {/* ── Sticky bottom "Master NOW" popup ───────────────────────────────────── */}
@@ -414,13 +548,17 @@ export default function Home() {
             }}
           >
             <div className="max-w-6xl mx-auto px-4 py-3">
+              {/* Download window reminder */}
+              <div className="text-center mb-2">
+                <span className="text-[10px]" style={{ color: "rgba(245,200,66,0.7)" }}>
+                  {T.download_window[lang]()}
+                </span>
+              </div>
               <div className="flex flex-wrap items-center gap-3">
                 {/* Format pills */}
                 <div className="flex flex-wrap gap-1.5 flex-1">
                   {FORMAT_OPTIONS.map((fmt) => {
                     const active = selectedFormat === fmt.key;
-                    const isFree = fmt.tier === "free";
-                    const isPro  = fmt.tier === "pro";
                     return (
                       <button
                         key={fmt.key}
@@ -438,8 +576,6 @@ export default function Home() {
                         }}
                       >
                         {fmt.label}
-                        {isFree && <span className="text-[9px] px-1 py-0.5 rounded" style={{ background: "rgba(0,229,196,0.15)", color: "var(--accent-cyan)" }}>FREE</span>}
-                        {isPro  && <span className="text-[9px] px-1 py-0.5 rounded" style={{ background: "rgba(245,200,66,0.15)", color: "var(--accent-gold)" }}>PRO</span>}
                       </button>
                     );
                   })}
@@ -474,10 +610,11 @@ export default function Home() {
         step={currentProgress}
       />
 
-      <FeaturesSection />
-      <PricingSection />
+      <FeaturesSection lang={lang} />
+      <TestimonialsSection lang={lang} />
       <Footer />
       <ScrollToTop />
+      <PromoPopup />
     </div>
   );
 }

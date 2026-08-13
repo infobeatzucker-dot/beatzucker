@@ -388,6 +388,10 @@ body {
    Mastering button particles
    ============================================================ */
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes floatUp {
   0%   { transform: translateY(0)    scale(1);    opacity: 0.9; }
   80%  { transform: translateY(-60px) scale(0.6); opacity: 0.4; }

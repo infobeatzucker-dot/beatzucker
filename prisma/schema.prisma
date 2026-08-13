@@ -16,14 +16,17 @@ model User {
   password             String?   // bcrypt hash (null for Google-only accounts)
   passwordResetToken   String?   @unique
   passwordResetExpires DateTime?
+  twoFactorEnabled     Boolean   @default(false)
+  loginOtp             String?
+  loginOtpExpires      DateTime?
+  passwordChangedAt    DateTime?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  subscriptions Subscription[]
-  orders        Order[]
-  masters       Master[]
+  accounts         Account[]
+  sessions         Session[]
+  masters          Master[]
+  savedReferences  SavedReference[]
 }
 
 // NextAuth OAuth account linking (Google etc.)
@@ -65,37 +68,29 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Subscription {
-  id                   String    @id @default(cuid())
-  userId               String
-  // Plan types: free | ppu | creator_monthly | creator_annual |
-  //             pro_monthly | pro_annual | proplus_monthly | proplus_annual |
-  //             studio_monthly | studio_annual
-  planType             String
-  paypalSubscriptionId String    @unique
-  status               String    // "active" | "cancelled" | "suspended"
-  validUntil           DateTime
-  mastersUsed          Int       @default(0)
-  mastersLimit         Int       @default(25)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Promotion {
+  id        String    @id @default(cuid())
+  active    Boolean   @default(false)
+  title     String
+  body      String
+  ctaText   String?
+  ctaUrl    String?
+  bgStyle   String    @default("purple")
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
-model Order {
-  id              String    @id @default(cuid())
-  userId          String?
-  paypalOrderId   String    @unique
-  amount          Float
-  currency        String    @default("EUR")
-  status          String    // "pending" | "completed" | "refunded"
-  masterId        String?
-  downloadExpires DateTime?
-  createdAt       DateTime  @default(now())
+model SavedReference {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  analysisJson String
+  createdAt    DateTime @default(now())
 
-  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  master Master? @relation(fields: [masterId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Master {
@@ -125,6 +120,7 @@ model Master {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  orders Order[]
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
 }

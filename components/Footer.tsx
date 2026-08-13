@@ -24,21 +24,30 @@ export default function Footer() {
         <div className="flex gap-5 text-xs flex-wrap justify-center" style={{ color: "var(--text-muted)" }}>
           <Link href="/features" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Features</Link>
           <Link href="/help" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Hilfe</Link>
+          <Link href="/ressourcen" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Wissen</Link>
           <Link href="/impressum" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Impressum</Link>
           <Link href="/datenschutz" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Datenschutz</Link>
           <Link href="/agb" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>AGB</Link>
           <Link href="/widerruf" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Widerruf</Link>
+          <Link href="/terms" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Terms</Link>
+          <Link href="/privacy" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Privacy</Link>
           <span style={{ color: "inherit" }}><CookieReopenButton /></span>
         </div>
 
-        {/* Tech stack */}
-        <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-          Pedalboard · pyloudnorm · KI-Mastering
+        {/* Privacy badge */}
+        <div className="flex flex-col items-end gap-1">
+          <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+            Real AI Mastering · Professional Audio Processing
+          </div>
+          <div className="text-[10px] flex items-center gap-1" style={{ color: "#22c55e" }}>
+            <span>🔒</span>
+            <span>No Tracking · No Cookies · EU-Server</span>
+          </div>
         </div>
       </div>
 
       <div className="text-center text-xs mt-4" style={{ color: "var(--text-muted)" }}>
-        © {new Date().getFullYear()} UpMaDo · Michael Clas ·{" "}
+        © {new Date().getFullYear()} UpMaDo ·{" "}
         <a href="mailto:info@re-beatz.com" style={{ color: "var(--text-muted)" }}>info@re-beatz.com</a>
       </div>
     </footer>

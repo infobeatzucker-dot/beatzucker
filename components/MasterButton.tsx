@@ -18,6 +18,7 @@ interface Props {
   onComplete: (data: MasterData) => void;
   onError: () => void;
   compact?: boolean;          // compact layout for sticky popup (no hint text, smaller button)
+  downloadWindow?: "24h"; // shown as reminder below the button
 }
 
 const STEP_LABELS: Record<string, string> = {
@@ -37,6 +38,7 @@ export default function MasterButton({
   referenceAnalysis,
   isProcessing, onStart, onProgress, onComplete, onError,
   compact = false,
+  downloadWindow = "24h",
 }: Props) {
   const particleContainerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -94,7 +96,7 @@ export default function MasterButton({
           if (data.step === "complete") { onComplete(data as MasterData); return true; }
           if (data.error)               { onError(); return true; }
           onProgress({ step: data.step, label: STEP_LABELS[data.step] || data.label || data.step, progress: data.progress ?? 0 });
-        } catch { /* ignore malformed */ }
+        } catch (e) { if (process.env.NODE_ENV === "development") console.warn("[SSE] malformed chunk:", line, e); }
         return false;
       };
 
@@ -178,9 +180,15 @@ export default function MasterButton({
       </div>
 
       {!isProcessing && !compact && (
-        <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
-          Professionelle Mastering-Chain · KI-Parameterwahl · Format: <span style={{ color: "var(--accent-cyan)" }}>{selectedFormat.toUpperCase()}</span>
-        </p>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
+            Professionelle Mastering-Chain · KI-Parameterwahl · Format: <span style={{ color: "var(--accent-cyan)" }}>{selectedFormat.toUpperCase()}</span>
+          </p>
+          <p className="text-xs text-center flex items-center gap-1" style={{ color: "rgba(245,200,66,0.75)" }}>
+            <span>⏱</span>
+            <span>Download-Fenster nach Fertigstellung: <strong>{downloadWindow}</strong></span>
+          </p>
+        </div>
       )}
     </div>
   );

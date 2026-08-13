@@ -6,14 +6,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import AuthModal from "./AuthModal";
 import AccountDropdown from "./AccountDropdown";
+import { subscribeGlobalAudioState, toggleGlobalAudio, getGlobalAudioState } from "@/lib/globalAudio";
 
 export default function Header() {
   const [menuOpen, setMenuOpen]   = useState(false);
   const [scrolled, setScrolled]   = useState(false);
   const [authOpen, setAuthOpen]   = useState(false);
   const [resetToken, setResetToken] = useState<string | undefined>();
+  const [audioState, setAudioState] = useState(() => getGlobalAudioState());
 
   const { data: session } = useSession();
+
+  // Subscribe to global audio state
+  useEffect(() => {
+    return subscribeGlobalAudioState(setAudioState);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -72,7 +79,7 @@ export default function Header() {
               { label: "Home", href: "/" },
               { label: "Features", href: "/features" },
               { label: "Hilfe", href: "/help" },
-              { label: "Preise", href: "/pricing" },
+              { label: "Wissen", href: "/ressourcen" },
             ].map((item) => (
               <Link
                 key={item.label}
@@ -87,6 +94,45 @@ export default function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            {/* Global audio play/pause — visible whenever the player is loaded */}
+            {audioState.available && (
+              <button
+                onClick={toggleGlobalAudio}
+                title={audioState.playing ? "Pausieren" : "Abspielen"}
+                style={{
+                  display: "flex", alignItems: "center", gap: "0.35rem",
+                  padding: "0.3rem 0.7rem", borderRadius: "20px",
+                  background: audioState.playing
+                    ? "rgba(0,229,196,0.12)"
+                    : "rgba(255,255,255,0.06)",
+                  border: audioState.playing
+                    ? "1px solid rgba(0,229,196,0.35)"
+                    : "1px solid rgba(255,255,255,0.12)",
+                  color: audioState.playing ? "var(--accent-cyan)" : "var(--text-muted)",
+                  fontSize: "0.75rem", fontWeight: 700,
+                  cursor: "pointer",
+                  animation: audioState.playing ? "pulse 2s infinite" : "none",
+                  transition: "all 0.2s",
+                }}
+              >
+                {audioState.playing ? (
+                  <>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                      <rect x="1" y="1" width="3" height="8" rx="1"/>
+                      <rect x="6" y="1" width="3" height="8" rx="1"/>
+                    </svg>
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                      <path d="M2 1.5l7 3.5-7 3.5V1.5z"/>
+                    </svg>
+                    Play
+                  </>
+                )}
+              </button>
+            )}
             {/* Show session-aware content; during loading show guest buttons as fallback */}
             {session
               ? <AccountDropdown />
@@ -104,18 +150,6 @@ export default function Header() {
                   >
                     Anmelden
                   </button>
-                  <Link
-                    href="/pricing"
-                    className="hidden sm:block text-sm px-3 py-1.5 rounded-lg transition-all hover:opacity-90 font-semibold"
-                    style={{
-                      background: "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
-                      color: "#fff",
-                      textDecoration: "none",
-                      boxShadow: "0 0 16px rgba(124,111,255,0.25)",
-                    }}
-                  >
-                    Pro holen
-                  </Link>
                 </>
               )
             }
@@ -127,7 +161,7 @@ export default function Header() {
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Menü"
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 {menuOpen ? (
                   <path fillRule="evenodd" clipRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" />
                 ) : (
@@ -135,7 +169,7 @@ export default function Header() {
                 )}
               </svg>
             </button>
-          </div>
+          </div>{/* end right-side flex */}
         </div>
 
         {/* Mobile Menu */}
@@ -157,7 +191,7 @@ export default function Header() {
                   { label: "Home", href: "/" },
                   { label: "Features", href: "/features" },
                   { label: "Hilfe", href: "/help" },
-                  { label: "Preise", href: "/pricing" },
+                  { label: "Wissen", href: "/ressourcen" },
                   { label: "Impressum", href: "/impressum" },
                   { label: "Datenschutz", href: "/datenschutz" },
                 ].map((item) => (
@@ -187,18 +221,6 @@ export default function Header() {
                     Anmelden / Registrieren
                   </button>
                 )}
-                <Link
-                  href="/pricing"
-                  className="text-sm font-semibold text-center py-2 rounded-lg mt-1"
-                  style={{
-                    background: "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
-                    color: "#fff",
-                    textDecoration: "none",
-                  }}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Pro holen
-                </Link>
               </div>
             </motion.div>
           )}

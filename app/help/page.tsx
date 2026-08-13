@@ -358,10 +358,10 @@ const FAQ_CATEGORIES = [
         aEn: "Analysis takes approx. 5–10 seconds. Full mastering (DSP pipeline + all export formats) takes 30 seconds to 3 minutes depending on track length. Progress is shown in real time.",
       },
       {
-        qDe: "Welches Abo ist das richtige für mich?",
-        qEn: "Which subscription plan is right for me?",
-        aDe: "Hobby-Produzent mit gelegentlichen Tracks → Free (3/Tag, DSP) oder Pay per Track (€1.99/Track). Regelmäßige Veröffentlichungen mit KI-Mastering → Creator (25/Monat, €7.99). Viele Tracks pro Monat → Pro (100/Monat) oder Pro+ (250/Monat + WAV 32-bit). Studio/Label → Studio (Unbegrenzt + API).",
-        aEn: "Hobby producer with occasional tracks → Free (3/day, DSP) or Pay per Track (€1.99/track). Regular releases with AI mastering → Creator (25/month, €7.99). Many tracks per month → Pro (100/month) or Pro+ (250/month + WAV 32-bit). Studio/label → Studio (Unlimited + API).",
+        qDe: "Ist UpMaDo wirklich komplett kostenlos?",
+        qEn: "Is UpMaDo really completely free?",
+        aDe: "Ja. Alle Funktionen — Auto AI, Referenz-Track-Mastering, alle Export-Formate inkl. WAV 32-bit — sind kostenlos und ohne Abo nutzbar. Ein faires Tageslimit pro Account schützt lediglich vor Serverüberlastung.",
+        aEn: "Yes. All features — Auto AI, reference-track mastering, all export formats including WAV 32-bit — are free and require no subscription. A fair daily limit per account simply protects against server overload.",
       },
     ],
   },
@@ -390,8 +390,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Was ist Reference Mastering?",
         qEn: "What is Reference Mastering?",
-        aDe: "Lade einen professionellen Track als Klang-Referenz hoch. Die KI analysiert dessen Spektralbalance, Loudness, Dynamik und Stereobreite und passt dein Mastering entsprechend an — ähnlich wie in professionellen Studios. Verfügbar ab Pro-Plan.",
-        aEn: "Upload a professional track as a sound reference. The AI analyses its spectral balance, loudness, dynamics, and stereo width and adapts your mastering accordingly — similar to professional studios. Available from Pro plan.",
+        aDe: "Lade einen professionellen Track als Klang-Referenz hoch. Die Analyse erfasst dessen Spektralbalance, Loudness, Dynamik und Stereobreite und passt dein Mastering entsprechend an — ähnlich wie in professionellen Studios. Kostenlos für alle nutzbar.",
+        aEn: "Upload a professional track as a sound reference. The analysis captures its spectral balance, loudness, dynamics, and stereo width and adapts your mastering accordingly — similar to professional studios. Free for everyone.",
       },
       {
         qDe: "Was ist M/S Processing?",
@@ -458,8 +458,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Werden meine Audiodateien gespeichert?",
         qEn: "Are my audio files stored?",
-        aDe: "Nein. Hochgeladene Audiodateien werden ausschließlich im Arbeitsspeicher verarbeitet und nach Abschluss sofort gelöscht (max. 10 Minuten). Keine dauerhafte Speicherung, keine Weitergabe.",
-        aEn: "No. Uploaded audio files are processed exclusively in RAM and deleted immediately after completion (max. 10 minutes). No permanent storage, no sharing.",
+        aDe: "Nein. Hochgeladene Original-Audiodateien werden sofort nach Abschluss der Verarbeitung vom Server gelöscht (max. 60 Minuten). Gemasterte Ausgabedateien werden je nach Tarif 2 Stunden (Standard) oder 24 Stunden (Studio) vorgehalten und dann automatisch gelöscht. Keine dauerhafte Speicherung, keine Weitergabe.",
+        aEn: "No. Uploaded original audio files are deleted immediately after processing is complete (max. 60 minutes). Mastered output files are kept for 2 hours (standard) or 24 hours (Studio plan) and then automatically deleted. No permanent storage, no sharing.",
       },
       {
         qDe: "Welche Browser werden unterstützt?",
@@ -476,8 +476,20 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Wie maistere ich mehrere Tracks?",
         qEn: "How do I master multiple tracks?",
-        aDe: "Wähle deinen Track, stelle Parameter ein, drücke M — warte auf den Download. Dann lade den nächsten Track hoch und wiederhole. Der Download-Verlauf (ab Creator) speichert alle deine gemasterten Tracks für spätere Re-Downloads.",
-        aEn: "Select your track, set parameters, press M — wait for the download. Then upload the next track and repeat. Download history (from Creator plan) saves all your mastered tracks for later re-downloads.",
+        aDe: "Wähle deinen Track, stelle Parameter ein, drücke M — warte auf den Download. Dann lade den nächsten Track hoch und wiederhole. Der Mastering-Verlauf speichert Metadaten aller deiner Masterings (Dateiname, LUFS-Werte, Parameter) — die Audiodateien selbst können nur innerhalb des 24-Stunden-Download-Fensters heruntergeladen werden.",
+        aEn: "Select your track, set parameters, press M — wait for the download. Then upload the next track and repeat. Mastering history stores metadata for all your masters (file name, LUFS values, parameters) — the actual audio files can only be downloaded within the 24-hour download window.",
+      },
+      {
+        qDe: "Wie lange habe ich Zeit zum Download?",
+        qEn: "How long do I have to download?",
+        aDe: "Gemasterte Dateien stehen 24 Stunden nach Fertigstellung zum Download bereit. Nach Ablauf werden alle Dateien automatisch und unwiederbringlich gelöscht — also rechtzeitig herunterladen!",
+        aEn: "Mastered files are available for download for 24 hours after completion. After expiry, all files are automatically and permanently deleted — make sure to download in time!",
+      },
+      {
+        qDe: "Ist Auto AI kostenlos nutzbar?",
+        qEn: "Is Auto AI free to use?",
+        aDe: "Ja. Auto AI analysiert dein Audio (Genre, Dynamik, Spektralbalance) und wählt automatisch passende Mastering-Parameter — komplett kostenlos und ohne Limit über das faire Tageslimit hinaus.",
+        aEn: "Yes. Auto AI analyzes your audio (genre, dynamics, spectral balance) and automatically selects matching mastering parameters — completely free with no limit beyond the fair daily usage cap.",
       },
     ],
   },

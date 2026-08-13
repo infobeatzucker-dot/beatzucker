@@ -31,3 +31,6 @@ coverage/
 *.log
 *.tsbuildinfo
 next-env.d.ts
+
+# Source mirror (not part of Docker build)
+masterone/

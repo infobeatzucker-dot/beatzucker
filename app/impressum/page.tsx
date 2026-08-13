@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import LegalLayout from "../components/LegalLayout";
+import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
   title: "Impressum – UpMaDo",
+  description: "Impressum und Anbieterkennzeichnung des automatisierten Audio-Mastering-Dienstes UpMaDo gemäß §5 TMG.",
+  robots: { index: true, follow: false },
+  alternates: { canonical: "https://upmado.com/impressum" },
 };
 
 export default function ImpressumPage() {
@@ -85,7 +88,7 @@ export default function ImpressumPage() {
       </div>
 
       <div className="legal-meta">
-        Stand: März 2026 · Michael Clas · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
+        Stand: März 2026 · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
       </div>
     </LegalLayout>
   );

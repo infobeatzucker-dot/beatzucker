@@ -6,6 +6,7 @@ Handles audio analysis and mastering processing.
 import os
 import json
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -46,6 +47,10 @@ async def lifespan(app: FastAPI):
     yield
 
 
+# ─── Logging ──────────────────────────────────────────────────────────────────
+
+logger = logging.getLogger("upmado")
+
 # ─── App ───────────────────────────────────────────────────────────────────────
 
 app = FastAPI(
@@ -56,9 +61,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://upmado.com", "https://www.upmado.com"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000,https://upmado.com,https://www.upmado.com").split(","),
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
@@ -79,8 +84,23 @@ class MasterRequest(BaseModel):
     intensity: int = 65
     format: str = "mp3128"
     output_dir: str = "./uploads/masters"
+    master_id: Optional[str] = None             # DB record ID — used as output filename prefix
     analysis: Optional[dict] = None             # pre-computed analysis — skips librosa re-run
     reference_analysis: Optional[dict] = None   # optional reference track analysis for reference mastering
+
+
+# ─── Path validation ───────────────────────────────────────────────────────────
+
+ALLOWED_UPLOAD_DIR = os.path.abspath(os.environ.get("TEMP_UPLOAD_DIR", "./uploads"))
+
+def validate_file_path(file_path: str) -> str:
+    """Resolve and validate that the path is within the allowed upload directory."""
+    resolved = os.path.abspath(file_path)
+    if not resolved.startswith(ALLOWED_UPLOAD_DIR):
+        raise HTTPException(403, "Path outside allowed directory")
+    if not os.path.exists(resolved):
+        raise HTTPException(404, "File not found")
+    return resolved
 
 
 # ─── Routes ────────────────────────────────────────────────────────────────────
@@ -94,8 +114,7 @@ async def health():
 async def get_info(req: FilePathRequest):
     """Get basic file info (duration, sample rate, etc.)."""
     try:
-        if not os.path.exists(req.file_path):
-            raise HTTPException(404, "File not found")
+        req.file_path = validate_file_path(req.file_path)
 
         info = sf.info(req.file_path)
         return {
@@ -107,29 +126,29 @@ async def get_info(req: FilePathRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(500, str(e))
+        logger.exception("Error in /info")
+        raise HTTPException(500, "Internal server error")
 
 
 @app.post("/analyze")
 async def analyze(req: AnalyzeRequest):
     """Full audio analysis."""
     try:
-        if not os.path.exists(req.file_path):
-            raise HTTPException(404, "File not found")
+        req.file_path = validate_file_path(req.file_path)
 
         analysis = analyze_audio(req.file_path)
         return analysis_to_dict(analysis)
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(500, f"Analysis failed: {str(e)}")
+        logger.exception("Error in /analyze")
+        raise HTTPException(500, "Analysis failed")
 
 
 @app.post("/master")
 async def master(req: MasterRequest):
     """Full mastering chain with SSE progress streaming."""
-    if not os.path.exists(req.file_path):
-        raise HTTPException(404, "File not found")
+    req.file_path = validate_file_path(req.file_path)
 
     async def generate():
         def encode(data: dict) -> str:
@@ -182,7 +201,7 @@ async def master(req: MasterRequest):
             step_map[-1] = ("rendering", 94, render_label)
 
             mastering_task = loop.run_in_executor(
-                None, master_audio, req.file_path, params, req.output_dir, None, req.format, analysis_dict
+                None, master_audio, req.file_path, params, req.output_dir, None, req.format, analysis_dict, req.master_id
             )
 
             # Emit progress while mastering runs
@@ -225,10 +244,12 @@ async def master(req: MasterRequest):
                 "formats": formats,
                 "post_analysis": post,
                 "notes": result.notes,
+                "genre": params.genre,
             })
 
         except Exception as e:
-            yield encode({"step": "error", "progress": 0, "error": str(e)})
+            logger.exception("Error in /master")
+            yield encode({"step": "error", "progress": 0, "error": "Mastering failed"})
 
     return StreamingResponse(
         generate(),

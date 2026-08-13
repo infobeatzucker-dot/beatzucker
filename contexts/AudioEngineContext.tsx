@@ -18,6 +18,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { setGlobalAudioPlaying, setGlobalAudioAvailable, registerGlobalStop, registerGlobalToggle, getOrCreateAudioElement } from "@/lib/globalAudio";
 
 export interface AudioEngineContextType {
   // AnalyserNodes for visualizers (null until first play)
@@ -87,21 +88,34 @@ export function AudioEngineProvider({
   // Keep modeRef in sync with state so setMode closure always sees latest value
   useEffect(() => { modeRef.current = mode; }, [mode]);
 
-  // ── Create audio element ────────────────────────────────────────────────────
+  // ── Create/reuse audio element ───────────────────────────────────────────────
+  // The element lives as a module-level singleton so audio keeps playing across
+  // page navigations (e.g. home → account → home).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (audioRef.current) return;
 
-    const audio = new Audio();
-    audio.crossOrigin = "anonymous";
-    audio.preload = "metadata";
-    if (originalUrl) audio.src = originalUrl;
+    const audio = getOrCreateAudioElement();
     audioRef.current = audio;
+    setGlobalAudioAvailable(true);
 
-    audio.addEventListener("loadedmetadata", () => setDuration(audio.duration));
-    audio.addEventListener("play",  () => setIsPlaying(true));
-    audio.addEventListener("pause", () => setIsPlaying(false));
-    audio.addEventListener("ended", () => setIsPlaying(false));
+    // Sync initial state in case audio was already playing before this mount
+    setIsPlaying(!audio.paused);
+    if (audio.duration) setDuration(audio.duration);
+    setCurrentTime(audio.currentTime || 0);
+
+    if (originalUrl && !audio.src.endsWith(originalUrl) && audio.paused) {
+      audio.src = originalUrl;
+    }
+
+    const onMeta  = () => setDuration(audio.duration);
+    const onPlay  = () => { setIsPlaying(true);  setGlobalAudioPlaying(true); };
+    const onPause = () => { setIsPlaying(false); setGlobalAudioPlaying(false); };
+    const onEnded = () => { setIsPlaying(false); setGlobalAudioPlaying(false); };
+
+    audio.addEventListener("loadedmetadata", onMeta);
+    audio.addEventListener("play",  onPlay);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("ended", onEnded);
 
     // currentTime ticker
     const tick = () => {
@@ -110,7 +124,15 @@ export function AudioEngineProvider({
     };
     rafRef.current = requestAnimationFrame(tick);
 
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      // On unmount (page navigation): keep audio playing, just detach listeners & RAF.
+      // Audio will continue until the user stops it or a new master is loaded.
+      cancelAnimationFrame(rafRef.current);
+      audio.removeEventListener("loadedmetadata", onMeta);
+      audio.removeEventListener("play",  onPlay);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("ended", onEnded);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -353,6 +375,21 @@ export function AudioEngineProvider({
     } else {
       audio.pause();
     }
+  }, [initAudioContext]);
+
+  // Register global stop + toggle so Header can control audio from outside this tree
+  useEffect(() => {
+    registerGlobalStop(() => { audioRef.current?.pause(); });
+    registerGlobalToggle(() => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      if (audio.paused) {
+        initAudioContext();
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
+    });
   }, [initAudioContext]);
 
   const seek = useCallback((t: number) => {

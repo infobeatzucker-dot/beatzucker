@@ -3,7 +3,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 
-type View = "login" | "register" | "forgot" | "reset" | "forgot-sent";
+type View = "login" | "register" | "forgot" | "reset" | "forgot-sent" | "otp";
 
 interface AuthModalProps {
   open: boolean;
@@ -85,7 +85,7 @@ const okStyle: React.CSSProperties = {
 // ── Google SVG icon ───────────────────────────────────────────────────
 function GoogleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 48 48">
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
       <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-9 20-20 0-1.3-.2-2.7-.4-4z"/>
       <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.1 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/>
       <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.5 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.5-11.2-8.3l-6.5 5C9.7 39.8 16.4 44 24 44z"/>
@@ -103,6 +103,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState("");
   const [success, setSuccess]     = useState("");
+  const [otp, setOtp]             = useState("");
 
   // Switch to reset view if token is present
   useEffect(() => {
@@ -129,10 +130,42 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
   async function handleLogin(e: FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
+    // Check if 2FA is required
+    const otpRes = await fetch("/api/auth/otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const otpData = await otpRes.json();
+    if (!otpRes.ok) {
+      setLoading(false);
+      setError("E-Mail oder Passwort falsch.");
+      return;
+    }
+    if (otpData.requiresOtp) {
+      setLoading(false);
+      setOtp("");
+      setView("otp");
+      return;
+    }
+    // No 2FA — proceed normally
     const res = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
     if (res?.error) {
       setError("E-Mail oder Passwort falsch.");
+    } else {
+      onClose();
+    }
+  }
+
+  // ── OTP submit ─────────────────────────────────────────────────
+  async function handleOtp(e: FormEvent) {
+    e.preventDefault();
+    setError(""); setLoading(true);
+    const res = await signIn("credentials", { email, password, otp, redirect: false });
+    setLoading(false);
+    if (res?.error) {
+      setError("Ungültiger oder abgelaufener Code.");
     } else {
       onClose();
     }
@@ -255,10 +288,12 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
             </button>
             <Divider />
             <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <input style={inputStyle} type="email" placeholder="E-Mail" value={email}
-                     onChange={e => setEmail(e.target.value)} required autoFocus />
-              <input style={inputStyle} type="password" placeholder="Passwort" value={password}
-                     onChange={e => setPassword(e.target.value)} required />
+              <label htmlFor="login-email" className="sr-only">E-Mail</label>
+              <input id="login-email" style={inputStyle} type="email" placeholder="E-Mail" value={email}
+                     onChange={e => setEmail(e.target.value)} required autoFocus autoComplete="email" />
+              <label htmlFor="login-pw" className="sr-only">Passwort</label>
+              <input id="login-pw" style={inputStyle} type="password" placeholder="Passwort" value={password}
+                     onChange={e => setPassword(e.target.value)} required autoComplete="current-password" />
               <button style={btnPrimary} type="submit" disabled={loading}>
                 {loading ? "…" : "Einloggen"}
               </button>
@@ -281,12 +316,15 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
             </button>
             <Divider />
             <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <input style={inputStyle} type="email" placeholder="E-Mail" value={email}
-                     onChange={e => setEmail(e.target.value)} required autoFocus />
-              <input style={inputStyle} type="password" placeholder="Passwort (min. 8 Zeichen)" value={password}
-                     onChange={e => setPassword(e.target.value)} required />
-              <input style={inputStyle} type="password" placeholder="Passwort wiederholen" value={password2}
-                     onChange={e => setPassword2(e.target.value)} required />
+              <label htmlFor="reg-email" className="sr-only">E-Mail</label>
+              <input id="reg-email" style={inputStyle} type="email" placeholder="E-Mail" value={email}
+                     onChange={e => setEmail(e.target.value)} required autoFocus autoComplete="email" />
+              <label htmlFor="reg-pw" className="sr-only">Passwort</label>
+              <input id="reg-pw" style={inputStyle} type="password" placeholder="Passwort (min. 8 Zeichen)" value={password}
+                     onChange={e => setPassword(e.target.value)} required autoComplete="new-password" />
+              <label htmlFor="reg-pw2" className="sr-only">Passwort wiederholen</label>
+              <input id="reg-pw2" style={inputStyle} type="password" placeholder="Passwort wiederholen" value={password2}
+                     onChange={e => setPassword2(e.target.value)} required autoComplete="new-password" />
               <button style={btnPrimary} type="submit" disabled={loading}>
                 {loading ? "…" : "Konto erstellen"}
               </button>
@@ -312,8 +350,9 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
               Wir senden dir einen Reset-Link per E-Mail.
             </p>
             <form onSubmit={handleForgot} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <input style={inputStyle} type="email" placeholder="Deine E-Mail" value={email}
-                     onChange={e => setEmail(e.target.value)} required autoFocus />
+              <label htmlFor="forgot-email" className="sr-only">E-Mail</label>
+              <input id="forgot-email" style={inputStyle} type="email" placeholder="Deine E-Mail" value={email}
+                     onChange={e => setEmail(e.target.value)} required autoFocus autoComplete="email" />
               <button style={btnPrimary} type="submit" disabled={loading}>
                 {loading ? "…" : "Reset-Link senden"}
               </button>
@@ -341,6 +380,41 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
           </>
         )}
 
+        {/* ── OTP ─────────────────────────────────────────── */}
+        {view === "otp" && (
+          <>
+            <div style={{ textAlign: "center", fontSize: "2rem", marginBottom: "0.5rem" }}>🔐</div>
+            <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", textAlign: "center" }}>
+              2-Faktor-Authentifizierung
+            </h2>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", margin: "0 0 1.25rem", lineHeight: 1.5 }}>
+              Wir haben einen 6-stelligen Code an <strong style={{ color: "#fff" }}>{email}</strong> gesendet.
+            </p>
+            <form onSubmit={handleOtp} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <label htmlFor="otp-code" className="sr-only">6-stelliger Bestätigungscode</label>
+              <input
+                id="otp-code"
+                style={{ ...inputStyle, textAlign: "center", fontSize: "1.5rem", letterSpacing: "0.3em", fontWeight: 700 }}
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="000000"
+                value={otp}
+                onChange={e => setOtp(e.target.value.replace(/\D/g, ""))}
+                required
+                autoFocus
+                autoComplete="one-time-code"
+              />
+              <button style={btnPrimary} type="submit" disabled={loading || otp.length !== 6}>
+                {loading ? "…" : "Bestätigen"}
+              </button>
+            </form>
+            <div style={{ textAlign: "center", marginTop: "1rem" }}>
+              <button style={linkBtn} onClick={() => { setView("login"); setError(""); setOtp(""); }}>← Zurück</button>
+            </div>
+          </>
+        )}
+
         {/* ── RESET ───────────────────────────────────────── */}
         {view === "reset" && (
           <>
@@ -348,10 +422,12 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
               Neues Passwort setzen
             </h2>
             <form onSubmit={handleReset} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <input style={inputStyle} type="password" placeholder="Neues Passwort (min. 8 Zeichen)" value={password}
-                     onChange={e => setPassword(e.target.value)} required autoFocus />
-              <input style={inputStyle} type="password" placeholder="Passwort wiederholen" value={password2}
-                     onChange={e => setPassword2(e.target.value)} required />
+              <label htmlFor="reset-pw" className="sr-only">Neues Passwort</label>
+              <input id="reset-pw" style={inputStyle} type="password" placeholder="Neues Passwort (min. 8 Zeichen)" value={password}
+                     onChange={e => setPassword(e.target.value)} required autoFocus autoComplete="new-password" />
+              <label htmlFor="reset-pw2" className="sr-only">Passwort wiederholen</label>
+              <input id="reset-pw2" style={inputStyle} type="password" placeholder="Passwort wiederholen" value={password2}
+                     onChange={e => setPassword2(e.target.value)} required autoComplete="new-password" />
               <button style={btnPrimary} type="submit" disabled={loading}>
                 {loading ? "…" : "Passwort speichern"}
               </button>
