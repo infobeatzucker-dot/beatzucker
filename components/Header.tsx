@@ -6,7 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import AuthModal from "./AuthModal";
 import AccountDropdown from "./AccountDropdown";
+import DonateButton from "./DonateButton";
 import { subscribeGlobalAudioState, toggleGlobalAudio, getGlobalAudioState } from "@/lib/globalAudio";
+import { DONATE_URL } from "@/lib/constants";
 
 export default function Header() {
   const [menuOpen, setMenuOpen]   = useState(false);
@@ -94,6 +96,7 @@ export default function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            <DonateButton variant="nav" />
             {/* Global audio play/pause — visible whenever the player is loaded */}
             {audioState.available && (
               <button
@@ -221,6 +224,16 @@ export default function Header() {
                     Anmelden / Registrieren
                   </button>
                 )}
+                <a
+                  href={DONATE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm"
+                  style={{ color: "var(--accent-gold)", textDecoration: "none" }}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  ☕ UpMaDo unterstützen
+                </a>
               </div>
             </motion.div>
           )}

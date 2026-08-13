@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { MasterData } from "@/app/page";
 import ABPlayer from "./ABPlayer";
+import DonateButton from "./DonateButton";
 
 interface Props {
   masterData:  MasterData;
@@ -187,6 +188,8 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
           {" "}Alle Funktionen sind kostenlos und unbegrenzt oft nutzbar.
         </p>
       </div>
+
+      <DonateButton variant="panel" />
 
       {/* Action buttons row */}
       <div className={`mt-6 flex gap-3 ${onRemaster ? "flex-col sm:flex-row" : ""}`}>

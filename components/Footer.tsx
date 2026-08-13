@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CookieReopenButton from "./CookieReopenButton";
+import DonateButton from "./DonateButton";
 
 export default function Footer() {
   return (
@@ -22,6 +23,7 @@ export default function Footer() {
 
         {/* Legal links */}
         <div className="flex gap-5 text-xs flex-wrap justify-center" style={{ color: "var(--text-muted)" }}>
+          <span style={{ color: "var(--accent-gold)" }}><DonateButton variant="footer" /></span>
           <Link href="/features" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Features</Link>
           <Link href="/help" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Hilfe</Link>
           <Link href="/ressourcen" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Wissen</Link>
