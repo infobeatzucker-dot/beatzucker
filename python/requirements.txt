@@ -6,6 +6,7 @@ pyloudnorm==0.2.0
 pedalboard==0.9.22
 scipy==1.17.1
 numpy==2.4.4
+numba==0.64.0
 soundfile==0.13.1
 ffmpeg-python==0.2.0
 python-multipart==0.0.22

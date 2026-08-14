@@ -63,6 +63,7 @@ export interface AnalysisData {
   true_peak:          number;
   dr_value:           number;
   crest_factor:       number;
+  lra:                number;
   rms_sub:            number;
   rms_low:            number;
   rms_mid:            number;

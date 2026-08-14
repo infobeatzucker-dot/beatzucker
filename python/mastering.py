@@ -10,12 +10,14 @@ import pyloudnorm as pyln
 from pedalboard import Pedalboard, HighpassFilter, LowShelfFilter, HighShelfFilter, PeakFilter, Distortion, Gain
 from scipy import signal as scipy_signal
 from scipy.ndimage import maximum_filter1d
+from numba import jit
 import os
 import uuid
 from dataclasses import dataclass
 from typing import Callable, Optional
 
 from ai_params import MasteringParams
+from analyzer import compute_dr, rms_band, compute_lra
 
 
 @dataclass
@@ -202,6 +204,33 @@ def apply_multiband_compression(audio: np.ndarray, sr: int, params: MasteringPar
     return result
 
 
+# ─── 4b. DE-ESSER ───────────────────────────────────────────────────────────
+
+def apply_deesser(audio: np.ndarray, sr: int,
+                   low_hz: float = 4000, high_hz: float = 9000,
+                   threshold_db: float = -18.0, ratio: float = 2.5) -> np.ndarray:
+    """Frequency-selective de-essing: splits out the sibilance band
+    (4-9 kHz by default) with the same phase-accurate LR4 crossover used for
+    multiband compression, runs a fast/low-threshold compressor on just that
+    band, and recombines. A clean, non-sibilant source barely crosses the
+    threshold and passes through effectively untouched — this is deliberately
+    conservative rather than genre-gated, since sibilance is content-, not
+    genre-, dependent.
+    """
+    was_mono = audio.ndim != 2
+    stereo = audio.reshape(1, -1) if was_mono else audio
+
+    below, above_low = linkwitz_riley_crossover(stereo, sr, low_hz)
+    sibilance, above_high = linkwitz_riley_crossover(above_low, sr, high_hz)
+    del above_low
+
+    sibilance_c = compress_band(sibilance, sr, threshold_db, ratio, attack_ms=2.0, release_ms=60.0)
+    del sibilance
+
+    result = (below + sibilance_c + above_high).astype(np.float32)
+    return result[0] if was_mono else result
+
+
 # ─── 6. MID/SIDE PROCESSING ────────────────────────────────────────────────────
 
 def encode_ms(left: np.ndarray, right: np.ndarray):
@@ -293,8 +322,10 @@ def apply_bus_compression(audio: np.ndarray, sr: int, params: MasteringParams) -
 
 # ─── 11. LIMITING ──────────────────────────────────────────────────────────────
 
-def _true_peak_envelope(audio: np.ndarray, oversample: int = 4) -> np.ndarray:
-    """Per-sample true-peak envelope via 4x oversampling (ITU-R BS.1770-4 method).
+def _true_peak_envelope_chunk(audio: np.ndarray, oversample: int = 4) -> np.ndarray:
+    """Per-sample true-peak envelope via 4x oversampling (ITU-R BS.1770-4 method)
+    for a single chunk of audio. See `_true_peak_envelope` for the blocked
+    wrapper that keeps memory bounded on long tracks.
 
     Sample-peak detection (plain max(abs(x))) misses inter-sample peaks that
     occur between two adjacent samples of the reconstructed analog waveform.
@@ -325,6 +356,37 @@ def _true_peak_envelope(audio: np.ndarray, oversample: int = 4) -> np.ndarray:
     return peak_per_sample.astype(np.float32)
 
 
+def _true_peak_envelope(audio: np.ndarray, sr: int, oversample: int = 4,
+                         block_sec: float = 30.0, overlap_sec: float = 0.05) -> np.ndarray:
+    """Blocked true-peak envelope — bounds peak memory usage on long files
+    (podcasts, DJ sets) by 4x-oversampling ~30s at a time instead of the
+    whole track at once. Each block is computed with a small overlap on
+    both sides (overlap-save style) so the resample filter's edge effects
+    are trimmed away rather than causing seams at block boundaries.
+    """
+    n = audio.shape[-1]
+    block = int(block_sec * sr)
+    overlap = int(overlap_sec * sr)
+
+    if n <= block + 2 * overlap:
+        return _true_peak_envelope_chunk(audio, oversample)
+
+    out = np.empty(n, dtype=np.float32)
+    pos = 0
+    while pos < n:
+        start = max(0, pos - overlap)
+        end = min(n, pos + block + overlap)
+        chunk = audio[..., start:end]
+        chunk_peak = _true_peak_envelope_chunk(chunk, oversample)
+
+        valid_start = pos - start
+        valid_len = min(block, n - pos)
+        out[pos:pos + valid_len] = chunk_peak[valid_start:valid_start + valid_len]
+
+        pos += block
+    return out
+
+
 def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, target_lufs: float) -> np.ndarray:
     """
     True Peak limiter with proper lookahead + smooth attack/release.
@@ -345,7 +407,7 @@ def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, targe
     ceiling_lin = db_to_linear(ceiling_db)
 
     # ── 2. Compute per-sample true-peak envelope (4x oversampled) ───────────
-    peak_sig = _true_peak_envelope(audio, oversample=4)
+    peak_sig = _true_peak_envelope(audio, sr, oversample=4)
 
     # ── 3. 5 ms forward lookahead with scipy (O(n), no Python loop) ─────────
     lookahead = max(1, int(sr * 0.005))  # 5 ms in samples
@@ -395,15 +457,46 @@ def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, targe
 
 # ─── 12. OUTPUT STAGE ──────────────────────────────────────────────────────────
 
+@jit(nopython=True, cache=True)
+def _noise_shape_channel(x: np.ndarray, step: np.float32, tpdf: np.ndarray) -> np.ndarray:
+    """2nd-order error-feedback noise shaping (numba-compiled — a plain Python
+    per-sample loop would be far too slow here, ~10M+ samples per channel).
+    Classic delta-sigma-style shaper: u[n] = x[n] - (2*e[n-1] - e[n-2]),
+    quantize, feed the (always-bounded, |e| <= step/2) error back. Pushes
+    quantization noise away from the most audible ~2-5 kHz range instead of
+    leaving it flat, like plain TPDF dither does.
+    """
+    n = x.shape[0]
+    out = np.empty(n, dtype=np.float32)
+    e1 = np.float32(0.0)
+    e2 = np.float32(0.0)
+    for i in range(n):
+        u = x[i] - (np.float32(2.0) * e1 - e2)
+        dithered = u + tpdf[i]
+        q = np.round(dithered / step) * step
+        err = dithered - q
+        e2 = e1
+        e1 = err
+        out[i] = q
+    return out
+
+
 def apply_dither(audio: np.ndarray, target_bit_depth: int = 16) -> np.ndarray:
-    """Apply TPDF dither for bit-depth reduction."""
+    """Noise-shaped TPDF dither for bit-depth reduction (see _noise_shape_channel)."""
     if target_bit_depth >= 24:
         return audio  # No dither needed for high bit depth
 
-    amplitude = 1.0 / (2 ** target_bit_depth)
-    # TPDF = difference of two uniform distributions
-    dither = amplitude * (np.random.uniform(size=audio.shape) - np.random.uniform(size=audio.shape))
-    return audio + dither
+    step = np.float32(1.0 / (2 ** (target_bit_depth - 1)))
+
+    def shape(ch: np.ndarray) -> np.ndarray:
+        ch = ch.astype(np.float32)
+        # TPDF = difference of two uniform distributions, ±1 LSB
+        tpdf = (step * (np.random.uniform(size=ch.shape) - np.random.uniform(size=ch.shape))).astype(np.float32)
+        return _noise_shape_channel(ch, step, tpdf)
+
+    if audio.ndim == 2:
+        return np.stack([shape(audio[0]), shape(audio[1])])
+    return shape(audio)
 
 
 def export_formats(audio: np.ndarray, sr: int, output_dir: str, master_id: str, selected_format: str = "mp3128") -> dict:
@@ -507,8 +600,8 @@ def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
     # DR / crest
     rms_total = float(np.sqrt(np.mean(mono ** 2)))
     crest_factor = safe(20 * np.log10(peak / max(rms_total, 1e-10)), 0.0)
-    from analyzer import compute_dr, rms_band
     dr_value = safe(compute_dr(mono), 0.0)
+    lra_value = safe(compute_lra(audio, sr), 0.0)
 
     # Per-band RMS
     rms_sub  = safe(rms_band(mono, sr,    20,    80), -80.0)
@@ -551,6 +644,7 @@ def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
         "true_peak":          true_peak,
         "dr_value":           dr_value,
         "crest_factor":       crest_factor,
+        "lra":                lra_value,
         "rms_sub":            rms_sub,
         "rms_low":            rms_low,
         "rms_mid":            rms_mid,
@@ -606,6 +700,9 @@ def master_audio(
 
     # 4. Correction EQ
     audio = apply_correction_eq(audio, sr, params)
+
+    # 4b. De-esser (before multiband compression exaggerates any sibilance further)
+    audio = apply_deesser(audio, sr)
 
     emit("compression", 38)
 

@@ -19,6 +19,7 @@ class AudioAnalysis:
     true_peak: float
     dr_value: float
     crest_factor: float
+    lra: float  # Loudness Range (EBU Tech 3342), dynamics spread in LU
 
     # Per-band RMS (dB)
     rms_sub: float   # 20-80 Hz
@@ -159,6 +160,61 @@ def compute_true_peak(audio: np.ndarray, oversample: int = 2) -> float:
     return float(20 * np.log10(peak))
 
 
+def compute_lra(audio: np.ndarray, sr: int) -> float:
+    """Loudness Range (LRA) per EBU Tech 3342.
+
+    Measures the statistical spread of short-term loudness across the track:
+    K-weighted 3-second blocks (1s hop), absolute-gated at -70 LUFS, then
+    relative-gated at -20 LU below the mean of the absolute-gated blocks.
+    LRA = 95th percentile − 10th percentile of the doubly-gated block
+    loudness values. Higher LRA = more dynamic; heavy compression/limiting
+    reduces it. Reuses the K-weighting filters from pyloudnorm's Meter
+    (same filters used for integrated LUFS) rather than reimplementing them.
+    """
+    try:
+        data = audio.T if audio.ndim == 2 else audio.reshape(-1, 1)
+        if data.shape[0] < sr * 3:
+            return 0.0  # too short to measure meaningfully
+
+        meter = pyln.Meter(sr)
+        filtered = data.astype(np.float64).copy()
+        for (_, filter_stage) in meter._filters.items():
+            for ch in range(filtered.shape[1]):
+                filtered[:, ch] = filter_stage.apply_filter(filtered[:, ch])
+
+        n_ch = filtered.shape[1]
+        G = [1.0, 1.0, 1.0, 1.41, 1.41][:n_ch]
+        block_sec, hop_sec = 3.0, 1.0
+        n_samples = filtered.shape[0]
+        n_blocks = int((n_samples / sr - block_sec) / hop_sec) + 1
+        if n_blocks < 1:
+            return 0.0
+
+        z = np.zeros((n_ch, n_blocks))
+        for j in range(n_blocks):
+            lo = int(j * hop_sec * sr)
+            hi = int((j * hop_sec + block_sec) * sr)
+            for ch in range(n_ch):
+                z[ch, j] = np.mean(filtered[lo:hi, ch] ** 2)
+
+        with np.errstate(divide="ignore", invalid="ignore"):
+            block_loudness = -0.691 + 10.0 * np.log10(
+                np.sum([G[ch] * z[ch] for ch in range(n_ch)], axis=0)
+            )
+
+        abs_gated = block_loudness[np.isfinite(block_loudness) & (block_loudness >= -70.0)]
+        if len(abs_gated) == 0:
+            return 0.0
+        rel_threshold = np.mean(abs_gated) - 20.0
+        rel_gated = abs_gated[abs_gated >= rel_threshold]
+        if len(rel_gated) == 0:
+            return 0.0
+
+        return float(max(0.0, np.percentile(rel_gated, 95) - np.percentile(rel_gated, 10)))
+    except Exception:
+        return 0.0
+
+
 def analyze_audio(file_path: str) -> AudioAnalysis:
     """Perform full audio analysis on a file."""
     # Load audio
@@ -193,6 +249,9 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
 
     # Dynamic Range
     dr_value = compute_dr(mono)
+
+    # Loudness Range
+    lra = compute_lra(y, sr)
 
     # Crest factor
     rms_total = np.sqrt(np.mean(mono ** 2))
@@ -260,6 +319,7 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
         true_peak=true_peak,
         dr_value=dr_value,
         crest_factor=crest_factor,
+        lra=lra,
         rms_sub=rms_sub,
         rms_low=rms_low,
         rms_mid=rms_mid,
@@ -310,6 +370,7 @@ def analysis_to_dict(a: AudioAnalysis) -> dict:
         "true_peak":       -120.0,
         "dr_value":         0.0,
         "crest_factor":     0.0,
+        "lra":              0.0,
         "rms_sub":         -80.0,
         "rms_low":         -80.0,
         "rms_mid":         -80.0,

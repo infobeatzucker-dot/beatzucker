@@ -145,6 +145,15 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
         params.mb_sub_threshold = -12.0
         params.mb_sub_ratio = 4.0
 
+    # Loudness Range (LRA) guardrail — avoid double-squashing already-dynamics-
+    # limited sources, and go a touch firmer on very dynamic raw mixes so the
+    # bus compressor has something meaningful to do.
+    lra = analysis.get("lra", 8.0)
+    if lra < 4.0:
+        params.bus_comp_ratio = max(1.2, params.bus_comp_ratio * 0.8)
+    elif lra > 12.0:
+        params.bus_comp_ratio = min(4.0, params.bus_comp_ratio * 1.1)
+
     params.notes = f"Auto-selected for {preset} preset targeting {platform} at {params.target_lufs} LUFS."
     params.genre = preset if preset != "auto" else "Unknown"
 
