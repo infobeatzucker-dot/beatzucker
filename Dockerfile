@@ -64,8 +64,10 @@ RUN chmod +x ./start.sh
 RUN groupadd --gid 1000 appuser && \
     useradd --uid 1000 --gid appuser --home /home/appuser --create-home --shell /bin/false appuser
 
-# ── Persistent storage dir (overridden by volume at /app/uploads) ─────────────
-RUN mkdir -p /app/uploads/masters && \
+# ── Persistent storage dirs (overridden by volumes at /app/uploads + /app/data) ──
+# /app/data holds only the SQLite DB — kept out of /app/uploads so the hourly
+# temp-file cleanup job can never touch it, even by future config mistakes.
+RUN mkdir -p /app/uploads/masters /app/data && \
     chown -R appuser:appuser /app /home/appuser
 
 EXPOSE 3000

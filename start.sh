@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-DB_PATH="/app/uploads/production.db"
-DB_BACKUP="/app/uploads/production.db.bak"
+DB_PATH="/app/data/production.db"
+DB_BACKUP="/app/data/production.db.bak"
 
 # Backup existing DB before schema changes
 if [ -f "$DB_PATH" ]; then
