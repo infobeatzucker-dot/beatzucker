@@ -12,8 +12,8 @@ const T = {
     badge: "Features",
     hero_h1a: "Professionelles Mastering.",
     hero_h1b: "Vollautomatisch.",
-    hero_sub: "UpMaDo kombiniert eine professionelle 12-stufige DSP-Pipeline mit KI-Parameterauswahl — für Ergebnisse auf Ozone/FabFilter-Niveau, in Sekunden.",
-    stat1: "12 DSP-Stufen",
+    hero_sub: "UpMaDo kombiniert eine professionelle 13-stufige DSP-Pipeline mit KI-Parameterauswahl — für Ergebnisse auf Ozone/FabFilter-Niveau, in Sekunden.",
+    stat1: "13 DSP-Stufen",
     stat2: "7 Formate",
     stat3: "11 Plattformen",
     stat4: "KI-gestützt",
@@ -26,7 +26,7 @@ const T = {
     step3_title: "Herunterladen",
     step3_sub: "WAV, FLAC, MP3, AAC — sofort verfügbar",
     pipeline_badge: "DSP-Pipeline",
-    pipeline_h2: "12-stufige Mastering-Chain",
+    pipeline_h2: "13-stufige Mastering-Chain",
     pipeline_sub: "Jede Stufe wurde für professionelles Mastering optimiert — von der DC-Entfernung bis zur finalen LUFS-Normalisierung.",
     platform_badge: "Plattformen",
     platform_h2: "Optimiert für jede Plattform",
@@ -44,8 +44,8 @@ const T = {
     badge: "Features",
     hero_h1a: "Professional Mastering.",
     hero_h1b: "Fully Automatic.",
-    hero_sub: "UpMaDo combines a professional 12-stage DSP pipeline with AI parameter selection — delivering Ozone/FabFilter-level results in seconds.",
-    stat1: "12 DSP Stages",
+    hero_sub: "UpMaDo combines a professional 13-stage DSP pipeline with AI parameter selection — delivering Ozone/FabFilter-level results in seconds.",
+    stat1: "13 DSP Stages",
     stat2: "7 Formats",
     stat3: "11 Platforms",
     stat4: "AI-powered",
@@ -58,7 +58,7 @@ const T = {
     step3_title: "Download",
     step3_sub: "WAV, FLAC, MP3, AAC — instantly available",
     pipeline_badge: "DSP Pipeline",
-    pipeline_h2: "12-Stage Mastering Chain",
+    pipeline_h2: "13-Stage Mastering Chain",
     pipeline_sub: "Each stage is optimized for professional mastering — from DC removal to final LUFS normalization.",
     platform_badge: "Platforms",
     platform_h2: "Optimized for every Platform",
@@ -81,13 +81,14 @@ const PIPELINE = [
   { num: 3,  label: "Low Shelf",    group: "eq",       icon: "〰" },
   { num: 4,  label: "Mid Notch",    group: "eq",       icon: "🔧" },
   { num: 5,  label: "Air Shelf",    group: "eq",       icon: "✨" },
-  { num: 6,  label: "Multiband Comp", group: "comp",   icon: "🎛" },
-  { num: 7,  label: "M/S Processing", group: "stereo", icon: "↔" },
-  { num: 8,  label: "Saturation",   group: "color",    icon: "🔥" },
-  { num: 9,  label: "Final EQ",     group: "eq",       icon: "🎚" },
-  { num: 10, label: "Bus Comp",     group: "comp",     icon: "🎯" },
-  { num: 11, label: "True Peak Lim", group: "limit",   icon: "🛑" },
-  { num: 12, label: "LUFS Norm",    group: "output",   icon: "📊" },
+  { num: 6,  label: "De-Esser",     group: "comp",     icon: "🗣" },
+  { num: 7,  label: "Multiband Comp", group: "comp",   icon: "🎛" },
+  { num: 8,  label: "M/S Processing", group: "stereo", icon: "↔" },
+  { num: 9,  label: "Saturation",   group: "color",    icon: "🔥" },
+  { num: 10, label: "Final EQ",     group: "eq",       icon: "🎚" },
+  { num: 11, label: "Bus Comp",     group: "comp",     icon: "🎯" },
+  { num: 12, label: "True Peak Lim", group: "limit",   icon: "🛑" },
+  { num: 13, label: "Dithering",    group: "output",   icon: "📊" },
 ];
 
 const GROUP_COLORS: Record<string, string> = {
@@ -134,10 +135,10 @@ const FEATURES = [
   },
   {
     color: "var(--accent-cyan)",
-    title: { de: "12-stufige DSP-Pipeline", en: "12-Stage DSP Pipeline" },
+    title: { de: "13-stufige DSP-Pipeline", en: "13-Stage DSP Pipeline" },
     desc: {
-      de: "DC-Remove → Correction EQ → Multiband Comp → M/S → Saturation → Bus Comp → True Peak Limiter → LUFS Norm. Professioneller Workflow in Sekunden.",
-      en: "DC Remove → Correction EQ → Multiband Comp → M/S → Saturation → Bus Comp → True Peak Limiter → LUFS Norm. Professional workflow in seconds.",
+      de: "DC-Remove → Correction EQ → De-Esser → Multiband Comp → M/S → Saturation → Bus Comp → True Peak Limiter → Noise-Shaped Dithering. Professioneller Workflow in Sekunden.",
+      en: "DC Remove → Correction EQ → De-Esser → Multiband Comp → M/S → Saturation → Bus Comp → True Peak Limiter → Noise-Shaped Dithering. Professional workflow in seconds.",
     },
     tags: ["EQ", "Multiband", "M/S", "Limiting"],
     visual: "pipeline",
@@ -687,8 +688,8 @@ export default function FeaturesPage() {
         </div>
 
         <div className="glass-panel p-5" style={{ overflowX: "auto" }}>
-          {/* Render in 2 rows of 6 */}
-          {[PIPELINE.slice(0, 6), PIPELINE.slice(6, 12)].map((row, ri) => (
+          {/* Render in 2 rows (7 + 6) */}
+          {[PIPELINE.slice(0, 7), PIPELINE.slice(7, 13)].map((row, ri) => (
             <div key={ri} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: ri === 0 ? 8 : 0, flexWrap: "nowrap", minWidth: "max-content" }}>
               {row.map((stage, si) => (
                 <div key={stage.num} style={{ display: "flex", alignItems: "center", gap: 4 }}>

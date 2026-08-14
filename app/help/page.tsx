@@ -342,8 +342,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Wie funktioniert UpMaDo?",
         qEn: "How does UpMaDo work?",
-        aDe: "Lade eine WAV- oder MP3-Datei hoch, wähle Zielplattform und Genre-Preset, stelle die Mastering-Intensität ein und klicke auf Mastern (oder drücke M). Die KI analysiert dein Audio, wählt automatisch die optimalen Parameter und die 12-stufige DSP-Pipeline verarbeitet deinen Track professionell.",
-        aEn: "Upload a WAV or MP3 file, choose your target platform and genre preset, set the mastering intensity, and click Master (or press M). The AI analyses your audio, automatically selects optimal parameters, and the 12-stage DSP pipeline processes your track professionally.",
+        aDe: "Lade eine WAV- oder MP3-Datei hoch, wähle Zielplattform und Genre-Preset, stelle die Mastering-Intensität ein und klicke auf Mastern (oder drücke M). Die KI analysiert dein Audio, wählt automatisch die optimalen Parameter und die 13-stufige DSP-Pipeline verarbeitet deinen Track professionell.",
+        aEn: "Upload a WAV or MP3 file, choose your target platform and genre preset, set the mastering intensity, and click Master (or press M). The AI analyses your audio, automatically selects optimal parameters, and the 13-stage DSP pipeline processes your track professionally.",
       },
       {
         qDe: "Welche Dateiformate werden unterstützt?",

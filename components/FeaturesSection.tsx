@@ -24,8 +24,8 @@ const FEATURES = [
     icon: "⚙️",
     title: { de: "Profi-Kette", en: "Professional Chain" },
     desc: {
-      de: "12-stufige Mastering-Chain mit Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4) und Multiband-Kompression — dieselben Tools, die Top-Engineers verwenden.",
-      en: "12-stage mastering chain using Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4), and multiband compression — the same tools used by top engineers.",
+      de: "13-stufige Mastering-Chain mit Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4) und Multiband-Kompression — dieselben Tools, die Top-Engineers verwenden.",
+      en: "13-stage mastering chain using Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4), and multiband compression — the same tools used by top engineers.",
     },
     details: {
       de: ["Korrektur-EQ", "Multiband-Kompression", "M/S-Processing", "True-Peak-Limiting"],
@@ -54,6 +54,7 @@ const CHAIN_STEPS = {
     "Vor-Analyse",
     "KI-Parameter",
     "Korrektur-EQ",
+    "De-Esser",
     "Multiband-Comp",
     "M/S-Processing",
     "Stereo-Enhancement",
@@ -68,6 +69,7 @@ const CHAIN_STEPS = {
     "Pre-Analysis",
     "AI Parameters",
     "Correction EQ",
+    "De-Esser",
     "Multiband Comp",
     "M/S Processing",
     "Stereo Enhancement",

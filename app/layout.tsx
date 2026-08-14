@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | UpMaDo",
   },
   description:
-    "Upload your track. Get a professional master in seconds. 12-stage DSP pipeline, AI parameter selection, 7 export formats. Free to start.",
+    "Upload your track. Get a professional master in seconds. 13-stage DSP pipeline, AI parameter selection, 7 export formats. Free to start.",
   keywords: [
     "audio mastering",
     "AI mastering",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     siteName: "UpMaDo",
     title: "UpMaDo – AI-Powered Professional Audio Mastering",
     description:
-      "Upload your track. Get a professional master in seconds. 12-stage DSP pipeline, AI parameter selection, 7 export formats. Free to start.",
+      "Upload your track. Get a professional master in seconds. 13-stage DSP pipeline, AI parameter selection, 7 export formats. Free to start.",
     images: [
       {
         url: "/opengraph-image",
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "UpMaDo – AI Audio Mastering",
     description:
-      "Professional audio mastering in seconds. 12-stage DSP + AI parameter selection. Free to start.",
+      "Professional audio mastering in seconds. 13-stage DSP + AI parameter selection. Free to start.",
     images: ["/opengraph-image"],
   },
 
@@ -126,7 +126,7 @@ const jsonLd = {
       operatingSystem: "Web",
       url: BASE_URL,
       description:
-        "Professional automated audio mastering service. 12-stage DSP signal chain, AI-assisted parameter selection, 7 export formats, 11 platform targets.",
+        "Professional automated audio mastering service. 13-stage DSP signal chain, AI-assisted parameter selection, 7 export formats, 11 platform targets.",
       offers: [
         {
           "@type": "Offer",
@@ -137,14 +137,15 @@ const jsonLd = {
         },
       ],
       featureList: [
-        "12-stage DSP mastering pipeline",
+        "13-stage DSP mastering pipeline",
         "AI-assisted parameter selection",
         "7 export formats (WAV 32/24/16, FLAC, MP3 320/128, AAC 256)",
         "11 platform targets (Spotify, Apple Music, YouTube, Club, …)",
         "Real-time A/B comparison player",
         "Spectrum analyzer, LUFS meter, stereo field visualizer",
         "Reference track matching",
-        "LUFS normalization, True Peak limiting",
+        "LUFS normalization, oversampled True Peak limiting",
+        "De-essing, noise-shaped dithering",
       ],
       screenshot: `${BASE_URL}/opengraph-image`,
       publisher: { "@id": `${BASE_URL}/#organization` },

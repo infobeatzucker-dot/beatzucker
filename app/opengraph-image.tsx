@@ -109,7 +109,7 @@ export default async function Image() {
 
         {/* Feature pills */}
         <div style={{ display: "flex", gap: 12 }}>
-          {["12-Stage DSP", "7 Formats", "11 Platforms", "AI Parameter Selection"].map(
+          {["13-Stage DSP", "7 Formats", "11 Platforms", "AI Parameter Selection"].map(
             (label) => (
               <div
                 key={label}
