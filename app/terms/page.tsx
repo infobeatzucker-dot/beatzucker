@@ -3,7 +3,7 @@ import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
   title: "Terms of Service – UpMaDo",
-  description: "Terms of Service for UpMaDo, the automated audio mastering service.",
+  description: "Terms of Service for UpMaDo's free AI audio mastering service — usage terms, fair use limits, copyright, and liability.",
   alternates: { canonical: "https://upmado.com/terms" },
 };
 

@@ -58,6 +58,7 @@ export default async function ArticlePage({ params }: Props) {
     "@id": `https://upmado.com/ressourcen/${article.slug}#article`,
     headline: article.title.de,
     description: article.metaDescription.de,
+    image: ["https://upmado.com/opengraph-image"],
     author: {
       "@type": "Organization",
       "@id": "https://upmado.com/#organization",

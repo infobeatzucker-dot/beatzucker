@@ -183,6 +183,27 @@ export default function Home() {
   // Scroll targets
   const mainPanelRef  = useRef<HTMLDivElement>(null);
   const downloadRef   = useRef<HTMLDivElement>(null);  // scroll-to after mastering
+  const heroVideoRef  = useRef<HTMLVideoElement>(null);
+
+  // Defer loading the hero background video until after first paint so it
+  // doesn't compete with critical resources for LCP (see preload="none" above)
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+    const load = () => {
+      const source = document.createElement("source");
+      source.src = "/hero-bg.mp4";
+      source.type = "video/mp4";
+      video.appendChild(source);
+      video.load();
+      video.play().catch(() => {});
+    };
+    const id = window.requestIdleCallback ? window.requestIdleCallback(load) : window.setTimeout(load, 200);
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(id as number);
+      else window.clearTimeout(id as number);
+    };
+  }, []);
 
   // Fetch today's usage count when authenticated
   useEffect(() => {
@@ -290,17 +311,20 @@ export default function Home() {
       {/* Hero */}
       <section className="relative pt-24 pb-8 px-4 text-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          {/* Video background — objectPosition: top to avoid top-clipping */}
+          {/* Video background — objectPosition: top to avoid top-clipping.
+              src is set client-side after mount (see effect below) so the
+              3MB file doesn't compete with critical resources for LCP. */}
           <video
+            ref={heroVideoRef}
             autoPlay
             muted
             loop
             playsInline
+            preload="none"
+            aria-hidden="true"
             className="absolute inset-0 w-full h-full object-cover"
             style={{ opacity: 0.28, filter: "blur(1px) saturate(1.4)", objectPosition: "top center" }}
-          >
-            <source src="/hero-bg.mp4" type="video/mp4" />
-          </video>
+          />
           {/* Dark overlay */}
           <div
             className="absolute inset-0"

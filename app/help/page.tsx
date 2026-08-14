@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type Lang = "de" | "en";
@@ -591,6 +592,7 @@ export default function HelpPage() {
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>
+      <BreadcrumbJsonLd name="Hilfe" url="https://upmado.com/help" />
       <Header />
 
       {/* ── Language Toggle ── */}

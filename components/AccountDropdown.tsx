@@ -64,7 +64,7 @@ export default function AccountDropdown() {
         aria-label="Konto"
       >
         {user.image
-          ? <img src={user.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ? <img src={user.image} alt={user.name ?? "Profilbild"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           : initial}
       </button>
 

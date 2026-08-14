@@ -3,7 +3,7 @@ import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
   title: "Datenschutzerklärung – UpMaDo",
-  description: "Datenschutzerklärung des automatisierten Audio-Mastering-Dienstes UpMaDo gemäß DSGVO.",
+  description: "Wie UpMaDo mit deinen Daten umgeht: automatische Löschung von Audiodateien, keine Weitergabe an Dritte, DSGVO-konform gehostet in der EU.",
   alternates: { canonical: "https://upmado.com/datenschutz" },
 };
 

@@ -3,7 +3,7 @@ import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
   title: "AGB – UpMaDo",
-  description: "Allgemeine Geschäftsbedingungen des automatisierten Audio-Mastering-Dienstes UpMaDo.",
+  description: "AGB von UpMaDo: Nutzungsbedingungen für den kostenlosen KI-Audio-Mastering-Dienst — Leistungsumfang, faire Nutzung, Urheberrecht und Haftung.",
   alternates: { canonical: "https://upmado.com/agb" },
 };
 

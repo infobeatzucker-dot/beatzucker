@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 /* ─── Language strings ─────────────────────────────────────────────────────── */
 const T = {
@@ -522,6 +523,7 @@ export default function FeaturesPage() {
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>
+      <BreadcrumbJsonLd name="Features" url="https://upmado.com/features" />
       <Header />
 
       {/* Language toggle */}
