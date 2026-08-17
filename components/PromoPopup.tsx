@@ -48,7 +48,7 @@ export default function PromoPopup() {
       .then(r => r.json())
       .then((data: Promotion | null) => {
         if (!data) return;
-        const key = `upmado_promo_dismissed_${data.id}`;
+        const key = `beatzucker_promo_dismissed_${data.id}`;
         if (localStorage.getItem(key)) return;
         setPromo(data);
         setTimeout(() => setVisible(true), 600);
@@ -57,7 +57,7 @@ export default function PromoPopup() {
   }, []);
 
   function dismiss() {
-    if (promo) localStorage.setItem(`upmado_promo_dismissed_${promo.id}`, "1");
+    if (promo) localStorage.setItem(`beatzucker_promo_dismissed_${promo.id}`, "1");
     setVisible(false);
   }
 

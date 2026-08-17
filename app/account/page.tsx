@@ -118,7 +118,7 @@ export default function AccountPage() {
       const safe = originalName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_\-]/g, "_");
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement("a");
-      a.href = url; a.download = `upmado_${safe}_${format}.${ext}`; a.click();
+      a.href = url; a.download = `beatzucker_${safe}_${format}.${ext}`; a.click();
       URL.revokeObjectURL(url);
     } catch {
       setDownloadError("Verbindungsfehler");
@@ -135,7 +135,7 @@ export default function AccountPage() {
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href = url;
-    a.download = `upmado-daten-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `beatzucker-daten-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }

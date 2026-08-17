@@ -4,14 +4,8 @@
     {
       "name": "next",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:next"],
-      "port": 3000
-    },
-    {
-      "name": "python",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:python"],
-      "port": 8001
+      "runtimeArgs": ["run", "dev:next", "--", "-p", "3002"],
+      "port": 3002
     }
   ]
 }

@@ -26,12 +26,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: article.metaTitle.de,
     description: article.metaDescription.de,
     keywords: article.keywords.de,
-    alternates: { canonical: `https://upmado.com/ressourcen/${article.slug}` },
+    alternates: { canonical: `https://beatzucker.de/ressourcen/${article.slug}` },
     openGraph: {
       type: "article",
       title: article.metaTitle.de,
       description: article.metaDescription.de,
-      url: `https://upmado.com/ressourcen/${article.slug}`,
+      url: `https://beatzucker.de/ressourcen/${article.slug}`,
       publishedTime: article.publishedAt,
       modifiedTime: article.updatedAt ?? article.publishedAt,
     },
@@ -55,24 +55,24 @@ export default async function ArticlePage({ params }: Props) {
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "@id": `https://upmado.com/ressourcen/${article.slug}#article`,
+    "@id": `https://beatzucker.de/ressourcen/${article.slug}#article`,
     headline: article.title.de,
     description: article.metaDescription.de,
-    image: ["https://upmado.com/opengraph-image"],
+    image: ["https://beatzucker.de/opengraph-image"],
     author: {
       "@type": "Organization",
-      "@id": "https://upmado.com/#organization",
-      name: "UpMaDo",
+      "@id": "https://beatzucker.de/#organization",
+      name: "Beatzucker",
     },
-    publisher: { "@id": "https://upmado.com/#organization" },
+    publisher: { "@id": "https://beatzucker.de/#organization" },
     datePublished: article.publishedAt,
     dateModified: article.updatedAt ?? article.publishedAt,
     inLanguage: "de-DE",
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://upmado.com/ressourcen/${article.slug}`,
+      "@id": `https://beatzucker.de/ressourcen/${article.slug}`,
     },
-    isPartOf: { "@id": "https://upmado.com/#website" },
+    isPartOf: { "@id": "https://beatzucker.de/#website" },
   };
 
   const catColor = categoryColors[article.category] ?? "var(--accent-purple)";

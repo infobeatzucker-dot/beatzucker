@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { ARTICLES } from "@/app/data/ressourcen";
 
-const BASE = "https://upmado.com";
+const BASE = "https://beatzucker.de";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

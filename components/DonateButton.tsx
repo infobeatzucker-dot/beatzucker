@@ -32,10 +32,10 @@ export default function DonateButton({ variant = "nav" }: Props) {
       >
         <div>
           <div className="text-sm font-semibold" style={{ color: "var(--accent-gold)" }}>
-            Gefällt dir UpMaDo?
+            Gefällt dir Beatzucker?
           </div>
           <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
-            UpMaDo ist komplett kostenlos. Wenn's dir geholfen hat, freuen wir uns über einen Kaffee ☕
+            Beatzucker ist komplett kostenlos. Wenn's dir geholfen hat, freuen wir uns über einen Kaffee ☕
           </div>
         </div>
         <a
@@ -61,7 +61,7 @@ export default function DonateButton({ variant = "nav" }: Props) {
       href={DONATE_URL}
       target="_blank"
       rel="noopener noreferrer"
-      title="UpMaDo unterstützen"
+      title="Beatzucker unterstützen"
       className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:opacity-90"
       style={{
         background: "rgba(245,200,66,0.1)",

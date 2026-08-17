@@ -58,9 +58,8 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
             <span className="font-black text-xl tracking-tight">
-              <span style={{ color: "var(--accent-purple)" }}>Up</span>
-              <span style={{ color: "var(--accent-cyan)" }}>Ma</span>
-              <span style={{ color: "#f59e0b" }}>Do</span>
+              <span style={{ color: "var(--accent-purple)" }}>Beat</span>
+              <span style={{ color: "var(--accent-cyan)" }}>zucker</span>
             </span>
             <span
               className="hidden sm:block text-xs px-1.5 py-0.5 rounded font-semibold"
@@ -232,7 +231,7 @@ export default function Header() {
                   style={{ color: "var(--accent-gold)", textDecoration: "none" }}
                   onClick={() => setMenuOpen(false)}
                 >
-                  ☕ UpMaDo unterstützen
+                  ☕ Beatzucker unterstützen
                 </a>
               </div>
             </motion.div>

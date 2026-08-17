@@ -11,7 +11,7 @@ export default function BreadcrumbJsonLd({ name, url }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "UpMaDo", item: "https://upmado.com" },
+      { "@type": "ListItem", position: 1, name: "Beatzucker", item: "https://beatzucker.de" },
       { "@type": "ListItem", position: 2, name, item: url },
     ],
   };

@@ -31,8 +31,8 @@ const TESTIMONIALS = [
     color: "#00e5c4",
     role: { de: "Singer-Songwriterin", en: "Singer-Songwriter" },
     text: {
-      de: "Als Musikerin ohne technisches Background war ich immer auf teure Studios angewiesen. UpMaDo gibt mir die Kontrolle zurück — in Minuten, nicht Stunden, und zu einem Bruchteil der Kosten.",
-      en: "As a musician without a technical background, I always relied on expensive studios. UpMaDo gives me back control — in minutes, not hours, and at a fraction of the cost.",
+      de: "Als Musikerin ohne technisches Background war ich immer auf teure Studios angewiesen. Beatzucker gibt mir die Kontrolle zurück — in Minuten, nicht Stunden, und zu einem Bruchteil der Kosten.",
+      en: "As a musician without a technical background, I always relied on expensive studios. Beatzucker gives me back control — in minutes, not hours, and at a fraction of the cost.",
     },
   },
   {
@@ -51,8 +51,8 @@ const TESTIMONIALS = [
     color: "#a78bfa",
     role: { de: "Indie-Gitarristin", en: "Indie Guitarist" },
     text: {
-      de: "Ich nutze UpMaDo für meine Demos vor dem Release. Die LUFS-Werte passen immer auf Anhieb — kein Pumpen, kein Clipping. Man merkt, dass wirklich professionelle Tools dahinterstecken.",
-      en: "I use UpMaDo for my demos before release. The LUFS values are always spot on — no pumping, no clipping. You can tell that real professional tools are behind it.",
+      de: "Ich nutze Beatzucker für meine Demos vor dem Release. Die LUFS-Werte passen immer auf Anhieb — kein Pumpen, kein Clipping. Man merkt, dass wirklich professionelle Tools dahinterstecken.",
+      en: "I use Beatzucker for my demos before release. The LUFS values are always spot on — no pumping, no clipping. You can tell that real professional tools are behind it.",
     },
   },
   {
@@ -61,8 +61,8 @@ const TESTIMONIALS = [
     color: "#34d399",
     role: { de: "Podcast-Produzent", en: "Podcast Producer" },
     text: {
-      de: "Für Podcasts brauche ich konsistente Lautstärke über alle Folgen hinweg. Die Plattform-Presets (Spotify, Apple) treffen den Nagel auf den Kopf. Seit ich UpMaDo nutze, bekomme ich kaum noch Feedback-Beschwerden.",
-      en: "For podcasts I need consistent volume across all episodes. The platform presets (Spotify, Apple) hit the nail on the head. Since using UpMaDo, I barely get any volume complaint feedback anymore.",
+      de: "Für Podcasts brauche ich konsistente Lautstärke über alle Folgen hinweg. Die Plattform-Presets (Spotify, Apple) treffen den Nagel auf den Kopf. Seit ich Beatzucker nutze, bekomme ich kaum noch Feedback-Beschwerden.",
+      en: "For podcasts I need consistent volume across all episodes. The platform presets (Spotify, Apple) hit the nail on the head. Since using Beatzucker, I barely get any volume complaint feedback anymore.",
     },
   },
   {
@@ -71,8 +71,8 @@ const TESTIMONIALS = [
     color: "#f472b6",
     role: { de: "DJ & Produzentin", en: "DJ & Producer" },
     text: {
-      de: "Die Geschwindigkeit ist unglaublich — mein Track ist in unter zwei Minuten fertig gemastert. Für schnelle Releases zwischen Studio-Sessions ist UpMaDo unersetzlich geworden.",
-      en: "The speed is incredible — my track is fully mastered in under two minutes. For quick releases between studio sessions, UpMaDo has become indispensable.",
+      de: "Die Geschwindigkeit ist unglaublich — mein Track ist in unter zwei Minuten fertig gemastert. Für schnelle Releases zwischen Studio-Sessions ist Beatzucker unersetzlich geworden.",
+      en: "The speed is incredible — my track is fully mastered in under two minutes. For quick releases between studio sessions, Beatzucker has become indispensable.",
     },
   },
 ];

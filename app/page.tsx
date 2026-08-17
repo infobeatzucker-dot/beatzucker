@@ -407,9 +407,8 @@ export default function Home() {
             {T.hero_badge[lang]}
           </motion.div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-2">
-            <span style={{ color: "var(--accent-purple)" }}>Up</span>
-            <span style={{ color: "var(--accent-cyan)" }}>Ma</span>
-            <span style={{ color: "#f59e0b" }}>Do</span>
+            <span style={{ color: "var(--accent-purple)" }}>Beat</span>
+            <span style={{ color: "var(--accent-cyan)" }}>zucker</span>
           </h1>
           <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "var(--text-muted)", fontSize: "0.85rem", letterSpacing: "0.05em" }}>
             {T.hero_tagline[lang].map((item, i, arr) => (

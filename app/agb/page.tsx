@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "AGB – UpMaDo",
-  description: "AGB von UpMaDo: Nutzungsbedingungen für den kostenlosen KI-Audio-Mastering-Dienst — Leistungsumfang, faire Nutzung, Urheberrecht und Haftung.",
-  alternates: { canonical: "https://upmado.com/agb" },
+  title: "AGB – Beatzucker",
+  description: "AGB von Beatzucker: Nutzungsbedingungen für den kostenlosen KI-Audio-Mastering-Dienst — Leistungsumfang, faire Nutzung, Urheberrecht und Haftung.",
+  alternates: { canonical: "https://beatzucker.de/agb" },
 };
 
 const SECTIONS = [
@@ -27,8 +27,8 @@ export default function AGBPage() {
         <h2>§ 1 Geltungsbereich</h2>
         <p>
           Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Nutzer des kostenlosen
-          Online-Mastering-Dienstes von Michael Clas, UpMaDo, Plaidter Str. 31, 56648 Saffig
-          (nachfolgend „Anbieter") unter upmado.com (nachfolgend „Nutzer"). Mit der Registrierung
+          Online-Mastering-Dienstes von Michael Clas, Beatzucker, Plaidter Str. 31, 56648 Saffig
+          (nachfolgend „Anbieter") unter beatzucker.de (nachfolgend „Nutzer"). Mit der Registrierung
           oder der Nutzung des Dienstes stimmt der Nutzer diesen AGB zu. Entgegenstehende oder
           abweichende Bedingungen des Nutzers werden nicht anerkannt, es sei denn, der Anbieter
           stimmt ihrer Geltung ausdrücklich schriftlich zu.
@@ -38,7 +38,7 @@ export default function AGBPage() {
       <div className="legal-section" id="leistung">
         <h2>§ 2 Leistungsbeschreibung</h2>
         <p>
-          UpMaDo bietet einen automatisierten, kostenlosen Audio-Mastering-Dienst an. Der Dienst
+          Beatzucker bietet einen automatisierten, kostenlosen Audio-Mastering-Dienst an. Der Dienst
           umfasst die Verarbeitung von Audiodateien durch eine mehrstufige DSP-Signalkette (u. a.
           EQ, Mehrband-Kompression, Stereo-Optimierung, Sättigung, LUFS-Normalisierung,
           True-Peak-Limiting, automatische Parameterauswahl und optionales Referenz-Track-Matching)
@@ -93,8 +93,8 @@ export default function AGBPage() {
         <p>
           Der Nutzer versichert, dass er über alle notwendigen Rechte an den hochgeladenen
           Audiodateien verfügt und durch die Nutzung des Dienstes keine Rechte Dritter verletzt
-          werden. Die durch UpMaDo erstellten gemasterten Audiodateien sind für den persönlichen
-          und kommerziellen Gebrauch des Nutzers bestimmt. UpMaDo beansprucht kein Urheberrecht
+          werden. Die durch Beatzucker erstellten gemasterten Audiodateien sind für den persönlichen
+          und kommerziellen Gebrauch des Nutzers bestimmt. Beatzucker beansprucht kein Urheberrecht
           an den verarbeiteten Dateien. Der Nutzer stellt den Anbieter von sämtlichen Ansprüchen
           Dritter frei, die aus einer Verletzung von Rechten Dritter durch die vom Nutzer
           hochgeladenen Inhalte entstehen.
@@ -161,7 +161,7 @@ export default function AGBPage() {
       </div>
 
       <div className="legal-meta">
-        Stand: März 2026 · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
+        Stand: März 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
       </div>
     </LegalLayout>
   );

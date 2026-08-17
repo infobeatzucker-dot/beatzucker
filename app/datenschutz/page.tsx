@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "Datenschutzerklärung – UpMaDo",
-  description: "Wie UpMaDo mit deinen Daten umgeht: automatische Löschung von Audiodateien, keine Weitergabe an Dritte, DSGVO-konform gehostet in der EU.",
-  alternates: { canonical: "https://upmado.com/datenschutz" },
+  title: "Datenschutzerklärung – Beatzucker",
+  description: "Wie Beatzucker mit deinen Daten umgeht: automatische Löschung von Audiodateien, keine Weitergabe an Dritte, DSGVO-konform gehostet in der EU.",
+  alternates: { canonical: "https://beatzucker.de/datenschutz" },
 };
 
 const SECTIONS = [
@@ -28,7 +28,7 @@ export default function DatenschutzPage() {
         <h2>1. Verantwortlicher</h2>
         <p>
           Verantwortlicher im Sinne der DSGVO ist:<br />
-          Michael Clas · UpMaDo<br />
+          Michael Clas · Beatzucker<br />
           Plaidter Str. 31 · 56648 Saffig · Deutschland<br />
           E-Mail: <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
         </p>
@@ -184,7 +184,7 @@ export default function DatenschutzPage() {
       </div>
 
       <div className="legal-meta">
-        Stand: März 2026 · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
+        Stand: März 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
       </div>
     </LegalLayout>
   );

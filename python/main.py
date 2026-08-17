@@ -1,5 +1,5 @@
 """
-FastAPI Python Microservice for UpMaDo
+FastAPI Python Microservice for Beatzucker
 Handles audio analysis and mastering processing.
 """
 
@@ -49,19 +49,19 @@ async def lifespan(app: FastAPI):
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 
-logger = logging.getLogger("upmado")
+logger = logging.getLogger("beatzucker")
 
 # ─── App ───────────────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="UpMaDo – Python Service",
+    title="Beatzucker – Python Service",
     version="1.0.0",
     lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000,https://upmado.com,https://www.upmado.com").split(","),
+    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000,https://beatzucker.de,https://www.beatzucker.de").split(","),
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "Authorization"],
 )
@@ -107,7 +107,7 @@ def validate_file_path(file_path: str) -> str:
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "UpMaDo Python"}
+    return {"status": "ok", "service": "Beatzucker Python"}
 
 
 @app.post("/info")

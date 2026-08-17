@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "Terms of Service – UpMaDo",
-  description: "Terms of Service for UpMaDo's free AI audio mastering service — usage terms, fair use limits, copyright, and liability.",
-  alternates: { canonical: "https://upmado.com/terms" },
+  title: "Terms of Service – Beatzucker",
+  description: "Terms of Service for Beatzucker's free AI audio mastering service — usage terms, fair use limits, copyright, and liability.",
+  alternates: { canonical: "https://beatzucker.de/terms" },
 };
 
 const SECTIONS = [
@@ -27,8 +27,8 @@ export default function TermsPage() {
         <h2>§ 1 Scope</h2>
         <p>
           These Terms of Service govern all users of the free online mastering service operated
-          by Michael Clas, UpMaDo, Plaidter Str. 31, 56648 Saffig, Germany (hereinafter
-          "Provider") at upmado.com (hereinafter "User"). By registering or using the service,
+          by Michael Clas, Beatzucker, Plaidter Str. 31, 56648 Saffig, Germany (hereinafter
+          "Provider") at beatzucker.de (hereinafter "User"). By registering or using the service,
           the User agrees to these Terms. Conflicting or deviating terms of the User shall not
           be recognised unless the Provider has expressly agreed to them in writing.
         </p>
@@ -37,7 +37,7 @@ export default function TermsPage() {
       <div className="legal-section" id="services">
         <h2>§ 2 Service Description</h2>
         <p>
-          UpMaDo provides an automated, free audio mastering service. The service includes
+          Beatzucker provides an automated, free audio mastering service. The service includes
           processing audio files through a multi-stage DSP signal chain (EQ, multiband
           compression, stereo optimisation, saturation, LUFS normalisation, true-peak limiting,
           automatic parameter selection and optional reference-track matching) and the temporary
@@ -89,7 +89,7 @@ export default function TermsPage() {
         <p>
           The User warrants that they hold all necessary rights to the uploaded audio files and
           that use of the service does not infringe any third-party rights. Mastered audio files
-          created by UpMaDo are intended for the User's personal and commercial use. UpMaDo
+          created by Beatzucker are intended for the User's personal and commercial use. Beatzucker
           claims no copyright over processed files. The User shall indemnify the Provider against
           all third-party claims arising from infringement of third-party rights by content
           uploaded by the User.
@@ -153,7 +153,7 @@ export default function TermsPage() {
       </div>
 
       <div className="legal-meta">
-        As of March 2026 · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
+        As of March 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
       </div>
     </LegalLayout>
   );

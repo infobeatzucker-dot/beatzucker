@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy – UpMaDo",
-  description: "How UpMaDo handles your data: automatic deletion of audio files, no sharing with third parties, GDPR-compliant hosting in the EU.",
-  alternates: { canonical: "https://upmado.com/privacy" },
+  title: "Privacy Policy – Beatzucker",
+  description: "How Beatzucker handles your data: automatic deletion of audio files, no sharing with third parties, GDPR-compliant hosting in the EU.",
+  alternates: { canonical: "https://beatzucker.de/privacy" },
 };
 
 const SECTIONS = [
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         <h2>1. Data Controller</h2>
         <p>
           The controller within the meaning of the GDPR is:<br />
-          Michael Clas · UpMaDo<br />
+          Michael Clas · Beatzucker<br />
           Plaidter Str. 31 · 56648 Saffig · Germany<br />
           Email: <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
         </p>
@@ -177,7 +177,7 @@ export default function PrivacyPage() {
       </div>
 
       <div className="legal-meta">
-        As of March 2026 · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
+        As of March 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
       </div>
     </LegalLayout>
   );

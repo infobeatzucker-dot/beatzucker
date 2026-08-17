@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "Impressum – UpMaDo",
-  description: "Impressum und Anbieterkennzeichnung von UpMaDo gemäß §5 TMG — Anbieter, Kontakt und rechtliche Hinweise zum kostenlosen Mastering-Dienst.",
+  title: "Impressum – Beatzucker",
+  description: "Impressum und Anbieterkennzeichnung von Beatzucker gemäß §5 TMG — Anbieter, Kontakt und rechtliche Hinweise zum kostenlosen Mastering-Dienst.",
   robots: { index: true, follow: true },
-  alternates: { canonical: "https://upmado.com/impressum" },
+  alternates: { canonical: "https://beatzucker.de/impressum" },
 };
 
 export default function ImpressumPage() {
@@ -88,7 +88,7 @@ export default function ImpressumPage() {
       </div>
 
       <div className="legal-meta">
-        Stand: März 2026 · UpMaDo · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
+        Stand: März 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
       </div>
     </LegalLayout>
   );

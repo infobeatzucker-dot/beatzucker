@@ -6,7 +6,7 @@ import ArticleGrid from "@/components/ressourcen/ArticleGrid";
 import { ARTICLES } from "@/app/data/ressourcen";
 
 export const metadata: Metadata = {
-  title: "Audio Mastering Wissen – Guides, Tipps & Technik | UpMaDo",
+  title: "Audio Mastering Wissen – Guides, Tipps & Technik | Beatzucker",
   description:
     "Alles über Audio Mastering: LUFS erklärt, Mastering vs. Mixing, KI-Mastering, Plattform-Lautstärken, Home-Recording-Fehler und mehr. Kostenlose Guides für Produzenten.",
   keywords: [
@@ -17,25 +17,25 @@ export const metadata: Metadata = {
     "ki mastering",
     "home recording",
   ],
-  alternates: { canonical: "https://upmado.com/ressourcen" },
+  alternates: { canonical: "https://beatzucker.de/ressourcen" },
   openGraph: {
     type: "website",
     title: "Audio Mastering Wissen – Guides & Tipps",
     description: "Kostenlose Mastering-Guides, LUFS-Erklärungen, Plattform-Zielwerte und mehr.",
-    url: "https://upmado.com/ressourcen",
+    url: "https://beatzucker.de/ressourcen",
   },
 };
 
 const collectionJsonLd = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
-  "@id": "https://upmado.com/ressourcen",
+  "@id": "https://beatzucker.de/ressourcen",
   name: "Audio Mastering Wissen",
   description:
     "Guides, Tipps und technische Hintergründe zum Thema Audio Mastering für Independent-Produzenten.",
-  url: "https://upmado.com/ressourcen",
+  url: "https://beatzucker.de/ressourcen",
   inLanguage: ["de-DE", "en"],
-  isPartOf: { "@id": "https://upmado.com/#website" },
+  isPartOf: { "@id": "https://beatzucker.de/#website" },
 };
 
 export default function RessourcenPage() {

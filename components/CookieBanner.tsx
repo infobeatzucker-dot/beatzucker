@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const STORAGE_KEY = "upmado_cookie_consent";
+const STORAGE_KEY = "beatzucker_cookie_consent";
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
@@ -78,7 +78,7 @@ export default function CookieBanner() {
           color: "var(--text-secondary, #aaa)",
           marginBottom: "1.25rem",
         }}>
-          UpMaDo verwendet ausschließlich{" "}
+          Beatzucker verwendet ausschließlich{" "}
           <strong style={{ color: "var(--text-primary, #fff)" }}>technisch notwendige</strong>{" "}
           Cookies und lokalen Speicher — keine Tracking-Cookies, keine Werbung, kein Analytics.
           Deine Einstellungen (Plattform, Preset) werden nur lokal auf deinem Gerät gespeichert.{" "}

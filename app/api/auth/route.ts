@@ -28,7 +28,7 @@ function isValidOrigin(req: NextRequest): boolean {
   const origin = req.headers.get("origin");
   // Same-origin fetch or non-browser clients (curl, server-side) have no Origin header — allow
   if (!origin) return true;
-  const allowed = process.env.NEXTAUTH_URL ?? "https://upmado.com";
+  const allowed = process.env.NEXTAUTH_URL ?? "https://beatzucker.de";
   try {
     return new URL(origin).host === new URL(allowed).host;
   } catch {
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
           data: { passwordResetToken: token, passwordResetExpires: expires },
         });
 
-        const baseUrl  = process.env.NEXTAUTH_URL ?? "https://upmado.com";
+        const baseUrl  = process.env.NEXTAUTH_URL ?? "https://beatzucker.de";
         const resetUrl = `${baseUrl}/?reset=${token}`;
 
         sendPasswordResetEmail(email, resetUrl).catch((err) => console.error("[email] password-reset:", err));

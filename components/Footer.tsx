@@ -15,9 +15,8 @@ export default function Footer() {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold">
-            <span style={{ color: "var(--accent-purple)" }}>Up</span>
-            <span style={{ color: "var(--accent-cyan)" }}>Ma</span>
-            <span style={{ color: "#f59e0b" }}>Do</span>
+            <span style={{ color: "var(--accent-purple)" }}>Beat</span>
+            <span style={{ color: "var(--accent-cyan)" }}>zucker</span>
           </span>
         </div>
 
@@ -49,7 +48,7 @@ export default function Footer() {
       </div>
 
       <div className="text-center text-xs mt-4" style={{ color: "var(--text-muted)" }}>
-        © {new Date().getFullYear()} UpMaDo ·{" "}
+        © {new Date().getFullYear()} Beatzucker ·{" "}
         <a href="mailto:info@re-beatz.com" style={{ color: "var(--text-muted)" }}>info@re-beatz.com</a>
       </div>
     </footer>

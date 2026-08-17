@@ -10,14 +10,14 @@ const inter = Inter({
   display: "swap",
 });
 
-const BASE_URL = "https://upmado.com";
+const BASE_URL = "https://beatzucker.de";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
 
   title: {
-    default: "UpMaDo – AI-Powered Professional Audio Mastering",
-    template: "%s | UpMaDo",
+    default: "Beatzucker – AI-Powered Professional Audio Mastering",
+    template: "%s | Beatzucker",
   },
   description:
     "Upload your track. Get a professional master in seconds. 13-stage DSP pipeline, AI parameter selection, 7 export formats. Free to start.",
@@ -33,9 +33,9 @@ export const metadata: Metadata = {
     "Musik mastern",
     "automatisches Mastering",
   ],
-  authors: [{ name: "UpMaDo", url: BASE_URL }],
-  creator: "UpMaDo",
-  publisher: "UpMaDo",
+  authors: [{ name: "Beatzucker", url: BASE_URL }],
+  creator: "Beatzucker",
+  publisher: "Beatzucker",
 
   verification: {
     google: "cdAqmUQF4JgCkEgRVswUrhbeX_hXR2Ed70bbN7W4WWU",
@@ -52,8 +52,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: BASE_URL,
-    siteName: "UpMaDo",
-    title: "UpMaDo – AI-Powered Professional Audio Mastering",
+    siteName: "Beatzucker",
+    title: "Beatzucker – AI-Powered Professional Audio Mastering",
     description:
       "Upload your track. Get a professional master in seconds. 13-stage DSP pipeline, AI parameter selection, 7 export formats. Free to start.",
     images: [
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "UpMaDo – AI-Powered Professional Audio Mastering",
+        alt: "Beatzucker – AI-Powered Professional Audio Mastering",
       },
     ],
     locale: "de_DE",
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "UpMaDo – AI Audio Mastering",
+    title: "Beatzucker – AI Audio Mastering",
     description:
       "Professional audio mastering in seconds. 13-stage DSP + AI parameter selection. Free to start.",
     images: ["/opengraph-image"],
@@ -95,7 +95,7 @@ const jsonLd = {
     {
       "@type": "Organization",
       "@id": `${BASE_URL}/#organization`,
-      name: "UpMaDo",
+      name: "Beatzucker",
       url: BASE_URL,
       logo: {
         "@type": "ImageObject",
@@ -112,7 +112,7 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": `${BASE_URL}/#website`,
       url: BASE_URL,
-      name: "UpMaDo",
+      name: "Beatzucker",
       description: "AI-Powered Professional Audio Mastering",
       publisher: { "@id": `${BASE_URL}/#organization` },
       inLanguage: ["de-DE", "en-US"],
@@ -120,7 +120,7 @@ const jsonLd = {
     {
       "@type": "SoftwareApplication",
       "@id": `${BASE_URL}/#app`,
-      name: "UpMaDo Audio Mastering",
+      name: "Beatzucker Audio Mastering",
       applicationCategory: "MusicApplication",
       applicationSubCategory: "Audio Mastering",
       operatingSystem: "Web",

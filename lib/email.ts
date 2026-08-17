@@ -8,21 +8,21 @@ function getResend() {
   return new Resend(key);
 }
 
-const FROM = process.env.EMAIL_FROM ?? "noreply@upmado.com";
-const BASE = process.env.NEXTAUTH_URL ?? "https://upmado.com";
+const FROM = process.env.EMAIL_FROM ?? "noreply@beatzucker.de";
+const BASE = process.env.NEXTAUTH_URL ?? "https://beatzucker.de";
 const YEAR = new Date().getFullYear();
 
 // Shared header/footer snippets
 const emailHeader = `
   <div style="padding:28px 32px 0;text-align:center;">
     <span style="font-size:1.4rem;font-weight:800;letter-spacing:-0.02em;">
-      <span style="color:#a855f7">Up</span><span style="color:#06b6d4">Ma</span><span style="color:#f59e0b">Do</span>
+      <span style="color:#a855f7">Beat</span><span style="color:#06b6d4">zucker</span>
     </span>
   </div>`;
 
 const emailFooter = `
   <div style="padding:16px 32px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;font-size:0.72rem;color:#4b5563;">
-    © ${YEAR} UpMaDo · Michael Clas · Plaidter Str. 31, 56648 Saffig<br>
+    © ${YEAR} Beatzucker · Michael Clas · Plaidter Str. 31, 56648 Saffig<br>
     <a href="${BASE}/impressum" style="color:#6b7280;text-decoration:none;">Impressum</a> ·
     <a href="${BASE}/agb" style="color:#6b7280;text-decoration:none;">AGB</a> ·
     <a href="${BASE}/datenschutz" style="color:#6b7280;text-decoration:none;">Datenschutz</a> ·
@@ -66,14 +66,14 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
   await getResend().emails.send({
     from: FROM,
     to: email,
-    subject: "UpMaDo – Passwort zurücksetzen",
+    subject: "Beatzucker – Passwort zurücksetzen",
     html,
   });
 }
 
 export async function sendWelcomeEmail(email: string) {
   const html = emailWrap(`
-    <h1 style="color:#fff;font-size:1.2rem;font-weight:700;margin:0 0 12px;">Willkommen bei UpMaDo! 🎧</h1>
+    <h1 style="color:#fff;font-size:1.2rem;font-weight:700;margin:0 0 12px;">Willkommen bei Beatzucker! 🎧</h1>
     <p style="color:#9ca3af;font-size:0.92rem;line-height:1.6;margin:0 0 20px;">
       Dein Konto ist aktiv. Du kannst jetzt sofort kostenlos mit allen Funktionen mastern —
       alle Formate, Auto AI, Referenz-Track-Mastering, ohne Abo.
@@ -87,7 +87,7 @@ export async function sendWelcomeEmail(email: string) {
   await getResend().emails.send({
     from: FROM,
     to: email,
-    subject: "Willkommen bei UpMaDo 🎧",
+    subject: "Willkommen bei Beatzucker 🎧",
     html,
   });
 }
@@ -154,7 +154,7 @@ export async function sendLoginOtpEmail(email: string, otp: string) {
       Dein Login-Code
     </h1>
     <p style="color:#9ca3af;font-size:0.88rem;text-align:center;margin:0 0 24px;">
-      Gib diesen Code ein, um dich bei UpMaDo anzumelden.
+      Gib diesen Code ein, um dich bei Beatzucker anzumelden.
     </p>
     <div style="text-align:center;margin-bottom:24px;">
       <span style="font-size:2.5rem;font-weight:800;letter-spacing:0.25em;color:#a855f7;
@@ -171,7 +171,7 @@ export async function sendLoginOtpEmail(email: string, otp: string) {
   await getResend().emails.send({
     from: FROM,
     to: email,
-    subject: `${otp} – Dein UpMaDo Login-Code`,
+    subject: `${otp} – Dein Beatzucker Login-Code`,
     html,
   });
 }

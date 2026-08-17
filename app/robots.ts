@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/admin/", "/account/"],
       },
     ],
-    sitemap: "https://upmado.com/sitemap.xml",
-    host: "https://upmado.com",
+    sitemap: "https://beatzucker.de/sitemap.xml",
+    host: "https://beatzucker.de",
   };
 }

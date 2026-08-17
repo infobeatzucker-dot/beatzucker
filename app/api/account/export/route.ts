@@ -37,7 +37,7 @@ export async function GET() {
   };
 
   const json = JSON.stringify(exportData, null, 2);
-  const filename = `upmado-daten-${new Date().toISOString().slice(0, 10)}.json`;
+  const filename = `beatzucker-daten-${new Date().toISOString().slice(0, 10)}.json`;
 
   return new Response(json, {
     headers: {

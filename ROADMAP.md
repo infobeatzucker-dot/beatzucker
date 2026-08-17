@@ -1,4 +1,4 @@
-# UpMaDo – Verbesserungs-Roadmap
+# Beatzucker – Verbesserungs-Roadmap
 
 Stand: 2026-08-13. Sammlung von Ideen aus der Session, priorisiert. Nichts hiervon ist umgesetzt — dient als Grundlage für morgen.
 
@@ -26,7 +26,7 @@ Stand: 2026-08-13. Sammlung von Ideen aus der Session, priorisiert. Nichts hierv
 
 ## 🟢 Priorität 4 — Wachstum & Sichtbarkeit
 
-14. **Share-Badge für Social Media.** Optionaler "Gemastered mit UpMaDo"-Sticker/Wasserzeichen-Vorschlag beim Teilen auf Social Media — organische Reichweite, da jetzt kostenlos positioniert.
+14. **Share-Badge für Social Media.** Optionaler "Gemastered mit Beatzucker"-Sticker/Wasserzeichen-Vorschlag beim Teilen auf Social Media — organische Reichweite, da jetzt kostenlos positioniert.
 15. **Testimonials/Bewertungen einholen.** Falls es zufriedene Nutzer gibt, `aggregateRating` im JSON-LD (`app/layout.tsx`) ergänzen — verbessert die Google-Rich-Result-Darstellung.
 16. **Newsletter/Update-Opt-in.** Kurzer, DSGVO-konformer Hinweis für Feature-Updates — aktuell keine Möglichkeit, wiederkehrende Nutzer über neue Presets/Formate zu informieren.
 

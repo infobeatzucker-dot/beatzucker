@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "UpMaDo – AI-Powered Professional Audio Mastering";
+export const alt = "Beatzucker – AI-Powered Professional Audio Mastering";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -86,9 +86,8 @@ export default async function Image() {
               letterSpacing: "-2px",
             }}
           >
-            <span>Up</span>
-            <span style={{ color: "#7c6fff" }}>Ma</span>
-            <span>Do</span>
+            <span>Beat</span>
+            <span style={{ color: "#7c6fff" }}>zucker</span>
           </div>
         </div>
 
@@ -140,7 +139,7 @@ export default async function Image() {
             letterSpacing: "0.05em",
           }}
         >
-          upmado.com
+          beatzucker.de
         </div>
       </div>
     ),

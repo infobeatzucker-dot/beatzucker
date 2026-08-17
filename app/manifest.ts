@@ -2,8 +2,8 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "UpMaDo – AI Audio Mastering",
-    short_name: "UpMaDo",
+    name: "Beatzucker – AI Audio Mastering",
+    short_name: "Beatzucker",
     description:
       "Professional AI-powered audio mastering in seconds. Upload your track and get a studio-quality master.",
     start_url: "/",

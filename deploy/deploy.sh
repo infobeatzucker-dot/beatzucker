@@ -1,7 +1,7 @@
 #!/bin/bash
-# UpMaDo production deploy script — run on the server from /opt/upmado.
+# Beatzucker production deploy script — run on the server from /opt/beatzucker.
 #
-#   cd /opt/upmado && ./deploy/deploy.sh
+#   cd /opt/beatzucker && ./deploy/deploy.sh
 #
 # Pulls the latest main, builds a new image, swaps the running container,
 # smoke-tests it, and automatically rolls back to the previous image if
@@ -10,10 +10,10 @@
 
 set -uo pipefail
 
-APP_DIR="/opt/upmado"
-IMAGE="upmado:latest"
-CONTAINER="upmado"
-ROLLBACK_TAG="upmado:pre-deploy-$(date +%Y%m%d_%H%M%S)"
+APP_DIR="/opt/beatzucker"
+IMAGE="beatzucker:latest"
+CONTAINER="beatzucker"
+ROLLBACK_TAG="beatzucker:pre-deploy-$(date +%Y%m%d_%H%M%S)"
 
 cd "$APP_DIR" || { echo "FATAL: $APP_DIR not found"; exit 1; }
 

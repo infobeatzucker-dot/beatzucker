@@ -9,17 +9,17 @@ interface Props {
 }
 
 export default function Breadcrumb({ article, lang = "de" }: Props) {
-  const homeLabel  = "UpMaDo";
+  const homeLabel  = "Beatzucker";
   const wissenLabel = lang === "de" ? "Wissen" : "Knowledge";
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: homeLabel, item: "https://upmado.com" },
-      { "@type": "ListItem", position: 2, name: wissenLabel, item: "https://upmado.com/ressourcen" },
+      { "@type": "ListItem", position: 1, name: homeLabel, item: "https://beatzucker.de" },
+      { "@type": "ListItem", position: 2, name: wissenLabel, item: "https://beatzucker.de/ressourcen" },
       ...(article
-        ? [{ "@type": "ListItem", position: 3, name: article.title[lang], item: `https://upmado.com/ressourcen/${article.slug}` }]
+        ? [{ "@type": "ListItem", position: 3, name: article.title[lang], item: `https://beatzucker.de/ressourcen/${article.slug}` }]
         : []),
     ],
   };

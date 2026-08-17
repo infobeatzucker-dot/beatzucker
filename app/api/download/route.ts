@@ -91,11 +91,11 @@ export async function GET(req: NextRequest) {
   const fileBuffer = await readFile(filePath);
   const mime       = FORMAT_MIME[actualFormat] || "audio/mpeg";
 
-  // Build download filename: upmado_songname_format.ext
+  // Build download filename: beatzucker_songname_format.ext
   const rawName  = masterRecord.originalName ?? masterId;
   const baseName = rawName.replace(/\.[^/.]+$/, "");          // strip extension
   const safeName = baseName.replace(/[^a-zA-Z0-9_\-]/g, "_"); // sanitise
-  const dlName   = `upmado_${safeName}_${actualFormat}.${ext}`;
+  const dlName   = `beatzucker_${safeName}_${actualFormat}.${ext}`;
 
   return new Response(fileBuffer, {
     headers: {

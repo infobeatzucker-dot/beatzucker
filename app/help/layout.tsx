@@ -3,15 +3,15 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Hilfe & FAQ – Audio Mastering Support",
   description:
-    "Antworten auf alle Fragen zu UpMaDo: Quickstart, Mastering-Pipeline, A/B-Player, Plattform-Presets, Funktionen, Tastaturkürzel und technische Details.",
+    "Antworten auf alle Fragen zu Beatzucker: Quickstart, Mastering-Pipeline, A/B-Player, Plattform-Presets, Funktionen, Tastaturkürzel und technische Details.",
   alternates: {
-    canonical: "https://upmado.com/help",
+    canonical: "https://beatzucker.de/help",
   },
   openGraph: {
-    title: "UpMaDo Hilfe & FAQ",
+    title: "Beatzucker Hilfe & FAQ",
     description:
-      "Frequently asked questions about UpMaDo audio mastering. Quickstart guide, platform presets, features, keyboard shortcuts and more.",
-    url: "https://upmado.com/help",
+      "Frequently asked questions about Beatzucker audio mastering. Quickstart guide, platform presets, features, keyboard shortcuts and more.",
+    url: "https://beatzucker.de/help",
   },
 };
 
@@ -22,7 +22,7 @@ const faqJsonLd = {
   mainEntity: [
     {
       "@type": "Question",
-      name: "Wie funktioniert UpMaDo?",
+      name: "Wie funktioniert Beatzucker?",
       acceptedAnswer: {
         "@type": "Answer",
         text: "Lade eine WAV- oder MP3-Datei hoch, wähle Zielplattform und Genre-Preset, stelle die Mastering-Intensität ein und klicke auf Mastern. Die KI analysiert dein Audio, wählt automatisch die optimalen Parameter und die 13-stufige DSP-Pipeline verarbeitet deinen Track professionell.",
@@ -54,7 +54,7 @@ const faqJsonLd = {
     },
     {
       "@type": "Question",
-      name: "Ist UpMaDo wirklich kostenlos?",
+      name: "Ist Beatzucker wirklich kostenlos?",
       acceptedAnswer: {
         "@type": "Answer",
         text: "Ja. Alle Funktionen — Auto AI, Referenz-Track-Mastering, alle Export-Formate inkl. WAV 32-bit — sind kostenlos und ohne Abo nutzbar. Ein faires Tageslimit von 10 Masters pro Account schützt lediglich vor Serverüberlastung.",
@@ -65,7 +65,7 @@ const faqJsonLd = {
       name: "What is LUFS and why does it matter?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "LUFS (Loudness Units Full Scale) is the standard loudness measurement for streaming platforms. Spotify normalises to –14 LUFS. UpMaDo automatically targets the correct LUFS value for your chosen platform so your track sounds optimal without being ducked.",
+        text: "LUFS (Loudness Units Full Scale) is the standard loudness measurement for streaming platforms. Spotify normalises to –14 LUFS. Beatzucker automatically targets the correct LUFS value for your chosen platform so your track sounds optimal without being ducked.",
       },
     },
   ],

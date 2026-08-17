@@ -16,7 +16,7 @@ const t = (o: Bilingual, lang: Lang) => o[lang];
 const T = {
   hero_badge:   { de: "Hilfe & FAQ", en: "Help & FAQ" },
   hero_h1:      { de: "Wie kann ich dir helfen?", en: "How can I help you?" },
-  hero_sub:     { de: "Antworten auf die häufigsten Fragen zu UpMaDo.", en: "Answers to the most common questions about UpMaDo." },
+  hero_sub:     { de: "Antworten auf die häufigsten Fragen zu Beatzucker.", en: "Answers to the most common questions about Beatzucker." },
   hero_contact: { de: "Nicht gefunden? Schreib uns:", en: "Not found? Contact us:" },
   search_ph:    { de: "FAQ durchsuchen…", en: "Search FAQ…" },
   qs_title:     { de: "Schnellstart", en: "Quick Start" },
@@ -341,8 +341,8 @@ const FAQ_CATEGORIES = [
     titleDe: "Erste Schritte", titleEn: "Getting Started",
     items: [
       {
-        qDe: "Wie funktioniert UpMaDo?",
-        qEn: "How does UpMaDo work?",
+        qDe: "Wie funktioniert Beatzucker?",
+        qEn: "How does Beatzucker work?",
         aDe: "Lade eine WAV- oder MP3-Datei hoch, wähle Zielplattform und Genre-Preset, stelle die Mastering-Intensität ein und klicke auf Mastern (oder drücke M). Die KI analysiert dein Audio, wählt automatisch die optimalen Parameter und die 13-stufige DSP-Pipeline verarbeitet deinen Track professionell.",
         aEn: "Upload a WAV or MP3 file, choose your target platform and genre preset, set the mastering intensity, and click Master (or press M). The AI analyses your audio, automatically selects optimal parameters, and the 13-stage DSP pipeline processes your track professionally.",
       },
@@ -359,8 +359,8 @@ const FAQ_CATEGORIES = [
         aEn: "Analysis takes approx. 5–10 seconds. Full mastering (DSP pipeline + all export formats) takes 30 seconds to 3 minutes depending on track length. Progress is shown in real time.",
       },
       {
-        qDe: "Ist UpMaDo wirklich komplett kostenlos?",
-        qEn: "Is UpMaDo really completely free?",
+        qDe: "Ist Beatzucker wirklich komplett kostenlos?",
+        qEn: "Is Beatzucker really completely free?",
         aDe: "Ja. Alle Funktionen — Auto AI, Referenz-Track-Mastering, alle Export-Formate inkl. WAV 32-bit — sind kostenlos und ohne Abo nutzbar. Ein faires Tageslimit pro Account schützt lediglich vor Serverüberlastung.",
         aEn: "Yes. All features — Auto AI, reference-track mastering, all export formats including WAV 32-bit — are free and require no subscription. A fair daily limit per account simply protects against server overload.",
       },
@@ -397,14 +397,14 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Was ist M/S Processing?",
         qEn: "What is M/S Processing?",
-        aDe: "Mid/Side-Processing trennt das Stereo-Signal in Mitte (Mid = L+R) und Seite (Side = L–R). Dies ermöglicht unabhängige Bearbeitung von Breite und Tiefe. UpMaDo entfernt außerdem automatisch tiefe Frequenzen unter 120 Hz aus dem Seitenkanal für bessere Club-Kompatibilität.",
-        aEn: "Mid/Side processing splits the stereo signal into centre (Mid = L+R) and side (Side = L–R). This allows independent processing of width and depth. UpMaDo also automatically removes low frequencies below 120 Hz from the side channel for better club compatibility.",
+        aDe: "Mid/Side-Processing trennt das Stereo-Signal in Mitte (Mid = L+R) und Seite (Side = L–R). Dies ermöglicht unabhängige Bearbeitung von Breite und Tiefe. Beatzucker entfernt außerdem automatisch tiefe Frequenzen unter 120 Hz aus dem Seitenkanal für bessere Club-Kompatibilität.",
+        aEn: "Mid/Side processing splits the stereo signal into centre (Mid = L+R) and side (Side = L–R). This allows independent processing of width and depth. Beatzucker also automatically removes low frequencies below 120 Hz from the side channel for better club compatibility.",
       },
       {
         qDe: "Was bedeutet Mono-Kompatibilität?",
         qEn: "What does mono compatibility mean?",
-        aDe: "Mono-Kompatibilität bedeutet, dass dein Track auch in Mono gut klingt — wichtig für Club-Systeme, Telefone und kleine Lautsprecher. Das Stereofeld-Vektorskop zeigt einen positiven Korrelationswert, wenn dein Track mono-kompatibel ist. UpMaDo zeigt dir dies direkt in der Analyse.",
-        aEn: "Mono compatibility means your track sounds good in mono too — important for club systems, phones, and small speakers. The stereo field vectorscope shows a positive correlation value when your track is mono-compatible. UpMaDo shows this directly in the analysis.",
+        aDe: "Mono-Kompatibilität bedeutet, dass dein Track auch in Mono gut klingt — wichtig für Club-Systeme, Telefone und kleine Lautsprecher. Das Stereofeld-Vektorskop zeigt einen positiven Korrelationswert, wenn dein Track mono-kompatibel ist. Beatzucker zeigt dir dies direkt in der Analyse.",
+        aEn: "Mono compatibility means your track sounds good in mono too — important for club systems, phones, and small speakers. The stereo field vectorscope shows a positive correlation value when your track is mono-compatible. Beatzucker shows this directly in the analysis.",
       },
     ],
   },
@@ -440,8 +440,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Was ist LUFS?",
         qEn: "What is LUFS?",
-        aDe: "LUFS (Loudness Units Full Scale) ist der Standard zur Lautstärkemessung für Streaming-Plattformen. Spotify normalisiert auf –14 LUFS — lautere Tracks werden automatisch leiser gedreht. Mit UpMaDo wird dein Track exakt auf den richtigen LUFS-Wert normalisiert.",
-        aEn: "LUFS (Loudness Units Full Scale) is the standard loudness measurement for streaming platforms. Spotify normalises to –14 LUFS — louder tracks are auto-ducked. UpMaDo normalises your track to exactly the right LUFS value.",
+        aDe: "LUFS (Loudness Units Full Scale) ist der Standard zur Lautstärkemessung für Streaming-Plattformen. Spotify normalisiert auf –14 LUFS — lautere Tracks werden automatisch leiser gedreht. Mit Beatzucker wird dein Track exakt auf den richtigen LUFS-Wert normalisiert.",
+        aEn: "LUFS (Loudness Units Full Scale) is the standard loudness measurement for streaming platforms. Spotify normalises to –14 LUFS — louder tracks are auto-ducked. Beatzucker normalises your track to exactly the right LUFS value.",
       },
     ],
   },
@@ -592,7 +592,7 @@ export default function HelpPage() {
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>
-      <BreadcrumbJsonLd name="Hilfe" url="https://upmado.com/help" />
+      <BreadcrumbJsonLd name="Hilfe" url="https://beatzucker.de/help" />
       <Header />
 
       {/* ── Language Toggle ── */}

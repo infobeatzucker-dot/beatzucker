@@ -13,7 +13,7 @@ const T = {
     badge: "Features",
     hero_h1a: "Professionelles Mastering.",
     hero_h1b: "Vollautomatisch.",
-    hero_sub: "UpMaDo kombiniert eine professionelle 13-stufige DSP-Pipeline mit KI-Parameterauswahl — für Ergebnisse auf Ozone/FabFilter-Niveau, in Sekunden.",
+    hero_sub: "Beatzucker kombiniert eine professionelle 13-stufige DSP-Pipeline mit KI-Parameterauswahl — für Ergebnisse auf Ozone/FabFilter-Niveau, in Sekunden.",
     stat1: "13 DSP-Stufen",
     stat2: "7 Formate",
     stat3: "11 Plattformen",
@@ -36,7 +36,7 @@ const T = {
     format_h2: "Alle Formate in einem Durchgang",
     format_sub: "Ein Master — alle Formate gleichzeitig. Kein erneutes Hochladen.",
     features_badge: "Alle Features",
-    features_h2: "Was UpMaDo kann",
+    features_h2: "Was Beatzucker kann",
     cta_h2: "Bereit für deinen ersten Master?",
     cta_sub: "Einfach hochladen — in 30 Sekunden fertig.",
     cta_btn: "Jetzt mastern →",
@@ -45,7 +45,7 @@ const T = {
     badge: "Features",
     hero_h1a: "Professional Mastering.",
     hero_h1b: "Fully Automatic.",
-    hero_sub: "UpMaDo combines a professional 13-stage DSP pipeline with AI parameter selection — delivering Ozone/FabFilter-level results in seconds.",
+    hero_sub: "Beatzucker combines a professional 13-stage DSP pipeline with AI parameter selection — delivering Ozone/FabFilter-level results in seconds.",
     stat1: "13 DSP Stages",
     stat2: "7 Formats",
     stat3: "11 Platforms",
@@ -68,7 +68,7 @@ const T = {
     format_h2: "All Formats in one Pass",
     format_sub: "One master — all formats simultaneously. No re-uploading.",
     features_badge: "All Features",
-    features_h2: "What UpMaDo can do",
+    features_h2: "What Beatzucker can do",
     cta_h2: "Ready for your first Master?",
     cta_sub: "Just upload — done in 30 seconds.",
     cta_btn: "Start mastering →",
@@ -523,7 +523,7 @@ export default function FeaturesPage() {
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>
-      <BreadcrumbJsonLd name="Features" url="https://upmado.com/features" />
+      <BreadcrumbJsonLd name="Features" url="https://beatzucker.de/features" />
       <Header />
 
       {/* Language toggle */}

@@ -268,9 +268,8 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
           <span style={{ fontSize: "1.3rem", fontWeight: 800 }}>
-            <span style={{ color: "var(--accent-purple)" }}>Up</span>
-            <span style={{ color: "var(--accent-cyan)" }}>Ma</span>
-            <span style={{ color: "#f59e0b" }}>Do</span>
+            <span style={{ color: "var(--accent-purple)" }}>Beat</span>
+            <span style={{ color: "var(--accent-cyan)" }}>zucker</span>
           </span>
         </div>
 

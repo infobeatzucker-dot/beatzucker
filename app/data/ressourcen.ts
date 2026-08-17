@@ -60,8 +60,8 @@ export const ARTICLES: RessourceArticle[] = [
       en: "What Is Audio Mastering?",
     },
     metaTitle: {
-      de: "Was ist Audio Mastering? – Einfach erklärt | UpMaDo",
-      en: "What Is Audio Mastering? – Simply Explained | UpMaDo",
+      de: "Was ist Audio Mastering? – Einfach erklärt | Beatzucker",
+      en: "What Is Audio Mastering? – Simply Explained | Beatzucker",
     },
     metaDescription: {
       de: "Audio Mastering einfach erklärt: Was passiert beim Mastering, warum ist es wichtig und wie klingt dein Track danach professioneller? Alle Grundlagen hier.",
@@ -92,8 +92,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Was passiert beim Mastering genau?", en: "What Exactly Happens During Mastering?" },
           body: {
-            de: "Mastering ist kein einzelner Prozess, sondern eine Kette von Bearbeitungsschritten. Professionelle Mastering-Suiten und KI-basierte Tools wie UpMaDo durchlaufen mehrere Stufen:",
-            en: "Mastering is not a single process, but a chain of processing steps. Professional mastering suites and AI-based tools like UpMaDo go through several stages:",
+            de: "Mastering ist kein einzelner Prozess, sondern eine Kette von Bearbeitungsschritten. Professionelle Mastering-Suiten und KI-basierte Tools wie Beatzucker durchlaufen mehrere Stufen:",
+            en: "Mastering is not a single process, but a chain of processing steps. Professional mastering suites and AI-based tools like Beatzucker go through several stages:",
           },
           list: [
             { de: "EQ (Equalization): Frequenzen werden korrigiert und betont — zu viel Bass herausnehmen, fehlende Höhen hinzufügen.", en: "EQ (Equalization): Frequencies are corrected and emphasized — removing excess bass, adding missing highs." },
@@ -114,14 +114,14 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Wann brauche ich Mastering?", en: "When Do I Need Mastering?" },
           body: {
-            de: "Kurze Antwort: immer, bevor du etwas veröffentlichst. Egal ob SoundCloud-Upload, Spotify-Release, Bandcamp-Track oder Demo für ein Label — ein nicht gemasterter Track wirkt amateurhaft im Vergleich zu professionell produzierten Songs.\n\nAuch wenn dein Budget klein ist: Mit modernen KI-Mastering-Tools wie UpMaDo kannst du einen professionell klingenden Master in wenigen Sekunden erstellen — kostenlos und ohne Vorkenntnisse. Das war früher nur im Profi-Studio für mehrere Hundert Euro möglich.",
-            en: "Short answer: always, before you publish anything. Whether it's a SoundCloud upload, Spotify release, Bandcamp track, or demo for a label — an unmastered track sounds amateurish compared to professionally produced songs.\n\nEven if your budget is small: with modern AI mastering tools like UpMaDo, you can create a professionally sounding master in seconds — for free and without any prior knowledge. This was previously only possible in a professional studio for several hundred euros.",
+            de: "Kurze Antwort: immer, bevor du etwas veröffentlichst. Egal ob SoundCloud-Upload, Spotify-Release, Bandcamp-Track oder Demo für ein Label — ein nicht gemasterter Track wirkt amateurhaft im Vergleich zu professionell produzierten Songs.\n\nAuch wenn dein Budget klein ist: Mit modernen KI-Mastering-Tools wie Beatzucker kannst du einen professionell klingenden Master in wenigen Sekunden erstellen — kostenlos und ohne Vorkenntnisse. Das war früher nur im Profi-Studio für mehrere Hundert Euro möglich.",
+            en: "Short answer: always, before you publish anything. Whether it's a SoundCloud upload, Spotify release, Bandcamp track, or demo for a label — an unmastered track sounds amateurish compared to professionally produced songs.\n\nEven if your budget is small: with modern AI mastering tools like Beatzucker, you can create a professionally sounding master in seconds — for free and without any prior knowledge. This was previously only possible in a professional studio for several hundred euros.",
           },
         },
       ],
       conclusion: {
-        de: "Audio Mastering ist kein optionaler Luxus — es ist der Qualitätsstandard, den Hörer, Plattformen und Labels erwarten. Mit UpMaDo ist es so einfach wie nie zuvor: Track hochladen, Plattform wählen, Master herunterladen.",
-        en: "Audio mastering is not an optional luxury — it's the quality standard that listeners, platforms, and labels expect. With UpMaDo, it's easier than ever: upload a track, choose a platform, download your master.",
+        de: "Audio Mastering ist kein optionaler Luxus — es ist der Qualitätsstandard, den Hörer, Plattformen und Labels erwarten. Mit Beatzucker ist es so einfach wie nie zuvor: Track hochladen, Plattform wählen, Master herunterladen.",
+        en: "Audio mastering is not an optional luxury — it's the quality standard that listeners, platforms, and labels expect. With Beatzucker, it's easier than ever: upload a track, choose a platform, download your master.",
       },
     },
   },
@@ -135,7 +135,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "📊",
     readingTimeMinutes: 7,
     title: { de: "LUFS erklärt: Die Lautstärkeeinheit für Streaming", en: "LUFS Explained: The Loudness Unit for Streaming" },
-    metaTitle: { de: "LUFS erklärt – Lautstärke für Spotify, YouTube & Co. | UpMaDo", en: "LUFS Explained – Loudness for Spotify, YouTube & More | UpMaDo" },
+    metaTitle: { de: "LUFS erklärt – Lautstärke für Spotify, YouTube & Co. | Beatzucker", en: "LUFS Explained – Loudness for Spotify, YouTube & More | Beatzucker" },
     metaDescription: {
       de: "Was ist LUFS? Wie unterscheidet sich LUFS von dB und RMS? Alle Plattform-Zielwerte und warum LUFS die wichtigste Lautstärkeeinheit beim Mastering ist.",
       en: "What is LUFS? How does LUFS differ from dB and RMS? All platform target values and why LUFS is the most important loudness unit in mastering.",
@@ -202,8 +202,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Wie misst du LUFS in deiner DAW?", en: "How Do You Measure LUFS in Your DAW?" },
           body: {
-            de: "Die meisten modernen DAWs haben ein eingebautes LUFS-Meter oder du nutzt ein Plugin. Bekannte kostenlose Tools sind Youlean Loudness Meter oder das LUFS-Meter in iZotope Ozone. UpMaDo analysiert die LUFS deines Tracks automatisch und zeigt sie im Analyse-Panel an — sowohl vor als auch nach dem Mastering.\n\nFaustregel: Prüfe immer den integrierten LUFS-Wert (über den gesamten Track, nicht nur einen kurzen Abschnitt). Für Spotify masterst du auf −14 LUFS integrated mit einem True Peak von maximal −1 dBTP.",
-            en: "Most modern DAWs have a built-in LUFS meter, or you can use a plugin. Well-known free tools include Youlean Loudness Meter or the LUFS meter in iZotope Ozone. UpMaDo automatically analyzes the LUFS of your track and displays them in the analysis panel — both before and after mastering.\n\nRule of thumb: Always check the integrated LUFS value (over the entire track, not just a short section). For Spotify, master to −14 LUFS integrated with a True Peak of maximum −1 dBTP.",
+            de: "Die meisten modernen DAWs haben ein eingebautes LUFS-Meter oder du nutzt ein Plugin. Bekannte kostenlose Tools sind Youlean Loudness Meter oder das LUFS-Meter in iZotope Ozone. Beatzucker analysiert die LUFS deines Tracks automatisch und zeigt sie im Analyse-Panel an — sowohl vor als auch nach dem Mastering.\n\nFaustregel: Prüfe immer den integrierten LUFS-Wert (über den gesamten Track, nicht nur einen kurzen Abschnitt). Für Spotify masterst du auf −14 LUFS integrated mit einem True Peak von maximal −1 dBTP.",
+            en: "Most modern DAWs have a built-in LUFS meter, or you can use a plugin. Well-known free tools include Youlean Loudness Meter or the LUFS meter in iZotope Ozone. Beatzucker automatically analyzes the LUFS of your track and displays them in the analysis panel — both before and after mastering.\n\nRule of thumb: Always check the integrated LUFS value (over the entire track, not just a short section). For Spotify, master to −14 LUFS integrated with a True Peak of maximum −1 dBTP.",
           },
         },
       ],
@@ -223,7 +223,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "⚖️",
     readingTimeMinutes: 5,
     title: { de: "Mastering vs. Mixing: Was ist der Unterschied?", en: "Mastering vs. Mixing: What's the Difference?" },
-    metaTitle: { de: "Mastering vs. Mixing – Der Unterschied erklärt | UpMaDo", en: "Mastering vs. Mixing – The Difference Explained | UpMaDo" },
+    metaTitle: { de: "Mastering vs. Mixing – Der Unterschied erklärt | Beatzucker", en: "Mastering vs. Mixing – The Difference Explained | Beatzucker" },
     metaDescription: {
       de: "Mastering und Mixing werden oft verwechselt. Hier erfährst du den genauen Unterschied, was bei jedem Schritt passiert und wann du welchen brauchst.",
       en: "Mastering and mixing are often confused. Here you learn the exact difference, what happens at each step, and when you need which.",
@@ -278,8 +278,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Kann ich Mixing und Mastering selbst machen?", en: "Can I Do Mixing and Mastering Myself?" },
           body: {
-            de: "Mixing erfordert Erfahrung, gute Monitore und eine behandelte Raumakustik. Viele Produzenten mixen selbst und lassen den Track danach von einem Mastering-Engineer oder einer KI mastern.\n\nMastering war lange ein teurer Schritt im Profi-Studio. Mit modernen KI-Tools wie UpMaDo kannst du deinen Track heute in Sekunden professionell mastern — kostenlos und ohne Fachkenntnisse. Die KI analysiert deinen Mix und wendet 13 DSP-Stufen an, um das bestmögliche Ergebnis zu erzielen.",
-            en: "Mixing requires experience, good monitors, and treated room acoustics. Many producers mix themselves and then have the track mastered by a mastering engineer or an AI.\n\nMastering was long an expensive step in the professional studio. With modern AI tools like UpMaDo, you can professionally master your track in seconds today — for free and without expertise. The AI analyzes your mix and applies 13 DSP stages to achieve the best possible result.",
+            de: "Mixing erfordert Erfahrung, gute Monitore und eine behandelte Raumakustik. Viele Produzenten mixen selbst und lassen den Track danach von einem Mastering-Engineer oder einer KI mastern.\n\nMastering war lange ein teurer Schritt im Profi-Studio. Mit modernen KI-Tools wie Beatzucker kannst du deinen Track heute in Sekunden professionell mastern — kostenlos und ohne Fachkenntnisse. Die KI analysiert deinen Mix und wendet 13 DSP-Stufen an, um das bestmögliche Ergebnis zu erzielen.",
+            en: "Mixing requires experience, good monitors, and treated room acoustics. Many producers mix themselves and then have the track mastered by a mastering engineer or an AI.\n\nMastering was long an expensive step in the professional studio. With modern AI tools like Beatzucker, you can professionally master your track in seconds today — for free and without expertise. The AI analyzes your mix and applies 13 DSP stages to achieve the best possible result.",
           },
         },
       ],
@@ -295,7 +295,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "🤖",
     readingTimeMinutes: 6,
     title: { de: "KI-Mastering: Wie funktioniert AI Audio Mastering?", en: "AI Mastering: How Does AI Audio Mastering Work?" },
-    metaTitle: { de: "KI-Mastering erklärt – So funktioniert AI Audio Mastering | UpMaDo", en: "AI Mastering Explained – How AI Audio Mastering Works | UpMaDo" },
+    metaTitle: { de: "KI-Mastering erklärt – So funktioniert AI Audio Mastering | Beatzucker", en: "AI Mastering Explained – How AI Audio Mastering Works | Beatzucker" },
     metaDescription: {
       de: "Wie analysiert eine KI einen Audiotrack und mastert ihn automatisch? Die Technologie hinter KI-Mastering verständlich erklärt – von der Analyse bis zum fertigen Master.",
       en: "How does an AI analyze an audio track and master it automatically? The technology behind AI mastering explained clearly — from analysis to finished master.",
@@ -318,8 +318,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Schritt 1: Analyse des Audiotracks", en: "Step 1: Analyzing the Audio Track" },
           body: {
-            de: "Bevor eine KI irgendetwas am Track verändert, analysiert sie ihn gründlich. UpMaDo erfasst dabei unter anderem:\n\nLUFS (integriert, Short-Term, Momentary): Wie laut ist der Track insgesamt und in verschiedenen Abschnitten?\n\nTrue Peak: Wie nah ist der Spitzenpegel an der digitalen Vollaussteuerung?\n\nSpektralanalyse: Wo liegen Frequenzschwerpunkte? Hat der Track zu viel Bass, fehlende Höhen oder ein überfülltes Mitten-Spektrum?\n\nDynamik (Crest Factor, DR-Wert): Wie dynamisch ist der Track — hat er viele Pegel-Peaks oder ist er bereits sehr komprimiert?\n\nStereofeld: Wie breit ist der Mix? Gibt es Phasenprobleme?\n\nBPM und Key: Tempo und Tonart werden für genre-spezifische Parameter ausgewertet.",
-            en: "Before an AI changes anything about the track, it analyzes it thoroughly. UpMaDo captures, among other things:\n\nLUFS (integrated, short-term, momentary): How loud is the track overall and in various sections?\n\nTrue Peak: How close is the peak level to digital full scale?\n\nSpectral analysis: Where are the frequency emphases? Does the track have too much bass, missing highs, or an overcrowded mid-range spectrum?\n\nDynamics (crest factor, DR value): How dynamic is the track — does it have many level peaks or is it already heavily compressed?\n\nStereo field: How wide is the mix? Are there phase issues?\n\nBPM and key: Tempo and key are evaluated for genre-specific parameters.",
+            de: "Bevor eine KI irgendetwas am Track verändert, analysiert sie ihn gründlich. Beatzucker erfasst dabei unter anderem:\n\nLUFS (integriert, Short-Term, Momentary): Wie laut ist der Track insgesamt und in verschiedenen Abschnitten?\n\nTrue Peak: Wie nah ist der Spitzenpegel an der digitalen Vollaussteuerung?\n\nSpektralanalyse: Wo liegen Frequenzschwerpunkte? Hat der Track zu viel Bass, fehlende Höhen oder ein überfülltes Mitten-Spektrum?\n\nDynamik (Crest Factor, DR-Wert): Wie dynamisch ist der Track — hat er viele Pegel-Peaks oder ist er bereits sehr komprimiert?\n\nStereofeld: Wie breit ist der Mix? Gibt es Phasenprobleme?\n\nBPM und Key: Tempo und Tonart werden für genre-spezifische Parameter ausgewertet.",
+            en: "Before an AI changes anything about the track, it analyzes it thoroughly. Beatzucker captures, among other things:\n\nLUFS (integrated, short-term, momentary): How loud is the track overall and in various sections?\n\nTrue Peak: How close is the peak level to digital full scale?\n\nSpectral analysis: Where are the frequency emphases? Does the track have too much bass, missing highs, or an overcrowded mid-range spectrum?\n\nDynamics (crest factor, DR value): How dynamic is the track — does it have many level peaks or is it already heavily compressed?\n\nStereo field: How wide is the mix? Are there phase issues?\n\nBPM and key: Tempo and key are evaluated for genre-specific parameters.",
           },
         },
         {
@@ -332,8 +332,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Schritt 3: Die DSP-Pipeline", en: "Step 3: The DSP Pipeline" },
           body: {
-            de: "Die berechneten Parameter werden auf eine mehrstufige DSP-Pipeline (Digital Signal Processing) angewendet. UpMaDo verarbeitet jeden Track durch 12 Stufen:\n\n1. Input Gain: Normalisierung des Eingangspegels\n2. High-Pass Filter: Entfernung von Sub-Frequenzen unter 20 Hz\n3. Low Shelving EQ: Bassfrequenzen formen\n4. Mid Parametric EQ: Mitten korrigieren\n5. High Shelving EQ: Höhen hinzufügen oder reduzieren\n6. Multiband-Kompressor: Frequenzbänder separat komprimieren\n7. Stereo-Bearbeitung: Mid/Side-Verarbeitung für Stereobreite\n8. Harmonic Exciter: Obertöne anreichern für Wärme und Präsenz\n9. Glue-Kompressor: Gesamtmix zusammenkleben\n10. Pre-Limiter EQ: Letzte Frequenzkorrektur vor dem Limiter\n11. True-Peak-Limiter: Ceiling auf −1 dBTP setzen\n12. Dithering: Quantisierungsrauschen minimieren beim Format-Export",
-            en: "The calculated parameters are applied to a multi-stage DSP pipeline (Digital Signal Processing). UpMaDo processes each track through 12 stages:\n\n1. Input Gain: Normalization of input level\n2. High-Pass Filter: Removal of sub-frequencies below 20 Hz\n3. Low Shelving EQ: Shaping bass frequencies\n4. Mid Parametric EQ: Correcting midrange\n5. High Shelving EQ: Adding or reducing highs\n6. Multiband Compressor: Compressing frequency bands separately\n7. Stereo Processing: Mid/Side processing for stereo width\n8. Harmonic Exciter: Enriching overtones for warmth and presence\n9. Glue Compressor: Cohering the overall mix\n10. Pre-Limiter EQ: Final frequency correction before the limiter\n11. True-Peak Limiter: Setting ceiling to −1 dBTP\n12. Dithering: Minimizing quantization noise during format export",
+            de: "Die berechneten Parameter werden auf eine mehrstufige DSP-Pipeline (Digital Signal Processing) angewendet. Beatzucker verarbeitet jeden Track durch 12 Stufen:\n\n1. Input Gain: Normalisierung des Eingangspegels\n2. High-Pass Filter: Entfernung von Sub-Frequenzen unter 20 Hz\n3. Low Shelving EQ: Bassfrequenzen formen\n4. Mid Parametric EQ: Mitten korrigieren\n5. High Shelving EQ: Höhen hinzufügen oder reduzieren\n6. Multiband-Kompressor: Frequenzbänder separat komprimieren\n7. Stereo-Bearbeitung: Mid/Side-Verarbeitung für Stereobreite\n8. Harmonic Exciter: Obertöne anreichern für Wärme und Präsenz\n9. Glue-Kompressor: Gesamtmix zusammenkleben\n10. Pre-Limiter EQ: Letzte Frequenzkorrektur vor dem Limiter\n11. True-Peak-Limiter: Ceiling auf −1 dBTP setzen\n12. Dithering: Quantisierungsrauschen minimieren beim Format-Export",
+            en: "The calculated parameters are applied to a multi-stage DSP pipeline (Digital Signal Processing). Beatzucker processes each track through 12 stages:\n\n1. Input Gain: Normalization of input level\n2. High-Pass Filter: Removal of sub-frequencies below 20 Hz\n3. Low Shelving EQ: Shaping bass frequencies\n4. Mid Parametric EQ: Correcting midrange\n5. High Shelving EQ: Adding or reducing highs\n6. Multiband Compressor: Compressing frequency bands separately\n7. Stereo Processing: Mid/Side processing for stereo width\n8. Harmonic Exciter: Enriching overtones for warmth and presence\n9. Glue Compressor: Cohering the overall mix\n10. Pre-Limiter EQ: Final frequency correction before the limiter\n11. True-Peak Limiter: Setting ceiling to −1 dBTP\n12. Dithering: Minimizing quantization noise during format export",
           },
         },
         {
@@ -356,7 +356,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "🔇",
     readingTimeMinutes: 5,
     title: { de: "Dein Song klingt leise auf Spotify? Das ist der Grund", en: "Your Song Sounds Quiet on Spotify? Here's Why" },
-    metaTitle: { de: "Song klingt leise auf Spotify – Ursache & Lösung | UpMaDo", en: "Song Sounds Quiet on Spotify – Cause & Solution | UpMaDo" },
+    metaTitle: { de: "Song klingt leise auf Spotify – Ursache & Lösung | Beatzucker", en: "Song Sounds Quiet on Spotify – Cause & Solution | Beatzucker" },
     metaDescription: {
       de: "Warum klingt dein Track auf Spotify leiser als andere Songs? Spotify Loudness Normalization erklärt und wie du deinen Master richtig vorbereitest.",
       en: "Why does your track sound quieter on Spotify than other songs? Spotify loudness normalization explained and how to prepare your master correctly.",
@@ -393,8 +393,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Die Lösung: Richtig auf −14 LUFS mastern", en: "The Solution: Mastering Correctly to −14 LUFS" },
           body: {
-            de: "Die Lösung ist einfach: Master deinen Track auf −14 LUFS (integriert) mit einem True Peak von maximal −1 dBTP. So wird Spotify deinen Track weder hoch- noch runterdrehen — er klingt genau so, wie du ihn gemastert hast.\n\nFaustregel für Streaming-Mastering:\n\n• Integrierter LUFS: −14 LUFS (Spotify), −16 LUFS (Apple Music)\n• True Peak: max. −1 dBTP\n• Kein Limiter, der den Track unter −3 LUFS dynamic range bringt\n\nUpMaDo mastert deinen Track automatisch auf den richtigen Zielwert — du wählst nur die Plattform, die KI berechnet den Rest.",
-            en: "The solution is simple: master your track to −14 LUFS (integrated) with a True Peak of maximum −1 dBTP. This way Spotify will neither turn your track up nor down — it sounds exactly as you mastered it.\n\nRule of thumb for streaming mastering:\n\n• Integrated LUFS: −14 LUFS (Spotify), −16 LUFS (Apple Music)\n• True Peak: max. −1 dBTP\n• No limiter that brings the track below −3 LUFS dynamic range\n\nUpMaDo masters your track automatically to the correct target value — you just choose the platform, the AI calculates the rest.",
+            de: "Die Lösung ist einfach: Master deinen Track auf −14 LUFS (integriert) mit einem True Peak von maximal −1 dBTP. So wird Spotify deinen Track weder hoch- noch runterdrehen — er klingt genau so, wie du ihn gemastert hast.\n\nFaustregel für Streaming-Mastering:\n\n• Integrierter LUFS: −14 LUFS (Spotify), −16 LUFS (Apple Music)\n• True Peak: max. −1 dBTP\n• Kein Limiter, der den Track unter −3 LUFS dynamic range bringt\n\nBeatzucker mastert deinen Track automatisch auf den richtigen Zielwert — du wählst nur die Plattform, die KI berechnet den Rest.",
+            en: "The solution is simple: master your track to −14 LUFS (integrated) with a True Peak of maximum −1 dBTP. This way Spotify will neither turn your track up nor down — it sounds exactly as you mastered it.\n\nRule of thumb for streaming mastering:\n\n• Integrated LUFS: −14 LUFS (Spotify), −16 LUFS (Apple Music)\n• True Peak: max. −1 dBTP\n• No limiter that brings the track below −3 LUFS dynamic range\n\nBeatzucker masters your track automatically to the correct target value — you just choose the platform, the AI calculates the rest.",
           },
         },
       ],
@@ -410,7 +410,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "🌐",
     readingTimeMinutes: 5,
     title: { de: "LUFS-Zielwerte für Spotify, Apple Music, YouTube & Co.", en: "LUFS Target Values for Spotify, Apple Music, YouTube & More" },
-    metaTitle: { de: "LUFS Zielwerte aller Streaming-Plattformen 2025 | UpMaDo", en: "LUFS Target Values for All Streaming Platforms 2025 | UpMaDo" },
+    metaTitle: { de: "LUFS Zielwerte aller Streaming-Plattformen 2025 | Beatzucker", en: "LUFS Target Values for All Streaming Platforms 2025 | Beatzucker" },
     metaDescription: {
       de: "Die genauen LUFS-Zielwerte für Spotify, Apple Music, YouTube, TikTok, Amazon, Deezer, SoundCloud und Club-Systeme. Die ultimative Referenztabelle fürs Mastering.",
       en: "The exact LUFS target values for Spotify, Apple Music, YouTube, TikTok, Amazon, Deezer, SoundCloud, and club systems. The ultimate reference table for mastering.",
@@ -457,8 +457,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Welchen Wert soll ich wählen?", en: "Which Value Should I Choose?" },
           body: {
-            de: "Wenn du deinen Track auf mehreren Plattformen veröffentlichst, empfehlen wir, auf Spotify (−14 LUFS) zu mastern, da dies der gängigste Zielwert ist und für die meisten anderen Plattformen gut passt.\n\nFür Clubmusik masterst du auf −6 LUFS — hier zählt Lautheit, und es gibt keine automatische Normalisierung.\n\nFür Apple Music gilt −16 LUFS — Apple normalisiert sogar nach oben, wenn dein Track zu leise ist. Ein zu lauter Track wird jedoch auch hier runtergedreht.\n\nUpMaDo wählt den Zielwert automatisch auf Basis der von dir gewählten Plattform. Keine manuelle Berechnung nötig.",
-            en: "If you're releasing your track on multiple platforms, we recommend mastering to Spotify (−14 LUFS), as this is the most common target value and works well for most other platforms.\n\nFor club music, master to −6 LUFS — here loudness matters, and there is no automatic normalization.\n\nFor Apple Music, −16 LUFS applies — Apple even normalizes upward if your track is too quiet. However, a too-loud track will also be turned down here.\n\nUpMaDo automatically selects the target value based on the platform you've chosen. No manual calculation needed.",
+            de: "Wenn du deinen Track auf mehreren Plattformen veröffentlichst, empfehlen wir, auf Spotify (−14 LUFS) zu mastern, da dies der gängigste Zielwert ist und für die meisten anderen Plattformen gut passt.\n\nFür Clubmusik masterst du auf −6 LUFS — hier zählt Lautheit, und es gibt keine automatische Normalisierung.\n\nFür Apple Music gilt −16 LUFS — Apple normalisiert sogar nach oben, wenn dein Track zu leise ist. Ein zu lauter Track wird jedoch auch hier runtergedreht.\n\nBeatzucker wählt den Zielwert automatisch auf Basis der von dir gewählten Plattform. Keine manuelle Berechnung nötig.",
+            en: "If you're releasing your track on multiple platforms, we recommend mastering to Spotify (−14 LUFS), as this is the most common target value and works well for most other platforms.\n\nFor club music, master to −6 LUFS — here loudness matters, and there is no automatic normalization.\n\nFor Apple Music, −16 LUFS applies — Apple even normalizes upward if your track is too quiet. However, a too-loud track will also be turned down here.\n\nBeatzucker automatically selects the target value based on the platform you've chosen. No manual calculation needed.",
           },
         },
       ],
@@ -474,7 +474,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "✅",
     readingTimeMinutes: 6,
     title: { de: "Mix fürs Mastering vorbereiten: Die Checkliste", en: "Preparing Your Mix for Mastering: The Checklist" },
-    metaTitle: { de: "Mix für Mastering vorbereiten – Checkliste & Tipps | UpMaDo", en: "Prepare Mix for Mastering – Checklist & Tips | UpMaDo" },
+    metaTitle: { de: "Mix für Mastering vorbereiten – Checkliste & Tipps | Beatzucker", en: "Prepare Mix for Mastering – Checklist & Tips | Beatzucker" },
     metaDescription: {
       de: "Die ultimative Pre-Mastering-Checkliste: Wie du deinen Mixdown richtig für das Mastering vorbereitest. Headroom, Clipping, Format, Master-Bus und mehr.",
       en: "The ultimate pre-mastering checklist: how to properly prepare your mixdown for mastering. Headroom, clipping, format, master bus, and more.",
@@ -535,7 +535,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "💾",
     readingTimeMinutes: 6,
     title: { de: "WAV, FLAC oder MP3: Das beste Format fürs Mastering", en: "WAV, FLAC, or MP3: The Best Format for Mastering" },
-    metaTitle: { de: "WAV vs. FLAC vs. MP3 – Audioformate für Mastering erklärt | UpMaDo", en: "WAV vs. FLAC vs. MP3 – Audio Formats for Mastering Explained | UpMaDo" },
+    metaTitle: { de: "WAV vs. FLAC vs. MP3 – Audioformate für Mastering erklärt | Beatzucker", en: "WAV vs. FLAC vs. MP3 – Audio Formats for Mastering Explained | Beatzucker" },
     metaDescription: {
       de: "WAV, FLAC, MP3, AAC – welches Audioformat ist am besten für Mastering und Streaming? Alle Formate mit Vor- und Nachteilen erklärt, plus wann du welches nutzt.",
       en: "WAV, FLAC, MP3, AAC – which audio format is best for mastering and streaming? All formats explained with pros and cons, plus when to use which.",
@@ -580,8 +580,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "WAV: Der Standard fürs Mastering", en: "WAV: The Standard for Mastering" },
           body: {
-            de: "WAV (Waveform Audio File Format) ist das universelle verlustfreie Audioformat und der de-facto Standard in der Musikproduktion. Keine Kompression, keine Artefakte — WAV enthält alle Audiodaten in maximaler Qualität.\n\nFür den Mastering-Export empfehlen wir WAV 24-Bit bei 44.1 kHz oder 48 kHz. Das gibt dem Mastering-Prozess genug Headroom und Bittiefe für hochwertige Bearbeitung. UpMaDo liefert den Master als WAV 32-Bit, 24-Bit und 16-Bit gleichzeitig.",
-            en: "WAV (Waveform Audio File Format) is the universal lossless audio format and the de facto standard in music production. No compression, no artifacts — WAV contains all audio data in maximum quality.\n\nFor mastering export, we recommend WAV 24-bit at 44.1 kHz or 48 kHz. This gives the mastering process enough headroom and bit depth for high-quality processing. UpMaDo delivers the master as WAV 32-bit, 24-bit, and 16-bit simultaneously.",
+            de: "WAV (Waveform Audio File Format) ist das universelle verlustfreie Audioformat und der de-facto Standard in der Musikproduktion. Keine Kompression, keine Artefakte — WAV enthält alle Audiodaten in maximaler Qualität.\n\nFür den Mastering-Export empfehlen wir WAV 24-Bit bei 44.1 kHz oder 48 kHz. Das gibt dem Mastering-Prozess genug Headroom und Bittiefe für hochwertige Bearbeitung. Beatzucker liefert den Master als WAV 32-Bit, 24-Bit und 16-Bit gleichzeitig.",
+            en: "WAV (Waveform Audio File Format) is the universal lossless audio format and the de facto standard in music production. No compression, no artifacts — WAV contains all audio data in maximum quality.\n\nFor mastering export, we recommend WAV 24-bit at 44.1 kHz or 48 kHz. This gives the mastering process enough headroom and bit depth for high-quality processing. Beatzucker delivers the master as WAV 32-bit, 24-bit, and 16-bit simultaneously.",
           },
         },
         {
@@ -604,7 +604,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "🎙️",
     readingTimeMinutes: 7,
     title: { de: "5 typische Home-Recording-Fehler – und wie du sie vermeidest", en: "5 Typical Home Recording Mistakes – and How to Avoid Them" },
-    metaTitle: { de: "5 Home-Recording-Fehler und wie du sie vermeidest | UpMaDo", en: "5 Home Recording Mistakes and How to Avoid Them | UpMaDo" },
+    metaTitle: { de: "5 Home-Recording-Fehler und wie du sie vermeidest | Beatzucker", en: "5 Home Recording Mistakes and How to Avoid Them | Beatzucker" },
     metaDescription: {
       de: "Die 5 häufigsten Fehler beim Home Recording: schlechte Raumakustik, kein Headroom, zu viel Reverb, falscher Export und fehlende Referenzierung. Mit konkreten Lösungen.",
       en: "The 5 most common home recording mistakes: bad room acoustics, no headroom, too much reverb, wrong export, and missing referencing. With concrete solutions.",
@@ -648,15 +648,15 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Fehler 4: Kein Referenz-Tracking", en: "Mistake 4: No Reference Tracking" },
           body: {
-            de: "Ohne Referenz verliert man schnell die Orientierung. Du sitzt stundenlang am Mix und dein Gehör gewöhnt sich an den Klang — was nicht mehr auffällt, ist trotzdem da.\n\nLösung: Vergleiche deinen Mix regelmäßig mit kommerziellen Tracks im selben Genre. Importiere zwei oder drei Referenztracks in deine DAW und schalte zwischen Mix und Referenz hin und her. UpMaDo unterstützt Referenztrack-Mastering — lade einen Referenztrack hoch und die KI mastert deinen Track im Klangcharakter des Referenz-Songs.",
-            en: "Without a reference, you quickly lose orientation. You sit at the mix for hours and your ears adapt to the sound — what you no longer notice is still there.\n\nSolution: Regularly compare your mix with commercial tracks in the same genre. Import two or three reference tracks into your DAW and switch between your mix and the reference. UpMaDo supports reference track mastering — upload a reference track and the AI masters your track in the sonic character of the reference song.",
+            de: "Ohne Referenz verliert man schnell die Orientierung. Du sitzt stundenlang am Mix und dein Gehör gewöhnt sich an den Klang — was nicht mehr auffällt, ist trotzdem da.\n\nLösung: Vergleiche deinen Mix regelmäßig mit kommerziellen Tracks im selben Genre. Importiere zwei oder drei Referenztracks in deine DAW und schalte zwischen Mix und Referenz hin und her. Beatzucker unterstützt Referenztrack-Mastering — lade einen Referenztrack hoch und die KI mastert deinen Track im Klangcharakter des Referenz-Songs.",
+            en: "Without a reference, you quickly lose orientation. You sit at the mix for hours and your ears adapt to the sound — what you no longer notice is still there.\n\nSolution: Regularly compare your mix with commercial tracks in the same genre. Import two or three reference tracks into your DAW and switch between your mix and the reference. Beatzucker supports reference track mastering — upload a reference track and the AI masters your track in the sonic character of the reference song.",
           },
         },
         {
           h2: { de: "Fehler 5: Falsches Export-Format", en: "Mistake 5: Wrong Export Format" },
           body: {
-            de: "MP3 für den Mastering-Export, 16-Bit statt 24-Bit, falsche Sample Rate — Exportfehler sind häufig und vermeidbar. Wenn du deinen Mix als MP3 exportierst und dann masterst, werden die MP3-Kompressionsartefakte im fertigen Master verstärkt.\n\nExportiere immer als WAV 24-Bit (oder 32-Bit Float) mit 44.1 kHz oder 48 kHz. Das ist der Standard für professionelles Mastering — und was UpMaDo als Eingabeformat erwartet.",
-            en: "MP3 for the mastering export, 16-bit instead of 24-bit, wrong sample rate — export mistakes are common and avoidable. If you export your mix as MP3 and then master it, the MP3 compression artifacts will be amplified in the finished master.\n\nAlways export as WAV 24-bit (or 32-bit float) at 44.1 kHz or 48 kHz. This is the standard for professional mastering — and what UpMaDo expects as input format.",
+            de: "MP3 für den Mastering-Export, 16-Bit statt 24-Bit, falsche Sample Rate — Exportfehler sind häufig und vermeidbar. Wenn du deinen Mix als MP3 exportierst und dann masterst, werden die MP3-Kompressionsartefakte im fertigen Master verstärkt.\n\nExportiere immer als WAV 24-Bit (oder 32-Bit Float) mit 44.1 kHz oder 48 kHz. Das ist der Standard für professionelles Mastering — und was Beatzucker als Eingabeformat erwartet.",
+            en: "MP3 for the mastering export, 16-bit instead of 24-bit, wrong sample rate — export mistakes are common and avoidable. If you export your mix as MP3 and then master it, the MP3 compression artifacts will be amplified in the finished master.\n\nAlways export as WAV 24-bit (or 32-bit float) at 44.1 kHz or 48 kHz. This is the standard for professional mastering — and what Beatzucker expects as input format.",
           },
         },
       ],
@@ -672,10 +672,10 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "🏆",
     readingTimeMinutes: 5,
     title: { de: "Dein Song hat Hit-Potenzial? Jetzt fehlt nur noch das Mastering", en: "Your Song Has Hit Potential? All That's Missing Is the Mastering" },
-    metaTitle: { de: "Dein Hit braucht professionelles Mastering – jetzt bei UpMaDo | UpMaDo", en: "Your Hit Needs Professional Mastering – Now at UpMaDo | UpMaDo" },
+    metaTitle: { de: "Dein Hit braucht professionelles Mastering – jetzt bei Beatzucker | Beatzucker", en: "Your Hit Needs Professional Mastering – Now at Beatzucker | Beatzucker" },
     metaDescription: {
-      de: "Ein guter Song allein reicht nicht — erst das richtige Mastering macht ihn zu einem echten Hit. Professionelles KI-Mastering bei UpMaDo, kostenlos starten.",
-      en: "A good song alone isn't enough — only the right mastering turns it into a real hit. Professional AI mastering at UpMaDo, start for free.",
+      de: "Ein guter Song allein reicht nicht — erst das richtige Mastering macht ihn zu einem echten Hit. Professionelles KI-Mastering bei Beatzucker, kostenlos starten.",
+      en: "A good song alone isn't enough — only the right mastering turns it into a real hit. Professional AI mastering at Beatzucker, start for free.",
     },
     keywords: {
       de: ["song mastern lassen", "professionelles mastering online", "track mastering kostenlos", "hit mastering", "mastering für release"],
@@ -709,14 +709,14 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Professionelles Mastering muss nicht teuer sein", en: "Professional Mastering Doesn't Have to Be Expensive" },
           body: {
-            de: "Traditionell kostete professionelles Mastering €100–300 pro Track und dauerte 1–2 Tage. Für Independent-Künstler mit limitiertem Budget war das oft ein Problem: Entweder man veröffentlicht ohne Mastering (und klingt amateurhaft) oder man gibt einen großen Teil des Budgets für einen einzigen Track aus.\n\nMit UpMaDo hat sich das geändert. Unsere Mastering-Plattform analysiert deinen Track und wendet eine professionelle 13-stufige DSP-Pipeline an — komplett kostenlos, ohne Limit auf die Anzahl deiner Releases.\n\nDein Hit-verdächtiger Song verdient ein professionelles Mastering. Und jetzt ist es so zugänglich wie nie zuvor.",
-            en: "Traditionally, professional mastering cost €100–300 per track and took 1–2 days. For independent artists with a limited budget, this was often a problem: either you release without mastering (and sound amateurish) or you spend a large portion of your budget on a single track.\n\nWith UpMaDo, that has changed. Our mastering platform analyzes your track and applies a professional 13-stage DSP pipeline — completely free, with no limit on how many releases you master.\n\nYour hit-potential song deserves professional mastering. And now it's more accessible than ever.",
+            de: "Traditionell kostete professionelles Mastering €100–300 pro Track und dauerte 1–2 Tage. Für Independent-Künstler mit limitiertem Budget war das oft ein Problem: Entweder man veröffentlicht ohne Mastering (und klingt amateurhaft) oder man gibt einen großen Teil des Budgets für einen einzigen Track aus.\n\nMit Beatzucker hat sich das geändert. Unsere Mastering-Plattform analysiert deinen Track und wendet eine professionelle 13-stufige DSP-Pipeline an — komplett kostenlos, ohne Limit auf die Anzahl deiner Releases.\n\nDein Hit-verdächtiger Song verdient ein professionelles Mastering. Und jetzt ist es so zugänglich wie nie zuvor.",
+            en: "Traditionally, professional mastering cost €100–300 per track and took 1–2 days. For independent artists with a limited budget, this was often a problem: either you release without mastering (and sound amateurish) or you spend a large portion of your budget on a single track.\n\nWith Beatzucker, that has changed. Our mastering platform analyzes your track and applies a professional 13-stage DSP pipeline — completely free, with no limit on how many releases you master.\n\nYour hit-potential song deserves professional mastering. And now it's more accessible than ever.",
           },
         },
       ],
       conclusion: {
-        de: "Dein nächster Track könnte der Durchbruch sein. Lass ihn nicht an fehlendem Mastering scheitern. Lade ihn jetzt bei UpMaDo hoch — komplett kostenlos, mit kostenloser Registrierung.",
-        en: "Your next track could be your breakthrough. Don't let it fail because of missing mastering. Upload it to UpMaDo now — completely free, with a free account.",
+        de: "Dein nächster Track könnte der Durchbruch sein. Lass ihn nicht an fehlendem Mastering scheitern. Lade ihn jetzt bei Beatzucker hoch — komplett kostenlos, mit kostenloser Registrierung.",
+        en: "Your next track could be your breakthrough. Don't let it fail because of missing mastering. Upload it to Beatzucker now — completely free, with a free account.",
       },
     },
   },
@@ -730,7 +730,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "↔️",
     readingTimeMinutes: 6,
     title: { de: "Stereo-Breite im Mastering: Was du wissen musst", en: "Stereo Width in Mastering: What You Need to Know" },
-    metaTitle: { de: "Stereo-Breite im Mastering – Mid/Side, Mono-Kompatibilität | UpMaDo", en: "Stereo Width in Mastering – Mid/Side, Mono Compatibility | UpMaDo" },
+    metaTitle: { de: "Stereo-Breite im Mastering – Mid/Side, Mono-Kompatibilität | Beatzucker", en: "Stereo Width in Mastering – Mid/Side, Mono Compatibility | Beatzucker" },
     metaDescription: {
       de: "Stereo-Breite im Mastering erklärt: Mid/Side-Verarbeitung, Mono-Kompatibilität, Phasenprobleme und wie du das Stereofeld deines Tracks optimal gestaltest.",
       en: "Stereo width in mastering explained: Mid/Side processing, mono compatibility, phase problems, and how to optimally shape the stereo field of your track.",
@@ -760,15 +760,15 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Mono-Kompatibilität: Warum sie wichtig ist", en: "Mono Compatibility: Why It Matters" },
           body: {
-            de: "Ein großer Anteil der Musikhörer hört auf Mono-Systemen: Smartphone-Lautsprecher, Kühlschrank-Mini-Speaker, Alexa-Geräte. Wenn dein Track Phasenprobleme hat, verschwinden auf diesen Geräten bestimmte Frequenzen oder der Track klingt komplett anders.\n\nWie entsteht ein Mono-Kompatibilitätsproblem? Wenn in Mid/Side-Bearbeitung der Side-Anteil zu stark ist oder wenn Phasenverschiebungen zwischen linkem und rechtem Kanal vorhanden sind, können sich Signale bei Mono-Summe gegenseitig auslöschen.\n\nDer Test: Lade deinen Mix in UpMaDo oder ein DAW-Plugin mit Korrelations-Meter. Wenn der Zeiger dauerhaft im negativen Bereich (rote Zone) ist, hast du ein Phasenproblem.",
-            en: "A large proportion of music listeners hear on mono systems: smartphone speakers, mini fridge speakers, Alexa devices. If your track has phase problems, certain frequencies disappear on these devices or the track sounds completely different.\n\nHow does a mono compatibility problem arise? When the Side component in Mid/Side processing is too strong, or when phase shifts between the left and right channels are present, signals can cancel each other out when summed to mono.\n\nThe test: load your mix into UpMaDo or a DAW plugin with a correlation meter. If the needle is consistently in the negative zone (red area), you have a phase problem.",
+            de: "Ein großer Anteil der Musikhörer hört auf Mono-Systemen: Smartphone-Lautsprecher, Kühlschrank-Mini-Speaker, Alexa-Geräte. Wenn dein Track Phasenprobleme hat, verschwinden auf diesen Geräten bestimmte Frequenzen oder der Track klingt komplett anders.\n\nWie entsteht ein Mono-Kompatibilitätsproblem? Wenn in Mid/Side-Bearbeitung der Side-Anteil zu stark ist oder wenn Phasenverschiebungen zwischen linkem und rechtem Kanal vorhanden sind, können sich Signale bei Mono-Summe gegenseitig auslöschen.\n\nDer Test: Lade deinen Mix in Beatzucker oder ein DAW-Plugin mit Korrelations-Meter. Wenn der Zeiger dauerhaft im negativen Bereich (rote Zone) ist, hast du ein Phasenproblem.",
+            en: "A large proportion of music listeners hear on mono systems: smartphone speakers, mini fridge speakers, Alexa devices. If your track has phase problems, certain frequencies disappear on these devices or the track sounds completely different.\n\nHow does a mono compatibility problem arise? When the Side component in Mid/Side processing is too strong, or when phase shifts between the left and right channels are present, signals can cancel each other out when summed to mono.\n\nThe test: load your mix into Beatzucker or a DAW plugin with a correlation meter. If the needle is consistently in the negative zone (red area), you have a phase problem.",
           },
         },
         {
-          h2: { de: "Wie UpMaDo das Stereofeld optimiert", en: "How UpMaDo Optimizes the Stereo Field" },
+          h2: { de: "Wie Beatzucker das Stereofeld optimiert", en: "How Beatzucker Optimizes the Stereo Field" },
           body: {
-            de: "UpMaDo analysiert das Stereofeld deines Tracks automatisch und berechnet den optimalen Side-Gain für dein Genre. Electronic und Club-Musik profitieren von einem breiteren Stereofeld; Akustik-Gitarre oder Jazz klingt natürlicher mit einem schmalen Feld.\n\nDie Analyse zeigt dir:\n\n• Stereo Width (0–100%): Wie breit ist der aktuelle Mix?\n• Mono Compatibility Score: Wie gut klingt der Track in Mono?\n• Phase Correlation: Gibt es Phasenprobleme zwischen L und R?\n\nDiese Werte werden im Analyse-Panel vor und nach dem Mastering angezeigt, damit du den Unterschied direkt sehen kannst.",
-            en: "UpMaDo automatically analyzes the stereo field of your track and calculates the optimal Side gain for your genre. Electronic and club music benefits from a wider stereo field; acoustic guitar or jazz sounds more natural with a narrower field.\n\nThe analysis shows you:\n\n• Stereo Width (0–100%): How wide is the current mix?\n• Mono Compatibility Score: How well does the track sound in mono?\n• Phase Correlation: Are there phase problems between L and R?\n\nThese values are displayed in the analysis panel before and after mastering so you can directly see the difference.",
+            de: "Beatzucker analysiert das Stereofeld deines Tracks automatisch und berechnet den optimalen Side-Gain für dein Genre. Electronic und Club-Musik profitieren von einem breiteren Stereofeld; Akustik-Gitarre oder Jazz klingt natürlicher mit einem schmalen Feld.\n\nDie Analyse zeigt dir:\n\n• Stereo Width (0–100%): Wie breit ist der aktuelle Mix?\n• Mono Compatibility Score: Wie gut klingt der Track in Mono?\n• Phase Correlation: Gibt es Phasenprobleme zwischen L und R?\n\nDiese Werte werden im Analyse-Panel vor und nach dem Mastering angezeigt, damit du den Unterschied direkt sehen kannst.",
+            en: "Beatzucker automatically analyzes the stereo field of your track and calculates the optimal Side gain for your genre. Electronic and club music benefits from a wider stereo field; acoustic guitar or jazz sounds more natural with a narrower field.\n\nThe analysis shows you:\n\n• Stereo Width (0–100%): How wide is the current mix?\n• Mono Compatibility Score: How well does the track sound in mono?\n• Phase Correlation: Are there phase problems between L and R?\n\nThese values are displayed in the analysis panel before and after mastering so you can directly see the difference.",
           },
         },
       ],
@@ -784,7 +784,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "📈",
     readingTimeMinutes: 6,
     title: { de: "True Peak, RMS, LUFS: Audio-Metering kompakt erklärt", en: "True Peak, RMS, LUFS: Audio Metering Explained Concisely" },
-    metaTitle: { de: "True Peak, RMS, LUFS erklärt – Audio Metering Guide | UpMaDo", en: "True Peak, RMS, LUFS Explained – Audio Metering Guide | UpMaDo" },
+    metaTitle: { de: "True Peak, RMS, LUFS erklärt – Audio Metering Guide | Beatzucker", en: "True Peak, RMS, LUFS Explained – Audio Metering Guide | Beatzucker" },
     metaDescription: {
       de: "Was ist der Unterschied zwischen True Peak, RMS und LUFS? Wann nutzt du welche Metrik beim Mastering? Der kompakte Audio-Metering-Guide für Produzenten.",
       en: "What is the difference between True Peak, RMS, and LUFS? When do you use which metric in mastering? The compact audio metering guide for producers.",
@@ -807,8 +807,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "True Peak: Maximalpegel ohne Clipping", en: "True Peak: Maximum Level Without Clipping" },
           body: {
-            de: "True Peak (TP) misst den höchsten rekonstruierten Pegelwert eines digitalen Audiosignals — auch zwischen den einzelnen Samples (Inter-Sample-Peak). Das ist wichtig, weil bei der Digital-Analog-Wandlung (D/A-Wandlung) die Wellenform zwischen Samples rekonstruiert wird und dabei Spitzen entstehen können, die höher sind als der digitale Spitzenwert.\n\nEin Track, der digitale Peaks bei −0.3 dBFS hat, kann nach der D/A-Wandlung echte Pegelspitzen über 0 dBFS haben — was auf manchen Playback-Systemen zu Verzerrung führt.\n\nFür Streaming: True Peak max. −1 dBTP für Spotify, Apple Music, YouTube. Für Club: max. −0.1 dBTP.\n\nUpMaDo zeigt den True Peak deines Tracks vor und nach dem Mastering an.",
-            en: "True Peak (TP) measures the highest reconstructed level value of a digital audio signal — including between individual samples (inter-sample peak). This is important because during digital-to-analog conversion (D/A conversion), the waveform is reconstructed between samples, and peaks can occur that are higher than the digital peak value.\n\nA track that has digital peaks at −0.3 dBFS can have actual peak levels above 0 dBFS after D/A conversion — which leads to distortion on some playback systems.\n\nFor streaming: True Peak max. −1 dBTP for Spotify, Apple Music, YouTube. For club: max. −0.1 dBTP.\n\nUpMaDo displays the True Peak of your track before and after mastering.",
+            de: "True Peak (TP) misst den höchsten rekonstruierten Pegelwert eines digitalen Audiosignals — auch zwischen den einzelnen Samples (Inter-Sample-Peak). Das ist wichtig, weil bei der Digital-Analog-Wandlung (D/A-Wandlung) die Wellenform zwischen Samples rekonstruiert wird und dabei Spitzen entstehen können, die höher sind als der digitale Spitzenwert.\n\nEin Track, der digitale Peaks bei −0.3 dBFS hat, kann nach der D/A-Wandlung echte Pegelspitzen über 0 dBFS haben — was auf manchen Playback-Systemen zu Verzerrung führt.\n\nFür Streaming: True Peak max. −1 dBTP für Spotify, Apple Music, YouTube. Für Club: max. −0.1 dBTP.\n\nBeatzucker zeigt den True Peak deines Tracks vor und nach dem Mastering an.",
+            en: "True Peak (TP) measures the highest reconstructed level value of a digital audio signal — including between individual samples (inter-sample peak). This is important because during digital-to-analog conversion (D/A conversion), the waveform is reconstructed between samples, and peaks can occur that are higher than the digital peak value.\n\nA track that has digital peaks at −0.3 dBFS can have actual peak levels above 0 dBFS after D/A conversion — which leads to distortion on some playback systems.\n\nFor streaming: True Peak max. −1 dBTP for Spotify, Apple Music, YouTube. For club: max. −0.1 dBTP.\n\nBeatzucker displays the True Peak of your track before and after mastering.",
           },
         },
         {
@@ -848,7 +848,7 @@ export const ARTICLES: RessourceArticle[] = [
     heroEmoji: "🔢",
     readingTimeMinutes: 6,
     title: { de: "Sample Rate & Bit-Tiefe: 44.1 kHz, 48 kHz, 16-Bit, 24-Bit erklärt", en: "Sample Rate & Bit Depth: 44.1 kHz, 48 kHz, 16-Bit, 24-Bit Explained" },
-    metaTitle: { de: "Sample Rate & Bit-Tiefe erklärt – 44.1 vs 48 kHz, 16 vs 24 Bit | UpMaDo", en: "Sample Rate & Bit Depth Explained – 44.1 vs 48 kHz, 16 vs 24 Bit | UpMaDo" },
+    metaTitle: { de: "Sample Rate & Bit-Tiefe erklärt – 44.1 vs 48 kHz, 16 vs 24 Bit | Beatzucker", en: "Sample Rate & Bit Depth Explained – 44.1 vs 48 kHz, 16 vs 24 Bit | Beatzucker" },
     metaDescription: {
       de: "Was ist der Unterschied zwischen 44.1 kHz und 48 kHz? Warum 24-Bit statt 16-Bit? Sample Rate und Bit-Tiefe für Mastering und Produktion einfach erklärt.",
       en: "What is the difference between 44.1 kHz and 48 kHz? Why 24-bit instead of 16-bit? Sample rate and bit depth for mastering and production simply explained.",
@@ -894,7 +894,7 @@ export const ARTICLES: RessourceArticle[] = [
             rows: [
               [{ de: "Musik-Produktion (DAW-Projekt)", en: "Music production (DAW project)" }, { de: "44.1 kHz", en: "44.1 kHz" }, { de: "24-Bit oder 32-Bit Float", en: "24-bit or 32-bit float" }],
               [{ de: "Film-/Video-Soundtrack", en: "Film/video soundtrack" }, { de: "48 kHz", en: "48 kHz" }, { de: "24-Bit", en: "24-bit" }],
-              [{ de: "Mastering-Export (an UpMaDo)", en: "Mastering export (to UpMaDo)" }, { de: "44.1 oder 48 kHz", en: "44.1 or 48 kHz" }, { de: "24-Bit", en: "24-bit" }],
+              [{ de: "Mastering-Export (an Beatzucker)", en: "Mastering export (to Beatzucker)" }, { de: "44.1 oder 48 kHz", en: "44.1 or 48 kHz" }, { de: "24-Bit", en: "24-bit" }],
               [{ de: "Streaming-Release (Endformat)", en: "Streaming release (final format)" }, { de: "44.1 kHz", en: "44.1 kHz" }, { de: "16-Bit (mit Dithering)", en: "16-bit (with dithering)" }],
               [{ de: "Archivierung / Backup", en: "Archiving / backup" }, { de: "44.1 oder 96 kHz", en: "44.1 or 96 kHz" }, { de: "32-Bit Float", en: "32-bit float" }],
             ],
@@ -902,80 +902,80 @@ export const ARTICLES: RessourceArticle[] = [
         },
       ],
       conclusion: {
-        de: "Sample Rate und Bit-Tiefe sind keine mysteriösen technischen Parameter — sie folgen klaren Regeln. Für die meisten Produzenten lautet die Formel: 44.1 kHz und 24-Bit für Produktion und Mastering, 44.1 kHz und 16-Bit für das finale Release. UpMaDo akzeptiert WAV-Dateien in allen gängigen Sample Rates und Bittiefen und liefert den Master in 32-Bit, 24-Bit und 16-Bit gleichzeitig.",
-        en: "Sample rate and bit depth are not mysterious technical parameters — they follow clear rules. For most producers, the formula is: 44.1 kHz and 24-bit for production and mastering, 44.1 kHz and 16-bit for the final release. UpMaDo accepts WAV files in all common sample rates and bit depths and delivers the master in 32-bit, 24-bit, and 16-bit simultaneously.",
+        de: "Sample Rate und Bit-Tiefe sind keine mysteriösen technischen Parameter — sie folgen klaren Regeln. Für die meisten Produzenten lautet die Formel: 44.1 kHz und 24-Bit für Produktion und Mastering, 44.1 kHz und 16-Bit für das finale Release. Beatzucker akzeptiert WAV-Dateien in allen gängigen Sample Rates und Bittiefen und liefert den Master in 32-Bit, 24-Bit und 16-Bit gleichzeitig.",
+        en: "Sample rate and bit depth are not mysterious technical parameters — they follow clear rules. For most producers, the formula is: 44.1 kHz and 24-bit for production and mastering, 44.1 kHz and 16-bit for the final release. Beatzucker accepts WAV files in all common sample rates and bit depths and delivers the master in 32-bit, 24-bit, and 16-bit simultaneously.",
       },
     },
   },
 
   // ── 14 ─────────────────────────────────────────────────────────────────────
   {
-    slug: "upmado-vs-andere-mastering-plattformen",
+    slug: "beatzucker-vs-andere-mastering-plattformen",
     category: "Grundlagen",
     categoryColor: "var(--accent-purple)",
     publishedAt: "2025-03-15",
     heroEmoji: "🏅",
     readingTimeMinutes: 9,
     title: {
-      de: "Warum UpMaDo anders ist: Vorteile gegenüber LANDR, eMastered & Co.",
-      en: "Why UpMaDo Is Different: Advantages Over LANDR, eMastered & Co.",
+      de: "Warum Beatzucker anders ist: Vorteile gegenüber LANDR, eMastered & Co.",
+      en: "Why Beatzucker Is Different: Advantages Over LANDR, eMastered & Co.",
     },
     metaTitle: {
-      de: "UpMaDo vs. LANDR vs. eMastered – Online Mastering im Vergleich | UpMaDo",
-      en: "UpMaDo vs. LANDR vs. eMastered – Online Mastering Compared | UpMaDo",
+      de: "Beatzucker vs. LANDR vs. eMastered – Online Mastering im Vergleich | Beatzucker",
+      en: "Beatzucker vs. LANDR vs. eMastered – Online Mastering Compared | Beatzucker",
     },
     metaDescription: {
-      de: "UpMaDo im Vergleich zu LANDR, eMastered und anderen Online-Mastering-Plattformen: Technische Vorteile, DSGVO-Konformität, EU-Server, keine Datenweitergabe und echte Transparenz.",
-      en: "UpMaDo compared to LANDR, eMastered, and other online mastering platforms: technical advantages, GDPR compliance, EU servers, no data sharing, and real transparency.",
+      de: "Beatzucker im Vergleich zu LANDR, eMastered und anderen Online-Mastering-Plattformen: Technische Vorteile, DSGVO-Konformität, EU-Server, keine Datenweitergabe und echte Transparenz.",
+      en: "Beatzucker compared to LANDR, eMastered, and other online mastering platforms: technical advantages, GDPR compliance, EU servers, no data sharing, and real transparency.",
     },
     keywords: {
-      de: ["upmado vs landr", "online mastering vergleich", "bestes online mastering", "landr alternative", "dsgvo konformes mastering", "eu mastering plattform"],
-      en: ["upmado vs landr", "online mastering comparison", "best online mastering", "landr alternative", "gdpr compliant mastering", "eu mastering platform"],
+      de: ["beatzucker vs landr", "online mastering vergleich", "bestes online mastering", "landr alternative", "dsgvo konformes mastering", "eu mastering plattform"],
+      en: ["beatzucker vs landr", "online mastering comparison", "best online mastering", "landr alternative", "gdpr compliant mastering", "eu mastering platform"],
     },
     teaser: {
-      de: "Was unterscheidet UpMaDo von LANDR, eMastered und Co.? Technisch, rechtlich und preislich — ein ehrlicher Vergleich mit konkreten Vorteilen.",
-      en: "What sets UpMaDo apart from LANDR, eMastered, and others? Technically, legally, and price-wise — an honest comparison with concrete advantages.",
+      de: "Was unterscheidet Beatzucker von LANDR, eMastered und Co.? Technisch, rechtlich und preislich — ein ehrlicher Vergleich mit konkreten Vorteilen.",
+      en: "What sets Beatzucker apart from LANDR, eMastered, and others? Technically, legally, and price-wise — an honest comparison with concrete advantages.",
     },
     relatedSlugs: ["ki-mastering-wie-funktioniert-es", "was-ist-audio-mastering", "re-beatz-online-mastering-mit-kontrolle"],
     content: {
       intro: {
-        de: "Online-Mastering-Plattformen gibt es inzwischen viele. LANDR ist der bekannteste Name, eMastered wirbt mit Einfachheit, Matchering mit Open-Source-Ansatz. Wer sich für eine Plattform entscheidet, fragt sich zurecht: Was ist der Unterschied? Warum sollte ich UpMaDo wählen?\n\nDiese Frage beantworten wir ehrlich — mit technischen Fakten, rechtlichen Unterschieden und einem klaren Blick auf das, was hinter den Kulissen passiert.",
-        en: "There are now many online mastering platforms. LANDR is the most well-known name, eMastered markets itself on simplicity, Matchering on its open-source approach. Anyone choosing a platform rightly asks: what's the difference? Why should I choose UpMaDo?\n\nWe answer this question honestly — with technical facts, legal differences, and a clear look at what happens behind the scenes.",
+        de: "Online-Mastering-Plattformen gibt es inzwischen viele. LANDR ist der bekannteste Name, eMastered wirbt mit Einfachheit, Matchering mit Open-Source-Ansatz. Wer sich für eine Plattform entscheidet, fragt sich zurecht: Was ist der Unterschied? Warum sollte ich Beatzucker wählen?\n\nDiese Frage beantworten wir ehrlich — mit technischen Fakten, rechtlichen Unterschieden und einem klaren Blick auf das, was hinter den Kulissen passiert.",
+        en: "There are now many online mastering platforms. LANDR is the most well-known name, eMastered markets itself on simplicity, Matchering on its open-source approach. Anyone choosing a platform rightly asks: what's the difference? Why should I choose Beatzucker?\n\nWe answer this question honestly — with technical facts, legal differences, and a clear look at what happens behind the scenes.",
       },
       sections: [
         {
           h2: { de: "Der DSGVO-Vorteil: EU-Server, keine Datenweitergabe", en: "The GDPR Advantage: EU Servers, No Data Sharing" },
           body: {
-            de: "Das ist einer der wichtigsten Unterschiede — und einer, der in Marketing-Texten selten so klar kommuniziert wird:\n\nLANDR, eMastered, CloudBounce und die meisten anderen Online-Mastering-Plattformen sind US-amerikanische Unternehmen mit Servern in den USA oder Kanada. Wenn du deinen Track hochlädst, verlässt er die EU. Deine Musikdaten werden auf US-Servern verarbeitet — unter US-Datenschutzrecht, nicht unter DSGVO.\n\nWas bedeutet das konkret? Nach US-Recht können Behörden wie die NSA unter bestimmten Umständen auf Server-Daten zugreifen. Der EU-US Data Privacy Framework (DPF) schränkt das teilweise ein, aber er ist politisch fragil — der Privacy Shield, der DPF-Vorgänger, wurde 2020 vom EuGH für ungültig erklärt.\n\nEinige Plattformen behalten sich explizit das Recht vor, deine Audio-Uploads für das Training ihrer KI-Modelle zu nutzen. Deine unveröffentlichte Musik könnte also zum Trainingsdatensatz werden.\n\nUpMaDo läuft auf einem EU-Server in Europa. Deine Audiodaten verlassen die EU nicht. Wir verwenden deine Tracks nicht für KI-Training. Und nach dem Download werden die Originaldateien automatisch gelöscht — nach maximal 60 Minuten. Was nicht gespeichert wird, kann nicht missbraucht werden.",
-            en: "This is one of the most important differences — and one that is rarely communicated so clearly in marketing texts:\n\nLANDR, eMastered, CloudBounce, and most other online mastering platforms are US companies with servers in the United States or Canada. When you upload your track, it leaves the EU. Your music data is processed on US servers — under US data protection law, not GDPR.\n\nWhat does this mean concretely? Under US law, agencies like the NSA can access server data under certain circumstances. The EU-US Data Privacy Framework (DPF) limits this somewhat, but it is politically fragile — the Privacy Shield, the DPF's predecessor, was declared invalid by the ECJ in 2020.\n\nSome platforms explicitly reserve the right to use your audio uploads for training their AI models. Your unreleased music could therefore become part of a training dataset.\n\nUpMaDo runs on an EU server in Europe. Your audio data does not leave the EU. We do not use your tracks for AI training. And after download, the original files are automatically deleted — after a maximum of 60 minutes. What is not stored cannot be misused.",
+            de: "Das ist einer der wichtigsten Unterschiede — und einer, der in Marketing-Texten selten so klar kommuniziert wird:\n\nLANDR, eMastered, CloudBounce und die meisten anderen Online-Mastering-Plattformen sind US-amerikanische Unternehmen mit Servern in den USA oder Kanada. Wenn du deinen Track hochlädst, verlässt er die EU. Deine Musikdaten werden auf US-Servern verarbeitet — unter US-Datenschutzrecht, nicht unter DSGVO.\n\nWas bedeutet das konkret? Nach US-Recht können Behörden wie die NSA unter bestimmten Umständen auf Server-Daten zugreifen. Der EU-US Data Privacy Framework (DPF) schränkt das teilweise ein, aber er ist politisch fragil — der Privacy Shield, der DPF-Vorgänger, wurde 2020 vom EuGH für ungültig erklärt.\n\nEinige Plattformen behalten sich explizit das Recht vor, deine Audio-Uploads für das Training ihrer KI-Modelle zu nutzen. Deine unveröffentlichte Musik könnte also zum Trainingsdatensatz werden.\n\nBeatzucker läuft auf einem EU-Server in Europa. Deine Audiodaten verlassen die EU nicht. Wir verwenden deine Tracks nicht für KI-Training. Und nach dem Download werden die Originaldateien automatisch gelöscht — nach maximal 60 Minuten. Was nicht gespeichert wird, kann nicht missbraucht werden.",
+            en: "This is one of the most important differences — and one that is rarely communicated so clearly in marketing texts:\n\nLANDR, eMastered, CloudBounce, and most other online mastering platforms are US companies with servers in the United States or Canada. When you upload your track, it leaves the EU. Your music data is processed on US servers — under US data protection law, not GDPR.\n\nWhat does this mean concretely? Under US law, agencies like the NSA can access server data under certain circumstances. The EU-US Data Privacy Framework (DPF) limits this somewhat, but it is politically fragile — the Privacy Shield, the DPF's predecessor, was declared invalid by the ECJ in 2020.\n\nSome platforms explicitly reserve the right to use your audio uploads for training their AI models. Your unreleased music could therefore become part of a training dataset.\n\nBeatzucker runs on an EU server in Europe. Your audio data does not leave the EU. We do not use your tracks for AI training. And after download, the original files are automatically deleted — after a maximum of 60 minutes. What is not stored cannot be misused.",
           },
         },
         {
           h2: { de: "Privacy by Design: Keine Cookies, kein Tracking", en: "Privacy by Design: No Cookies, No Tracking" },
           body: {
-            de: "UpMaDo ist eine der wenigen Mastering-Plattformen, die komplett ohne Tracking-Cookies auskommt. Keine Google Analytics, kein Facebook Pixel, kein Hotjar. Keine Werbe-Retargeting-Skripte. Keine versteckten Drittanbieter, die dein Nutzungsverhalten auswerten.\n\nWas das bedeutet: Du brauchst kein Cookie-Banner wegzuklicken. Du wirst nicht über Wochen hinweg mit Retargeting-Anzeigen verfolgt, weil du einmal auf upmado.com warst. Deine Produktionsdaten bleiben deine.\n\nIm Vergleich: LANDR, eMastered und andere setzen typischerweise Google Analytics, Intercom und diverse Marketing-Tracker ein — verständlich aus Business-Sicht, aber nicht ideal aus Datenschutz-Perspektive.",
-            en: "UpMaDo is one of the few mastering platforms that operates completely without tracking cookies. No Google Analytics, no Facebook Pixel, no Hotjar. No advertising retargeting scripts. No hidden third parties analyzing your usage behavior.\n\nWhat this means: you don't need to click away a cookie banner. You won't be followed by retargeting ads for weeks because you once visited upmado.com. Your production data remains yours.\n\nFor comparison: LANDR, eMastered, and others typically use Google Analytics, Intercom, and various marketing trackers — understandable from a business perspective, but not ideal from a privacy standpoint.",
+            de: "Beatzucker ist eine der wenigen Mastering-Plattformen, die komplett ohne Tracking-Cookies auskommt. Keine Google Analytics, kein Facebook Pixel, kein Hotjar. Keine Werbe-Retargeting-Skripte. Keine versteckten Drittanbieter, die dein Nutzungsverhalten auswerten.\n\nWas das bedeutet: Du brauchst kein Cookie-Banner wegzuklicken. Du wirst nicht über Wochen hinweg mit Retargeting-Anzeigen verfolgt, weil du einmal auf beatzucker.de warst. Deine Produktionsdaten bleiben deine.\n\nIm Vergleich: LANDR, eMastered und andere setzen typischerweise Google Analytics, Intercom und diverse Marketing-Tracker ein — verständlich aus Business-Sicht, aber nicht ideal aus Datenschutz-Perspektive.",
+            en: "Beatzucker is one of the few mastering platforms that operates completely without tracking cookies. No Google Analytics, no Facebook Pixel, no Hotjar. No advertising retargeting scripts. No hidden third parties analyzing your usage behavior.\n\nWhat this means: you don't need to click away a cookie banner. You won't be followed by retargeting ads for weeks because you once visited beatzucker.de. Your production data remains yours.\n\nFor comparison: LANDR, eMastered, and others typically use Google Analytics, Intercom, and various marketing trackers — understandable from a business perspective, but not ideal from a privacy standpoint.",
           },
         },
         {
           h2: { de: "Technischer Vergleich: Die DSP-Pipeline", en: "Technical Comparison: The DSP Pipeline" },
           body: {
-            de: "Viele Online-Mastering-Dienste werben mit 'KI' — aber was steckt tatsächlich dahinter? Die technischen Details sind oft intransparent. UpMaDo ist hier bewusst offen:\n\nUpMaDo verarbeitet jeden Track durch eine dokumentierte 13-stufige DSP-Pipeline: High-Pass-Filter, Low/Mid/High-Shelving EQ, parametrischer Mid-EQ, De-Esser, Multiband-Kompressor, Mid/Side-Stereo-Processing, Harmonic Exciter, Glue-Kompressor, Pre-Limiter EQ, echter oversampled True-Peak-Limiter und Noise-Shaped Dithering.\n\nDie KI-Komponente berechnet auf Basis einer Analyse (LUFS, True Peak, Loudness Range, Spektralverteilung, Dynamik, Stereofeld, BPM, Key) die optimalen Parameter für diese Pipeline — angepasst an Genre und Zielplattform, inklusive einer Loudness-Range-Absicherung, die bereits stark komprimiertes Ausgangsmaterial nicht noch weiter plättet.\n\nLANDR nutzt ebenfalls Machine Learning, aber die genaue Pipeline ist nicht öffentlich dokumentiert. eMastered ist ähnlich intransparent. Das macht es schwerer, das Ergebnis zu verstehen oder Probleme zu debuggen.",
-            en: "Many online mastering services advertise 'AI' — but what's actually behind it? The technical details are often opaque. UpMaDo is deliberately transparent here:\n\nUpMaDo processes every track through a documented 13-stage DSP pipeline: high-pass filter, low/mid/high shelving EQ, parametric mid EQ, de-esser, multiband compressor, mid/side stereo processing, harmonic exciter, glue compressor, pre-limiter EQ, genuine oversampled true peak limiter, and noise-shaped dithering.\n\nThe AI component calculates the optimal parameters for this pipeline based on an analysis (LUFS, True Peak, Loudness Range, spectral distribution, dynamics, stereo field, BPM, key) — customized to genre and target platform, including a loudness-range guardrail that avoids further flattening already heavily compressed source material.\n\nLANDR also uses machine learning, but the exact pipeline is not publicly documented. eMastered is similarly opaque. This makes it harder to understand the result or debug issues.",
+            de: "Viele Online-Mastering-Dienste werben mit 'KI' — aber was steckt tatsächlich dahinter? Die technischen Details sind oft intransparent. Beatzucker ist hier bewusst offen:\n\nBeatzucker verarbeitet jeden Track durch eine dokumentierte 13-stufige DSP-Pipeline: High-Pass-Filter, Low/Mid/High-Shelving EQ, parametrischer Mid-EQ, De-Esser, Multiband-Kompressor, Mid/Side-Stereo-Processing, Harmonic Exciter, Glue-Kompressor, Pre-Limiter EQ, echter oversampled True-Peak-Limiter und Noise-Shaped Dithering.\n\nDie KI-Komponente berechnet auf Basis einer Analyse (LUFS, True Peak, Loudness Range, Spektralverteilung, Dynamik, Stereofeld, BPM, Key) die optimalen Parameter für diese Pipeline — angepasst an Genre und Zielplattform, inklusive einer Loudness-Range-Absicherung, die bereits stark komprimiertes Ausgangsmaterial nicht noch weiter plättet.\n\nLANDR nutzt ebenfalls Machine Learning, aber die genaue Pipeline ist nicht öffentlich dokumentiert. eMastered ist ähnlich intransparent. Das macht es schwerer, das Ergebnis zu verstehen oder Probleme zu debuggen.",
+            en: "Many online mastering services advertise 'AI' — but what's actually behind it? The technical details are often opaque. Beatzucker is deliberately transparent here:\n\nBeatzucker processes every track through a documented 13-stage DSP pipeline: high-pass filter, low/mid/high shelving EQ, parametric mid EQ, de-esser, multiband compressor, mid/side stereo processing, harmonic exciter, glue compressor, pre-limiter EQ, genuine oversampled true peak limiter, and noise-shaped dithering.\n\nThe AI component calculates the optimal parameters for this pipeline based on an analysis (LUFS, True Peak, Loudness Range, spectral distribution, dynamics, stereo field, BPM, key) — customized to genre and target platform, including a loudness-range guardrail that avoids further flattening already heavily compressed source material.\n\nLANDR also uses machine learning, but the exact pipeline is not publicly documented. eMastered is similarly opaque. This makes it harder to understand the result or debug issues.",
           },
         },
         {
           h2: { de: "7 Ausgabeformate gleichzeitig — ohne Mehrkosten", en: "7 Output Formats Simultaneously — Without Extra Cost" },
           body: {
-            de: "Ein oft übersehener Vorteil: UpMaDo rendert nach jedem Mastering-Vorgang gleichzeitig alle 7 Ausgabeformate — WAV 32-bit, WAV 24-bit, WAV 16-bit, FLAC 24-bit, MP3 320, MP3 128 und AAC 256.\n\nBei LANDR musst du je nach Tarif für verschiedene Formate separat bezahlen. Bei eMastered ist ähnlich — das Runterrechnen auf MP3 und AAC ist teils hinter Paywalls.\n\nBei UpMaDo bekommst du alle Formate in einem Mastering-Vorgang. Du entscheidest nach dem Download, welches Format du brauchst — für Streaming, für die Club-PA, für die Archivierung.",
-            en: "An often overlooked advantage: UpMaDo renders all 7 output formats simultaneously after each mastering process — WAV 32-bit, WAV 24-bit, WAV 16-bit, FLAC 24-bit, MP3 320, MP3 128, and AAC 256.\n\nWith LANDR, you may have to pay separately for different formats depending on your plan. With eMastered, it's similar — converting to MP3 and AAC is partly behind paywalls.\n\nWith UpMaDo, you get all formats in one mastering run. You decide after downloading which format you need — for streaming, for the club PA, for archiving.",
+            de: "Ein oft übersehener Vorteil: Beatzucker rendert nach jedem Mastering-Vorgang gleichzeitig alle 7 Ausgabeformate — WAV 32-bit, WAV 24-bit, WAV 16-bit, FLAC 24-bit, MP3 320, MP3 128 und AAC 256.\n\nBei LANDR musst du je nach Tarif für verschiedene Formate separat bezahlen. Bei eMastered ist ähnlich — das Runterrechnen auf MP3 und AAC ist teils hinter Paywalls.\n\nBei Beatzucker bekommst du alle Formate in einem Mastering-Vorgang. Du entscheidest nach dem Download, welches Format du brauchst — für Streaming, für die Club-PA, für die Archivierung.",
+            en: "An often overlooked advantage: Beatzucker renders all 7 output formats simultaneously after each mastering process — WAV 32-bit, WAV 24-bit, WAV 16-bit, FLAC 24-bit, MP3 320, MP3 128, and AAC 256.\n\nWith LANDR, you may have to pay separately for different formats depending on your plan. With eMastered, it's similar — converting to MP3 and AAC is partly behind paywalls.\n\nWith Beatzucker, you get all formats in one mastering run. You decide after downloading which format you need — for streaming, for the club PA, for archiving.",
           },
         },
         {
           h2: { de: "Echtzeit-Analyse: Vorher/Nachher auf einen Blick", en: "Real-Time Analysis: Before/After at a Glance" },
           body: {
-            de: "UpMaDo zeigt dir nach dem Mastering eine vollständige Vorher/Nachher-Analyse: LUFS (integriert, Short-Term, Momentary), True Peak, DR-Wert (Dynamik), Crest Factor, Stereobreite, Mono-Kompatibilität, spektrale Analyse (Sub, Low, Mid, High, Air), BPM, Key, Transient Density, Clipping-Check, DC-Offset, Sample Rate, Bit Depth.\n\nDas gibt dir als Produzent die Kontrolle: Du siehst genau, was das Mastering verändert hat. Kein 'Black Box'-Mastering, wo du einfach hoffst, dass das Ergebnis stimmt.\n\nLANDR und eMastered zeigen deutlich weniger Analyse-Informationen — typischerweise nur einen LUFS-Wert und einen einfachen Vorher/Nachher-Vergleich.",
-            en: "UpMaDo shows you a complete before/after analysis after mastering: LUFS (integrated, short-term, momentary), True Peak, DR value (dynamics), crest factor, stereo width, mono compatibility, spectral analysis (sub, low, mid, high, air), BPM, key, transient density, clipping check, DC offset, sample rate, bit depth.\n\nThis gives you as a producer control: you see exactly what the mastering changed. No 'black box' mastering where you just hope the result is right.\n\nLANDR and eMastered show significantly less analysis information — typically only a LUFS value and a simple before/after comparison.",
+            de: "Beatzucker zeigt dir nach dem Mastering eine vollständige Vorher/Nachher-Analyse: LUFS (integriert, Short-Term, Momentary), True Peak, DR-Wert (Dynamik), Crest Factor, Stereobreite, Mono-Kompatibilität, spektrale Analyse (Sub, Low, Mid, High, Air), BPM, Key, Transient Density, Clipping-Check, DC-Offset, Sample Rate, Bit Depth.\n\nDas gibt dir als Produzent die Kontrolle: Du siehst genau, was das Mastering verändert hat. Kein 'Black Box'-Mastering, wo du einfach hoffst, dass das Ergebnis stimmt.\n\nLANDR und eMastered zeigen deutlich weniger Analyse-Informationen — typischerweise nur einen LUFS-Wert und einen einfachen Vorher/Nachher-Vergleich.",
+            en: "Beatzucker shows you a complete before/after analysis after mastering: LUFS (integrated, short-term, momentary), True Peak, DR value (dynamics), crest factor, stereo width, mono compatibility, spectral analysis (sub, low, mid, high, air), BPM, key, transient density, clipping check, DC offset, sample rate, bit depth.\n\nThis gives you as a producer control: you see exactly what the mastering changed. No 'black box' mastering where you just hope the result is right.\n\nLANDR and eMastered show significantly less analysis information — typically only a LUFS value and a simple before/after comparison.",
           },
         },
         {
@@ -993,7 +993,7 @@ export const ARTICLES: RessourceArticle[] = [
               { de: "EU-Server", en: "EU server" },
             ],
             rows: [
-              [{ de: "UpMaDo", en: "UpMaDo" }, { de: "Ja, komplett kostenlos", en: "Yes, completely free" }, { de: "Kostenlos", en: "Free" }, { de: "✓ alle 7", en: "✓ all 7" }, { de: "✓ EU", en: "✓ EU" }],
+              [{ de: "Beatzucker", en: "Beatzucker" }, { de: "Ja, komplett kostenlos", en: "Yes, completely free" }, { de: "Kostenlos", en: "Free" }, { de: "✓ alle 7", en: "✓ all 7" }, { de: "✓ EU", en: "✓ EU" }],
               [{ de: "LANDR", en: "LANDR" }, { de: "Eingeschränkt", en: "Limited" }, { de: "ab $11.99/Monat", en: "from $11.99/month" }, { de: "Teils extra", en: "Partly extra" }, { de: "✗ USA/CA", en: "✗ USA/CA" }],
               [{ de: "eMastered", en: "eMastered" }, { de: "Eingeschränkt", en: "Limited" }, { de: "ab $9.99/Monat", en: "from $9.99/month" }, { de: "Teils extra", en: "Partly extra" }, { de: "✗ USA", en: "✗ USA" }],
               [{ de: "CloudBounce", en: "CloudBounce" }, { de: "Preview", en: "Preview" }, { de: "ab $9.99/Monat", en: "from $9.99/month" }, { de: "Basis", en: "Basic" }, { de: "Unklar", en: "Unclear" }],
@@ -1002,8 +1002,8 @@ export const ARTICLES: RessourceArticle[] = [
         },
       ],
       conclusion: {
-        de: "Online-Mastering ist kein One-size-fits-all-Markt. UpMaDo positioniert sich bewusst als die datenschutzfreundlichste, technisch transparenteste und für Independent-Produzenten fairste Option. Für europäische Künstler, denen ihre Daten und ihre unveröffentlichte Musik wichtig sind, ist das ein echter Unterschied.",
-        en: "Online mastering is not a one-size-fits-all market. UpMaDo deliberately positions itself as the most privacy-friendly, technically most transparent, and fairest option for independent producers. For European artists who care about their data and their unreleased music, that's a real difference.",
+        de: "Online-Mastering ist kein One-size-fits-all-Markt. Beatzucker positioniert sich bewusst als die datenschutzfreundlichste, technisch transparenteste und für Independent-Produzenten fairste Option. Für europäische Künstler, denen ihre Daten und ihre unveröffentlichte Musik wichtig sind, ist das ein echter Unterschied.",
+        en: "Online mastering is not a one-size-fits-all market. Beatzucker deliberately positions itself as the most privacy-friendly, technically most transparent, and fairest option for independent producers. For European artists who care about their data and their unreleased music, that's a real difference.",
       },
     },
   },
@@ -1021,8 +1021,8 @@ export const ARTICLES: RessourceArticle[] = [
       en: "re-beatz.com: Online Mastering With More Control",
     },
     metaTitle: {
-      de: "re-beatz.com – Online Mastering mit eigenen Eingriffsmöglichkeiten | UpMaDo",
-      en: "re-beatz.com – Online Mastering With Custom Controls | UpMaDo",
+      de: "re-beatz.com – Online Mastering mit eigenen Eingriffsmöglichkeiten | Beatzucker",
+      en: "re-beatz.com – Online Mastering With Custom Controls | Beatzucker",
     },
     metaDescription: {
       de: "re-beatz.com bietet Online Audio Mastering mit mehr manuellen Eingriffsmöglichkeiten. Für Produzenten, die Lautstärke, EQ und Kompression selbst steuern wollen.",
@@ -1033,10 +1033,10 @@ export const ARTICLES: RessourceArticle[] = [
       en: ["re-beatz mastering", "online mastering with control", "manual online mastering", "re-beatz audio mastering", "mastering custom settings"],
     },
     teaser: {
-      de: "re-beatz.com ist das Schwesterangebot zu UpMaDo — mit mehr manuellen Eingriffsmöglichkeiten für Produzenten, die ihren Mastering-Prozess selbst steuern wollen.",
-      en: "re-beatz.com is the sister platform to UpMaDo — with more manual customization for producers who want to control their own mastering process.",
+      de: "re-beatz.com ist das Schwesterangebot zu Beatzucker — mit mehr manuellen Eingriffsmöglichkeiten für Produzenten, die ihren Mastering-Prozess selbst steuern wollen.",
+      en: "re-beatz.com is the sister platform to Beatzucker — with more manual customization for producers who want to control their own mastering process.",
     },
-    relatedSlugs: ["upmado-vs-andere-mastering-plattformen", "was-ist-audio-mastering", "mix-fuer-mastering-vorbereiten"],
+    relatedSlugs: ["beatzucker-vs-andere-mastering-plattformen", "was-ist-audio-mastering", "mix-fuer-mastering-vorbereiten"],
     content: {
       intro: {
         de: "Nicht jeder Produzent will, dass eine KI alle Mastering-Entscheidungen trifft. Manche haben genaue Vorstellungen von Lautstärke, Klangcharakter und Dynamik — und möchten diese Vorstellungen in den Mastering-Prozess einbringen. Für diese Produzenten gibt es re-beatz.com.\n\nre-beatz.com ist ein Online-Mastering-Service, der dem Nutzer mehr direkte Eingriffsmöglichkeiten bietet als ein vollautomatisches System. Es ist ein Angebot für erfahrenere Musikproduzenten, die den Unterschied zwischen einem gut und einem sehr gut gemasterten Track aktiv gestalten wollen.",
@@ -1046,8 +1046,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Was ist re-beatz.com?", en: "What Is re-beatz.com?" },
           body: {
-            de: "re-beatz.com ist ein Online-Audio-Mastering-Service von demselben Entwickler wie UpMaDo. Während UpMaDo auf maximale Automatisierung setzt — Upload, KI-Analyse, Mastering in Sekunden — bietet re-beatz.com eine ergänzende Philosophie: mehr Kontrolle für den Nutzer.\n\nDer Service richtet sich besonders an Produzenten und Mixing Engineers mit Erfahrung, die nicht alles der KI überlassen wollen. Und an Künstler, die einen sehr spezifischen Klangcharakter anstreben.",
-            en: "re-beatz.com is an online audio mastering service from the same developer as UpMaDo. While UpMaDo focuses on maximum automation — upload, AI analysis, mastering in seconds — re-beatz.com offers a complementary philosophy: more control for the user.\n\nThe service is especially aimed at producers and mixing engineers with experience who don't want to leave everything to the AI. And at artists aiming for a very specific tonal character.",
+            de: "re-beatz.com ist ein Online-Audio-Mastering-Service von demselben Entwickler wie Beatzucker. Während Beatzucker auf maximale Automatisierung setzt — Upload, KI-Analyse, Mastering in Sekunden — bietet re-beatz.com eine ergänzende Philosophie: mehr Kontrolle für den Nutzer.\n\nDer Service richtet sich besonders an Produzenten und Mixing Engineers mit Erfahrung, die nicht alles der KI überlassen wollen. Und an Künstler, die einen sehr spezifischen Klangcharakter anstreben.",
+            en: "re-beatz.com is an online audio mastering service from the same developer as Beatzucker. While Beatzucker focuses on maximum automation — upload, AI analysis, mastering in seconds — re-beatz.com offers a complementary philosophy: more control for the user.\n\nThe service is especially aimed at producers and mixing engineers with experience who don't want to leave everything to the AI. And at artists aiming for a very specific tonal character.",
           },
         },
         {
@@ -1058,7 +1058,7 @@ export const ARTICLES: RessourceArticle[] = [
           },
         },
         {
-          h2: { de: "re-beatz.com vs. UpMaDo: Wann wähle ich was?", en: "re-beatz.com vs. UpMaDo: When Do I Choose What?" },
+          h2: { de: "re-beatz.com vs. Beatzucker: Wann wähle ich was?", en: "re-beatz.com vs. Beatzucker: When Do I Choose What?" },
           body: {
             de: "Beide Plattformen haben ihren Platz im Produktionsworkflow:",
             en: "Both platforms have their place in the production workflow:",
@@ -1069,12 +1069,12 @@ export const ARTICLES: RessourceArticle[] = [
               { de: "Empfehlung", en: "Recommendation" },
             ],
             rows: [
-              [{ de: "Schnelles Mastering für Upload, Demos, Feedback", en: "Quick mastering for uploads, demos, feedback" }, { de: "UpMaDo", en: "UpMaDo" }],
-              [{ de: "Streaming-Release mit Plattform-Zielwert", en: "Streaming release with platform target" }, { de: "UpMaDo", en: "UpMaDo" }],
+              [{ de: "Schnelles Mastering für Upload, Demos, Feedback", en: "Quick mastering for uploads, demos, feedback" }, { de: "Beatzucker", en: "Beatzucker" }],
+              [{ de: "Streaming-Release mit Plattform-Zielwert", en: "Streaming release with platform target" }, { de: "Beatzucker", en: "Beatzucker" }],
               [{ de: "Mastering mit eigenem LUFS-Zielwert", en: "Mastering with custom LUFS target" }, { de: "re-beatz.com", en: "re-beatz.com" }],
               [{ de: "Club-Master mit maximaler Lautheit", en: "Club master with maximum loudness" }, { de: "re-beatz.com", en: "re-beatz.com" }],
-              [{ de: "Batch-Mastering mehrerer Tracks", en: "Batch mastering of multiple tracks" }, { de: "UpMaDo", en: "UpMaDo" }],
-              [{ de: "Erste Schritte, kein Vorwissen", en: "First steps, no prior knowledge" }, { de: "UpMaDo", en: "UpMaDo" }],
+              [{ de: "Batch-Mastering mehrerer Tracks", en: "Batch mastering of multiple tracks" }, { de: "Beatzucker", en: "Beatzucker" }],
+              [{ de: "Erste Schritte, kein Vorwissen", en: "First steps, no prior knowledge" }, { de: "Beatzucker", en: "Beatzucker" }],
               [{ de: "Erfahrener Produzent mit eigenen Vorgaben", en: "Experienced producer with own specs" }, { de: "re-beatz.com", en: "re-beatz.com" }],
             ],
           },
@@ -1082,15 +1082,15 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Die Stärken von re-beatz.com", en: "The Strengths of re-beatz.com" },
           body: {
-            de: "re-beatz.com hat sich über mehrere Jahre als zuverlässige Online-Mastering-Plattform etabliert. Einige wesentliche Stärken:\n\nErfahrung und Stabilität: Die Plattform läuft seit Jahren und hat zahlreiche Mastering-Jobs erfolgreich abgearbeitet. Die Algorithmen sind auf viele verschiedene Genres optimiert.\n\nMehr Formate und Längen: re-beatz.com ist besonders stark bei längeren Tracks — typisch für Electronic Music, DJ-Sets oder Podcast-Episoden. Tracks bis zu 150 MB werden problemlos verarbeitet.\n\nTransparente Verarbeitung: Wie UpMaDo zeigt auch re-beatz.com eine Analyse vor und nach dem Mastering, damit der Nutzer den Unterschied nachvollziehen kann.\n\nFaire Konditionen: Das Preismodell ist transparent — kein Vertrag, keine Mindestabnahme, 300 kostenlose Previews pro Monat.",
-            en: "re-beatz.com has established itself over several years as a reliable online mastering platform. Some key strengths:\n\nExperience and stability: The platform has been running for years and has successfully processed numerous mastering jobs. The algorithms are optimized for many different genres.\n\nMore formats and lengths: re-beatz.com is particularly strong with longer tracks typical of electronic music, DJ sets, or podcast episodes. Tracks up to 150 MB are processed without issues.\n\nTransparent processing: Like UpMaDo, re-beatz.com shows an analysis before and after mastering, so the user can understand the difference.\n\nFair terms: The pricing model is transparent — no contract, no minimum quantity, 300 free previews per month.",
+            de: "re-beatz.com hat sich über mehrere Jahre als zuverlässige Online-Mastering-Plattform etabliert. Einige wesentliche Stärken:\n\nErfahrung und Stabilität: Die Plattform läuft seit Jahren und hat zahlreiche Mastering-Jobs erfolgreich abgearbeitet. Die Algorithmen sind auf viele verschiedene Genres optimiert.\n\nMehr Formate und Längen: re-beatz.com ist besonders stark bei längeren Tracks — typisch für Electronic Music, DJ-Sets oder Podcast-Episoden. Tracks bis zu 150 MB werden problemlos verarbeitet.\n\nTransparente Verarbeitung: Wie Beatzucker zeigt auch re-beatz.com eine Analyse vor und nach dem Mastering, damit der Nutzer den Unterschied nachvollziehen kann.\n\nFaire Konditionen: Das Preismodell ist transparent — kein Vertrag, keine Mindestabnahme, 300 kostenlose Previews pro Monat.",
+            en: "re-beatz.com has established itself over several years as a reliable online mastering platform. Some key strengths:\n\nExperience and stability: The platform has been running for years and has successfully processed numerous mastering jobs. The algorithms are optimized for many different genres.\n\nMore formats and lengths: re-beatz.com is particularly strong with longer tracks typical of electronic music, DJ sets, or podcast episodes. Tracks up to 150 MB are processed without issues.\n\nTransparent processing: Like Beatzucker, re-beatz.com shows an analysis before and after mastering, so the user can understand the difference.\n\nFair terms: The pricing model is transparent — no contract, no minimum quantity, 300 free previews per month.",
           },
         },
         {
           h2: { de: "Zusammenfassung: Ergänzend, nicht konkurrierend", en: "Summary: Complementary, Not Competing" },
           body: {
-            de: "UpMaDo und re-beatz.com sind keine Konkurrenten — sie sind zwei unterschiedliche Werkzeuge für unterschiedliche Situationen. Viele professionelle Produzenten nutzen beide:\n\nUpMaDo für schnelles, vollautomatisches Mastering von Streaming-Releases — in 15 Sekunden fertig, DSGVO-konform, alle 7 Formate gleichzeitig.\n\nre-beatz.com wenn mehr Kontrolle gefragt ist — für Club-Sets, Tracks mit speziellen Klangvorstellungen oder Produzenten, die jeden Aspekt selbst steuern wollen.\n\nBeide Plattformen laufen auf EU-Servern, respektieren deine Privatsphäre und bieten faire Preise ohne versteckte Kosten.",
-            en: "UpMaDo and re-beatz.com are not competitors — they are two different tools for different situations. Many professional producers use both:\n\nUpMaDo for quick, fully automatic mastering of streaming releases — done in 15 seconds, GDPR-compliant, all 7 formats simultaneously.\n\nre-beatz.com when more control is required — for club sets, tracks with specific tonal requirements, or producers who want to control every aspect themselves.\n\nBoth platforms run on EU servers, respect your privacy, and offer fair prices without hidden costs.",
+            de: "Beatzucker und re-beatz.com sind keine Konkurrenten — sie sind zwei unterschiedliche Werkzeuge für unterschiedliche Situationen. Viele professionelle Produzenten nutzen beide:\n\nBeatzucker für schnelles, vollautomatisches Mastering von Streaming-Releases — in 15 Sekunden fertig, DSGVO-konform, alle 7 Formate gleichzeitig.\n\nre-beatz.com wenn mehr Kontrolle gefragt ist — für Club-Sets, Tracks mit speziellen Klangvorstellungen oder Produzenten, die jeden Aspekt selbst steuern wollen.\n\nBeide Plattformen laufen auf EU-Servern, respektieren deine Privatsphäre und bieten faire Preise ohne versteckte Kosten.",
+            en: "Beatzucker and re-beatz.com are not competitors — they are two different tools for different situations. Many professional producers use both:\n\nBeatzucker for quick, fully automatic mastering of streaming releases — done in 15 seconds, GDPR-compliant, all 7 formats simultaneously.\n\nre-beatz.com when more control is required — for club sets, tracks with specific tonal requirements, or producers who want to control every aspect themselves.\n\nBoth platforms run on EU servers, respect your privacy, and offer fair prices without hidden costs.",
           },
         },
       ],

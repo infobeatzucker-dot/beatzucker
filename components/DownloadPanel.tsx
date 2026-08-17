@@ -53,11 +53,11 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
     window.open(`/api/report?data=${b64}`, "_blank");
   };
 
-  // fmtKey = "mp3128", ext = "mp3"  →  upmado_trackname_mp3128.mp3
+  // fmtKey = "mp3128", ext = "mp3"  →  beatzucker_trackname_mp3128.mp3
   const handleDownload = (fmtKey: string, ext: string, url: string) => {
     const a = document.createElement("a");
     a.href = url;
-    a.download = `upmado_${cleanName}_${fmtKey}.${ext}`;
+    a.download = `beatzucker_${cleanName}_${fmtKey}.${ext}`;
     a.click();
   };
 
