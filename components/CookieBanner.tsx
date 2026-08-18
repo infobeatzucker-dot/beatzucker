@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Cookie } from "lucide-react";
 
 const STORAGE_KEY = "beatzucker_cookie_consent";
 
@@ -52,7 +53,7 @@ export default function CookieBanner() {
           transform: "translateX(-50%)",
           width: "min(560px, calc(100vw - 2rem))",
           background: "var(--bg-elevated, #1a1a2e)",
-          border: "1px solid rgba(124,111,255,0.25)",
+          border: "1px solid rgba(139,92,246,0.25)",
           borderRadius: "14px",
           padding: "1.5rem 1.75rem",
           zIndex: 9999,
@@ -61,7 +62,7 @@ export default function CookieBanner() {
       >
         {/* Header row */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem" }}>
-          <span style={{ fontSize: "1.1rem" }}>🍪</span>
+          <Cookie size={17} strokeWidth={2} color="var(--accent-gold, #c4b5fd)" />
           <span style={{
             fontWeight: 700,
             fontSize: "0.95rem",
@@ -84,7 +85,7 @@ export default function CookieBanner() {
           Deine Einstellungen (Plattform, Preset) werden nur lokal auf deinem Gerät gespeichert.{" "}
           <Link
             href="/datenschutz"
-            style={{ color: "var(--accent-cyan, #06b6d4)", textDecoration: "none" }}
+            style={{ color: "var(--accent-cyan, #38bdf8)", textDecoration: "none" }}
           >
             Datenschutzerklärung →
           </Link>
@@ -98,7 +99,7 @@ export default function CookieBanner() {
               padding: "0.5rem 1.25rem",
               borderRadius: "8px",
               border: "none",
-              background: "linear-gradient(135deg, var(--accent-purple, #7c6fff), var(--accent-cyan, #06b6d4))",
+              background: "linear-gradient(135deg, var(--accent-purple, #8b5cf6), var(--accent-cyan, #38bdf8))",
               color: "#fff",
               fontWeight: 700,
               fontSize: "0.85rem",

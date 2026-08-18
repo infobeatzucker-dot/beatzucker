@@ -2,6 +2,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { signIn } from "next-auth/react";
+import { Mail, ShieldCheck } from "lucide-react";
 
 type View = "login" | "register" | "forgot" | "reset" | "forgot-sent" | "otp";
 
@@ -28,7 +29,7 @@ const inputStyle: React.CSSProperties = {
 const btnPrimary: React.CSSProperties = {
   width: "100%",
   padding: "0.65rem",
-  background: "linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #06b6d4))",
+  background: "linear-gradient(135deg, var(--accent-purple, #8b5cf6), var(--accent-cyan, #38bdf8))",
   border: "none",
   borderRadius: "8px",
   color: "#fff",
@@ -57,7 +58,7 @@ const btnGoogle: React.CSSProperties = {
 const linkBtn: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "var(--accent-cyan, #06b6d4)",
+  color: "var(--accent-cyan, #38bdf8)",
   fontSize: "0.82rem",
   cursor: "pointer",
   padding: 0,
@@ -250,7 +251,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
           transform: "translate(-50%, -50%)",
           width: "min(420px, calc(100vw - 2rem))",
           background: "var(--bg-elevated, #1a1a2e)",
-          border: "1px solid rgba(124,111,255,0.25)",
+          border: "1px solid rgba(139,92,246,0.25)",
           borderRadius: "16px",
           padding: "2rem",
           zIndex: 9999,
@@ -365,7 +366,9 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {/* ── FORGOT SENT ─────────────────────────────────── */}
         {view === "forgot-sent" && (
           <>
-            <div style={{ textAlign: "center", fontSize: "2.5rem", marginBottom: "0.75rem" }}>📧</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
+              <Mail size={40} strokeWidth={1.75} color="var(--accent-cyan, #38bdf8)" />
+            </div>
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.75rem", textAlign: "center" }}>
               E-Mail gesendet
             </h2>
@@ -382,7 +385,9 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {/* ── OTP ─────────────────────────────────────────── */}
         {view === "otp" && (
           <>
-            <div style={{ textAlign: "center", fontSize: "2rem", marginBottom: "0.5rem" }}>🔐</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
+              <ShieldCheck size={32} strokeWidth={1.75} color="var(--accent-purple, #8b5cf6)" />
+            </div>
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", textAlign: "center" }}>
               2-Faktor-Authentifizierung
             </h2>

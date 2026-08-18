@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Lock } from "lucide-react";
 import CookieReopenButton from "./CookieReopenButton";
 import DonateButton from "./DonateButton";
 
@@ -41,7 +42,7 @@ export default function Footer() {
             Real AI Mastering · Professional Audio Processing
           </div>
           <div className="text-[10px] flex items-center gap-1" style={{ color: "#22c55e" }}>
-            <span>🔒</span>
+            <Lock size={11} strokeWidth={2} />
             <span>No Tracking · No Cookies · EU-Server</span>
           </div>
         </div>

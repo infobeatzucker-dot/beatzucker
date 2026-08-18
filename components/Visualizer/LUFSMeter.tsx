@@ -13,7 +13,7 @@ const PLATFORM_TARGETS: { label: string; lufs: number; color: string }[] = [
   { label: "Spotify", lufs: -14, color: "#1DB954" },
   { label: "Apple",   lufs: -16, color: "#FC3C44" },
   { label: "YouTube", lufs: -14, color: "#FF0000" },
-  { label: "Club",    lufs:  -9, color: "#7c6fff" },
+  { label: "Club",    lufs:  -9, color: "#8b5cf6" },
 ];
 
 function dbToY(db: number, H: number, minDb = -30, maxDb = 0): number {
@@ -128,7 +128,7 @@ export default function LUFSMeter({ integrated, truePeak, isProcessing, analyser
         ctx.textAlign  = "center";
         ctx.fillText(label, x + meterW / 2, 10);
 
-        ctx.fillStyle = value > -6 ? "#ff4757" : value > -12 ? "#facc15" : "#00e5c4";
+        ctx.fillStyle = value > -6 ? "#ff4757" : value > -12 ? "#facc15" : "#38bdf8";
         ctx.font      = "7px monospace";
         ctx.fillText(`${value.toFixed(1)}`, x + meterW / 2, H - 4);
         ctx.textAlign  = "left";
@@ -142,7 +142,7 @@ export default function LUFSMeter({ integrated, truePeak, isProcessing, analyser
       ctx.font      = "7px monospace";
       ctx.fillText("TRUE", tpX + 4, 10);
       ctx.fillText("PEAK", tpX + 4, 19);
-      ctx.fillStyle = truePeak > -1 ? "#ff4757" : "#00e5c4";
+      ctx.fillStyle = truePeak > -1 ? "#ff4757" : "#38bdf8";
       ctx.font      = "bold 9px monospace";
       ctx.fillText(`${truePeak.toFixed(1)}`, tpX + 4, H / 2 + 4);
       ctx.fillStyle = "rgba(69,77,104,0.7)";

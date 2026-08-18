@@ -42,7 +42,7 @@ export default function SpectrumAnalyzer({ isProcessing, hasPostData, analyser }
       ctx.clearRect(0, 0, W, H);
 
       // Grid lines
-      ctx.strokeStyle = "rgba(124,111,255,0.06)";
+      ctx.strokeStyle = "rgba(139,92,246,0.06)";
       ctx.lineWidth   = 1;
       for (let db = -20; db >= -80; db -= 20) {
         const y = ((db + 0) / -80) * (H - 20);
@@ -114,7 +114,7 @@ export default function SpectrumAnalyzer({ isProcessing, hasPostData, analyser }
         if (barDbPost) {
           const postNorm = Math.max(0, Math.min(1, (barDbPost[i] + 80) / 80));
           const postH    = postNorm * (H - 20);
-          ctx.fillStyle  = "rgba(0,229,196,0.35)";
+          ctx.fillStyle  = "rgba(56,189,248,0.35)";
           ctx.fillRect(x, H - 20 - postH, barW - 1, postH);
         }
 

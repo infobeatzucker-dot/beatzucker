@@ -57,7 +57,7 @@ export default function StereoField({
       ctx.stroke();
 
       // Circle border
-      ctx.strokeStyle = "rgba(124,111,255,0.1)";
+      ctx.strokeStyle = "rgba(139,92,246,0.1)";
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.stroke();
@@ -102,7 +102,7 @@ export default function StereoField({
       trailPoints.current = trailPoints.current.filter((p) => {
         p.age += analyserL ? 0.08 : 0.05;
         const alpha = Math.max(0, 1 - p.age);
-        ctx.fillStyle  = `rgba(0,229,196,${(alpha * 0.85).toFixed(2)})`;
+        ctx.fillStyle  = `rgba(56,189,248,${(alpha * 0.85).toFixed(2)})`;
         const size     = Math.max(0.5, 2 * (1 - p.age * 0.7));
         ctx.beginPath();
         ctx.arc(p.x, p.y, size, 0, Math.PI * 2);

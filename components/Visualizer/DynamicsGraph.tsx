@@ -50,7 +50,7 @@ export default function DynamicsGraph({ drValue, crestFactor, isProcessing }: Pr
           ? `rgba(255,71,87,${alpha})`
           : norm > 0.25
           ? `rgba(250,204,21,${alpha})`
-          : `rgba(0,229,196,${alpha})`;
+          : `rgba(56,189,248,${alpha})`;
 
         ctx.fillStyle = grColor;
         ctx.fillRect(x + 1, barY, sectionW - 2, barH);

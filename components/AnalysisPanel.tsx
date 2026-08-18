@@ -1,6 +1,6 @@
 "use client";
 
-import { AnalysisData } from "@/app/page";
+import { AnalysisData } from "@/lib/types/mastering";
 import dynamic from "next/dynamic";
 import { useAudioEngine } from "@/contexts/AudioEngineContext";
 
@@ -91,7 +91,7 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
       {/* Main visualizers grid */}
       <div className="grid md:grid-cols-3 gap-4 mb-4">
         {/* Spectrum Analyzer */}
-        <div className="glass-panel p-3 scanlines" style={{ height: 200 }}>
+        <div className="glass-panel p-3" style={{ height: 200 }}>
           <div className="label mb-2">Spectrum Analyzer</div>
           <SpectrumAnalyzer
             isProcessing={isProcessing}
@@ -101,7 +101,7 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
 
         {/* Waveform Viewer */}
-        <div className="glass-panel p-3 scanlines" style={{ height: 200 }}>
+        <div className="glass-panel p-3" style={{ height: 200 }}>
           <div className="label mb-2">Waveform</div>
           <WaveformViewer
             isProcessing={isProcessing}
@@ -111,7 +111,7 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
 
         {/* Spectrogram Waterfall */}
-        <div className="glass-panel p-3 scanlines" style={{ height: 200 }}>
+        <div className="glass-panel p-3" style={{ height: 200 }}>
           <div className="label mb-2">Spectrogram</div>
           <SpectrogramWaterfall
             analyser={analyserMono}
@@ -122,7 +122,7 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
 
       <div className="grid md:grid-cols-3 gap-4 mb-4">
         {/* LUFS Meter */}
-        <div className="glass-panel p-3 scanlines" style={{ height: 180 }}>
+        <div className="glass-panel p-3" style={{ height: 180 }}>
           <div className="label mb-2">LUFS / True Peak</div>
           <LUFSMeter
             integrated={preAnalysis.integrated_lufs}
@@ -133,7 +133,7 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
 
         {/* Stereo Field */}
-        <div className="glass-panel p-3 scanlines" style={{ height: 180 }}>
+        <div className="glass-panel p-3" style={{ height: 180 }}>
           <div className="flex items-center justify-between mb-2">
             <span className="label">Stereo Field</span>
             {/* Mono compatibility badge */}
@@ -146,8 +146,8 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
                 <span
                   className="text-[9px] font-bold px-1.5 py-0.5 rounded"
                   style={{
-                    background: isBad ? "rgba(255,71,87,0.15)" : "rgba(245,200,66,0.15)",
-                    border:     isBad ? "1px solid rgba(255,71,87,0.4)" : "1px solid rgba(245,200,66,0.4)",
+                    background: isBad ? "rgba(255,71,87,0.15)" : "rgba(196,181,253,0.15)",
+                    border:     isBad ? "1px solid rgba(255,71,87,0.4)" : "1px solid rgba(196,181,253,0.4)",
                     color:      isBad ? "var(--accent-red)" : "var(--accent-gold)",
                     letterSpacing: "0.05em",
                   }}
@@ -167,7 +167,7 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
 
         {/* Dynamics Graph */}
-        <div className="glass-panel p-3 scanlines" style={{ height: 180 }}>
+        <div className="glass-panel p-3" style={{ height: 180 }}>
           <div className="label mb-2">Dynamics</div>
           <DynamicsGraph
             drValue={preAnalysis.dr_value}
@@ -219,10 +219,10 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
           style={{
             background: preAnalysis.mono_compatibility < 0.5
               ? "rgba(255,71,87,0.07)"
-              : "rgba(245,200,66,0.07)",
+              : "rgba(196,181,253,0.07)",
             border: preAnalysis.mono_compatibility < 0.5
               ? "1px solid rgba(255,71,87,0.3)"
-              : "1px solid rgba(245,200,66,0.3)",
+              : "1px solid rgba(196,181,253,0.3)",
           }}
         >
           <svg className="flex-shrink-0 mt-0.5" width="15" height="15" viewBox="0 0 24 24"

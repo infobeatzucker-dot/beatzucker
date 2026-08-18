@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ProgressStep } from "@/app/page";
+import { ProgressStep } from "@/lib/types/mastering";
 
 interface Props {
   isOpen: boolean;
@@ -53,8 +53,8 @@ export default function MasteringProgressModal({ isOpen, step }: Props) {
               className="w-full max-w-md rounded-2xl p-8"
               style={{
                 background: "rgba(14,16,28,0.98)",
-                border: "1px solid rgba(124,111,255,0.25)",
-                boxShadow: "0 0 60px rgba(124,111,255,0.15), 0 0 120px rgba(0,229,196,0.05), 0 24px 48px rgba(0,0,0,0.6)",
+                border: "1px solid rgba(139,92,246,0.25)",
+                boxShadow: "0 0 60px rgba(139,92,246,0.15), 0 0 120px rgba(56,189,248,0.05), 0 24px 48px rgba(0,0,0,0.6)",
               }}
             >
               {/* Header */}
@@ -86,7 +86,7 @@ export default function MasteringProgressModal({ isOpen, step }: Props) {
                   className="absolute inset-y-0 left-0 rounded-full"
                   style={{
                     background: "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))",
-                    boxShadow: "0 0 12px rgba(124,111,255,0.6)",
+                    boxShadow: "0 0 12px rgba(139,92,246,0.6)",
                   }}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
@@ -118,7 +118,7 @@ export default function MasteringProgressModal({ isOpen, step }: Props) {
                           : active
                           ? "var(--accent-purple)"
                           : "rgba(255,255,255,0.08)",
-                        boxShadow: active ? "0 0 8px rgba(124,111,255,0.8)" : "none",
+                        boxShadow: active ? "0 0 8px rgba(139,92,246,0.8)" : "none",
                       }}
                       title={s.label}
                     />

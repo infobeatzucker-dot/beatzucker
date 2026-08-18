@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import { User, LogOut } from "lucide-react";
 
 interface AccountInfo {
   dailyUsed: number;
@@ -50,7 +51,7 @@ export default function AccountDropdown() {
           background: user.image
             ? "transparent"
             : "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
-          border: "2px solid rgba(124,111,255,0.4)",
+          border: "2px solid rgba(139,92,246,0.4)",
           cursor: "pointer",
           overflow: "hidden",
           display: "flex",
@@ -121,25 +122,25 @@ export default function AccountDropdown() {
           {/* Menu items */}
           <div style={{ padding: "0.4rem 0" }}>
             <Link
-              href="/account"
+              href="/dashboard"
               onClick={() => setOpen(false)}
               style={{
-                display: "block", padding: "0.55rem 1rem",
+                display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.55rem 1rem",
                 fontSize: "0.85rem", color: "var(--text-secondary)",
                 textDecoration: "none",
               }}
             >
-              👤 Mein Konto
+              <User size={14} strokeWidth={2} /> Dashboard
             </Link>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
               style={{
-                display: "block", width: "100%", textAlign: "left",
+                display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", textAlign: "left",
                 padding: "0.55rem 1rem", background: "none", border: "none",
                 fontSize: "0.85rem", color: "var(--text-muted)", cursor: "pointer",
               }}
             >
-              🚪 Abmelden
+              <LogOut size={14} strokeWidth={2} /> Abmelden
             </button>
           </div>
         </div>

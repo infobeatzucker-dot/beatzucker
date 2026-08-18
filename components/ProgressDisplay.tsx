@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ProgressStep } from "@/app/page";
+import { Search, Sliders, BarChart3, ArrowLeftRight, Flame, OctagonAlert, Save, type LucideIcon } from "lucide-react";
+import { ProgressStep } from "@/lib/types/mastering";
 
-const ALL_STEPS = [
-  { key: "analyzing",   label: "Analysis",             icon: "🔍", color: "var(--accent-purple)" },
-  { key: "eq",          label: "EQ Correction",         icon: "🎚",  color: "#818cf8" },
-  { key: "compression", label: "Multiband Compression", icon: "📊", color: "var(--accent-cyan)" },
-  { key: "ms",          label: "M/S Processing",        icon: "↔",  color: "#22d3ee" },
-  { key: "saturation",  label: "Harmonic Saturation",   icon: "🔥", color: "#f59e0b" },
-  { key: "limiting",    label: "True Peak Limiting",    icon: "🛑", color: "#fb923c" },
-  { key: "rendering",   label: "Format Rendering",      icon: "💾", color: "#4ade80" },
+const ALL_STEPS: { key: string; label: string; icon: LucideIcon; color: string }[] = [
+  { key: "analyzing",   label: "Analysis",             icon: Search,         color: "var(--accent-purple)" },
+  { key: "eq",          label: "EQ Correction",         icon: Sliders,        color: "#818cf8" },
+  { key: "compression", label: "Multiband Compression", icon: BarChart3,      color: "var(--accent-cyan)" },
+  { key: "ms",          label: "M/S Processing",        icon: ArrowLeftRight, color: "#22d3ee" },
+  { key: "saturation",  label: "Harmonic Saturation",   icon: Flame,          color: "#c4b5fd" },
+  { key: "limiting",    label: "True Peak Limiting",    icon: OctagonAlert,   color: "#fb923c" },
+  { key: "rendering",   label: "Format Rendering",      icon: Save,           color: "#4ade80" },
 ];
 
 // Approximate seconds each step takes (used for ETA)
@@ -52,9 +53,9 @@ export default function ProgressDisplay({ step }: Props) {
     <div
       className="mt-4 rounded-2xl overflow-hidden"
       style={{
-        border: "1px solid rgba(0,229,196,0.18)",
+        border: "1px solid rgba(56,189,248,0.18)",
         background: "linear-gradient(135deg, rgba(10,14,20,0.95), rgba(6,10,16,0.98))",
-        boxShadow: "0 4px 32px rgba(0,229,196,0.06), 0 0 0 1px rgba(255,255,255,0.03)",
+        boxShadow: "0 4px 32px rgba(56,189,248,0.06), 0 0 0 1px rgba(255,255,255,0.03)",
       }}
     >
       {/* Top header row */}
@@ -65,7 +66,7 @@ export default function ProgressDisplay({ step }: Props) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          background: "rgba(0,229,196,0.03)",
+          background: "rgba(56,189,248,0.03)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
@@ -76,7 +77,7 @@ export default function ProgressDisplay({ step }: Props) {
             height: 8,
             borderRadius: "50%",
             background: "var(--accent-cyan)",
-            boxShadow: "0 0 8px rgba(0,229,196,0.7)",
+            boxShadow: "0 0 8px rgba(56,189,248,0.7)",
             animation: "pulse 1.2s ease-in-out infinite",
             flexShrink: 0,
           }} />
@@ -119,7 +120,7 @@ export default function ProgressDisplay({ step }: Props) {
             borderRadius: "3px",
             background: "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))",
             transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
-            boxShadow: "0 0 12px rgba(0,229,196,0.45)",
+            boxShadow: "0 0 12px rgba(56,189,248,0.45)",
             position: "relative",
           }}>
             {/* Shimmer */}
@@ -156,12 +157,12 @@ export default function ProgressDisplay({ step }: Props) {
                   padding: "0.4rem 0.2rem",
                   borderRadius: "8px",
                   background: state === "active"
-                    ? "rgba(0,229,196,0.08)"
+                    ? "rgba(56,189,248,0.08)"
                     : state === "done"
-                    ? "rgba(124,111,255,0.06)"
+                    ? "rgba(139,92,246,0.06)"
                     : "transparent",
                   transition: "all 0.3s ease",
-                  border: state === "active" ? "1px solid rgba(0,229,196,0.2)" : "1px solid transparent",
+                  border: state === "active" ? "1px solid rgba(56,189,248,0.2)" : "1px solid transparent",
                 }}
               >
                 {/* Step icon/check */}
@@ -174,23 +175,23 @@ export default function ProgressDisplay({ step }: Props) {
                   justifyContent: "center",
                   fontSize: state === "done" ? "0.75rem" : "0.85rem",
                   background: state === "done"
-                    ? "rgba(124,111,255,0.2)"
+                    ? "rgba(139,92,246,0.2)"
                     : state === "active"
-                    ? "rgba(0,229,196,0.15)"
+                    ? "rgba(56,189,248,0.15)"
                     : "rgba(255,255,255,0.04)",
                   border: `1px solid ${
-                    state === "done" ? "rgba(124,111,255,0.35)" :
-                    state === "active" ? "rgba(0,229,196,0.4)" :
+                    state === "done" ? "rgba(139,92,246,0.35)" :
+                    state === "active" ? "rgba(56,189,248,0.4)" :
                     "rgba(255,255,255,0.08)"
                   }`,
                   transition: "all 0.3s ease",
-                  boxShadow: state === "active" ? "0 0 10px rgba(0,229,196,0.25)" : "none",
+                  boxShadow: state === "active" ? "0 0 10px rgba(56,189,248,0.25)" : "none",
                 }}>
                   {state === "done"
                     ? <span style={{ color: "var(--accent-purple)", fontWeight: 700, fontSize: "0.7rem" }}>✓</span>
                     : state === "active"
-                    ? <span style={{ animation: "pulse 1.2s infinite" }}>{s.icon}</span>
-                    : <span style={{ opacity: 0.35, fontSize: "0.75rem" }}>{s.icon}</span>
+                    ? <span style={{ animation: "pulse 1.2s infinite", display: "flex" }}><s.icon size={13} strokeWidth={2} color={s.color} /></span>
+                    : <span style={{ opacity: 0.35, display: "flex" }}><s.icon size={13} strokeWidth={2} /></span>
                   }
                 </div>
 
@@ -232,7 +233,7 @@ export default function ProgressDisplay({ step }: Props) {
                 background: i < currentIdx
                   ? "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))"
                   : i === currentIdx
-                  ? "linear-gradient(90deg, var(--accent-cyan), rgba(0,229,196,0.2))"
+                  ? "linear-gradient(90deg, var(--accent-cyan), rgba(56,189,248,0.2))"
                   : "rgba(255,255,255,0.05)",
                 transition: "background 0.4s ease",
               }}

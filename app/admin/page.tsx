@@ -41,16 +41,16 @@ interface PromoData {
 }
 
 const BG_OPTIONS = [
-  { value: "purple", label: "Lila", color: "#7c6fff" },
-  { value: "cyan",   label: "Cyan",  color: "#00e5c4" },
-  { value: "gold",   label: "Gold",  color: "#f5c842" },
+  { value: "purple", label: "Lila", color: "#8b5cf6" },
+  { value: "cyan",   label: "Cyan",  color: "#38bdf8" },
+  { value: "gold",   label: "Gold",  color: "#c4b5fd" },
   { value: "fire",   label: "Fire",  color: "#ef4444" },
 ];
 
 const BG_PREVIEW: Record<string, { border: string; bg: string; badge: string }> = {
-  purple: { border: "rgba(124,111,255,0.6)", bg: "linear-gradient(135deg,rgba(124,111,255,.18),rgba(0,229,196,.06))", badge: "linear-gradient(135deg,#7c6fff,#00e5c4)" },
-  cyan:   { border: "rgba(0,229,196,0.6)",   bg: "linear-gradient(135deg,rgba(0,229,196,.15),rgba(124,111,255,.06))", badge: "linear-gradient(135deg,#00e5c4,#7c6fff)" },
-  gold:   { border: "rgba(245,200,66,0.6)",  bg: "linear-gradient(135deg,rgba(245,200,66,.15),rgba(245,130,32,.08))", badge: "linear-gradient(135deg,#f5c842,#f08020)" },
+  purple: { border: "rgba(139,92,246,0.6)", bg: "linear-gradient(135deg,rgba(139,92,246,.18),rgba(56,189,248,.06))", badge: "linear-gradient(135deg,#8b5cf6,#38bdf8)" },
+  cyan:   { border: "rgba(56,189,248,0.6)",   bg: "linear-gradient(135deg,rgba(56,189,248,.15),rgba(139,92,246,.06))", badge: "linear-gradient(135deg,#38bdf8,#8b5cf6)" },
+  gold:   { border: "rgba(196,181,253,0.6)",  bg: "linear-gradient(135deg,rgba(196,181,253,.15),rgba(245,130,32,.08))", badge: "linear-gradient(135deg,#c4b5fd,#f08020)" },
   fire:   { border: "rgba(239,68,68,0.6)",   bg: "linear-gradient(135deg,rgba(239,68,68,.16),rgba(245,130,32,.08))", badge: "linear-gradient(135deg,#ef4444,#f59e0b)" },
 };
 
@@ -261,7 +261,7 @@ export default function AdminPage() {
   const statItems = [
     { label: "Nutzer gesamt",  value: stats.totalUsers,          color: "var(--accent-purple)" },
     { label: "Masters gesamt", value: stats.totalMasters,         color: "var(--accent-cyan)" },
-    { label: "Masters heute",  value: stats.mastersToday,         color: "#f59e0b" },
+    { label: "Masters heute",  value: stats.mastersToday,         color: "var(--accent-gold)" },
     { label: "Fehlerrate",     value: `${errorRate}%`,            color: stats.masterErrors > 0 ? "#f87171" : "#10b981" },
   ];
 
@@ -361,7 +361,7 @@ export default function AdminPage() {
 
         {/* ── PROMO SECTION ── */}
         <div style={{ marginBottom: "2.5rem" }}>
-          <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f5c842",
+          <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#c4b5fd",
             letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 1rem" }}>
             Aktions-Popup
           </h2>
@@ -376,7 +376,7 @@ export default function AdminPage() {
                     onClick={() => setPromoActive(v => !v)}
                     style={{
                       position: "relative", width: 44, height: 24, borderRadius: 12,
-                      background: promoActive ? "linear-gradient(135deg,#7c6fff,#00e5c4)" : "rgba(255,255,255,0.1)",
+                      background: promoActive ? "linear-gradient(135deg,#8b5cf6,#38bdf8)" : "rgba(255,255,255,0.1)",
                       border: "none", cursor: "pointer", transition: "background 0.2s", flexShrink: 0,
                     }}
                   >

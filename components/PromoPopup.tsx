@@ -14,22 +14,22 @@ interface Promotion {
 
 const BG_STYLES: Record<string, { border: string; bg: string; glow: string; badge: string }> = {
   purple: {
-    border: "rgba(124,111,255,0.6)",
-    bg: "linear-gradient(135deg, rgba(124,111,255,0.18) 0%, rgba(0,229,196,0.06) 100%)",
-    glow: "rgba(124,111,255,0.25)",
-    badge: "linear-gradient(135deg, #7c6fff, #00e5c4)",
+    border: "rgba(139,92,246,0.6)",
+    bg: "linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(56,189,248,0.06) 100%)",
+    glow: "rgba(139,92,246,0.25)",
+    badge: "linear-gradient(135deg, #8b5cf6, #38bdf8)",
   },
   cyan: {
-    border: "rgba(0,229,196,0.6)",
-    bg: "linear-gradient(135deg, rgba(0,229,196,0.15) 0%, rgba(124,111,255,0.06) 100%)",
-    glow: "rgba(0,229,196,0.22)",
-    badge: "linear-gradient(135deg, #00e5c4, #7c6fff)",
+    border: "rgba(56,189,248,0.6)",
+    bg: "linear-gradient(135deg, rgba(56,189,248,0.15) 0%, rgba(139,92,246,0.06) 100%)",
+    glow: "rgba(56,189,248,0.22)",
+    badge: "linear-gradient(135deg, #38bdf8, #8b5cf6)",
   },
   gold: {
-    border: "rgba(245,200,66,0.6)",
-    bg: "linear-gradient(135deg, rgba(245,200,66,0.15) 0%, rgba(245,130,32,0.08) 100%)",
-    glow: "rgba(245,200,66,0.22)",
-    badge: "linear-gradient(135deg, #f5c842, #f08020)",
+    border: "rgba(196,181,253,0.6)",
+    bg: "linear-gradient(135deg, rgba(196,181,253,0.15) 0%, rgba(245,130,32,0.08) 100%)",
+    glow: "rgba(196,181,253,0.22)",
+    badge: "linear-gradient(135deg, #c4b5fd, #f08020)",
   },
   fire: {
     border: "rgba(239,68,68,0.6)",

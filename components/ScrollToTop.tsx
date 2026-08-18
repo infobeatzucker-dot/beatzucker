@@ -30,7 +30,7 @@ export default function ScrollToTop() {
             width: "44px",
             height: "44px",
             borderRadius: "12px",
-            border: "1px solid rgba(124,111,255,0.35)",
+            border: "1px solid rgba(139,92,246,0.35)",
             background: "rgba(14,17,23,0.85)",
             backdropFilter: "blur(12px)",
             color: "var(--accent-purple)",
@@ -38,12 +38,12 @@ export default function ScrollToTop() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: "0 4px 24px rgba(124,111,255,0.2)",
+            boxShadow: "0 4px 24px rgba(139,92,246,0.2)",
           }}
           whileHover={{
             scale: 1.1,
-            boxShadow: "0 4px 32px rgba(124,111,255,0.45)",
-            borderColor: "rgba(124,111,255,0.7)",
+            boxShadow: "0 4px 32px rgba(139,92,246,0.45)",
+            borderColor: "rgba(139,92,246,0.7)",
           }}
           whileTap={{ scale: 0.93 }}
         >

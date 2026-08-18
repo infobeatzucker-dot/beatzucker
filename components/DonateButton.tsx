@@ -1,6 +1,7 @@
 "use client";
 
 import { DONATE_URL } from "@/lib/constants";
+import { Coffee } from "lucide-react";
 
 interface Props {
   variant?: "nav" | "footer" | "panel";
@@ -16,7 +17,7 @@ export default function DonateButton({ variant = "nav" }: Props) {
         className="hover:opacity-80 transition-opacity inline-flex items-center gap-1"
         style={{ color: "inherit", textDecoration: "none" }}
       >
-        <span>☕</span> Spenden
+        <Coffee size={13} strokeWidth={2} /> Spenden
       </a>
     );
   }
@@ -26,8 +27,8 @@ export default function DonateButton({ variant = "nav" }: Props) {
       <div
         className="mt-4 p-4 rounded-xl flex items-center justify-between gap-3 flex-wrap"
         style={{
-          background: "linear-gradient(135deg, rgba(245,200,66,0.08), rgba(124,111,255,0.05))",
-          border: "1px solid rgba(245,200,66,0.25)",
+          background: "linear-gradient(135deg, rgba(196,181,253,0.08), rgba(139,92,246,0.05))",
+          border: "1px solid rgba(196,181,253,0.25)",
         }}
       >
         <div>
@@ -49,7 +50,7 @@ export default function DonateButton({ variant = "nav" }: Props) {
             textDecoration: "none",
           }}
         >
-          ☕ Spenden
+          <Coffee size={14} strokeWidth={2} style={{ marginRight: "0.35rem", verticalAlign: "-2px" }} />Spenden
         </a>
       </div>
     );
@@ -64,13 +65,13 @@ export default function DonateButton({ variant = "nav" }: Props) {
       title="Beatzucker unterstützen"
       className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:opacity-90"
       style={{
-        background: "rgba(245,200,66,0.1)",
-        border: "1px solid rgba(245,200,66,0.3)",
+        background: "rgba(196,181,253,0.1)",
+        border: "1px solid rgba(196,181,253,0.3)",
         color: "var(--accent-gold)",
         textDecoration: "none",
       }}
     >
-      ☕ Spenden
+      <Coffee size={14} strokeWidth={2} /> Spenden
     </a>
   );
 }

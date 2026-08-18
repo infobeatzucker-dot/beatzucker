@@ -45,8 +45,8 @@ export default function LegalLayout({ title, activePage, sections, children, lan
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
           <div style={{
             display: "inline-block",
-            background: "rgba(124,111,255,0.1)",
-            border: "1px solid rgba(124,111,255,0.25)",
+            background: "rgba(139,92,246,0.1)",
+            border: "1px solid rgba(139,92,246,0.25)",
             borderRadius: "6px",
             padding: "0.25rem 0.75rem",
             fontSize: "0.75rem",
@@ -95,10 +95,10 @@ export default function LegalLayout({ title, activePage, sections, children, lan
                   fontWeight: isActive ? 700 : 500,
                   textDecoration: "none",
                   background: isActive
-                    ? "rgba(124,111,255,0.18)"
+                    ? "rgba(139,92,246,0.18)"
                     : "rgba(255,255,255,0.04)",
                   border: isActive
-                    ? "1px solid rgba(124,111,255,0.4)"
+                    ? "1px solid rgba(139,92,246,0.4)"
                     : "1px solid rgba(255,255,255,0.08)",
                   color: isActive ? "var(--accent-purple)" : "var(--text-muted)",
                   transition: "all 0.15s ease",

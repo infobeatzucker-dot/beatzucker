@@ -59,7 +59,7 @@ export default function ABPlayer({ filename }: Props) {
     if (!wf) return;
     const bars    = wf.length;
     const barW    = W / bars;
-    const color   = isB ? "#00e5c4" : "#7c6fff";
+    const color   = isB ? "#38bdf8" : "#8b5cf6";
     const progress = engine.currentTime / (engine.duration || 1);
 
     ctx.clearRect(0, 0, W, H);
@@ -88,7 +88,7 @@ export default function ABPlayer({ filename }: Props) {
     const px   = progress * W;
     const grad = ctx.createLinearGradient(px - 2, 0, px + 2, 0);
     grad.addColorStop(0,   "transparent");
-    grad.addColorStop(0.5, isB ? "#00e5c4" : "#7c6fff");
+    grad.addColorStop(0.5, isB ? "#38bdf8" : "#8b5cf6");
     grad.addColorStop(1,   "transparent");
     ctx.fillStyle = grad;
     ctx.fillRect(px - 2, 0, 4, H);
@@ -120,7 +120,7 @@ export default function ABPlayer({ filename }: Props) {
           analyser.getByteTimeDomainData(td);
 
           const isB  = engine?.mode === "B";
-          const color = isB ? "#00e5c4" : "#7c6fff";
+          const color = isB ? "#38bdf8" : "#8b5cf6";
 
           // Glow pass
           ctx.shadowBlur  = 8;
@@ -274,11 +274,11 @@ export default function ABPlayer({ filename }: Props) {
       className="rounded-2xl overflow-hidden mb-6"
       style={{
         background: "rgba(8,10,18,0.85)",
-        border: `1px solid ${isB ? "rgba(0,229,196,0.25)" : "rgba(124,111,255,0.25)"}`,
+        border: `1px solid ${isB ? "rgba(56,189,248,0.25)" : "rgba(139,92,246,0.25)"}`,
         backdropFilter: "blur(20px)",
         boxShadow: isB
-          ? "0 0 40px rgba(0,229,196,0.08), inset 0 1px 0 rgba(0,229,196,0.1)"
-          : "0 0 40px rgba(124,111,255,0.08), inset 0 1px 0 rgba(124,111,255,0.1)",
+          ? "0 0 40px rgba(56,189,248,0.08), inset 0 1px 0 rgba(56,189,248,0.1)"
+          : "0 0 40px rgba(139,92,246,0.08), inset 0 1px 0 rgba(139,92,246,0.1)",
         transition: "border-color 0.4s, box-shadow 0.4s",
       }}
     >
@@ -310,7 +310,7 @@ export default function ABPlayer({ filename }: Props) {
         {(["A", "B"] as const).map((m) => {
           const active   = mode === m;
           const disabled = m === "B" && (masterUnavailable || !engine.masteredUrl);
-          const mAccent  = m === "B" ? "#00e5c4" : "#7c6fff";
+          const mAccent  = m === "B" ? "#38bdf8" : "#8b5cf6";
           return (
             <motion.button
               key={m}
@@ -416,8 +416,8 @@ export default function ABPlayer({ filename }: Props) {
             style={{
               width: `${progress}%`,
               background: isB
-                ? "linear-gradient(90deg, #7c6fff, #00e5c4)"
-                : "linear-gradient(90deg, #4a3fc7, #7c6fff)",
+                ? "linear-gradient(90deg, #8b5cf6, #38bdf8)"
+                : "linear-gradient(90deg, #4a3fc7, #8b5cf6)",
             }}
           />
           {/* Thumb */}

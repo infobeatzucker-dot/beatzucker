@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Platform, Preset, MasterData, ProgressStep, AnalysisData } from "@/app/page";
+import { Platform, Preset, MasterData, ProgressStep, AnalysisData } from "@/lib/types/mastering";
 
 interface Props {
   fileId: string;
@@ -150,12 +150,12 @@ export default function MasterButton({
             ${isProcessing ? "opacity-80 cursor-wait" : "hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"}`}
           style={{
             background: isProcessing
-              ? "linear-gradient(135deg, rgba(124,111,255,0.3), rgba(0,229,196,0.3))"
+              ? "linear-gradient(135deg, rgba(139,92,246,0.3), rgba(56,189,248,0.3))"
               : "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
             color: "#fff", border: "none",
             boxShadow: isProcessing
-              ? "0 0 40px rgba(124,111,255,0.4), 0 0 80px rgba(0,229,196,0.2)"
-              : "0 0 20px rgba(124,111,255,0.3)",
+              ? "0 0 40px rgba(139,92,246,0.4), 0 0 80px rgba(56,189,248,0.2)"
+              : "0 0 20px rgba(139,92,246,0.3)",
             minWidth: compact ? 160 : 240,
           }}
         >
@@ -184,7 +184,7 @@ export default function MasterButton({
           <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
             Professionelle Mastering-Chain · KI-Parameterwahl · Format: <span style={{ color: "var(--accent-cyan)" }}>{selectedFormat.toUpperCase()}</span>
           </p>
-          <p className="text-xs text-center flex items-center gap-1" style={{ color: "rgba(245,200,66,0.75)" }}>
+          <p className="text-xs text-center flex items-center gap-1" style={{ color: "rgba(196,181,253,0.75)" }}>
             <span>⏱</span>
             <span>Download-Fenster nach Fertigstellung: <strong>{downloadWindow}</strong></span>
           </p>

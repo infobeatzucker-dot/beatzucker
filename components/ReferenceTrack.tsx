@@ -8,6 +8,7 @@
  */
 
 import { useRef, useState, useEffect } from "react";
+import { SlidersHorizontal, Save, BarChart3, Library } from "lucide-react";
 
 export interface ReferenceAnalysis {
   integrated_lufs:   number;
@@ -63,7 +64,7 @@ function ReferencePopup({
 
   const bands = [
     { label: "Sub",  range: "20–80 Hz",    value: analysis.rms_sub,  color: "#a855f7" },
-    { label: "Low",  range: "80–500 Hz",   value: analysis.rms_low,  color: "#00e5c4" },
+    { label: "Low",  range: "80–500 Hz",   value: analysis.rms_low,  color: "#38bdf8" },
     { label: "Mid",  range: "500–5k Hz",   value: analysis.rms_mid,  color: "#3b82f6" },
     { label: "High", range: "5–12k Hz",    value: analysis.rms_high, color: "#f59e0b" },
     { label: "Air",  range: "12–20k Hz",   value: analysis.rms_air,  color: "#ec4899" },
@@ -96,9 +97,9 @@ function ReferencePopup({
         style={{
           width: "100%", maxWidth: "480px",
           background: "linear-gradient(160deg, rgba(18,22,30,0.98) 0%, rgba(12,16,24,0.98) 100%)",
-          border: "1px solid rgba(245,200,66,0.3)", borderRadius: "16px", overflow: "hidden",
+          border: "1px solid rgba(196,181,253,0.3)", borderRadius: "16px", overflow: "hidden",
           boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)",
-          animation: "popUp 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+          animation: "popUp 0.22s cubic-bezier(0.16,1,0.3,1)",
         }}
       >
         {/* Header */}
@@ -106,10 +107,10 @@ function ReferencePopup({
           padding: "1rem 1.25rem 0.875rem",
           borderBottom: "1px solid rgba(255,255,255,0.07)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "rgba(245,200,66,0.05)",
+          background: "rgba(196,181,253,0.05)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-            <span style={{ fontSize: "1.1rem" }}>🎛</span>
+            <SlidersHorizontal size={17} strokeWidth={2} color="var(--accent-gold)" />
             <div>
               <div style={{ fontSize: "0.7rem", color: "var(--accent-gold)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700 }}>
                 Referenz-Analyse
@@ -197,19 +198,23 @@ function ReferencePopup({
                   padding: "0.4rem 0.9rem", borderRadius: "7px",
                   background: saveState === "saved"
                     ? "rgba(16,185,129,0.15)"
-                    : "rgba(124,111,255,0.12)",
-                  border: `1px solid ${saveState === "saved" ? "rgba(16,185,129,0.4)" : "rgba(124,111,255,0.3)"}`,
+                    : "rgba(139,92,246,0.12)",
+                  border: `1px solid ${saveState === "saved" ? "rgba(16,185,129,0.4)" : "rgba(139,92,246,0.3)"}`,
                   color: saveState === "saved" ? "#10b981" : "var(--accent-purple)",
                   fontSize: "0.78rem", fontWeight: 600, cursor: saveState === "saving" || saveState === "saved" ? "default" : "pointer",
                   transition: "all 0.2s",
                 }}
               >
-                {saveState === "saving" ? "…" : saveState === "saved" ? "✓ Gespeichert" : saveState === "error" ? "Fehler" : "💾 Speichern"}
+                {saveState === "saving" ? "…" : saveState === "saved" ? "✓ Gespeichert" : saveState === "error" ? "Fehler" : (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                    <Save size={12} strokeWidth={2} /> Speichern
+                  </span>
+                )}
               </button>
             )}
             <button onClick={onClose} style={{
               padding: "0.4rem 1rem", borderRadius: "7px",
-              background: "rgba(245,200,66,0.12)", border: "1px solid rgba(245,200,66,0.3)",
+              background: "rgba(196,181,253,0.12)", border: "1px solid rgba(196,181,253,0.3)",
               color: "var(--accent-gold)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
             }}>OK</button>
           </div>
@@ -218,7 +223,7 @@ function ReferencePopup({
 
       <style>{`
         @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes popUp  { from { opacity: 0; transform: scale(0.88) translateY(10px) } to { opacity: 1; transform: scale(1) translateY(0) } }
+        @keyframes popUp  { from { opacity: 0; transform: scale(0.96) translateY(8px) } to { opacity: 1; transform: scale(1) translateY(0) } }
       `}</style>
     </div>
   );
@@ -338,8 +343,8 @@ export default function ReferenceTrack({
 
   // colours for from-library indicator
   const libColor = "var(--accent-purple)";
-  const libBorder = "rgba(124,111,255,0.3)";
-  const libBg = "rgba(124,111,255,0.08)";
+  const libBorder = "rgba(139,92,246,0.3)";
+  const libBg = "rgba(139,92,246,0.08)";
 
   const showLibTab = canSaveRefs && savedRefs.length > 0;
 
@@ -355,7 +360,7 @@ export default function ReferenceTrack({
         />
       )}
 
-      <div className="glass-panel p-3" style={{ border: "1px solid rgba(245,200,66,0.15)" }}>
+      <div className="glass-panel p-3" style={{ border: "1px solid rgba(196,181,253,0.15)" }}>
         {/* Header row */}
         <div className="flex items-center justify-between mb-2">
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -370,10 +375,10 @@ export default function ReferenceTrack({
             {filename && (
               <button
                 onClick={() => lastAnalysis && setPopupData({ analysis: lastAnalysis, filename: filename! })}
-                className="text-xs transition-opacity hover:opacity-70"
+                className="transition-opacity hover:opacity-70 flex items-center"
                 style={{ color: "var(--accent-gold)" }}
                 title="Analyse anzeigen"
-              >📊</button>
+              ><BarChart3 size={13} strokeWidth={2} /></button>
             )}
             {filename && (
               <button onClick={handleClear} className="text-xs transition-opacity hover:opacity-70" style={{ color: "var(--text-muted)" }}>
@@ -393,12 +398,16 @@ export default function ReferenceTrack({
                 style={{
                   flex: 1, padding: "0.3rem 0", borderRadius: "6px", fontSize: "0.7rem", fontWeight: 600,
                   cursor: "pointer", transition: "all 0.15s",
-                  background: view === v ? "rgba(245,200,66,0.12)" : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${view === v ? "rgba(245,200,66,0.3)" : "rgba(255,255,255,0.08)"}`,
+                  background: view === v ? "rgba(196,181,253,0.12)" : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${view === v ? "rgba(196,181,253,0.3)" : "rgba(255,255,255,0.08)"}`,
                   color: view === v ? "var(--accent-gold)" : "var(--text-muted)",
                 }}
               >
-                {v === "upload" ? "↑ Upload" : "📚 Bibliothek"}
+                {v === "upload" ? "↑ Upload" : (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                    <Library size={12} strokeWidth={2} /> Bibliothek
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -407,11 +416,11 @@ export default function ReferenceTrack({
         {/* ── Active reference (from upload or library) ── */}
         {filename ? (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{
-            background: fromLibrary ? libBg : "rgba(245,200,66,0.08)",
-            border: `1px solid ${fromLibrary ? libBorder : "rgba(245,200,66,0.25)"}`,
+            background: fromLibrary ? libBg : "rgba(196,181,253,0.08)",
+            border: `1px solid ${fromLibrary ? libBorder : "rgba(196,181,253,0.25)"}`,
           }}>
             {fromLibrary ? (
-              <span style={{ fontSize: "0.75rem" }}>📚</span>
+              <Library size={12} strokeWidth={2} color={libColor} />
             ) : (
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" strokeWidth="2" strokeLinecap="round">
                 <polyline points="20 6 9 17 4 12"/>
@@ -436,7 +445,7 @@ export default function ReferenceTrack({
                 <span style={{ fontSize: "0.65rem", color: "var(--accent-gold)", fontVariantNumeric: "tabular-nums" }}>{uploadPct}%</span>
               </div>
               <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${uploadPct}%`, borderRadius: "2px", background: "linear-gradient(90deg, #f59e0b, #fbbf24)", transition: "width 0.25s ease", boxShadow: phase === "upload" ? "0 0 6px rgba(245,159,11,0.5)" : "none" }} />
+                <div style={{ height: "100%", width: `${uploadPct}%`, borderRadius: "2px", background: "linear-gradient(90deg, #c4b5fd, #60a5fa)", transition: "width 0.25s ease", boxShadow: phase === "upload" ? "0 0 6px rgba(196,181,253,0.5)" : "none" }} />
               </div>
             </div>
             <div>
@@ -447,7 +456,7 @@ export default function ReferenceTrack({
                 )}
               </div>
               <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${analyzePct}%`, borderRadius: "2px", background: "linear-gradient(90deg, var(--accent-cyan), #67e8f9)", transition: "width 0.35s ease", boxShadow: phase === "analyze" ? "0 0 6px rgba(0,229,196,0.5)" : "none" }} />
+                <div style={{ height: "100%", width: `${analyzePct}%`, borderRadius: "2px", background: "linear-gradient(90deg, var(--accent-cyan), #67e8f9)", transition: "width 0.35s ease", boxShadow: phase === "analyze" ? "0 0 6px rgba(56,189,248,0.5)" : "none" }} />
               </div>
             </div>
           </div>
@@ -469,7 +478,7 @@ export default function ReferenceTrack({
                   onClick={() => handleLoadSavedRef(ref)}
                   style={{
                     padding: "0.2rem 0.55rem", borderRadius: "5px", fontSize: "0.68rem", fontWeight: 600,
-                    background: "rgba(124,111,255,0.12)", border: "1px solid rgba(124,111,255,0.25)",
+                    background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)",
                     color: "var(--accent-purple)", cursor: "pointer", flexShrink: 0,
                   }}
                 >Laden</button>
@@ -494,7 +503,7 @@ export default function ReferenceTrack({
           <button
             onClick={() => inputRef.current?.click()}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all hover:opacity-80"
-            style={{ background: "rgba(245,200,66,0.06)", border: "1px dashed rgba(245,200,66,0.3)", color: "var(--accent-gold)" }}
+            style={{ background: "rgba(196,181,253,0.06)", border: "1px dashed rgba(196,181,253,0.3)", color: "var(--accent-gold)" }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" strokeWidth="2" strokeLinecap="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>

@@ -64,21 +64,21 @@ export async function GET(req: NextRequest) {
     body { font-family: Inter, system-ui, sans-serif; background: #080a0f; color: #e8eaf2; padding: 40px; max-width: 900px; margin: 0 auto; }
     @media print { body { background: #fff; color: #000; padding: 0; } .no-print { display: none; } }
     h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
-    h1 span.brand { color: #7c6fff; }
-    h1 span.track { color: #00e5c4; }
+    h1 span.brand { color: #8b5cf6; }
+    h1 span.track { color: #38bdf8; }
     .meta { font-size: 13px; color: #6b7280; margin-bottom: 32px; font-family: 'JetBrains Mono', monospace; }
     .section { margin-bottom: 28px; }
-    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: #7c6fff; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(124,111,255,0.2); }
+    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: #8b5cf6; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(139,92,246,0.2); }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: #6b7280; text-transform: uppercase; padding: 4px 8px; }
     td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-    td.num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #00e5c4; }
+    td.num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #38bdf8; }
     td.improved { color: #4ade80; }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-    .badge-platform { background: rgba(0,229,196,0.12); color: #00e5c4; border: 1px solid rgba(0,229,196,0.3); }
-    .badge-preset   { background: rgba(124,111,255,0.12); color: #7c6fff; border: 1px solid rgba(124,111,255,0.3); }
-    .notes-box { background: rgba(124,111,255,0.06); border: 1px solid rgba(124,111,255,0.2); border-radius: 8px; padding: 14px 16px; font-size: 13px; line-height: 1.6; color: #d1d5db; }
-    .print-btn { position: fixed; top: 20px; right: 20px; background: #7c6fff; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .badge-platform { background: rgba(56,189,248,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .badge-preset   { background: rgba(139,92,246,0.12); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); }
+    .notes-box { background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.2); border-radius: 8px; padding: 14px 16px; font-size: 13px; line-height: 1.6; color: #d1d5db; }
+    .print-btn { position: fixed; top: 20px; right: 20px; background: #8b5cf6; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .print-btn:hover { background: #9b8fff; }
     .clip-warn { color: #ff4757; font-weight: 600; }
     .footer { margin-top: 40px; font-size: 11px; color: #374151; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px; }

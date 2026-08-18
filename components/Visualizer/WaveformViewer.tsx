@@ -74,8 +74,8 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
           ctx.globalAlpha = 1;
         };
 
-        drawReal("#7c6fff", 0.6);
-        if (hasPostData) drawReal("#00e5c4", 0.8, 1.3);
+        drawReal("#8b5cf6", 0.6);
+        if (hasPostData) drawReal("#38bdf8", 0.8, 1.3);
       } else {
         // ── Static simulation ────────────────────────────────────
         const preWave = preWaveRef.current;
@@ -109,10 +109,10 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
           void step;
         };
 
-        drawWave(preWave, "#7c6fff", 0.7);
+        drawWave(preWave, "#8b5cf6", 0.7);
         if (hasPostData || isProcessing) {
           const gain = hasPostData ? 1.4 : 1.0 + Math.abs(Math.sin(t * 2)) * 0.4;
-          drawWave(preWave, "#00e5c4", hasPostData ? 0.8 : 0.4, gain);
+          drawWave(preWave, "#38bdf8", hasPostData ? 0.8 : 0.4, gain);
         }
 
         // Idle playhead
@@ -127,7 +127,7 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
       if (!analyser) {
         const wave = preWaveRef.current;
         if (wave) {
-          ctx.strokeStyle = "rgba(0,229,196,0.25)";
+          ctx.strokeStyle = "rgba(56,189,248,0.25)";
           ctx.lineWidth   = 1;
           ctx.beginPath();
           const ws = Math.floor(wave.length / W);

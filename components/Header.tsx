@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { User, Coffee } from "lucide-react";
 import AuthModal from "./AuthModal";
 import AccountDropdown from "./AccountDropdown";
 import DonateButton from "./DonateButton";
@@ -48,7 +49,7 @@ export default function Header() {
           background: scrolled ? "rgba(8, 10, 15, 0.92)" : "rgba(8, 10, 15, 0.6)",
           backdropFilter: "blur(20px)",
           borderBottom: scrolled
-            ? "1px solid rgba(124,111,255,0.18)"
+            ? "1px solid rgba(139,92,246,0.18)"
             : "1px solid rgba(255,255,255,0.04)",
           boxShadow: scrolled ? "0 4px 32px rgba(0,0,0,0.4)" : "none",
         }}
@@ -64,9 +65,9 @@ export default function Header() {
             <span
               className="hidden sm:block text-xs px-1.5 py-0.5 rounded font-semibold"
               style={{
-                background: "rgba(124,111,255,0.15)",
+                background: "rgba(139,92,246,0.15)",
                 color: "var(--accent-purple)",
-                border: "1px solid rgba(124,111,255,0.25)",
+                border: "1px solid rgba(139,92,246,0.25)",
                 letterSpacing: "0.05em",
               }}
             >
@@ -81,6 +82,7 @@ export default function Header() {
               { label: "Features", href: "/features" },
               { label: "Hilfe", href: "/help" },
               { label: "Wissen", href: "/ressourcen" },
+              ...(session ? [{ label: "Dashboard", href: "/dashboard" }] : []),
             ].map((item) => (
               <Link
                 key={item.label}
@@ -105,10 +107,10 @@ export default function Header() {
                   display: "flex", alignItems: "center", gap: "0.35rem",
                   padding: "0.3rem 0.7rem", borderRadius: "20px",
                   background: audioState.playing
-                    ? "rgba(0,229,196,0.12)"
+                    ? "rgba(56,189,248,0.12)"
                     : "rgba(255,255,255,0.06)",
                   border: audioState.playing
-                    ? "1px solid rgba(0,229,196,0.35)"
+                    ? "1px solid rgba(56,189,248,0.35)"
                     : "1px solid rgba(255,255,255,0.12)",
                   color: audioState.playing ? "var(--accent-cyan)" : "var(--text-muted)",
                   fontSize: "0.75rem", fontWeight: 700,
@@ -184,7 +186,7 @@ export default function Header() {
               transition={{ duration: 0.18 }}
               style={{
                 background: "rgba(8,10,15,0.97)",
-                borderTop: "1px solid rgba(124,111,255,0.12)",
+                borderTop: "1px solid rgba(139,92,246,0.12)",
                 overflow: "hidden",
               }}
             >
@@ -208,10 +210,10 @@ export default function Header() {
                   </Link>
                 ))}
                 {session ? (
-                  <Link href="/account" className="text-sm"
+                  <Link href="/dashboard" className="text-sm flex items-center gap-1.5"
                     style={{ color: "var(--accent-purple)", textDecoration: "none" }}
                     onClick={() => setMenuOpen(false)}>
-                    👤 Mein Konto
+                    <User size={14} strokeWidth={2} /> Dashboard
                   </Link>
                 ) : (
                   <button
@@ -227,11 +229,11 @@ export default function Header() {
                   href={DONATE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm"
+                  className="text-sm flex items-center gap-1.5"
                   style={{ color: "var(--accent-gold)", textDecoration: "none" }}
                   onClick={() => setMenuOpen(false)}
                 >
-                  ☕ Beatzucker unterstützen
+                  <Coffee size={14} strokeWidth={2} /> Beatzucker unterstützen
                 </a>
               </div>
             </motion.div>

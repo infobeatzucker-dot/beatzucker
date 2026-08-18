@@ -28,7 +28,7 @@ export default async function Image() {
             position: "absolute",
             inset: 0,
             backgroundImage:
-              "linear-gradient(rgba(124,111,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,111,255,0.04) 1px, transparent 1px)",
+              "linear-gradient(rgba(139,92,246,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.04) 1px, transparent 1px)",
             backgroundSize: "48px 48px",
           }}
         />
@@ -41,7 +41,7 @@ export default async function Image() {
             width: 600,
             height: 300,
             background:
-              "radial-gradient(ellipse, rgba(124,111,255,0.18) 0%, transparent 70%)",
+              "radial-gradient(ellipse, rgba(139,92,246,0.18) 0%, transparent 70%)",
             top: 80,
             left: "50%",
           }}
@@ -67,10 +67,10 @@ export default async function Image() {
                   borderRadius: 3,
                   background:
                     i % 3 === 0
-                      ? "#7c6fff"
+                      ? "#8b5cf6"
                       : i % 3 === 1
-                      ? "#00e5c4"
-                      : "#f5c842",
+                      ? "#38bdf8"
+                      : "#c4b5fd",
                   opacity: 0.85,
                 }}
               />
@@ -87,7 +87,7 @@ export default async function Image() {
             }}
           >
             <span>Beat</span>
-            <span style={{ color: "#7c6fff" }}>zucker</span>
+            <span style={{ color: "#8b5cf6" }}>zucker</span>
           </div>
         </div>
 
@@ -115,9 +115,9 @@ export default async function Image() {
                 style={{
                   padding: "8px 18px",
                   borderRadius: 999,
-                  background: "rgba(124,111,255,0.12)",
-                  border: "1px solid rgba(124,111,255,0.3)",
-                  color: "#7c6fff",
+                  background: "rgba(139,92,246,0.12)",
+                  border: "1px solid rgba(139,92,246,0.3)",
+                  color: "#8b5cf6",
                   fontSize: 16,
                   fontWeight: 600,
                 }}
