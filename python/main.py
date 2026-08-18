@@ -150,13 +150,23 @@ async def master(req: MasterRequest):
     """Full mastering chain with SSE progress streaming."""
     req.file_path = validate_file_path(req.file_path)
 
+    # Real progress labels, keyed by the step names master_audio() actually emits
+    # (see the emit() calls throughout mastering.py's master_audio()).
+    STEP_LABELS = {
+        "analyzing":   "Analyzing track…",
+        "loading":     "Loading track…",
+        "eq":          "Applying EQ correction…",
+        "compression": "Multiband compression…",
+        "ms":          "M/S processing…",
+        "saturation":  "Harmonic saturation…",
+        "limiting":    "True Peak limiting…",
+        "rendering":   f"Rendering {req.format.upper()}…",
+        "complete":    "Finalizing master…",
+    }
+
     async def generate():
         def encode(data: dict) -> str:
             return f"data: {json.dumps(data)}\n\n"
-
-        def progress_cb(step: str, progress: int):
-            # We can't directly yield from sync callback, so we use a queue
-            pass
 
         try:
             yield encode({"step": "analyzing", "progress": 5, "label": "Analyzing track…"})
@@ -173,10 +183,9 @@ async def master(req: MasterRequest):
                 )
                 analysis_dict = analysis_to_dict(analysis_obj)
 
-            # Yield before Claude API call so user sees progress move immediately
-            yield encode({"step": "eq", "progress": 18, "label": "Getting AI parameters…"})
+            yield encode({"step": "eq", "progress": 18, "label": "Getting mastering parameters…"})
 
-            # Get AI mastering params (Claude API, max 10s, falls back to defaults)
+            # Rule-based mastering params — pure in-process computation, no external API.
             params = await loop.run_in_executor(
                 None,
                 lambda: get_mastering_params(
@@ -185,38 +194,35 @@ async def master(req: MasterRequest):
                 )
             )
 
-            yield encode({"step": "eq", "progress": 28, "label": "Applying EQ correction…"})
+            # Bridge master_audio()'s synchronous progress_callback (runs in a worker
+            # thread) into this async generator via a thread-safe queue, so the SSE
+            # stream reflects the actual DSP stage instead of a fixed sleep timer.
+            progress_queue: asyncio.Queue = asyncio.Queue()
 
-            # Run mastering in thread pool without blocking event loop
-            step_map = [
-                ("eq",          30, "Applying EQ correction…"),
-                ("compression", 50, "Multiband compression…"),
-                ("ms",          62, "M/S processing…"),
-                ("saturation",  72, "Harmonic saturation…"),
-                ("limiting",    84, "True Peak limiting…"),
-                ("rendering",   94, "Rendering all formats…"),
-            ]
-
-            render_label = f"Rendering {req.format.upper()}…"
-            step_map[-1] = ("rendering", 94, render_label)
+            def progress_cb(step: str, progress: int):
+                loop.call_soon_threadsafe(progress_queue.put_nowait, (step, progress))
 
             mastering_task = loop.run_in_executor(
-                None, master_audio, req.file_path, params, req.output_dir, None, req.format, analysis_dict, req.master_id
+                None, master_audio, req.file_path, params, req.output_dir, progress_cb, req.format, analysis_dict, req.master_id
             )
 
-            # Emit progress while mastering runs
-            for step, progress, label in step_map:
-                yield encode({"step": step, "progress": progress, "label": label})
-                await asyncio.sleep(2.0)
-                if mastering_task.done():
-                    break
+            # Drain real progress events as they arrive; fall back to a heartbeat
+            # (no new event yet) so the connection stays alive on slow stages.
+            # master_audio()'s own internal "complete" event carries no payload
+            # (no master_id/formats) — skip it, the real final event below does.
+            while not mastering_task.done():
+                try:
+                    step, progress = await asyncio.wait_for(progress_queue.get(), timeout=2.0)
+                    if step != "complete":
+                        yield encode({"step": step, "progress": progress, "label": STEP_LABELS.get(step, step)})
+                except asyncio.TimeoutError:
+                    yield encode({"step": "rendering", "progress": 97, "label": "Finalizing master…"})
 
-            # Heartbeat until mastering finishes (max 10 min)
-            for _ in range(300):
-                if mastering_task.done():
-                    break
-                yield encode({"step": "rendering", "progress": 97, "label": "Finalizing master…"})
-                await asyncio.sleep(2.0)
+            # Drain any events queued right before completion
+            while not progress_queue.empty():
+                step, progress = progress_queue.get_nowait()
+                if step != "complete":
+                    yield encode({"step": step, "progress": progress, "label": STEP_LABELS.get(step, step)})
 
             result = await mastering_task
 

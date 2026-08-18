@@ -3,6 +3,7 @@ Audio Analysis Module
 Returns comprehensive measurements for mastering parameter selection.
 """
 
+import logging
 import numpy as np
 import soundfile as sf
 import librosa
@@ -10,6 +11,8 @@ import pyloudnorm as pyln
 from scipy import signal as scipy_signal
 from dataclasses import dataclass, asdict
 from typing import Optional
+
+logger = logging.getLogger("mastering.analyzer")
 
 
 @dataclass
@@ -142,15 +145,13 @@ def detect_key(y: np.ndarray, sr: int) -> str:
     return f"{notes[best_key]} {'minor' if is_minor else 'major'}"
 
 
-def compute_true_peak(audio: np.ndarray, oversample: int = 2) -> float:
+def compute_true_peak(audio: np.ndarray, sr: int, oversample: int = 2) -> float:
     """Compute True Peak using oversampling (ITU-R BS.1770-4).
     Oversample=2 (was 4) halves RAM usage – still accurate enough for mastering.
     For extra safety we only oversample the first 30s to bound memory.
     """
     # Limit to 30s to prevent OOM on long tracks
-    chunk = audio[:min(len(audio), int(len(audio) / max(len(audio), 1) * 30 * 44100 + 1))]
-    # Simpler: just cap at 30*sr samples (sr unknown here, use heuristic)
-    MAX_SAMPLES = 44100 * 30  # 30s @ 44.1kHz (good enough for peak detection)
+    MAX_SAMPLES = sr * 30
     chunk = audio[:MAX_SAMPLES] if len(audio) > MAX_SAMPLES else audio
     upsampled = scipy_signal.resample_poly(chunk.astype(np.float32), oversample, 1)
     peak = np.max(np.abs(upsampled))
@@ -212,6 +213,10 @@ def compute_lra(audio: np.ndarray, sr: int) -> float:
 
         return float(max(0.0, np.percentile(rel_gated, 95) - np.percentile(rel_gated, 10)))
     except Exception:
+        # meter._filters is a private pyloudnorm API — log so a future pyloudnorm
+        # version bump that renames/removes it doesn't silently degrade every
+        # track to LRA=0 without anyone noticing.
+        logger.warning("compute_lra failed, returning 0.0", exc_info=True)
         return 0.0
 
 
@@ -245,7 +250,7 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
     integrated_lufs = float(meter.integrated_loudness(lufs_input))
 
     # True Peak
-    true_peak = compute_true_peak(mono)
+    true_peak = compute_true_peak(mono, sr)
 
     # Dynamic Range
     dr_value = compute_dr(mono)

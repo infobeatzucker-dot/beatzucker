@@ -24,6 +24,7 @@ interface Props {
 
 const STEP_LABELS: Record<string, string> = {
   analyzing:   "Track wird analysiert…",
+  loading:     "Track wird geladen…",
   eq:          "EQ-Korrektur wird angewendet…",
   compression: "Multiband-Kompression…",
   ms:          "M/S-Bearbeitung…",
@@ -34,7 +35,7 @@ const STEP_LABELS: Record<string, string> = {
 };
 
 const STEP_LABELS_EN: Record<string, string> = {
-  analyzing: "Analyzing track…", eq: "Applying EQ correction…", compression: "Multiband compression…",
+  analyzing: "Analyzing track…", loading: "Loading track…", eq: "Applying EQ correction…", compression: "Multiband compression…",
   ms: "M/S processing…", saturation: "Harmonic saturation…", limiting: "True Peak limiting…",
   rendering: "Rendering all formats…", complete: "Mastering complete!",
 };

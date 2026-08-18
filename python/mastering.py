@@ -1,6 +1,6 @@
 """
 Professional Mastering Chain
-12-stage DSP pipeline using pedalboard, scipy, pyloudnorm
+Multi-stage DSP pipeline using pedalboard, scipy, pyloudnorm
 """
 
 import numpy as np
@@ -40,12 +40,36 @@ def linear_to_db(linear: float) -> float:
 
 # ─── 1. INPUT STAGE ────────────────────────────────────────────────────────────
 
-def remove_dc_offset(audio: np.ndarray) -> np.ndarray:
-    """Remove DC offset using high-pass filter."""
-    if audio.ndim == 2:
-        return np.stack([remove_dc_offset(audio[0]), remove_dc_offset(audio[1])])
-    sos = scipy_signal.butter(2, 2.0 / (audio.shape[0] * 0.001), btype="highpass", fs=44100, output="sos")
-    return scipy_signal.sosfilt(sos, audio)
+def normalize_to_reference_lufs(audio: np.ndarray, sr: int, reference_lufs: float = -18.0,
+                                 max_gain_db: float = 24.0) -> np.ndarray:
+    """Gain-stage the input to a fixed reference loudness before any level-dependent
+    processing (EQ, multiband compression, saturation, bus comp) runs.
+
+    Every threshold in this chain (mb_sub_threshold=-18, bus_comp_threshold=-6, ...)
+    is an absolute dBFS value. Without this step, the exact same preset/intensity
+    setting would compress a track delivered at -8 LUFS far more than one delivered
+    at -24 LUFS, purely because of how the source was gain-staged before upload —
+    not because of anything about the actual "intensity" the user asked for.
+    Normalizing to a fixed reference first makes processing consistent regardless
+    of input loudness; the final platform-LUFS target is still applied later by
+    apply_true_peak_limiter(), so this doesn't change the delivered loudness.
+    """
+    meter = pyln.Meter(sr)
+    lufs_in = audio.T if audio.ndim == 2 else audio.reshape(-1, 1)
+    current_lufs = meter.integrated_loudness(lufs_in)
+    if not np.isfinite(current_lufs):
+        return audio  # silence / too short to measure meaningfully — leave as-is
+
+    gain_db = float(np.clip(reference_lufs - current_lufs, -max_gain_db, max_gain_db))
+    gain = db_to_linear(gain_db)
+
+    # Peak-safety: don't let the reference gain push transients into clipping —
+    # downstream stages (EQ boosts, saturation) expect headroom, not overs.
+    peak = float(np.max(np.abs(audio)))
+    if peak > 1e-9:
+        gain = min(gain, 0.98 / peak)
+
+    return (audio * gain).astype(np.float32)
 
 
 def remove_dc_simple(audio: np.ndarray) -> np.ndarray:
@@ -387,29 +411,18 @@ def _true_peak_envelope(audio: np.ndarray, sr: int, oversample: int = 4,
     return out
 
 
-def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, target_lufs: float) -> np.ndarray:
+def _limit_to_ceiling(audio: np.ndarray, sr: int, ceiling_db: float) -> np.ndarray:
+    """True-peak ceiling limiting only (no LUFS normalization) — lookahead
+    gain-reduction + hard safety clip. Factored out of apply_true_peak_limiter()
+    so it can be re-run for the loudness-correction passes below without
+    re-measuring/re-applying the initial LUFS gain each time.
     """
-    True Peak limiter with proper lookahead + smooth attack/release.
-
-    Pipeline:
-      1. LUFS normalization (ITU-R BS.1770-4 via pyloudnorm)
-      2. True-peak detection via 4x oversampling + 5 ms forward lookahead
-      3. Smooth gain reduction: instant attack, 50 ms release (IIR)
-      4. Hard safety clip as final guard
-    """
-    # ── 1. LUFS normalization ────────────────────────────────────────────────
-    meter = pyln.Meter(sr)
-    lufs_in = audio.T if audio.ndim == 2 else audio.reshape(-1, 1)
-    current_lufs = meter.integrated_loudness(lufs_in)
-    if np.isfinite(current_lufs):
-        audio = audio * db_to_linear(target_lufs - current_lufs)
-
     ceiling_lin = db_to_linear(ceiling_db)
 
-    # ── 2. Compute per-sample true-peak envelope (4x oversampled) ───────────
+    # ── True-peak envelope (4x oversampled) ──────────────────────────────────
     peak_sig = _true_peak_envelope(audio, sr, oversample=4)
 
-    # ── 3. 5 ms forward lookahead with scipy (O(n), no Python loop) ─────────
+    # ── 5 ms forward lookahead with scipy (O(n), no Python loop) ────────────
     lookahead = max(1, int(sr * 0.005))  # 5 ms in samples
     # maximum_filter1d with a left-shifted origin sees future samples
     peak_ahead = maximum_filter1d(peak_sig, size=lookahead + 1, origin=-(lookahead // 2))
@@ -421,7 +434,7 @@ def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, targe
         1.0,
     ).astype(np.float32)
 
-    # ── 4. Smooth gain at ~1 kHz (instant attack / IIR release) ─────────────
+    # ── Smooth gain at ~1 kHz (instant attack / IIR release) ────────────────
     # Gain dynamics live at the release timescale (50 ms), not per-sample.
     # Downsampling reduces the Python loop from ~10 M to ~240 iterations
     # for a 4-minute track at 44.1 kHz — a ~44× speedup with no audible loss.
@@ -444,14 +457,56 @@ def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, targe
             g = release_ds * g + (1.0 - release_ds) * d  # IIR release
         smoothed_ds[i] = g
 
-    # ── 5. Upsample gain to full rate (linear interpolation) ─────────────────
+    # ── Upsample gain to full rate (linear interpolation) ────────────────────
     xs_ds   = np.arange(n_ds, dtype=np.float64) * ds + ds * 0.5
     xs_full = np.arange(n_full, dtype=np.float64)
     smoothed = np.interp(xs_full, xs_ds, smoothed_ds).astype(np.float32)
 
-    # ── 6. Apply gain + hard safety clip ─────────────────────────────────────
+    # ── Apply gain + hard safety clip ─────────────────────────────────────────
     audio = (audio * smoothed).astype(np.float32)
     np.clip(audio, -ceiling_lin, ceiling_lin, out=audio)
+    return audio
+
+
+def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, target_lufs: float) -> np.ndarray:
+    """
+    True Peak limiter with proper lookahead + smooth attack/release.
+
+    Pipeline:
+      1. LUFS normalization (ITU-R BS.1770-4 via pyloudnorm)
+      2. True-peak detection via 4x oversampling + 5 ms forward lookahead
+      3. Smooth gain reduction: instant attack, 50 ms release (IIR)
+      4. Hard safety clip as final guard
+      5. Up to 2 loudness-correction passes: re-measure the achieved LUFS after
+         limiting (which only ever reduces level, so dense/hot masters can land
+         below target) and nudge back up + re-limit, so the delivered loudness
+         actually lands near the platform target instead of silently under it.
+    """
+    meter = pyln.Meter(sr)
+
+    # ── 1. LUFS normalization ────────────────────────────────────────────────
+    lufs_in = audio.T if audio.ndim == 2 else audio.reshape(-1, 1)
+    current_lufs = meter.integrated_loudness(lufs_in)
+    if np.isfinite(current_lufs):
+        audio = audio * db_to_linear(target_lufs - current_lufs)
+
+    audio = _limit_to_ceiling(audio, sr, ceiling_db)
+
+    # ── Loudness-correction passes ───────────────────────────────────────────
+    for _ in range(2):
+        lufs_in = audio.T if audio.ndim == 2 else audio.reshape(-1, 1)
+        achieved_lufs = meter.integrated_loudness(lufs_in)
+        if not np.isfinite(achieved_lufs):
+            break
+        undershoot = target_lufs - achieved_lufs
+        if undershoot <= 0.3:
+            break  # close enough (or already at/above target)
+        # Damped, bounded nudge — re-limiting will re-catch any new peak overs
+        # this reintroduces, so this converges rather than overshooting.
+        trim_db = min(undershoot * 0.9, 3.0)
+        audio = audio * db_to_linear(trim_db)
+        audio = _limit_to_ceiling(audio, sr, ceiling_db)
+
     return audio
 
 
@@ -678,23 +733,30 @@ def master_audio(
     pre_analysis: Optional[dict] = None,
     master_id: Optional[str] = None,
 ) -> MasteringResult:
-    """Execute the full 12-stage mastering chain."""
+    """Execute the full mastering chain."""
 
     def emit(step: str, progress: int):
         if progress_callback:
             progress_callback(step, progress)
 
-    emit("analyzing", 5)
+    # Named "loading" (not "analyzing") — the caller already ran analyze_audio()
+    # for the pre-analysis metrics; this is just the raw-sample reload needed for
+    # processing. A distinct name keeps the progress stream monotonic instead of
+    # jumping back to an earlier-looking stage after the caller's own "analyzing"
+    # step.
+    emit("loading", 19)
 
     # 1. Load audio
     audio, sr = librosa.load(file_path, sr=None, mono=False)
     if audio.ndim == 1:
         audio = np.stack([audio, audio])  # Mono to stereo
 
-    emit("analyzing", 12)
-
     # 1b. Remove DC offset
     audio = remove_dc_simple(audio)
+
+    # 1c. Gain-stage to a fixed reference loudness so the absolute-dB thresholds
+    # below behave consistently regardless of how loud the source was delivered.
+    audio = normalize_to_reference_lufs(audio, sr)
 
     emit("eq", 20)
 
