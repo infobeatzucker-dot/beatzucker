@@ -210,13 +210,18 @@ async def master(req: MasterRequest):
             # (no new event yet) so the connection stays alive on slow stages.
             # master_audio()'s own internal "complete" event carries no payload
             # (no master_id/formats) — skip it, the real final event below does.
+            # The heartbeat re-sends the *last real* step/progress rather than a
+            # guessed higher number — a fabricated "97% rendering" would visibly
+            # jump backward once the actual next stage (e.g. "ms" at 52%) arrives.
+            last_step, last_progress = "eq", 18
             while not mastering_task.done():
                 try:
                     step, progress = await asyncio.wait_for(progress_queue.get(), timeout=2.0)
                     if step != "complete":
+                        last_step, last_progress = step, progress
                         yield encode({"step": step, "progress": progress, "label": STEP_LABELS.get(step, step)})
                 except asyncio.TimeoutError:
-                    yield encode({"step": "rendering", "progress": 97, "label": "Finalizing master…"})
+                    yield encode({"step": last_step, "progress": last_progress, "label": STEP_LABELS.get(last_step, last_step)})
 
             # Drain any events queued right before completion
             while not progress_queue.empty():
