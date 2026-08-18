@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { RessourceArticle } from "@/app/data/ressourcen";
+import { HeroIcon } from "@/lib/heroIcons";
 
 type Lang = "de" | "en";
 
@@ -40,25 +41,24 @@ export default function ArticleCard({ article, lang }: Props) {
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
-          (e.currentTarget as HTMLDivElement).style.borderColor = `${article.categoryColor.replace("var(", "").replace(")", "")}30`.replace("--accent-purple", "rgba(124,111,255").replace("--accent-cyan", "rgba(0,229,196").replace("--accent-gold", "rgba(245,200,66");
+          (e.currentTarget as HTMLDivElement).style.borderColor = `${article.categoryColor.replace("var(", "").replace(")", "")}30`.replace("--accent-purple", "rgba(139,92,246").replace("--accent-cyan", "rgba(56,189,248").replace("--accent-gold", "rgba(196,181,253");
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
           (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)";
         }}
       >
-        {/* Emoji hero */}
+        {/* Hero icon */}
         <div
           style={{
-            fontSize: "2rem",
-            lineHeight: 1,
             padding: "0.75rem",
             borderRadius: "12px",
             background: "rgba(255,255,255,0.04)",
             width: "fit-content",
+            display: "flex",
           }}
         >
-          {article.heroEmoji}
+          <HeroIcon name={article.heroIcon} size={26} strokeWidth={1.75} color={article.categoryColor} />
         </div>
 
         {/* Category + reading time */}

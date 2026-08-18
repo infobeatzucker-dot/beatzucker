@@ -18,8 +18,8 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
         borderRadius: "16px",
         textAlign: "center",
         margin: "2.5rem 0",
-        background: "linear-gradient(135deg, rgba(124,111,255,0.08) 0%, rgba(0,229,196,0.06) 100%)",
-        border: "1px solid rgba(124,111,255,0.2)",
+        background: "linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(56,189,248,0.06) 100%)",
+        border: "1px solid rgba(139,92,246,0.2)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -33,7 +33,7 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
           transform: "translateX(-50%)",
           width: "200px",
           height: "200px",
-          background: "radial-gradient(circle, rgba(124,111,255,0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -45,8 +45,8 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
           style={{
             display: "inline-block",
             color: "var(--accent-cyan)",
-            background: "rgba(0,229,196,0.1)",
-            border: "1px solid rgba(0,229,196,0.25)",
+            background: "rgba(56,189,248,0.1)",
+            border: "1px solid rgba(56,189,248,0.25)",
             padding: "0.25rem 0.75rem",
             borderRadius: "20px",
             fontSize: "0.65rem",
@@ -100,7 +100,7 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
               fontSize: "0.9rem",
               textDecoration: "none",
               transition: "opacity 0.2s, transform 0.2s",
-              boxShadow: "0 4px 20px rgba(124,111,255,0.35)",
+              boxShadow: "0 4px 20px rgba(139,92,246,0.35)",
             }}
           >
             {lang === "de" ? "Kostenlos mastern →" : "Master for free →"}

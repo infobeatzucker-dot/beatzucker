@@ -1,18 +1,26 @@
 "use client";
 
+import { Brain, Settings2, Package, type LucideIcon } from "lucide-react";
+
 type Lang = "de" | "en";
 
 interface Props {
   lang?: Lang;
 }
 
-const FEATURES = [
+const FEATURES: {
+  icon: LucideIcon;
+  title: { de: string; en: string };
+  desc: { de: string; en: string };
+  details: { de: string[]; en: string[] };
+  color: string;
+}[] = [
   {
-    icon: "🧠",
-    title: { de: "KI-Analyse", en: "AI Analysis" },
+    icon: Brain,
+    title: { de: "KI-gestützte Analyse", en: "AI-Powered Analysis" },
     desc: {
-      de: "KI analysiert Genre, Energie, Dynamik und Spektralbalance deines Tracks — und wählt automatisch die optimalen Mastering-Parameter.",
-      en: "AI analyzes genre, energy, dynamics and spectral balance of your track — and automatically selects the optimal mastering parameters.",
+      de: "Die KI schaut sich Genre, Energie, Dynamik und Klangbalance deines Tracks an und stellt darauf basierend automatisch die passenden Mastering-Parameter ein.",
+      en: "The AI examines your track's genre, energy, dynamics and tonal balance, then automatically sets the mastering parameters that fit.",
     },
     details: {
       de: ["Genre-Erkennung", "Spektralanalyse", "Dynamikmessung", "BPM & Tonerkennung"],
@@ -21,11 +29,11 @@ const FEATURES = [
     color: "var(--accent-purple)",
   },
   {
-    icon: "⚙️",
-    title: { de: "Profi-Kette", en: "Professional Chain" },
+    icon: Settings2,
+    title: { de: "Professionelle Signalkette", en: "A Professional Signal Chain" },
     desc: {
-      de: "13-stufige Mastering-Chain mit Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4) und Multiband-Kompression — dieselben Tools, die Top-Engineers verwenden.",
-      en: "13-stage mastering chain using Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4), and multiband compression — the same tools used by top engineers.",
+      de: "Eine 13-stufige Kette baut auf Spotifys Pedalboard, pyloudnorm nach ITU-R BS.1770-4 und Multiband-Kompression auf — Werkzeuge, mit denen auch erfahrene Mastering-Engineers arbeiten.",
+      en: "A 13-stage chain built on Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4) and multiband compression — the same tools experienced mastering engineers rely on.",
     },
     details: {
       de: ["Korrektur-EQ", "Multiband-Kompression", "M/S-Processing", "True-Peak-Limiting"],
@@ -34,11 +42,11 @@ const FEATURES = [
     color: "var(--accent-cyan)",
   },
   {
-    icon: "📦",
-    title: { de: "Alle Formate", en: "All Formats" },
+    icon: Package,
+    title: { de: "Formate für jeden Zweck", en: "A Format for Every Purpose" },
     desc: {
-      de: "Lade deinen Master in jedem professionellen Format herunter. WAV 32-bit Float für die Archivierung, MP3 fürs Streaming oder FLAC für die Distribution.",
-      en: "Download your master in every professional format. WAV 32-bit float for archiving, MP3 for streaming, or FLAC for distribution.",
+      de: "Dein fertiger Master steht in jedem gängigen Profiformat bereit — WAV 32-bit Float zum Archivieren, MP3 zum Streamen oder FLAC für die Distribution.",
+      en: "Your finished master is ready in every common professional format — WAV 32-bit float for archiving, MP3 for streaming, or FLAC for distribution.",
     },
     details: {
       de: ["WAV 32/24/16 Bit", "FLAC verlustfrei", "MP3 320kbps", "AAC 256kbps"],
@@ -82,13 +90,13 @@ const CHAIN_STEPS = {
 };
 
 const T = {
-  how_it_works: { de: "So funktioniert es", en: "How it works" },
-  headline:     { de: "Professionelles Mastering. Kein Setup.", en: "Professional mastering. Zero setup." },
+  how_it_works: { de: "Ablauf", en: "The Process" },
+  headline:     { de: "Studio-Ergebnis ganz ohne Vorbereitung.", en: "Studio results without the studio setup." },
   subtext:      {
-    de: "Dieselbe Verarbeitungskette wie in professionellen Studios — mit einem Klick erreichbar.",
-    en: "The same processing chain used in professional studios, accessible in one click.",
+    de: "Die gleiche Signalkette, die auch in Profistudios läuft — nur einen Klick entfernt.",
+    en: "It's the same signal chain professional studios run, just one click away.",
   },
-  mastering_chain: { de: "Mastering-Kette", en: "Mastering Chain" },
+  mastering_chain: { de: "Die Kette im Überblick", en: "The Chain at a Glance" },
 };
 
 export default function FeaturesSection({ lang = "de" }: Props) {
@@ -108,13 +116,13 @@ export default function FeaturesSection({ lang = "de" }: Props) {
         {FEATURES.map((feature) => (
           <div key={feature.title.en} className="glass-panel p-6 hover:border-opacity-50 transition-all">
             <div
-              className="text-3xl mb-4 w-12 h-12 rounded-xl flex items-center justify-center"
+              className="mb-4 w-12 h-12 rounded-xl flex items-center justify-center"
               style={{
                 background: `${feature.color}15`,
                 border: `1px solid ${feature.color}30`,
               }}
             >
-              {feature.icon}
+              <feature.icon size={22} strokeWidth={2} color={feature.color} />
             </div>
             <h3 className="text-base font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
               {feature.title[lang]}

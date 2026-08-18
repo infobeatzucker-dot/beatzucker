@@ -6,11 +6,11 @@ type Lang = "de" | "en";
 interface Props { lang?: Lang; }
 
 const T = {
-  label:   { de: "Nutzer", en: "Users" },
-  heading: { de: "Was Nutzer sagen", en: "What users say" },
+  label:   { de: "Community", en: "Community" },
+  heading: { de: "Direkt aus der Community", en: "Straight from the community" },
   sub: {
-    de: "Tausende Tracks bereits gemastered — hier sind einige Stimmen aus unserer Community.",
-    en: "Thousands of tracks mastered already — here are some voices from our community.",
+    de: "Ein paar Rückmeldungen von Leuten, die ihre Tracks schon über Beatzucker gejagt haben.",
+    en: "A few notes from people who've already run their tracks through Beatzucker.",
   },
 };
 
@@ -18,31 +18,31 @@ const TESTIMONIALS = [
   {
     name: "Marco R.",
     initials: "MR",
-    color: "#7c6fff",
+    color: "#8b5cf6",
     role: { de: "Electronic Producer", en: "Electronic Producer" },
     text: {
-      de: "Ich war skeptisch, ob KI wirklich professionelles Mastering liefern kann — aber das Ergebnis hat mich überzeugt. Meine Tracks klingen klarer, druckvoller und sind auf Spotify sofort auf Augenhöhe mit Major-Releases.",
-      en: "I was skeptical about whether AI could really deliver professional mastering — but the result convinced me. My tracks sound clearer, punchier, and are instantly on par with major releases on Spotify.",
+      de: "Hab's erst nicht geglaubt, dass eine Automatik da rankommt an einen echten Mastering-Job. Nach dem ersten Export war ich still — der Track hatte plötzlich das Punch-Level, das sonst nur teure Releases haben.",
+      en: "Honestly didn't expect an automated tool to get anywhere close to a real mastering job. First export changed my mind fast — suddenly my track had that punch you usually only hear on big-budget releases.",
     },
   },
   {
     name: "Julia K.",
     initials: "JK",
-    color: "#00e5c4",
+    color: "#38bdf8",
     role: { de: "Singer-Songwriterin", en: "Singer-Songwriter" },
     text: {
-      de: "Als Musikerin ohne technisches Background war ich immer auf teure Studios angewiesen. Beatzucker gibt mir die Kontrolle zurück — in Minuten, nicht Stunden, und zu einem Bruchteil der Kosten.",
-      en: "As a musician without a technical background, I always relied on expensive studios. Beatzucker gives me back control — in minutes, not hours, and at a fraction of the cost.",
+      de: "Ich komme aus der Songwriting-Ecke, nicht aus der Technik — Studios waren für mich immer eine Kostenfrage. Jetzt lade ich hoch, warte ein paar Sekunden und habe einen Master, den ich mir sonst nicht hätte leisten können.",
+      en: "I'm a songwriter, not an engineer — studio time was always a budget problem for me. Now I upload, wait a few seconds, and get a master I couldn't have afforded otherwise.",
     },
   },
   {
     name: "Tobias N.",
     initials: "TN",
-    color: "#f5c842",
+    color: "#c4b5fd",
     role: { de: "Hip-Hop Beatmaker", en: "Hip-Hop Beatmaker" },
     text: {
-      de: "Der A/B-Vergleich direkt im Browser ist ein Game-Changer. Ich höre sofort den Unterschied und kann den Master genau dort einstellen, wo ich ihn haben will. Perfekt für mein Workflow.",
-      en: "The A/B comparison directly in the browser is a game-changer. I immediately hear the difference and can dial in the master exactly where I want it. Perfect for my workflow.",
+      de: "Was mich überzeugt hat, ist der direkte A/B-Vergleich im Player — kein Rätselraten, ob sich was verändert hat. Ich höre live, wo der Unterschied sitzt, und feile so lange, bis der Master genau meins ist.",
+      en: "What sold me was the built-in A/B player — no guessing whether anything actually changed. I can hear exactly where the difference sits and dial it in until the master feels like mine.",
     },
   },
   {
@@ -51,8 +51,8 @@ const TESTIMONIALS = [
     color: "#a78bfa",
     role: { de: "Indie-Gitarristin", en: "Indie Guitarist" },
     text: {
-      de: "Ich nutze Beatzucker für meine Demos vor dem Release. Die LUFS-Werte passen immer auf Anhieb — kein Pumpen, kein Clipping. Man merkt, dass wirklich professionelle Tools dahinterstecken.",
-      en: "I use Beatzucker for my demos before release. The LUFS values are always spot on — no pumping, no clipping. You can tell that real professional tools are behind it.",
+      de: "Meine Demos gehen alle vorher durch Beatzucker. Die Lautheit trifft jedes Mal, ohne dass irgendwas anfängt zu pumpen oder zu clippen — merkt man einfach, dass da solide DSP-Arbeit dahintersteckt.",
+      en: "Every demo of mine goes through Beatzucker first. The loudness lands right every single time, nothing starts pumping or clipping — you can tell there's solid DSP work behind it.",
     },
   },
   {
@@ -61,8 +61,8 @@ const TESTIMONIALS = [
     color: "#34d399",
     role: { de: "Podcast-Produzent", en: "Podcast Producer" },
     text: {
-      de: "Für Podcasts brauche ich konsistente Lautstärke über alle Folgen hinweg. Die Plattform-Presets (Spotify, Apple) treffen den Nagel auf den Kopf. Seit ich Beatzucker nutze, bekomme ich kaum noch Feedback-Beschwerden.",
-      en: "For podcasts I need consistent volume across all episodes. The platform presets (Spotify, Apple) hit the nail on the head. Since using Beatzucker, I barely get any volume complaint feedback anymore.",
+      de: "Bei einem Podcast zählt vor allem eins: gleichbleibende Lautstärke über alle Folgen. Die Plattform-Presets für Spotify und Apple sitzen sofort — die Beschwerden über zu leise oder zu laute Folgen sind quasi verschwunden.",
+      en: "For a podcast, one thing matters most: consistent volume across every episode. The Spotify and Apple presets nail it immediately — complaints about episodes being too quiet or too loud have basically disappeared.",
     },
   },
   {
@@ -71,8 +71,8 @@ const TESTIMONIALS = [
     color: "#f472b6",
     role: { de: "DJ & Produzentin", en: "DJ & Producer" },
     text: {
-      de: "Die Geschwindigkeit ist unglaublich — mein Track ist in unter zwei Minuten fertig gemastert. Für schnelle Releases zwischen Studio-Sessions ist Beatzucker unersetzlich geworden.",
-      en: "The speed is incredible — my track is fully mastered in under two minutes. For quick releases between studio sessions, Beatzucker has become indispensable.",
+      de: "Zwischen zwei Studio-Sessions bleibt selten Zeit für Mastering — mit Beatzucker ist der Track fertig, bevor der Kaffee kalt wird. Für schnelle Releases hat sich das für mich zum festen Werkzeug entwickelt.",
+      en: "There's rarely time for mastering between studio sessions — with Beatzucker the track's done before my coffee goes cold. It's become a permanent part of my toolkit for fast releases.",
     },
   },
 ];
@@ -96,7 +96,7 @@ export default function TestimonialsSection({ lang = "de" }: Props) {
       {/* subtle bg accent */}
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse 80% 40% at 50% 100%, rgba(124,111,255,0.05) 0%, transparent 70%)",
+        background: "radial-gradient(ellipse 80% 40% at 50% 100%, rgba(139,92,246,0.05) 0%, transparent 70%)",
       }} />
 
       <div style={{ maxWidth: "1100px", margin: "0 auto", position: "relative" }}>
@@ -105,8 +105,8 @@ export default function TestimonialsSection({ lang = "de" }: Props) {
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>
           <div style={{
             display: "inline-block",
-            background: "rgba(124,111,255,0.12)",
-            border: "1px solid rgba(124,111,255,0.25)",
+            background: "rgba(139,92,246,0.12)",
+            border: "1px solid rgba(139,92,246,0.25)",
             borderRadius: "6px",
             padding: "0.25rem 0.85rem",
             fontSize: "0.72rem",
@@ -165,7 +165,7 @@ function TestimonialCard({ t, lang }: {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: "rgba(255,255,255,0.04)",
-        border: `1px solid ${hovered ? "rgba(124,111,255,0.3)" : "rgba(255,255,255,0.08)"}`,
+        border: `1px solid ${hovered ? "rgba(139,92,246,0.3)" : "rgba(255,255,255,0.08)"}`,
         borderRadius: "16px",
         padding: "1.5rem",
         backdropFilter: "blur(16px)",

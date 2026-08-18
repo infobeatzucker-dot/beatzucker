@@ -21,6 +21,8 @@ export async function GET() {
         select: {
           id: true, originalName: true, platform: true, preset: true,
           status: true, preAnalysis: true, postAnalysis: true, createdAt: true, notes: true,
+          pathWav32: true, pathWav24: true, pathWav16: true, pathFlac: true,
+          pathMp3320: true, pathMp3128: true, pathAac256: true,
         },
       },
     },
@@ -44,9 +46,18 @@ export async function GET() {
     let lufsIn = null, lufsOut = null;
     try { const pre = JSON.parse(m.preAnalysis ?? "{}"); lufsIn = pre.integrated_lufs ?? pre.integrated_loudness ?? null; } catch {}
     try { const post = JSON.parse(m.postAnalysis ?? "{}"); lufsOut = post.integrated_lufs ?? post.integrated_loudness ?? null; } catch {}
+    const formats = [
+      m.pathWav32  && "wav32",
+      m.pathWav24  && "wav24",
+      m.pathWav16  && "wav16",
+      m.pathFlac   && "flac",
+      m.pathMp3320 && "mp3320",
+      m.pathMp3128 && "mp3128",
+      m.pathAac256 && "aac256",
+    ].filter(Boolean) as string[];
     return { id: m.id, originalName: m.originalName, platform: m.platform,
              preset: m.preset, status: m.status, lufsIn, lufsOut,
-             createdAt: m.createdAt, notes: m.notes ?? "" };
+             createdAt: m.createdAt, notes: m.notes ?? "", formats };
   });
 
   const savedRefs = await db.savedReference.findMany({

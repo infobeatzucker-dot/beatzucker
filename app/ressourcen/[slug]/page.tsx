@@ -8,6 +8,7 @@ import ArticleBody from "@/components/ressourcen/ArticleBody";
 import ArticleCTA from "@/components/ressourcen/ArticleCTA";
 import RelatedArticles from "@/components/ressourcen/RelatedArticles";
 import { ARTICLES, getArticleBySlug, getRelatedArticles } from "@/app/data/ressourcen";
+import { HeroIcon } from "@/lib/heroIcons";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -126,9 +127,11 @@ export default async function ArticlePage({ params }: Props) {
               </span>
             </div>
 
-            {/* Emoji + title */}
+            {/* Icon + title */}
             <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", marginBottom: "1rem" }}>
-              <span style={{ fontSize: "2.5rem", lineHeight: 1.2 }}>{article.heroEmoji}</span>
+              <span style={{ display: "flex", paddingTop: "0.3rem" }}>
+                <HeroIcon name={article.heroIcon} size={38} strokeWidth={1.6} color={catColor} />
+              </span>
               <h1
                 style={{
                   color: "var(--text-primary)",

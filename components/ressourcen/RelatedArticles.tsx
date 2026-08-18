@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { RessourceArticle } from "@/app/data/ressourcen";
+import { HeroIcon } from "@/lib/heroIcons";
 
 type Lang = "de" | "en";
 
@@ -53,14 +54,14 @@ export default function RelatedArticles({ articles, lang }: Props) {
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
-                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(124,111,255,0.25)";
+                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(139,92,246,0.25)";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
                 (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)";
               }}
             >
-              <span style={{ fontSize: "1.5rem" }}>{a.heroEmoji}</span>
+              <HeroIcon name={a.heroIcon} size={22} strokeWidth={1.75} color={a.categoryColor} />
               <div>
                 <div style={{ color: "var(--text-primary)", fontSize: "0.82rem", fontWeight: 600, lineHeight: 1.3 }}>
                   {a.title[lang]}

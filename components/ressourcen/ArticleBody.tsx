@@ -128,8 +128,8 @@ export default function ArticleBody({ article }: Props) {
               cursor: "pointer",
               border: "1px solid",
               transition: "all 0.15s",
-              background: lang === l ? "rgba(124,111,255,0.15)" : "transparent",
-              borderColor: lang === l ? "rgba(124,111,255,0.4)" : "rgba(255,255,255,0.1)",
+              background: lang === l ? "rgba(139,92,246,0.15)" : "transparent",
+              borderColor: lang === l ? "rgba(139,92,246,0.4)" : "rgba(255,255,255,0.1)",
               color: lang === l ? "var(--accent-purple)" : "var(--text-muted)",
             }}
           >

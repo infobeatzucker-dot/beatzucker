@@ -16,7 +16,7 @@ const YEAR = new Date().getFullYear();
 const emailHeader = `
   <div style="padding:28px 32px 0;text-align:center;">
     <span style="font-size:1.4rem;font-weight:800;letter-spacing:-0.02em;">
-      <span style="color:#a855f7">Beat</span><span style="color:#06b6d4">zucker</span>
+      <span style="color:#8b5cf6">Beat</span><span style="color:#38bdf8">zucker</span>
     </span>
   </div>`;
 
@@ -35,7 +35,7 @@ const emailWrap = (content: string) => `
 <html lang="de">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#0d0d1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <div style="max-width:480px;margin:40px auto;background:#1a1a2e;border:1px solid rgba(124,111,255,0.2);border-radius:14px;overflow:hidden;">
+  <div style="max-width:480px;margin:40px auto;background:#1a1a2e;border:1px solid rgba(139,92,246,0.2);border-radius:14px;overflow:hidden;">
     ${emailHeader}
     <div style="padding:28px 32px 32px;">${content}</div>
     ${emailFooter}
@@ -53,14 +53,14 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
       Klicke auf den Button unten — der Link ist <strong style="color:#fff">15 Minuten</strong> gültig.
     </p>
     <a href="${resetUrl}"
-       style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#a855f7,#06b6d4);
+       style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#8b5cf6,#38bdf8);
               color:#fff;font-weight:700;font-size:0.95rem;border-radius:8px;text-decoration:none;">
       Passwort zurücksetzen →
     </a>
     <p style="color:#6b7280;font-size:0.78rem;margin:20px 0 0;line-height:1.5;">
       Falls du kein Zurücksetzen angefordert hast, kannst du diese E-Mail ignorieren.
       Dein Passwort bleibt unverändert.<br><br>
-      Link: <a href="${resetUrl}" style="color:#06b6d4;word-break:break-all;">${resetUrl}</a>
+      Link: <a href="${resetUrl}" style="color:#38bdf8;word-break:break-all;">${resetUrl}</a>
     </p>`);
 
   await getResend().emails.send({
@@ -79,7 +79,7 @@ export async function sendWelcomeEmail(email: string) {
       alle Formate, Auto AI, Referenz-Track-Mastering, ohne Abo.
     </p>
     <a href="${BASE}"
-       style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#a855f7,#06b6d4);
+       style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#8b5cf6,#38bdf8);
               color:#fff;font-weight:700;font-size:0.92rem;border-radius:8px;text-decoration:none;">
       Jetzt mastern →
     </a>`);
@@ -115,7 +115,7 @@ export async function sendMasteringCompleteEmail(
     <p style="color:#9ca3af;font-size:0.92rem;line-height:1.6;margin:0 0 20px;">
       Die Verarbeitung deines Tracks wurde erfolgreich abgeschlossen.
     </p>
-    <div style="background:rgba(0,229,196,0.07);border:1px solid rgba(0,229,196,0.2);border-radius:10px;padding:16px 20px;margin-bottom:16px;">
+    <div style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.2);border-radius:10px;padding:16px 20px;margin-bottom:16px;">
       <div style="margin-bottom:8px;">
         <span style="color:#6b7280;font-size:0.78rem;display:block;margin-bottom:2px;">Track</span>
         <span style="color:#fff;font-size:0.92rem;font-weight:600;">${originalName}</span>
@@ -127,16 +127,16 @@ export async function sendMasteringCompleteEmail(
         </div>
         <div>
           <span style="color:#6b7280;font-size:0.78rem;display:block;margin-bottom:2px;">Output LUFS</span>
-          <span style="color:#00e5c4;font-size:0.88rem;font-weight:600;">${lufsStr}</span>
+          <span style="color:#38bdf8;font-size:0.88rem;font-weight:600;">${lufsStr}</span>
         </div>
       </div>
     </div>
-    <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.3);border-radius:8px;padding:12px 16px;margin-bottom:20px;">
-      <span style="color:#f5c842;font-size:0.8rem;font-weight:700;display:block;margin-bottom:2px;">⏱ Download-Fenster: ${windowLabel}</span>
+    <div style="background:rgba(196,181,253,0.08);border:1px solid rgba(196,181,253,0.3);border-radius:8px;padding:12px 16px;margin-bottom:20px;">
+      <span style="color:#c4b5fd;font-size:0.8rem;font-weight:700;display:block;margin-bottom:2px;">⏱ Download-Fenster: ${windowLabel}</span>
       <span style="color:#e5e7eb;font-size:0.85rem;">Gültig bis: <strong>${deadlineStr} Uhr</strong></span><br>
       <span style="color:#9ca3af;font-size:0.75rem;">Nach Ablauf wird die Datei automatisch gelöscht.</span>
     </div>
-    <a href="${BASE}/account" style="display:inline-block;background:rgba(0,229,196,0.15);border:1px solid rgba(0,229,196,0.3);color:#00e5c4;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:0.88rem;">
+    <a href="${BASE}/account" style="display:inline-block;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:0.88rem;">
       Jetzt herunterladen →
     </a>`);
 
@@ -157,8 +157,8 @@ export async function sendLoginOtpEmail(email: string, otp: string) {
       Gib diesen Code ein, um dich bei Beatzucker anzumelden.
     </p>
     <div style="text-align:center;margin-bottom:24px;">
-      <span style="font-size:2.5rem;font-weight:800;letter-spacing:0.25em;color:#a855f7;
-                   background:rgba(124,111,255,0.1);border:1px solid rgba(124,111,255,0.3);
+      <span style="font-size:2.5rem;font-weight:800;letter-spacing:0.25em;color:#8b5cf6;
+                   background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);
                    border-radius:12px;padding:0.5rem 1.5rem;display:inline-block;">
         ${otp}
       </span>
@@ -192,7 +192,7 @@ export async function sendMasteringErrorEmail(email: string, originalName: strin
       Bitte versuche es erneut. Falls der Fehler weiterhin auftritt, melde dich bei uns —
       wir helfen dir gerne weiter.
     </p>
-    <a href="${BASE}" style="display:inline-block;background:rgba(124,111,255,0.15);border:1px solid rgba(124,111,255,0.3);color:#a855f7;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:0.88rem;margin-right:10px;">
+    <a href="${BASE}" style="display:inline-block;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:0.88rem;margin-right:10px;">
       Erneut versuchen →
     </a>
     <a href="mailto:info@re-beatz.com" style="display:inline-block;color:#6b7280;font-size:0.82rem;text-decoration:none;padding:10px 0;">

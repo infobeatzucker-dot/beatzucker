@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import { Music, Disc, Play } from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type Lang = "de" | "en";
@@ -14,49 +15,49 @@ const t = (o: Bilingual, lang: Lang) => o[lang];
 
 /* ─── Bilingual Strings ──────────────────────────────────── */
 const T = {
-  hero_badge:   { de: "Hilfe & FAQ", en: "Help & FAQ" },
-  hero_h1:      { de: "Wie kann ich dir helfen?", en: "How can I help you?" },
-  hero_sub:     { de: "Antworten auf die häufigsten Fragen zu Beatzucker.", en: "Answers to the most common questions about Beatzucker." },
-  hero_contact: { de: "Nicht gefunden? Schreib uns:", en: "Not found? Contact us:" },
-  search_ph:    { de: "FAQ durchsuchen…", en: "Search FAQ…" },
-  qs_title:     { de: "Schnellstart", en: "Quick Start" },
-  qs_sub:       { de: "In 4 Schritten zum perfekten Master", en: "4 steps to a perfect master" },
+  hero_badge:   { de: "Support-Center", en: "Support Center" },
+  hero_h1:      { de: "Womit können wir dir weiterhelfen?", en: "What do you need a hand with?" },
+  hero_sub:     { de: "Alles, was du über Beatzucker wissen musst, kompakt an einem Ort.", en: "Everything you need to know about Beatzucker, gathered in one place." },
+  hero_contact: { de: "Deine Frage steht nicht dabei? Schreib uns direkt:", en: "Can't find it here? Reach out directly:" },
+  search_ph:    { de: "Suche in den FAQ…", en: "Search the FAQ…" },
+  qs_title:     { de: "Loslegen", en: "Get Started" },
+  qs_sub:       { de: "Dein Master in vier Schritten", en: "Your master, four steps away" },
   qs_steps: {
     de: [
-      { n: "01", title: "Track hochladen", desc: "WAV, MP3, FLAC oder AIFF per Drag & Drop oder Klick." },
-      { n: "02", title: "Plattform & Genre wählen", desc: "Wähle Zielplattform (Spotify, Apple Music, Club…) und Stil." },
-      { n: "03", title: "\"M\" drücken", desc: "Klick auf Mastern oder Taste M — die KI übernimmt." },
-      { n: "04", title: "Download", desc: "WAV 32-bit, FLAC 24-bit, MP3 320 und mehr auf einen Klick." },
+      { n: "01", title: "Datei hochladen", desc: "WAV, MP3, FLAC oder AIFF reinziehen oder per Klick auswählen." },
+      { n: "02", title: "Ziel festlegen", desc: "Zielplattform wie Spotify, Apple Music oder Club wählen, dazu passenden Stil." },
+      { n: "03", title: "Auf \"M\" tippen", desc: "Mastern klicken oder einfach M drücken — die KI übernimmt den Rest." },
+      { n: "04", title: "Download", desc: "Als WAV 32-bit, FLAC 24-bit, MP3 320 und weiteren Formaten sofort holen." },
     ],
     en: [
-      { n: "01", title: "Upload your track", desc: "WAV, MP3, FLAC or AIFF via drag & drop or click." },
-      { n: "02", title: "Choose platform & genre", desc: "Select target platform (Spotify, Apple Music, Club…) and style." },
-      { n: "03", title: "Press \"M\"", desc: "Click Master or press M — the AI takes over." },
-      { n: "04", title: "Download", desc: "WAV 32-bit, FLAC 24-bit, MP3 320 and more in one click." },
+      { n: "01", title: "Upload your file", desc: "Drop in WAV, MP3, FLAC or AIFF — or just click to browse." },
+      { n: "02", title: "Set your target", desc: "Pick where it's headed — Spotify, Apple Music, club — plus the matching genre." },
+      { n: "03", title: "Hit \"M\"", desc: "Click Master or press M — the AI takes it from there." },
+      { n: "04", title: "Download", desc: "Grab it instantly as WAV 32-bit, FLAC 24-bit, MP3 320 and more." },
     ],
   },
-  kbd_title: { de: "Tastaturkürzel", en: "Keyboard Shortcuts" },
-  kbd_sub:   { de: "Schneller arbeiten mit Shortcuts", en: "Work faster with shortcuts" },
+  kbd_title: { de: "Shortcuts", en: "Shortcuts" },
+  kbd_sub:   { de: "Ohne Maus durch den Workflow", en: "Move through the workflow without the mouse" },
   kbd_keys: {
     de: [
-      { key: "M",      desc: "Mastering starten" },
-      { key: "Space",  desc: "Play / Pause" },
-      { key: "A",      desc: "Original abspielen" },
-      { key: "B",      desc: "Master abspielen" },
+      { key: "M",      desc: "Startet das Mastering" },
+      { key: "Space",  desc: "Wiedergabe starten/stoppen" },
+      { key: "A",      desc: "Original anhören" },
+      { key: "B",      desc: "Gemasterten Track anhören" },
     ],
     en: [
-      { key: "M",      desc: "Start mastering" },
-      { key: "Space",  desc: "Play / Pause" },
-      { key: "A",      desc: "Play original" },
-      { key: "B",      desc: "Play master" },
+      { key: "M",      desc: "Kicks off mastering" },
+      { key: "Space",  desc: "Toggle playback" },
+      { key: "A",      desc: "Listen to the original" },
+      { key: "B",      desc: "Listen to the master" },
     ],
   },
-  viz_title: { de: "Visualizer verstehen", en: "Understanding Visualizers" },
-  viz_sub:   { de: "Was zeigen die verschiedenen Analysen?", en: "What do the different analyses show?" },
-  faq_title:   { de: "Häufige Fragen", en: "Frequently Asked Questions" },
-  faq_no_res:  { de: "Keine Ergebnisse gefunden.", en: "No results found." },
-  cta_h3:      { de: "Noch Fragen?", en: "Still have questions?" },
-  cta_sub:     { de: "Wir antworten innerhalb von 24 Stunden.", en: "We reply within 24 hours." },
+  viz_title: { de: "Visualizer", en: "Visualizers" },
+  viz_sub:   { de: "Was dir die einzelnen Analysen verraten", en: "What each analysis actually tells you" },
+  faq_title:   { de: "Fragen, die uns oft erreichen", en: "Questions we hear a lot" },
+  faq_no_res:  { de: "Dazu haben wir nichts gefunden.", en: "Nothing matched your search." },
+  cta_h3:      { de: "Frage nicht beantwortet?", en: "Didn't find your answer?" },
+  cta_sub:     { de: "Unser Team meldet sich innerhalb eines Tages zurück.", en: "Our team gets back to you within a day." },
 };
 
 /* ─── Quick-Start Step Illustrations ─────────────────────── */
@@ -64,17 +65,17 @@ function IllustrationUpload() {
   return (
     <div style={{
       width: 80, height: 64, borderRadius: 10,
-      border: "2px dashed rgba(0,229,196,0.5)",
+      border: "2px dashed rgba(56,189,248,0.5)",
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      gap: 6, background: "rgba(0,229,196,0.04)",
+      gap: 6, background: "rgba(56,189,248,0.04)",
     }}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M12 4v12M8 8l4-4 4 4" stroke="var(--accent-cyan)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="rgba(0,229,196,0.4)" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="rgba(56,189,248,0.4)" strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
       <div style={{ display: "flex", gap: 3 }}>
         {["WAV","MP3","FLAC"].map(f => (
-          <span key={f} style={{ fontSize: 7, padding: "1px 4px", borderRadius: 3, background: "rgba(0,229,196,0.12)", color: "var(--accent-cyan)" }}>{f}</span>
+          <span key={f} style={{ fontSize: 7, padding: "1px 4px", borderRadius: 3, background: "rgba(56,189,248,0.12)", color: "var(--accent-cyan)" }}>{f}</span>
         ))}
       </div>
     </div>
@@ -83,9 +84,9 @@ function IllustrationUpload() {
 
 function IllustrationPlatform() {
   const platforms = [
-    { icon: "🎵", name: "Spotify", active: true },
-    { icon: "🍎", name: "Apple" },
-    { icon: "▶", name: "YT" },
+    { icon: Music, name: "Spotify", active: true },
+    { icon: Disc, name: "Apple" },
+    { icon: Play, name: "YT" },
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4, width: 80 }}>
@@ -93,11 +94,11 @@ function IllustrationPlatform() {
         <div key={p.name} style={{
           display: "flex", alignItems: "center", gap: 5, padding: "3px 6px",
           borderRadius: 6, fontSize: 9, fontWeight: 600,
-          background: p.active ? "rgba(124,111,255,0.15)" : "rgba(255,255,255,0.04)",
-          border: `1px solid ${p.active ? "rgba(124,111,255,0.4)" : "rgba(255,255,255,0.06)"}`,
+          background: p.active ? "rgba(139,92,246,0.15)" : "rgba(255,255,255,0.04)",
+          border: `1px solid ${p.active ? "rgba(139,92,246,0.4)" : "rgba(255,255,255,0.06)"}`,
           color: p.active ? "var(--accent-purple)" : "var(--text-muted)",
         }}>
-          <span style={{ fontSize: 10 }}>{p.icon}</span>
+          <p.icon size={10} strokeWidth={2} />
           {p.name}
           {p.active && <span style={{ marginLeft: "auto", color: "var(--accent-cyan)", fontSize: 8 }}>✓</span>}
         </div>
@@ -111,20 +112,20 @@ function IllustrationKeyM() {
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <div style={{
         width: 48, height: 48, borderRadius: 10,
-        background: "linear-gradient(145deg, rgba(245,200,66,0.2), rgba(245,200,66,0.05))",
-        border: "2px solid rgba(245,200,66,0.5)",
+        background: "linear-gradient(145deg, rgba(196,181,253,0.2), rgba(196,181,253,0.05))",
+        border: "2px solid rgba(196,181,253,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 20, fontWeight: 800, color: "var(--accent-gold)",
         fontFamily: "var(--font-mono, monospace)",
-        boxShadow: "0 4px 0 rgba(245,200,66,0.3), 0 0 12px rgba(245,200,66,0.15)",
+        boxShadow: "0 4px 0 rgba(196,181,253,0.3), 0 0 12px rgba(196,181,253,0.15)",
       }}>M</div>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M3 8h10M9 4l4 4-4 4" stroke="var(--accent-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
       <div style={{
         width: 32, height: 32, borderRadius: "50%",
-        background: "rgba(0,229,196,0.15)",
-        border: "2px solid rgba(0,229,196,0.4)",
+        background: "rgba(56,189,248,0.15)",
+        border: "2px solid rgba(56,189,248,0.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 14, color: "var(--accent-cyan)",
       }}>✓</div>
@@ -140,8 +141,8 @@ function IllustrationDownload() {
         <div key={f} style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "2px 6px", borderRadius: 4, fontSize: 8,
-          background: i === 0 ? "rgba(245,200,66,0.1)" : "rgba(255,255,255,0.04)",
-          border: `1px solid ${i === 0 ? "rgba(245,200,66,0.3)" : "rgba(255,255,255,0.06)"}`,
+          background: i === 0 ? "rgba(196,181,253,0.1)" : "rgba(255,255,255,0.04)",
+          border: `1px solid ${i === 0 ? "rgba(196,181,253,0.3)" : "rgba(255,255,255,0.06)"}`,
           color: i === 0 ? "var(--accent-gold)" : "var(--text-muted)",
         }}>
           <span>{f}</span>
@@ -186,9 +187,9 @@ function MiniWaveform() {
 function MiniLissajous() {
   return (
     <svg width={60} height={60} viewBox="-30 -30 60 60">
-      <ellipse cx={0} cy={0} rx={18} ry={24} fill="none" stroke="rgba(0,229,196,0.5)" strokeWidth={1.5}
+      <ellipse cx={0} cy={0} rx={18} ry={24} fill="none" stroke="rgba(56,189,248,0.5)" strokeWidth={1.5}
         transform="rotate(-25)"/>
-      <ellipse cx={0} cy={0} rx={8} ry={14} fill="none" stroke="rgba(0,229,196,0.25)" strokeWidth={1}
+      <ellipse cx={0} cy={0} rx={8} ry={14} fill="none" stroke="rgba(56,189,248,0.25)" strokeWidth={1}
         transform="rotate(-25)"/>
       <line x1={-26} y1={0} x2={26} y2={0} stroke="rgba(255,255,255,0.08)" strokeWidth={0.5}/>
       <line x1={0} y1={-26} x2={0} y2={26} stroke="rgba(255,255,255,0.08)" strokeWidth={0.5}/>
@@ -199,11 +200,11 @@ function MiniLissajous() {
 function MiniLUFSMeter() {
   const segs = [
     { y: 0,  h: 8,  c: "rgba(255,60,60,0.7)" },
-    { y: 10, h: 8,  c: "rgba(245,200,66,0.7)" },
-    { y: 20, h: 8,  c: "rgba(245,200,66,0.5)" },
-    { y: 30, h: 10, c: "rgba(0,229,196,0.7)" },
-    { y: 42, h: 10, c: "rgba(0,229,196,0.5)" },
-    { y: 54, h: 10, c: "rgba(0,229,196,0.3)" },
+    { y: 10, h: 8,  c: "rgba(196,181,253,0.7)" },
+    { y: 20, h: 8,  c: "rgba(196,181,253,0.5)" },
+    { y: 30, h: 10, c: "rgba(56,189,248,0.7)" },
+    { y: 42, h: 10, c: "rgba(56,189,248,0.5)" },
+    { y: 54, h: 10, c: "rgba(56,189,248,0.3)" },
   ];
   return (
     <div style={{ display: "flex", gap: 4, height: 64 }}>
@@ -260,8 +261,8 @@ const VISUALIZERS = [
     ),
     color: "var(--accent-cyan)",
     titleDe: "Spectrum Analyzer",   titleEn: "Spectrum Analyzer",
-    descDe: "Zeigt die Energie jeder Frequenz in Echtzeit. X-Achse = Frequenz (20 Hz – 20 kHz), Y-Achse = Lautstärke in dB.",
-    descEn: "Shows the energy at each frequency in real time. X-axis = frequency (20 Hz – 20 kHz), Y-axis = level in dB.",
+    descDe: "Live-Ansicht der Energieverteilung über alle Frequenzen: horizontal liegt die Frequenz (20 Hz – 20 kHz), vertikal der Pegel in dB.",
+    descEn: "A live read of how energy spreads across the spectrum — frequency runs left to right (20 Hz – 20 kHz), level in dB runs bottom to top.",
     visual: <MiniSpectrum />,
   },
   {
@@ -273,8 +274,8 @@ const VISUALIZERS = [
     ),
     color: "var(--accent-purple)",
     titleDe: "Wellenform + Clip-Marker",   titleEn: "Waveform + Clip Markers",
-    descDe: "Rote Balken zeigen Stellen mit möglichem Clipping (> −0.17 dBFS). Im gemasterten Track sollten sie verschwunden sein.",
-    descEn: "Red bars show potential clipping (> −0.17 dBFS). They should be gone in the mastered track.",
+    descDe: "Rot markierte Abschnitte weisen auf mögliches Clipping hin (> −0.17 dBFS) — nach dem Mastering sollten diese Markierungen verschwunden sein.",
+    descEn: "Sections flagged in red point to possible clipping (> −0.17 dBFS) — those flags should be gone once the track is mastered.",
     visual: <MiniWaveform />,
   },
   {
@@ -286,10 +287,10 @@ const VISUALIZERS = [
         <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="0.5" opacity=".4"/>
       </svg>
     ),
-    color: "#06b6d4",
+    color: "#38bdf8",
     titleDe: "Stereofeld (Lissajous)",   titleEn: "Stereo Field (Lissajous)",
-    descDe: "Vertikale Linie = Mono, Ellipse = Stereo, breiter Kreis = sehr breit. Positiver Korrelationswert = mono-kompatibel.",
-    descEn: "Vertical line = mono, ellipse = stereo, wide circle = very wide. Positive correlation = mono-compatible.",
+    descDe: "Eine senkrechte Linie steht für Mono, eine Ellipse für Stereo, ein breiter Kreis für ein sehr breites Klangbild. Ist der Korrelationswert positiv, ist der Track mono-kompatibel.",
+    descEn: "A straight vertical line means mono, an ellipse means stereo, and a wide circle means a very wide image. A positive correlation value tells you it's mono-compatible.",
     visual: <MiniLissajous />,
   },
   {
@@ -304,25 +305,25 @@ const VISUALIZERS = [
     ),
     color: "var(--accent-gold)",
     titleDe: "LUFS-Meter",   titleEn: "LUFS Meter",
-    descDe: "Zeigt integrierte Lautheit in LUFS. Grüner Bereich = Streaming-konform. Rot = zu laut, wird von Plattformen automatisch gedämpft.",
-    descEn: "Shows integrated loudness in LUFS. Green zone = streaming-compliant. Red = too loud, platforms auto-duck it.",
+    descDe: "Misst die integrierte Lautheit in LUFS. Im grünen Bereich passt der Pegel zu den Streaming-Vorgaben, im roten Bereich ist er zu laut und wird von den Plattformen automatisch heruntergeregelt.",
+    descEn: "Tracks integrated loudness in LUFS. Green means you're within streaming norms; red means you're too hot and the platform will turn it down for you automatically.",
     visual: <MiniLUFSMeter />,
   },
   {
     key: "spectrogram",
     icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="1" width="14" height="14" rx="2" fill="rgba(0,229,196,0.1)" stroke="currentColor" strokeWidth="1" opacity=".5"/>
+        <rect x="1" y="1" width="14" height="14" rx="2" fill="rgba(56,189,248,0.1)" stroke="currentColor" strokeWidth="1" opacity=".5"/>
         <rect x="3" y="3" width="4" height="4" rx="1" fill="currentColor" opacity=".8"/>
         <rect x="9" y="3" width="4" height="4" rx="1" fill="currentColor" opacity=".4"/>
         <rect x="3" y="9" width="4" height="4" rx="1" fill="currentColor" opacity=".3"/>
         <rect x="9" y="9" width="4" height="4" rx="1" fill="currentColor" opacity=".6"/>
       </svg>
     ),
-    color: "#a855f7",
+    color: "#8b5cf6",
     titleDe: "Spectrogram Waterfall",   titleEn: "Spectrogram Waterfall",
-    descDe: "X = Frequenz, Y = Zeit, Farbe = Intensität. Zeigt, wann welche Frequenzen aktiv sind — ideal für Transienten-Analyse.",
-    descEn: "X = frequency, Y = time, colour = intensity. Shows when each frequency is active — ideal for transient analysis.",
+    descDe: "Horizontal die Frequenz, vertikal der Zeitverlauf, die Farbe steht für die Intensität. So siehst du auf einen Blick, welche Frequenzen wann aktiv sind — praktisch für die Transienten-Analyse.",
+    descEn: "Frequency across, time down, colour for intensity — a quick way to see which frequencies are active and when, handy for checking transients.",
     visual: <MiniSpectrogram />,
   },
 ];
@@ -341,28 +342,28 @@ const FAQ_CATEGORIES = [
     titleDe: "Erste Schritte", titleEn: "Getting Started",
     items: [
       {
-        qDe: "Wie funktioniert Beatzucker?",
-        qEn: "How does Beatzucker work?",
-        aDe: "Lade eine WAV- oder MP3-Datei hoch, wähle Zielplattform und Genre-Preset, stelle die Mastering-Intensität ein und klicke auf Mastern (oder drücke M). Die KI analysiert dein Audio, wählt automatisch die optimalen Parameter und die 13-stufige DSP-Pipeline verarbeitet deinen Track professionell.",
-        aEn: "Upload a WAV or MP3 file, choose your target platform and genre preset, set the mastering intensity, and click Master (or press M). The AI analyses your audio, automatically selects optimal parameters, and the 13-stage DSP pipeline processes your track professionally.",
+        qDe: "Wie läuft das Mastering bei Beatzucker ab?",
+        qEn: "What actually happens when I master a track here?",
+        aDe: "Du lädst deine WAV- oder MP3-Datei hoch, legst Zielplattform und Genre-Preset fest und regelst die Mastering-Intensität. Ein Klick auf Mastern (oder die Taste M) genügt, dann übernimmt die KI: Sie analysiert dein Audio, bestimmt die passenden Parameter und schickt den Track durch eine 13-stufige DSP-Pipeline.",
+        aEn: "Upload a WAV or MP3, pick a target platform and genre preset, and dial in the mastering intensity. One click on Master (or a tap of M) hands it to the AI — it reads your audio, works out the right parameters, and runs the track through a 13-stage DSP pipeline.",
       },
       {
-        qDe: "Welche Dateiformate werden unterstützt?",
-        qEn: "Which file formats are supported?",
-        aDe: "Upload: WAV (alle Bit-Tiefen), MP3, FLAC, AIFF. Download: WAV 32-bit Float, WAV 24-bit, WAV 16-bit (mit Dither), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps, AAC 256 kbps.",
-        aEn: "Upload: WAV (all bit depths), MP3, FLAC, AIFF. Download: WAV 32-bit Float, WAV 24-bit, WAV 16-bit (with dither), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps, AAC 256 kbps.",
+        qDe: "Welche Formate kann ich hoch- und runterladen?",
+        qEn: "Which formats does upload and export support?",
+        aDe: "Hochladen kannst du WAV (jede Bit-Tiefe), MP3, FLAC und AIFF. Für den Download stehen dir WAV 32-bit Float, WAV 24-bit, WAV 16-bit (mit Dither), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps und AAC 256 kbps zur Verfügung.",
+        aEn: "You can upload WAV (any bit depth), MP3, FLAC, or AIFF. On the way out, choose from WAV 32-bit Float, WAV 24-bit, WAV 16-bit (dithered), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps, or AAC 256 kbps.",
       },
       {
-        qDe: "Wie lange dauert das Mastering?",
-        qEn: "How long does mastering take?",
-        aDe: "Die Analyse dauert ca. 5–10 Sekunden. Das vollständige Mastering (DSP-Pipeline + alle Exportformate) dauert je nach Tracklänge 30 Sekunden bis 3 Minuten. Der Fortschritt wird in Echtzeit angezeigt.",
-        aEn: "Analysis takes approx. 5–10 seconds. Full mastering (DSP pipeline + all export formats) takes 30 seconds to 3 minutes depending on track length. Progress is shown in real time.",
+        qDe: "Wie lange muss ich aufs Mastering warten?",
+        qEn: "How long does the process take?",
+        aDe: "Die Analyse selbst ist nach 5–10 Sekunden durch. Das komplette Mastering — inklusive DSP-Pipeline und aller Exportformate — braucht je nach Tracklänge zwischen 30 Sekunden und 3 Minuten, mit Fortschrittsanzeige in Echtzeit.",
+        aEn: "Analysis wraps up in about 5–10 seconds. The full run — DSP pipeline plus every export format — takes anywhere from 30 seconds to 3 minutes depending on how long your track is, with a live progress indicator the whole time.",
       },
       {
-        qDe: "Ist Beatzucker wirklich komplett kostenlos?",
-        qEn: "Is Beatzucker really completely free?",
-        aDe: "Ja. Alle Funktionen — Auto AI, Referenz-Track-Mastering, alle Export-Formate inkl. WAV 32-bit — sind kostenlos und ohne Abo nutzbar. Ein faires Tageslimit pro Account schützt lediglich vor Serverüberlastung.",
-        aEn: "Yes. All features — Auto AI, reference-track mastering, all export formats including WAV 32-bit — are free and require no subscription. A fair daily limit per account simply protects against server overload.",
+        qDe: "Kostet mich das Ganze wirklich nichts?",
+        qEn: "Is this genuinely free, no catch?",
+        aDe: "Genau. Auto AI, Referenz-Track-Mastering und sämtliche Exportformate bis hin zu WAV 32-bit sind kostenlos nutzbar, ganz ohne Abo. Lediglich ein faires Tageslimit pro Account bewahrt die Server vor Überlastung.",
+        aEn: "Yes, no catch. Auto AI, reference-track mastering, and every export format up to WAV 32-bit are free, no subscription attached. The only guardrail is a fair per-account daily limit that keeps the servers from buckling.",
       },
     ],
   },
@@ -377,40 +378,40 @@ const FAQ_CATEGORIES = [
     titleDe: "Mastering", titleEn: "Mastering",
     items: [
       {
-        qDe: "Was ist der Mastering Intensity Slider?",
-        qEn: "What is the Mastering Intensity Slider?",
-        aDe: "Der Intensity-Slider (0–100%) steuert, wie stark die Bearbeitung ist. 0% = fast kein Eingriff, 100% = maximales Processing (volle Kompression, starke EQ-Korrekturen, volle Sättigung). 65% ist der empfohlene Ausgangswert für die meisten Tracks.",
-        aEn: "The intensity slider (0–100%) controls how strongly the processing is applied. 0% = almost no processing, 100% = maximum (full compression, strong EQ, full saturation). 65% is the recommended starting point for most tracks.",
+        qDe: "Wofür ist der Intensity-Regler gut?",
+        qEn: "What does the intensity control actually change?",
+        aDe: "Der Regler (0–100 %) bestimmt, wie kräftig bearbeitet wird: bei 0 % passiert kaum etwas, bei 100 % greifen volle Kompression, deutliche EQ-Eingriffe und starke Sättigung. Für die meisten Tracks empfiehlt sich ein Startwert um 65 %.",
+        aEn: "The slider (0–100%) sets how hard the processing hits: near 0% it barely touches the signal, at 100% you get full compression, heavy EQ moves, and full saturation. 65% is a solid starting point for most tracks.",
       },
       {
-        qDe: "Was bedeuten die Plattform-Presets?",
-        qEn: "What do the platform presets mean?",
-        aDe: "Spotify: –14 LUFS, Apple Music: –16 LUFS, YouTube: –14 LUFS, Club/DJ: –9 LUFS (sehr laut), Custom: frei einstellbar. Der True Peak Ceiling liegt immer bei –1 dBTP.",
-        aEn: "Spotify: –14 LUFS, Apple Music: –16 LUFS, YouTube: –14 LUFS, Club/DJ: –9 LUFS (very loud), Custom: freely adjustable. True Peak Ceiling is always –1 dBTP.",
+        qDe: "Was steckt hinter den Plattform-Presets?",
+        qEn: "What do the platform presets actually set?",
+        aDe: "Jedes Preset zielt auf einen anderen Loudness-Standard: Spotify –14 LUFS, Apple Music –16 LUFS, YouTube –14 LUFS, Club/DJ –9 LUFS (entsprechend laut), und bei Custom stellst du frei ein. Die True-Peak-Grenze bleibt in jedem Fall bei –1 dBTP.",
+        aEn: "Each preset targets a different loudness standard: Spotify sits at –14 LUFS, Apple Music at –16 LUFS, YouTube at –14 LUFS, Club/DJ at –9 LUFS (properly loud), and Custom lets you set your own number. True peak ceiling stays fixed at –1 dBTP regardless.",
       },
       {
-        qDe: "Was ist Reference Mastering?",
-        qEn: "What is Reference Mastering?",
-        aDe: "Lade einen professionellen Track als Klang-Referenz hoch. Die Analyse erfasst dessen Spektralbalance, Loudness, Dynamik und Stereobreite und passt dein Mastering entsprechend an — ähnlich wie in professionellen Studios. Kostenlos für alle nutzbar.",
-        aEn: "Upload a professional track as a sound reference. The analysis captures its spectral balance, loudness, dynamics, and stereo width and adapts your mastering accordingly — similar to professional studios. Free for everyone.",
+        qDe: "Wie funktioniert das Mastering nach Referenz-Track?",
+        qEn: "How does reference-track mastering work?",
+        aDe: "Du lädst einen Track hoch, dessen Sound dir gefällt. Beatzucker analysiert dessen Spektralbalance, Loudness, Dynamik und Stereobreite und richtet dein Mastering danach aus — ein Prinzip, das auch professionelle Studios nutzen. Diese Funktion ist für alle kostenlos.",
+        aEn: "Upload a track whose sound you want to chase. Beatzucker reads its spectral balance, loudness, dynamics, and stereo width, then steers your mastering toward that target — the same principle pro studios use. It's free for everyone.",
       },
       {
-        qDe: "Was ist M/S Processing?",
-        qEn: "What is M/S Processing?",
-        aDe: "Mid/Side-Processing trennt das Stereo-Signal in Mitte (Mid = L+R) und Seite (Side = L–R). Dies ermöglicht unabhängige Bearbeitung von Breite und Tiefe. Beatzucker entfernt außerdem automatisch tiefe Frequenzen unter 120 Hz aus dem Seitenkanal für bessere Club-Kompatibilität.",
-        aEn: "Mid/Side processing splits the stereo signal into centre (Mid = L+R) and side (Side = L–R). This allows independent processing of width and depth. Beatzucker also automatically removes low frequencies below 120 Hz from the side channel for better club compatibility.",
+        qDe: "Was macht das M/S-Processing genau?",
+        qEn: "What is Mid/Side processing doing under the hood?",
+        aDe: "Beim Mid/Side-Processing wird das Stereosignal in eine Mitte (Mid = L+R) und eine Seite (Side = L–R) aufgeteilt, sodass Breite und Tiefe getrennt voneinander bearbeitet werden können. Beatzucker filtert zusätzlich automatisch Frequenzen unter 120 Hz aus dem Seitenkanal, damit der Track auch im Club sauber klingt.",
+        aEn: "Mid/Side processing splits the stereo signal into a centre component (Mid = L+R) and a side component (Side = L–R), so width and depth can be shaped independently. Beatzucker also strips frequencies below 120 Hz from the side channel automatically, keeping things tight for club playback.",
       },
       {
-        qDe: "Was bedeutet Mono-Kompatibilität?",
-        qEn: "What does mono compatibility mean?",
-        aDe: "Mono-Kompatibilität bedeutet, dass dein Track auch in Mono gut klingt — wichtig für Club-Systeme, Telefone und kleine Lautsprecher. Das Stereofeld-Vektorskop zeigt einen positiven Korrelationswert, wenn dein Track mono-kompatibel ist. Beatzucker zeigt dir dies direkt in der Analyse.",
-        aEn: "Mono compatibility means your track sounds good in mono too — important for club systems, phones, and small speakers. The stereo field vectorscope shows a positive correlation value when your track is mono-compatible. Beatzucker shows this directly in the analysis.",
+        qDe: "Warum ist Mono-Kompatibilität wichtig?",
+        qEn: "Why does mono compatibility matter?",
+        aDe: "Ein mono-kompatibler Track behält seinen Klang, wenn er auf einem einzelnen Lautsprecher, Handy oder Club-System zusammengemischt wird. Im Stereofeld-Vektorskop erkennst du das an einem positiven Korrelationswert — Beatzucker zeigt dir diesen Wert direkt in der Analyse.",
+        aEn: "A mono-compatible track still sounds right when it's summed down to a single speaker, a phone, or a club rig. You can spot it in the stereo field vectorscope as a positive correlation value — Beatzucker surfaces that number right in the analysis.",
       },
     ],
   },
   {
     id: "analysis",
-    color: "#f59e0b",
+    color: "var(--accent-gold)",
     icon: (
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.2"/>
@@ -420,28 +421,28 @@ const FAQ_CATEGORIES = [
     titleDe: "Analyse & Visualizer", titleEn: "Analysis & Visualizers",
     items: [
       {
-        qDe: "Was zeigt der A/B-Player?",
-        qEn: "What does the A/B player show?",
-        aDe: "A = dein Original-Upload, B = der fertige Master. Wechsle jederzeit zwischen beiden — der Player pausiert nicht. Alle Visualisierungen (Spektrum, Wellenform, Stereofeld, LUFS, Spectrogram) reagieren in Echtzeit auf die aktuelle Wiedergabe.",
-        aEn: "A = your original upload, B = the finished master. Switch between them at any time — the player doesn't pause. All visualisations (spectrum, waveform, stereo field, LUFS, spectrogram) react in real time to the current playback.",
+        qDe: "Was genau vergleicht der A/B-Player?",
+        qEn: "What is the A/B player comparing?",
+        aDe: "A spielt dein hochgeladenes Original, B den fertigen Master. Du kannst jederzeit zwischen beiden hin- und herschalten, ohne dass die Wiedergabe stoppt. Sämtliche Visualisierungen — Spektrum, Wellenform, Stereofeld, LUFS, Spectrogram — folgen dabei in Echtzeit der aktuellen Quelle.",
+        aEn: "A is your original upload, B is the finished master. Flip between them whenever you like — playback never pauses. Every visualisation (spectrum, waveform, stereo field, LUFS, spectrogram) updates in real time to whichever one is playing.",
       },
       {
-        qDe: "Was sind die roten Marker in der Wellenform?",
-        qEn: "What are the red markers in the waveform?",
-        aDe: "Rote Balken zeigen Stellen im Audio, wo der Peak-Pegel über 0.98 (–0.17 dBFS) liegt — mögliche Clipping-Zonen im Original. Im gemasterten Audio sollten diese durch den True Peak Limiter verschwunden sein.",
-        aEn: "Red bars show places in the audio where the peak level exceeds 0.98 (–0.17 dBFS) — potential clipping zones in the original. In the mastered audio these should be gone thanks to the True Peak Limiter.",
+        qDe: "Wofür stehen die roten Markierungen in der Wellenform?",
+        qEn: "What do the red markers on the waveform mean?",
+        aDe: "Sie kennzeichnen Stellen, an denen der Peak-Pegel 0.98 (–0.17 dBFS) überschreitet — mögliche Clipping-Zonen im Originalmaterial. Nach dem Mastering sollte davon dank True Peak Limiter nichts mehr übrig sein.",
+        aEn: "They flag spots where the peak level crosses 0.98 (–0.17 dBFS) — potential clipping in the original file. Once mastering runs, the True Peak Limiter should have cleaned all of that up.",
       },
       {
-        qDe: "Was ist der Spectrogram Waterfall?",
-        qEn: "What is the Spectrogram Waterfall?",
-        aDe: "X-Achse = Frequenz (20 Hz–20 kHz), Y-Achse = Zeit, Farbe = Lautstärke (schwarz = leise, weiß = laut). So erkennst du, wann welche Frequenzen aktiv sind — ideal für Transienten und Arrangement-Analyse.",
-        aEn: "X-axis = frequency (20 Hz–20 kHz), Y-axis = time, colour = loudness (black = quiet, white = loud). This shows when each frequency is active — ideal for transient and arrangement analysis.",
+        qDe: "Wie liest man den Spectrogram Waterfall?",
+        qEn: "How do I read the spectrogram waterfall?",
+        aDe: "Waagerecht liegt die Frequenz (20 Hz–20 kHz), senkrecht die Zeit, und die Farbe zeigt die Lautstärke (schwarz = leise, weiß = laut). Damit siehst du genau, wann welche Frequenzbereiche aktiv sind — nützlich für Transienten und Arrangement.",
+        aEn: "Frequency runs horizontally (20 Hz–20 kHz), time runs vertically, and colour encodes loudness (black = quiet, white = loud). It's a fast way to see exactly when each frequency range kicks in — useful for transients and arrangement checks.",
       },
       {
-        qDe: "Was ist LUFS?",
-        qEn: "What is LUFS?",
-        aDe: "LUFS (Loudness Units Full Scale) ist der Standard zur Lautstärkemessung für Streaming-Plattformen. Spotify normalisiert auf –14 LUFS — lautere Tracks werden automatisch leiser gedreht. Mit Beatzucker wird dein Track exakt auf den richtigen LUFS-Wert normalisiert.",
-        aEn: "LUFS (Loudness Units Full Scale) is the standard loudness measurement for streaming platforms. Spotify normalises to –14 LUFS — louder tracks are auto-ducked. Beatzucker normalises your track to exactly the right LUFS value.",
+        qDe: "Was genau misst LUFS?",
+        qEn: "What is LUFS actually measuring?",
+        aDe: "LUFS steht für Loudness Units Full Scale, der gängige Maßstab für Lautheit auf Streaming-Plattformen. Spotify normalisiert beispielsweise auf –14 LUFS und dreht lautere Tracks automatisch leiser. Beatzucker bringt deinen Track direkt auf den passenden LUFS-Zielwert.",
+        aEn: "LUFS — Loudness Units Full Scale — is the standard loudness metric streaming platforms use. Spotify, for instance, normalises to –14 LUFS and quietly turns down anything louder. Beatzucker lands your track right on the target LUFS value up front.",
       },
     ],
   },
@@ -457,40 +458,40 @@ const FAQ_CATEGORIES = [
     titleDe: "Technisches", titleEn: "Technical",
     items: [
       {
-        qDe: "Werden meine Audiodateien gespeichert?",
-        qEn: "Are my audio files stored?",
-        aDe: "Nein. Hochgeladene Original-Audiodateien werden sofort nach Abschluss der Verarbeitung vom Server gelöscht (max. 60 Minuten). Gemasterte Ausgabedateien werden 24 Stunden vorgehalten und dann automatisch gelöscht. Keine dauerhafte Speicherung, keine Weitergabe.",
-        aEn: "No. Uploaded original audio files are deleted immediately after processing is complete (max. 60 minutes). Mastered output files are kept for 24 hours and then automatically deleted. No permanent storage, no sharing.",
+        qDe: "Was passiert mit meinen hochgeladenen Dateien?",
+        qEn: "What happens to the files I upload?",
+        aDe: "Deine hochgeladenen Original-Dateien werden gelöscht, sobald die Verarbeitung abgeschlossen ist — spätestens nach 60 Minuten. Die fertigen Mastering-Ergebnisse bleiben 24 Stunden verfügbar und werden danach automatisch entfernt. Es gibt keine dauerhafte Speicherung und keine Weitergabe an Dritte.",
+        aEn: "Your original uploads are removed as soon as processing finishes — within 60 minutes at the latest. Finished masters stick around for 24 hours before being deleted automatically. Nothing is stored long-term, and nothing is shared with third parties.",
       },
       {
-        qDe: "Welche Browser werden unterstützt?",
-        qEn: "Which browsers are supported?",
-        aDe: "Alle modernen Browser: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+. Für die Audio-Visualisierungen wird die Web Audio API benötigt — diese ist in allen genannten Browsern verfügbar.",
-        aEn: "All modern browsers: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+. The Web Audio API is required for audio visualisations — available in all listed browsers.",
+        qDe: "Läuft Beatzucker in jedem Browser?",
+        qEn: "Does Beatzucker work in any browser?",
+        aDe: "In allen gängigen aktuellen Browsern: Chrome ab 90, Firefox ab 88, Safari ab 14, Edge ab 90. Die Visualisierungen brauchen die Web Audio API, die in all diesen Browsern vorhanden ist.",
+        aEn: "Yes, in any current mainstream browser: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+. The visualisations rely on the Web Audio API, which all of those support out of the box.",
       },
       {
-        qDe: "Was ist der Tastaturkürzel M?",
-        qEn: "What is the keyboard shortcut M?",
-        aDe: "Drücke M auf der Tastatur, um das Mastering zu starten — genauso wie der Mastern-Button. Praktisch wenn du mehrere Tracks nacheinander masterst. Die Leertaste startet/stoppt die Wiedergabe.",
-        aEn: "Press M on the keyboard to start mastering — same as the Master button. Useful when mastering multiple tracks in sequence. Space bar starts/stops playback.",
+        qDe: "Wozu dient die Taste M?",
+        qEn: "What's the M key for?",
+        aDe: "M startet das Mastering — genau wie ein Klick auf den Mastern-Button, nur schneller. Praktisch, wenn du gleich mehrere Tracks hintereinander bearbeitest. Mit der Leertaste steuerst du Start und Stopp der Wiedergabe.",
+        aEn: "M kicks off mastering — same result as clicking the Master button, just faster. Handy when you're running several tracks back to back. Space bar handles play/stop.",
       },
       {
-        qDe: "Wie maistere ich mehrere Tracks?",
-        qEn: "How do I master multiple tracks?",
-        aDe: "Wähle deinen Track, stelle Parameter ein, drücke M — warte auf den Download. Dann lade den nächsten Track hoch und wiederhole. Der Mastering-Verlauf speichert Metadaten aller deiner Masterings (Dateiname, LUFS-Werte, Parameter) — die Audiodateien selbst können nur innerhalb des 24-Stunden-Download-Fensters heruntergeladen werden.",
-        aEn: "Select your track, set parameters, press M — wait for the download. Then upload the next track and repeat. Mastering history stores metadata for all your masters (file name, LUFS values, parameters) — the actual audio files can only be downloaded within the 24-hour download window.",
+        qDe: "Kann ich mehrere Tracks nacheinander mastern?",
+        qEn: "Can I master several tracks one after another?",
+        aDe: "Klar — Track auswählen, Parameter setzen, M drücken, Download abwarten, dann den nächsten Track hochladen und von vorn. Im Mastering-Verlauf bleiben die Metadaten aller bisherigen Durchläufe erhalten (Dateiname, LUFS-Werte, Parameter), die Audiodateien selbst lassen sich aber nur innerhalb des 24-Stunden-Fensters herunterladen.",
+        aEn: "Sure — pick a track, set your parameters, press M, wait for the download, then upload the next one and repeat. Your mastering history keeps the metadata for every past run (file name, LUFS values, parameters), though the actual audio files are only downloadable within that 24-hour window.",
       },
       {
-        qDe: "Wie lange habe ich Zeit zum Download?",
-        qEn: "How long do I have to download?",
-        aDe: "Gemasterte Dateien stehen 24 Stunden nach Fertigstellung zum Download bereit. Nach Ablauf werden alle Dateien automatisch und unwiederbringlich gelöscht — also rechtzeitig herunterladen!",
-        aEn: "Mastered files are available for download for 24 hours after completion. After expiry, all files are automatically and permanently deleted — make sure to download in time!",
+        qDe: "Wie viel Zeit bleibt mir, um herunterzuladen?",
+        qEn: "How much time do I have to grab my download?",
+        aDe: "Ab Fertigstellung hast du 24 Stunden Zeit, deinen Master herunterzuladen. Danach werden die Dateien automatisch und endgültig gelöscht — also nicht zu lange warten!",
+        aEn: "You've got 24 hours from completion to download your master. After that, files are wiped automatically and permanently — so don't sit on it too long.",
       },
       {
-        qDe: "Ist Auto AI kostenlos nutzbar?",
-        qEn: "Is Auto AI free to use?",
-        aDe: "Ja. Auto AI analysiert dein Audio (Genre, Dynamik, Spektralbalance) und wählt automatisch passende Mastering-Parameter — komplett kostenlos und ohne Limit über das faire Tageslimit hinaus.",
-        aEn: "Yes. Auto AI analyzes your audio (genre, dynamics, spectral balance) and automatically selects matching mastering parameters — completely free with no limit beyond the fair daily usage cap.",
+        qDe: "Kostet die Nutzung von Auto AI extra?",
+        qEn: "Does Auto AI cost anything extra?",
+        aDe: "Nein. Auto AI wertet dein Audio aus — Genre, Dynamik, Spektralbalance — und wählt darauf basierend passende Mastering-Parameter, komplett kostenlos und ohne eigenes Limit über das ohnehin faire Tageslimit hinaus.",
+        aEn: "No. Auto AI reads your audio — genre, dynamics, spectral balance — and picks matching mastering parameters accordingly, entirely free and with no separate cap beyond the standard fair daily limit.",
       },
     ],
   },
@@ -505,7 +506,7 @@ function FaqItem({ qDe, qEn, aDe, aEn, color, lang }: {
     <div
       style={{
         background: "var(--bg-secondary)",
-        border: `1px solid ${open ? color.replace(")", ", 0.3)").replace("var(", "rgba(").replace("--accent-cyan", "0,229,196").replace("--accent-purple", "124,111,255") || "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.06)"}`,
+        border: `1px solid ${open ? color.replace(")", ", 0.3)").replace("var(", "rgba(").replace("--accent-cyan", "56,189,248").replace("--accent-purple", "139,92,246") || "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.06)"}`,
         borderRadius: 10,
         overflow: "hidden",
         transition: "border-color 0.2s",
@@ -607,7 +608,7 @@ export default function HelpPage() {
               padding: "5px 12px", border: "none", cursor: "pointer",
               fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
               textTransform: "uppercase",
-              background: lang === l ? "rgba(124,111,255,0.25)" : "transparent",
+              background: lang === l ? "rgba(139,92,246,0.25)" : "transparent",
               color: lang === l ? "var(--accent-purple)" : "var(--text-muted)",
               transition: "all 0.15s",
             }}>{l.toUpperCase()}</button>
@@ -618,8 +619,8 @@ export default function HelpPage() {
       {/* ── Hero ── */}
       <section style={{ textAlign: "center", padding: "7rem 2rem 3rem" }}>
         <div style={{
-          display: "inline-block", background: "rgba(0,229,196,0.1)",
-          border: "1px solid rgba(0,229,196,0.25)", borderRadius: 6,
+          display: "inline-block", background: "rgba(56,189,248,0.1)",
+          border: "1px solid rgba(56,189,248,0.25)", borderRadius: 6,
           padding: "0.25rem 0.75rem", fontSize: "0.75rem",
           color: "var(--accent-cyan)", letterSpacing: "0.1em",
           textTransform: "uppercase", marginBottom: "1.5rem",
@@ -683,18 +684,18 @@ export default function HelpPage() {
                   <IllustrationKeyM key="key" />,
                   <IllustrationDownload key="dl" />,
                 ];
-                const colors = ["var(--accent-cyan)", "var(--accent-purple)", "var(--accent-gold)", "#06b6d4"];
+                const colors = ["var(--accent-cyan)", "var(--accent-purple)", "var(--accent-gold)", "#38bdf8"];
                 return (
                   <div key={i} style={{
                     background: "var(--bg-secondary)",
-                    border: `1px solid ${colors[i].replace("var(--accent-cyan)","rgba(0,229,196,0.2)").replace("var(--accent-purple)","rgba(124,111,255,0.2)").replace("var(--accent-gold)","rgba(245,200,66,0.2)").replace("#06b6d4","rgba(6,182,212,0.2)")}`,
+                    border: `1px solid ${colors[i].replace("var(--accent-cyan)","rgba(56,189,248,0.2)").replace("var(--accent-purple)","rgba(139,92,246,0.2)").replace("var(--accent-gold)","rgba(196,181,253,0.2)").replace("#38bdf8","rgba(56,189,248,0.2)")}`,
                     borderRadius: 14, padding: "1.25rem",
                     display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12,
                     position: "relative",
                   }}>
                     <div style={{
                       fontSize: "1.8rem", fontWeight: 900, lineHeight: 1,
-                      color: colors[i].replace("var(--accent-cyan)","rgba(0,229,196,0.15)").replace("var(--accent-purple)","rgba(124,111,255,0.15)").replace("var(--accent-gold)","rgba(245,200,66,0.15)").replace("#06b6d4","rgba(6,182,212,0.15)"),
+                      color: colors[i].replace("var(--accent-cyan)","rgba(56,189,248,0.15)").replace("var(--accent-purple)","rgba(139,92,246,0.15)").replace("var(--accent-gold)","rgba(196,181,253,0.15)").replace("#38bdf8","rgba(56,189,248,0.15)"),
                       fontFamily: "var(--font-mono, monospace)",
                       position: "absolute", top: 10, right: 14,
                     }}>{step.n}</div>
@@ -733,7 +734,7 @@ export default function HelpPage() {
             </div>
             <div style={{
               background: "var(--bg-secondary)",
-              border: "1px solid rgba(245,200,66,0.15)",
+              border: "1px solid rgba(196,181,253,0.15)",
               borderRadius: 16, padding: "1.75rem 2rem",
             }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
@@ -742,7 +743,7 @@ export default function HelpPage() {
                     <KbdKey k={k.key} wide={k.key === "Space"} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2 7h10M8 3l4 4-4 4" stroke="rgba(245,200,66,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2 7h10M8 3l4 4-4 4" stroke="rgba(196,181,253,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                       <span style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>{k.desc}</span>
                     </div>
@@ -843,14 +844,14 @@ export default function HelpPage() {
         {/* ── Contact CTA ── */}
         <div style={{
           background: "var(--bg-elevated)",
-          border: "1px solid rgba(124,111,255,0.2)",
+          border: "1px solid rgba(139,92,246,0.2)",
           borderRadius: 16, padding: "2rem",
           textAlign: "center",
         }}>
           <div style={{
             width: 44, height: 44, borderRadius: "50%",
-            background: "rgba(124,111,255,0.12)",
-            border: "1px solid rgba(124,111,255,0.3)",
+            background: "rgba(139,92,246,0.12)",
+            border: "1px solid rgba(139,92,246,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 1rem",
           }}>
