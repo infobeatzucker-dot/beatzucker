@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "AGB – Beatzucker",
+  title: { absolute: "AGB – Beatzucker" },
   description: "AGB von Beatzucker: Nutzungsbedingungen für den kostenlosen KI-Audio-Mastering-Dienst — Leistungsumfang, faire Nutzung, Urheberrecht und Haftung.",
   alternates: { canonical: "https://beatzucker.de/agb" },
 };

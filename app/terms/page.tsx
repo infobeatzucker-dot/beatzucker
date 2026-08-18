@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "Terms of Service – Beatzucker",
+  title: { absolute: "Terms of Service – Beatzucker" },
   description: "Terms of Service for Beatzucker's free AI audio mastering service — usage terms, fair use limits, copyright, and liability.",
   alternates: { canonical: "https://beatzucker.de/terms" },
 };

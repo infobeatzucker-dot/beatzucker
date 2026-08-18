@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "Widerrufsbelehrung – Beatzucker",
+  title: { absolute: "Widerrufsbelehrung – Beatzucker" },
   description: "Widerrufsbelehrung für den kostenlosen Audio-Mastering-Dienst Beatzucker — als Gratis-Angebot ist kein gesetzliches Widerrufsrecht anwendbar.",
   alternates: { canonical: "https://beatzucker.de/widerruf" },
   robots: { index: true, follow: true },

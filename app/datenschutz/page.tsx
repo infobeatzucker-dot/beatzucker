@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "Datenschutzerklärung – Beatzucker",
+  title: { absolute: "Datenschutzerklärung – Beatzucker" },
   description: "Wie Beatzucker mit deinen Daten umgeht: automatische Löschung von Audiodateien, keine Weitergabe an Dritte, DSGVO-konform gehostet in der EU.",
   alternates: { canonical: "https://beatzucker.de/datenschutz" },
 };

@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!article) return {};
 
   return {
-    title: article.metaTitle.de,
+    title: { absolute: article.metaTitle.de },
     description: article.metaDescription.de,
     keywords: article.keywords.de,
     alternates: { canonical: `https://beatzucker.de/ressourcen/${article.slug}` },

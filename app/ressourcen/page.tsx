@@ -6,7 +6,7 @@ import ArticleGrid from "@/components/ressourcen/ArticleGrid";
 import { ARTICLES } from "@/app/data/ressourcen";
 
 export const metadata: Metadata = {
-  title: "Audio Mastering Wissen – Guides, Tipps & Technik | Beatzucker",
+  title: { absolute: "Audio Mastering Wissen – Guides, Tipps & Technik | Beatzucker" },
   description:
     "Alles über Audio Mastering: LUFS erklärt, Mastering vs. Mixing, KI-Mastering, Plattform-Lautstärken, Home-Recording-Fehler und mehr. Kostenlose Guides für Produzenten.",
   keywords: [

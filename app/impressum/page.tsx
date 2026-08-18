@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
-  title: "Impressum – Beatzucker",
+  title: { absolute: "Impressum – Beatzucker" },
   description: "Impressum und Anbieterkennzeichnung von Beatzucker gemäß §5 TMG — Anbieter, Kontakt und rechtliche Hinweise zum kostenlosen Mastering-Dienst.",
   robots: { index: true, follow: true },
   alternates: { canonical: "https://beatzucker.de/impressum" },
