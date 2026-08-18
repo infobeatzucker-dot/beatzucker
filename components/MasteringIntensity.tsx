@@ -18,9 +18,9 @@ const PRESETS = [
 ];
 
 function getIntensityColor(v: number): string {
-  if (v < 40)  return "#7c6fff";   // purple — subtle
-  if (v < 70)  return "#00e5c4";   // cyan — balanced
-  if (v < 90)  return "#f5c842";   // gold — loud
+  if (v < 40)  return "#8b5cf6";   // purple — subtle
+  if (v < 70)  return "#38bdf8";   // cyan — balanced
+  if (v < 90)  return "#c4b5fd";   // gold — loud
   return "#ff4757";                // red — max
 }
 
@@ -78,7 +78,7 @@ export default function MasteringIntensity({ value, onChange }: Props) {
             className="h-full rounded-full transition-all duration-150"
             style={{
               width: `${pct}%`,
-              background: `linear-gradient(90deg, #7c6fff, ${color})`,
+              background: `linear-gradient(90deg, #8b5cf6, ${color})`,
               boxShadow: `0 0 8px ${color}66`,
             }}
           />
