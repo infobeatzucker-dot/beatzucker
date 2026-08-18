@@ -6,7 +6,7 @@ export default function LibraryPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Library</h1>
+        <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Bibliothek</h1>
         <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
           Dein Mastering-Verlauf — Vorschau, Download und Notizen.
         </p>

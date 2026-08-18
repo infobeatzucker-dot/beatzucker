@@ -1,5 +1,7 @@
 "use client";
 
+import type { Lang } from "@/lib/types/mastering";
+
 /**
  * MasteringIntensity slider — controls how aggressively the AI masters the track.
  * 0 = very subtle/transparent, 100 = loud/punchy/maximised.
@@ -8,13 +10,14 @@
 interface Props {
   value: number;          // 0–100
   onChange: (v: number) => void;
+  lang?: Lang;
 }
 
 const PRESETS = [
-  { label: "Subtle",    value: 25  },
-  { label: "Balanced",  value: 60  },
-  { label: "Loud",      value: 85  },
-  { label: "Limit",     value: 100 },
+  { de: "Dezent", en: "Subtle", value: 25  },
+  { de: "Ausgewogen", en: "Balanced", value: 60  },
+  { de: "Laut", en: "Loud", value: 85  },
+  { de: "Maximum", en: "Maximum", value: 100 },
 ];
 
 function getIntensityColor(v: number): string {
@@ -24,18 +27,18 @@ function getIntensityColor(v: number): string {
   return "#ff4757";                // red — max
 }
 
-function getIntensityLabel(v: number): string {
+function getIntensityLabel(v: number, lang: Lang): string {
   if (v < 30)  return "Transparent";
-  if (v < 50)  return "Subtle";
-  if (v < 70)  return "Balanced";
-  if (v < 85)  return "Punchy";
-  if (v < 95)  return "Loud";
+  if (v < 50)  return lang === "de" ? "Dezent" : "Subtle";
+  if (v < 70)  return lang === "de" ? "Ausgewogen" : "Balanced";
+  if (v < 85)  return lang === "de" ? "Druckvoll" : "Punchy";
+  if (v < 95)  return lang === "de" ? "Laut" : "Loud";
   return "Maximum";
 }
 
-export default function MasteringIntensity({ value, onChange }: Props) {
+export default function MasteringIntensity({ value, onChange, lang = "de" }: Props) {
   const color = getIntensityColor(value);
-  const label = getIntensityLabel(value);
+  const label = getIntensityLabel(value, lang);
   const pct   = value;
 
   return (
@@ -45,7 +48,7 @@ export default function MasteringIntensity({ value, onChange }: Props) {
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <span className="label" title="Steuert wie stark das Mastering den Track beeinflusst. Niedrig = transparent, Hoch = laut & punchy.">Mastering Intensity</span>
+        <span className="label" title={lang === "de" ? "Steuert, wie stark das Mastering den Track beeinflusst. Niedrig = transparent, hoch = laut und druckvoll." : "Controls how strongly mastering affects the track. Low = transparent, high = loud and punchy."}>{lang === "de" ? "Mastering-Intensität" : "Mastering intensity"}</span>
         <div className="flex items-center gap-1.5">
           <span
             className="mono text-xs font-bold tabular-nums"
@@ -101,7 +104,7 @@ export default function MasteringIntensity({ value, onChange }: Props) {
       <div className="flex gap-1.5">
         {PRESETS.map((p) => (
           <button
-            key={p.label}
+            key={p.value}
             onClick={() => onChange(p.value)}
             className="flex-1 py-1 rounded text-xs font-medium transition-all"
             style={{
@@ -116,7 +119,7 @@ export default function MasteringIntensity({ value, onChange }: Props) {
                 : "var(--text-muted)",
             }}
           >
-            {p.label}
+            {p[lang]}
           </button>
         ))}
       </div>

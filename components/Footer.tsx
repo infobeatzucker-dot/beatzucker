@@ -24,7 +24,7 @@ export default function Footer() {
         {/* Legal links */}
         <div className="flex gap-5 text-xs flex-wrap justify-center" style={{ color: "var(--text-muted)" }}>
           <span style={{ color: "var(--accent-gold)" }}><DonateButton variant="footer" /></span>
-          <Link href="/features" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Features</Link>
+          <Link href="/features" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Funktionen</Link>
           <Link href="/help" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Hilfe</Link>
           <Link href="/ressourcen" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Wissen</Link>
           <Link href="/impressum" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Impressum</Link>
@@ -39,7 +39,7 @@ export default function Footer() {
         {/* Privacy badge */}
         <div className="flex flex-col items-end gap-1">
           <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-            Real AI Mastering · Professional Audio Processing
+            KI-Mastering · Professionelle Audiobearbeitung
           </div>
           <div className="text-[10px] flex items-center gap-1" style={{ color: "#22c55e" }}>
             <Lock size={11} strokeWidth={2} />

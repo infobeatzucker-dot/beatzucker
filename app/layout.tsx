@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "./compare.css";
 import CookieBanner from "@/components/CookieBanner";
 import Providers from "@/components/Providers";
 

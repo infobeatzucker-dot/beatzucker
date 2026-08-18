@@ -34,7 +34,7 @@ export default function StereoField({
       const H = canvas.height;
 
       // Fade trail
-      ctx.fillStyle = "rgba(8,10,15,0.15)";
+      ctx.fillStyle = "rgba(5,8,22,0.14)";
       ctx.fillRect(0, 0, W, H);
 
       const cx     = W / 2;
@@ -102,7 +102,9 @@ export default function StereoField({
       trailPoints.current = trailPoints.current.filter((p) => {
         p.age += analyserL ? 0.08 : 0.05;
         const alpha = Math.max(0, 1 - p.age);
-        ctx.fillStyle  = `rgba(56,189,248,${(alpha * 0.85).toFixed(2)})`;
+        const red = Math.round(72 + alpha * 70);
+        const blue = 255;
+        ctx.fillStyle  = `rgba(${red},190,${blue},${(alpha * 0.85).toFixed(2)})`;
         const size     = Math.max(0.5, 2 * (1 - p.age * 0.7));
         ctx.beginPath();
         ctx.arc(p.x, p.y, size, 0, Math.PI * 2);

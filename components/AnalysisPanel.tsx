@@ -1,6 +1,6 @@
 "use client";
 
-import { AnalysisData } from "@/lib/types/mastering";
+import { AnalysisData, type Lang } from "@/lib/types/mastering";
 import dynamic from "next/dynamic";
 import { useAudioEngine } from "@/contexts/AudioEngineContext";
 
@@ -16,6 +16,7 @@ interface Props {
   preAnalysis:  AnalysisData;
   postAnalysis: AnalysisData | null;
   isProcessing: boolean;
+  lang?: Lang;
 }
 
 function StatRow({ label, value, unit, color }: { label: string; value: string | number; unit?: string; color?: string }) {
@@ -53,13 +54,13 @@ function CompareValue({ label, pre, post, unit, higherIsBetter = true }: {
   );
 }
 
-function MonoCompatRow({ pre, post }: { pre: number; post: number | null }) {
+function MonoCompatRow({ pre, post, lang }: { pre: number; post: number | null; lang: Lang }) {
   const val = post ?? pre;
   const color = val >= 0.7 ? "var(--accent-cyan)" : val >= 0.5 ? "var(--accent-gold)" : "var(--accent-red)";
-  const label = val >= 0.7 ? "Good" : val >= 0.5 ? "Marginal" : "Poor";
+  const label = lang === "de" ? (val >= 0.7 ? "Gut" : val >= 0.5 ? "Grenzwertig" : "Schwach") : (val >= 0.7 ? "Good" : val >= 0.5 ? "Marginal" : "Poor");
   return (
     <div className="flex justify-between items-center py-1.5 border-b" style={{ borderColor: "var(--border-subtle)" }}>
-      <span className="text-xs" style={{ color: "var(--text-muted)" }}>Mono Compat</span>
+      <span className="text-xs" style={{ color: "var(--text-muted)" }}>{lang === "de" ? "Mono-Kompatibilität" : "Mono compatibility"}</span>
       <div className="flex items-center gap-2">
         {post !== null && (
           <span className="mono text-xs" style={{ color: "var(--text-muted)" }}>
@@ -79,7 +80,7 @@ function MonoCompatRow({ pre, post }: { pre: number; post: number | null }) {
   );
 }
 
-export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing }: Props) {
+export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing, lang = "de" }: Props) {
   // Grab live analyser nodes from the audio engine (null if engine not yet initialized)
   const engine = useAudioEngine();
   const analyserMono = engine?.analyserMono ?? null;
@@ -87,12 +88,19 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
   const analyserR    = engine?.analyserR    ?? null;
 
   return (
-    <div className="mb-6">
+    <div className="analysis-panel mb-6">
+      <div className="analysis-section-heading">
+        <div>
+          <span>{lang === "de" ? "LIVE-AUDIOANALYSE" : "LIVE AUDIO INTELLIGENCE"}</span>
+          <h3>{lang === "de" ? "Track-Analyse" : "Track analysis"}</h3>
+        </div>
+        <div className={`analysis-live-status ${isProcessing ? "processing" : ""}`}><i /> {isProcessing ? (lang === "de" ? "Analyse läuft" : "Analyzing") : "Live"}</div>
+      </div>
       {/* Main visualizers grid */}
-      <div className="grid md:grid-cols-3 gap-4 mb-4">
+      <div className="visualizer-grid grid md:grid-cols-3 gap-4 mb-4">
         {/* Spectrum Analyzer */}
-        <div className="glass-panel p-3" style={{ height: 200 }}>
-          <div className="label mb-2">Spectrum Analyzer</div>
+        <div className="analyzer-card glass-panel p-3" style={{ height: 220 }}>
+          <div className="analyzer-card-title"><span>{lang === "de" ? "Frequenzspektrum" : "Spectrum analyzer"}</span><i>FFT</i></div>
           <SpectrumAnalyzer
             isProcessing={isProcessing}
             hasPostData={postAnalysis !== null}
@@ -101,8 +109,8 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
 
         {/* Waveform Viewer */}
-        <div className="glass-panel p-3" style={{ height: 200 }}>
-          <div className="label mb-2">Waveform</div>
+        <div className="analyzer-card featured glass-panel p-3" style={{ height: 220 }}>
+          <div className="analyzer-card-title"><span>{lang === "de" ? "Wellenform" : "Waveform"}</span><i>{lang === "de" ? "ZEIT" : "TIME"}</i></div>
           <WaveformViewer
             isProcessing={isProcessing}
             hasPostData={postAnalysis !== null}
@@ -111,8 +119,8 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
 
         {/* Spectrogram Waterfall */}
-        <div className="glass-panel p-3" style={{ height: 200 }}>
-          <div className="label mb-2">Spectrogram</div>
+        <div className="analyzer-card glass-panel p-3" style={{ height: 220 }}>
+          <div className="analyzer-card-title"><span>Spectrogram</span><i>HZ</i></div>
           <SpectrogramWaterfall
             analyser={analyserMono}
             isProcessing={isProcessing}
@@ -120,10 +128,10 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4 mb-4">
+      <div className="visualizer-grid grid md:grid-cols-3 gap-4 mb-4">
         {/* LUFS Meter */}
-        <div className="glass-panel p-3" style={{ height: 180 }}>
-          <div className="label mb-2">LUFS / True Peak</div>
+        <div className="analyzer-card glass-panel p-3" style={{ height: 190 }}>
+          <div className="analyzer-card-title"><span>LUFS / True Peak</span><i>DB</i></div>
           <LUFSMeter
             integrated={preAnalysis.integrated_lufs}
             truePeak={preAnalysis.true_peak}
@@ -133,9 +141,9 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
 
         {/* Stereo Field */}
-        <div className="glass-panel p-3" style={{ height: 180 }}>
+        <div className="analyzer-card glass-panel p-3" style={{ height: 190 }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="label">Stereo Field</span>
+            <span className="analyzer-card-title"><span>{lang === "de" ? "Stereofeld" : "Stereo field"}</span><i>M/S</i></span>
             {/* Mono compatibility badge */}
             {(() => {
               const mc = postAnalysis?.mono_compatibility ?? preAnalysis.mono_compatibility;
@@ -152,7 +160,7 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
                     letterSpacing: "0.05em",
                   }}
                 >
-                  {isBad ? "⚠ PHASE ISSUES" : "⚠ MONO WARN"}
+                  {lang === "de" ? (isBad ? "⚠ PHASENFEHLER" : "⚠ MONO-WARNUNG") : (isBad ? "⚠ PHASE ISSUES" : "⚠ MONO WARNING")}
                 </span>
               );
             })()}
@@ -167,8 +175,8 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
         </div>
 
         {/* Dynamics Graph */}
-        <div className="glass-panel p-3" style={{ height: 180 }}>
-          <div className="label mb-2">Dynamics</div>
+        <div className="analyzer-card glass-panel p-3" style={{ height: 190 }}>
+          <div className="analyzer-card-title"><span>{lang === "de" ? "Dynamik" : "Dynamics"}</span><i>DR</i></div>
           <DynamicsGraph
             drValue={preAnalysis.dr_value}
             crestFactor={preAnalysis.crest_factor}
@@ -178,37 +186,37 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
       </div>
 
       {/* Stats grid */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="analysis-stats-grid grid md:grid-cols-3 gap-4">
         {/* Loudness */}
-        <div className="glass-panel p-4">
-          <div className="label mb-3">Loudness</div>
-          <CompareValue label="Integrated" pre={preAnalysis.integrated_lufs} post={postAnalysis?.integrated_lufs ?? null} unit=" LUFS" higherIsBetter={true} />
+        <div className="analysis-stat-card glass-panel p-4">
+          <div className="label mb-3">{lang === "de" ? "Lautheit" : "Loudness"}</div>
+          <CompareValue label={lang === "de" ? "Integriert" : "Integrated"} pre={preAnalysis.integrated_lufs} post={postAnalysis?.integrated_lufs ?? null} unit=" LUFS" higherIsBetter={true} />
           <CompareValue label="True Peak"  pre={preAnalysis.true_peak}       post={postAnalysis?.true_peak ?? null}       unit=" dBTP" higherIsBetter={false} />
-          <StatRow label="Dynamic Range" value={preAnalysis.dr_value.toFixed(0)} unit="DR" />
-          <StatRow label="Crest Factor"  value={preAnalysis.crest_factor.toFixed(1)} unit="dB" />
-          <MonoCompatRow pre={preAnalysis.mono_compatibility} post={postAnalysis?.mono_compatibility ?? null} />
+          <StatRow label={lang === "de" ? "Dynamikumfang" : "Dynamic range"} value={preAnalysis.dr_value.toFixed(0)} unit="DR" />
+          <StatRow label={lang === "de" ? "Scheitelfaktor" : "Crest factor"} value={preAnalysis.crest_factor.toFixed(1)} unit="dB" />
+          <MonoCompatRow pre={preAnalysis.mono_compatibility} post={postAnalysis?.mono_compatibility ?? null} lang={lang} />
         </div>
 
         {/* Spectral */}
-        <div className="glass-panel p-4">
-          <div className="label mb-3">Spectral</div>
-          <StatRow label="Centroid" value={(preAnalysis.spectral_centroid / 1000).toFixed(1)} unit="kHz" />
+        <div className="analysis-stat-card glass-panel p-4">
+          <div className="label mb-3">{lang === "de" ? "Spektralwerte" : "Spectral"}</div>
+          <StatRow label={lang === "de" ? "Schwerpunkt" : "Centroid"} value={(preAnalysis.spectral_centroid / 1000).toFixed(1)} unit="kHz" />
           <StatRow label="Rolloff"  value={(preAnalysis.spectral_rolloff  / 1000).toFixed(1)} unit="kHz" />
-          <StatRow label="Flatness" value={(preAnalysis.spectral_flatness * 100).toFixed(1)}  unit="%" />
+          <StatRow label={lang === "de" ? "Flachheit" : "Flatness"} value={(preAnalysis.spectral_flatness * 100).toFixed(1)} unit="%" />
           <StatRow
-            label="Clipping"
-            value={preAnalysis.clipping_detected ? "Detected!" : "None"}
+            label={lang === "de" ? "Übersteuerung" : "Clipping"}
+            value={preAnalysis.clipping_detected ? (lang === "de" ? "Erkannt" : "Detected") : (lang === "de" ? "Keine" : "None")}
             color={preAnalysis.clipping_detected ? "var(--accent-red)" : "var(--accent-cyan)"}
           />
         </div>
 
         {/* Track Info */}
-        <div className="glass-panel p-4">
-          <div className="label mb-3">Track Info</div>
+        <div className="analysis-stat-card glass-panel p-4">
+          <div className="label mb-3">{lang === "de" ? "Track-Informationen" : "Track info"}</div>
           <StatRow label="BPM"         value={preAnalysis.bpm.toFixed(0)} />
-          <StatRow label="Key"         value={preAnalysis.key} />
-          <StatRow label="Sample Rate" value={(preAnalysis.sample_rate / 1000).toFixed(1)} unit="kHz" />
-          <StatRow label="Channels"    value={preAnalysis.channels === 2 ? "Stereo" : "Mono"} />
+          <StatRow label={lang === "de" ? "Tonart" : "Key"} value={preAnalysis.key} />
+          <StatRow label={lang === "de" ? "Abtastrate" : "Sample rate"} value={(preAnalysis.sample_rate / 1000).toFixed(1)} unit="kHz" />
+          <StatRow label={lang === "de" ? "Kanäle" : "Channels"} value={preAnalysis.channels === 2 ? "Stereo" : "Mono"} />
         </div>
       </div>
 
@@ -235,12 +243,16 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
           <div>
             <div className="text-xs font-semibold mb-0.5"
               style={{ color: preAnalysis.mono_compatibility < 0.5 ? "var(--accent-red)" : "var(--accent-gold)" }}>
-              {preAnalysis.mono_compatibility < 0.5 ? "Phasenproblem erkannt" : "Mono-Kompatibilität niedrig"}
+              {lang === "de" ? (preAnalysis.mono_compatibility < 0.5 ? "Phasenproblem erkannt" : "Mono-Kompatibilität niedrig") : (preAnalysis.mono_compatibility < 0.5 ? "Phase issue detected" : "Low mono compatibility")}
             </div>
             <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
-              {preAnalysis.mono_compatibility < 0.5
-                ? `Mono-Kompatibilität: ${preAnalysis.mono_compatibility.toFixed(2)} — starke Phasenauslöschung möglich. Mastering fügt automatisch Sub-Bass-Mono-Filter (< 120 Hz) hinzu.`
-                : `Mono-Kompatibilität: ${preAnalysis.mono_compatibility.toFixed(2)} — auf Mono-Geräten klingen Bässe eventuell dünner. Sub-Bass wird beim Mastering automatisch mono gestellt.`
+              {lang === "de"
+                ? (preAnalysis.mono_compatibility < 0.5
+                  ? `Mono-Kompatibilität: ${preAnalysis.mono_compatibility.toFixed(2)} — starke Phasenauslöschung möglich. Mastering fügt automatisch einen Subbass-Monofilter (< 120 Hz) hinzu.`
+                  : `Mono-Kompatibilität: ${preAnalysis.mono_compatibility.toFixed(2)} — auf Mono-Geräten klingen Bässe eventuell dünner. Der Subbass wird beim Mastering automatisch mono gestellt.`)
+                : (preAnalysis.mono_compatibility < 0.5
+                  ? `Mono compatibility: ${preAnalysis.mono_compatibility.toFixed(2)} — strong phase cancellation is possible. Mastering automatically adds a sub-bass mono filter below 120 Hz.`
+                  : `Mono compatibility: ${preAnalysis.mono_compatibility.toFixed(2)} — bass may sound thinner on mono devices. Sub-bass is automatically made mono during mastering.`)
               }
             </div>
           </div>
@@ -248,15 +260,15 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing 
       )}
 
       {/* Frequency bands */}
-      <div className="glass-panel p-4 mt-4">
-        <div className="label mb-3">Frequency Band Energy</div>
+      <div className="frequency-energy-card glass-panel p-4 mt-4">
+        <div className="label mb-3">{lang === "de" ? "Frequenzband-Energie" : "Frequency band energy"}</div>
         <div className="grid grid-cols-5 gap-3">
           {[
             { label: "Sub",  value: preAnalysis.rms_sub,  post: postAnalysis?.rms_sub,  cls: "freq-sub"  },
-            { label: "Low",  value: preAnalysis.rms_low,  post: postAnalysis?.rms_low,  cls: "freq-low"  },
-            { label: "Mid",  value: preAnalysis.rms_mid,  post: postAnalysis?.rms_mid,  cls: "freq-mid"  },
-            { label: "High", value: preAnalysis.rms_high, post: postAnalysis?.rms_high, cls: "freq-high" },
-            { label: "Air",  value: preAnalysis.rms_air,  post: postAnalysis?.rms_air,  cls: "freq-air"  },
+            { label: lang === "de" ? "Bass" : "Low", value: preAnalysis.rms_low, post: postAnalysis?.rms_low, cls: "freq-low" },
+            { label: lang === "de" ? "Mitten" : "Mid", value: preAnalysis.rms_mid, post: postAnalysis?.rms_mid, cls: "freq-mid" },
+            { label: lang === "de" ? "Höhen" : "High", value: preAnalysis.rms_high, post: postAnalysis?.rms_high, cls: "freq-high" },
+            { label: lang === "de" ? "Brillanz" : "Air", value: preAnalysis.rms_air, post: postAnalysis?.rms_air, cls: "freq-air" },
           ].map((band) => (
             <div key={band.label} className="text-center">
               <div className={`label mb-1 ${band.cls}`}>{band.label}</div>

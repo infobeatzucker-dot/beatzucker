@@ -20,10 +20,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen flex" style={{ background: "var(--bg-primary)" }}>
+    <div className="dashboard-shell min-h-screen flex">
       <Sidebar />
-      <main className="flex-1 min-w-0 px-4 md:px-8 py-6 md:py-8">
-        <div className="max-w-4xl mx-auto">{children}</div>
+      <main className="dashboard-main flex-1 min-w-0 px-4 md:px-8 py-6 md:py-8">
+        <div className="dashboard-content mx-auto">{children}</div>
       </main>
     </div>
   );

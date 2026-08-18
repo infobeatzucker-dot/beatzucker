@@ -16,7 +16,8 @@ function generateNoiseFloor(bars: number, t: number): number[] {
   for (let i = 0; i < bars; i++) {
     const x    = i / bars;
     const base = -60 + 20 * Math.exp(-3 * x) + 10 * Math.sin(x * Math.PI * 2) * Math.sin(t * 0.5 + i * 0.3);
-    data[i]    = base + (Math.random() - 0.5) * 4;
+    const texture = Math.sin(i * 1.73 + t * 2.1) * 1.4 + Math.sin(i * .41 - t * 1.2) * .8;
+    data[i]    = base + texture;
   }
   return data;
 }
@@ -100,9 +101,9 @@ export default function SpectrumAnalyzer({ isProcessing, hasPostData, analyser }
 
         // Frequency color gradient: purple → cyan
         const frac = i / NUM_BARS;
-        const r    = frac < 0.3 ? 124 : frac < 0.6 ? 60 : 0;
-        const g    = frac < 0.3 ? 111 : frac < 0.7 ? 180 : 229;
-        const b    = frac < 0.3 ? 255 : frac < 0.6 ? 200 : 196;
+        const r    = frac < 0.26 ? 226 : frac < 0.62 ? 128 : 55;
+        const g    = frac < 0.26 ? 66 : frac < 0.62 ? 91 : 196;
+        const b    = frac < 0.26 ? 215 : frac < 0.62 ? 255 : 255;
 
         const grad = ctx.createLinearGradient(x, y, x, H - 20);
         grad.addColorStop(0, `rgba(${r},${g},${b},0.75)`);

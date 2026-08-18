@@ -14,6 +14,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudioEngine } from "@/contexts/AudioEngineContext";
+import type { Lang } from "@/lib/types/mastering";
 
 function formatTime(s: number) {
   if (!isFinite(s) || isNaN(s)) return "0:00";
@@ -24,9 +25,10 @@ function formatTime(s: number) {
 
 interface Props {
   filename: string;
+  lang?: Lang;
 }
 
-export default function ABPlayer({ filename }: Props) {
+export default function ABPlayer({ filename, lang = "de" }: Props) {
   const engine = useAudioEngine();
 
   // Canvas refs
@@ -316,7 +318,7 @@ export default function ABPlayer({ filename }: Props) {
               key={m}
               onClick={() => engine.setMode(m)}
               disabled={disabled}
-              title={m === "B" && !masteredUrl ? "Master noch nicht verfügbar" : undefined}
+              title={m === "B" && !masteredUrl ? (lang === "de" ? "Master noch nicht verfügbar" : "Master not available yet") : undefined}
               whileHover={disabled ? {} : { scale: 1.04 }}
               whileTap={disabled   ? {} : { scale: 0.97 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -385,7 +387,7 @@ export default function ABPlayer({ filename }: Props) {
         {!engine.staticWaveform && (
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-              Loading waveform…
+              {lang === "de" ? "Wellenform wird geladen…" : "Loading waveform…"}
             </span>
           </div>
         )}
@@ -522,7 +524,7 @@ export default function ABPlayer({ filename }: Props) {
               border: "1px solid rgba(255,71,87,0.2)",
               fontSize: "10px",
             }}>
-              master unavailable
+              {lang === "de" ? "Master nicht verfügbar" : "master unavailable"}
             </span>
           )}
         </div>

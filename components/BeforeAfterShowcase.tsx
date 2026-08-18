@@ -1,84 +1,126 @@
 "use client";
 
-import WaveformViewer from "@/components/Visualizer/WaveformViewer";
-import LUFSMeter from "@/components/Visualizer/LUFSMeter";
-import DynamicsGraph from "@/components/Visualizer/DynamicsGraph";
+import { useState, type CSSProperties } from "react";
+import { Activity, ArrowRight, Gauge, Sparkles, Waves } from "lucide-react";
 
 type Lang = "de" | "en";
+type CompareMode = "before" | "after";
 
 const T = {
-  badge:   { de: "Beispielhafte Darstellung", en: "Illustrative example" },
-  heading: { de: "Der Unterschied ist hörbar", en: "The difference is audible" },
+  badge: { de: "Interaktiver Klangvergleich", en: "Interactive sound comparison" },
+  heading: { de: "Dein Track – vorher & nachher", en: "Your track – before & after" },
   sub: {
-    de: "So verändern sich Lautheit und Dynamik durch das Mastering — Beispielwerte, kein echter Track.",
-    en: "How loudness and dynamics change through mastering — example values, not a real track.",
+    de: "Wechsle zwischen Original und Master und sieh, wie sich Lautheit, Dynamik und Frequenzbalance verändern.",
+    en: "Switch between the original and master to see how loudness, dynamics and frequency balance change.",
   },
+  before: { de: "Vorher", en: "Before" },
+  after: { de: "Nachher", en: "After" },
+  original: { de: "Original-Mix", en: "Original mix" },
+  mastered: { de: "KI-Master", en: "AI master" },
+  example: { de: "Visualisierte Beispielwerte", en: "Illustrative example values" },
+  monitor: { de: "A/B-KLANGVERGLEICH", en: "A/B MASTERING MONITOR" },
+  originalSignal: { de: "ORIGINAL-SIGNAL", en: "ORIGINAL SIGNAL" },
+  masteredSignal: { de: "MASTER-SIGNAL", en: "MASTERED SIGNAL" },
   loudness: { de: "Lautheit", en: "Loudness" },
   dynamics: { de: "Dynamik", en: "Dynamics" },
-  before: { de: "Vorher", en: "Before" },
-  after:  { de: "Nachher", en: "After" },
+  groupLabel: { de: "Vorher-Nachher-Ansicht", en: "Before-and-after view" },
 };
 
+const METRICS = [
+  { label: { de: "Lautheit", en: "Loudness" }, before: "−14.2", after: "−9.0", unit: "LUFS", icon: Gauge },
+  { label: { de: "Dynamik", en: "Dynamics" }, before: "8.1", after: "10.8", unit: "DR", icon: Activity },
+  { label: { de: "Frequenzbereich", en: "Frequency range" }, before: "18 kHz", after: "20 kHz", unit: "", icon: Waves },
+] as const;
+
+const WAVE_BARS = Array.from({ length: 76 }, (_, index) => {
+  const envelope = Math.sin((index / 75) * Math.PI);
+  const detail = 0.48 + Math.abs(Math.sin(index * 1.73)) * 0.34 + Math.abs(Math.cos(index * 0.47)) * 0.18;
+  return Math.max(8, Math.round(envelope * detail * 94));
+});
+
+const DYNAMICS_BARS = Array.from({ length: 22 }, (_, index) => 22 + Math.round(Math.abs(Math.sin(index * 0.82 + 0.6)) * 56));
+
 export default function BeforeAfterShowcase({ lang = "de" }: { lang?: Lang }) {
+  const [mode, setMode] = useState<CompareMode>("after");
+  const isAfter = mode === "after";
+
   return (
-    <section className="py-20 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-10">
-          <div
-            className="inline-block px-3 py-1 rounded-full mb-3"
-            style={{
-              fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
-              color: "var(--accent-cyan)", background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.25)",
-            }}
-          >
-            {T.badge[lang]}
-          </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold mb-2" style={{ color: "var(--text-primary)" }}>
-            {T.heading[lang]}
-          </h2>
-          <p className="text-sm md:text-base max-w-xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-            {T.sub[lang]}
-          </p>
+    <section id="before-after" className="compare-section py-20 px-4">
+      <div className="compare-wrap max-w-6xl mx-auto">
+        <div className="compare-heading text-center">
+          <div className="compare-badge"><Sparkles size={13} /> {T.badge[lang]}</div>
+          <h2>{T.heading[lang]}</h2>
+          <p>{T.sub[lang]}</p>
         </div>
 
-        <div className="glass-panel-elevated p-6 md:p-8">
-          <div className="flex items-center gap-4 mb-4 justify-center">
-            <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--accent-purple)" }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent-purple)", display: "inline-block" }} />
-              {T.before[lang]}
-            </span>
-            <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--accent-cyan)" }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent-cyan)", display: "inline-block" }} />
-              {T.after[lang]}
-            </span>
+        <div className={`compare-console ${isAfter ? "show-after" : "show-before"}`}>
+          <div className="compare-console-top">
+            <div>
+              <span className="compare-overline">{T.monitor[lang]}</span>
+              <h3 aria-live="polite">{isAfter ? T.mastered[lang] : T.original[lang]}</h3>
+            </div>
+            <div className="compare-toggle" role="group" aria-label={T.groupLabel[lang]}>
+              <button type="button" className={!isAfter ? "active" : ""} aria-pressed={!isAfter} onClick={() => setMode("before")}>
+                <i /> A&nbsp; {T.before[lang]}
+              </button>
+              <button type="button" className={isAfter ? "active" : ""} aria-pressed={isAfter} onClick={() => setMode("after")}>
+                <i /> B&nbsp; {T.after[lang]}
+              </button>
+            </div>
           </div>
 
-          <div className="glass-panel p-3 mb-5" style={{ height: 180 }}>
-            <WaveformViewer isProcessing={false} hasPostData analyser={null} />
+          <div className="compare-wave-stage">
+            <div className="wave-stage-grid" aria-hidden="true" />
+            <div className="wave-axis"><span>0:00</span><span>0:45</span><span>1:30</span><span>2:15</span><span>3:00</span><span>3:24</span></div>
+            <div className="compare-waveform" aria-hidden="true">
+              {WAVE_BARS.map((height, index) => (
+                <i
+                  key={index}
+                  style={{
+                    "--wave-height": `${isAfter ? Math.min(100, height * 1.18) : height * 0.76}%`,
+                    "--wave-delay": `${index * -18}ms`,
+                  } as CSSProperties}
+                />
+              ))}
+            </div>
+            <div className="compare-playhead" aria-hidden="true" />
+            <div className="wave-state-label"><span>{isAfter ? T.masteredSignal[lang] : T.originalSignal[lang]}</span><i /></div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="glass-panel p-3" style={{ height: 160 }}>
-              <div className="label mb-2">{T.loudness[lang]}</div>
-              <LUFSMeter integrated={-9.0} truePeak={-1.0} isProcessing={false} analyser={null} />
-            </div>
-            <div className="glass-panel p-3" style={{ height: 160 }}>
-              <div className="label mb-2">{T.dynamics[lang]}</div>
-              <DynamicsGraph drValue={10.8} crestFactor={11.5} isProcessing={false} />
-            </div>
-            <div className="glass-panel p-3 flex flex-col justify-center gap-3" style={{ height: 160 }}>
-              <div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{T.loudness[lang]}</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>
-                  <span style={{ color: "var(--accent-purple)" }}>-14.2</span> → <span style={{ color: "var(--accent-cyan)" }}>-9.0 LUFS</span>
-                </div>
+          <div className="compare-lower-grid">
+            <div className="compare-meter-card">
+              <div className="compare-card-title"><span>{T.loudness[lang]}</span><i>LUFS</i></div>
+              <div className="compare-loudness" aria-label={`Lautheit ${isAfter ? "minus 9" : "minus 14,2"} LUFS`}>
+                {["M", "S", "I"].map((label, index) => (
+                  <div className="compare-loudness-channel" key={label}>
+                    <span>{label}</span>
+                    <div><i style={{ "--meter-level": `${(isAfter ? 72 : 54) - index * 3}%` } as CSSProperties} /></div>
+                  </div>
+                ))}
+                <div className="compare-peak"><span>TRUE PEAK</span><strong>{isAfter ? "−1.0" : "−2.4"}</strong><small>dBTP</small></div>
               </div>
-              <div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{T.dynamics[lang]}</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>
-                  <span style={{ color: "var(--accent-purple)" }}>8.1</span> → <span style={{ color: "var(--accent-cyan)" }}>10.8 DR</span>
+            </div>
+            <div className="compare-meter-card">
+              <div className="compare-card-title"><span>{T.dynamics[lang]}</span><i>DR</i></div>
+              <div className="compare-dynamics" aria-label={`Dynamikumfang ${isAfter ? "10,8" : "8,1"}`}>
+                <div className="dynamics-bars" aria-hidden="true">
+                  {DYNAMICS_BARS.map((height, index) => (
+                    <i key={index} style={{ height: `${isAfter ? height : Math.max(14, height * 0.68)}%` }} />
+                  ))}
                 </div>
+                <div className="dynamics-readout"><strong>DR{isAfter ? "11" : "8"}</strong><span>CF {isAfter ? "11.5" : "9.2"} dB</span></div>
               </div>
+            </div>
+            <div className="compare-metrics">
+              {METRICS.map(({ label, before, after, unit, icon: Icon }) => (
+                <div className="compare-metric" key={label.de}>
+                  <span className="metric-icon"><Icon size={15} /></span>
+                  <span><small>{label[lang]}</small><strong>{lang === "de" ? before.replace(".", ",") : before}</strong></span>
+                  <ArrowRight size={13} />
+                  <span className="metric-result"><strong>{lang === "de" ? after.replace(".", ",") : after}</strong><small>{unit}</small></span>
+                </div>
+              ))}
+              <div className="compare-example-note">{T.example[lang]}</div>
             </div>
           </div>
         </div>

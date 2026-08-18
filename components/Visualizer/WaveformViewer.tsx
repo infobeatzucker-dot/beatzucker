@@ -109,10 +109,10 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
           void step;
         };
 
-        drawWave(preWave, "#8b5cf6", 0.7);
+        drawWave(preWave, "#e843d4", 0.58);
         if (hasPostData || isProcessing) {
           const gain = hasPostData ? 1.4 : 1.0 + Math.abs(Math.sin(t * 2)) * 0.4;
-          drawWave(preWave, "#38bdf8", hasPostData ? 0.8 : 0.4, gain);
+          drawWave(preWave, "#48c8ff", hasPostData ? 0.86 : 0.46, gain);
         }
 
         // Idle playhead

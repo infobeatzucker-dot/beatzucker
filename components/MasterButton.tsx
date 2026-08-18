@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Platform, Preset, MasterData, ProgressStep, AnalysisData } from "@/lib/types/mastering";
+import { Platform, Preset, MasterData, ProgressStep, AnalysisData, type Lang } from "@/lib/types/mastering";
 
 interface Props {
   fileId: string;
@@ -19,17 +19,24 @@ interface Props {
   onError: () => void;
   compact?: boolean;          // compact layout for sticky popup (no hint text, smaller button)
   downloadWindow?: "24h"; // shown as reminder below the button
+  lang?: Lang;
 }
 
 const STEP_LABELS: Record<string, string> = {
-  analyzing:   "Analyzing track…",
-  eq:          "Applying EQ correction…",
-  compression: "Multiband compression…",
-  ms:          "M/S processing…",
-  saturation:  "Harmonic saturation…",
-  limiting:    "True Peak limiting…",
-  rendering:   "Rendering all formats…",
-  complete:    "Mastering complete!",
+  analyzing:   "Track wird analysiert…",
+  eq:          "EQ-Korrektur wird angewendet…",
+  compression: "Multiband-Kompression…",
+  ms:          "M/S-Bearbeitung…",
+  saturation:  "Harmonische Sättigung…",
+  limiting:    "True-Peak-Limiting…",
+  rendering:   "Formate werden gerendert…",
+  complete:    "Mastering abgeschlossen!",
+};
+
+const STEP_LABELS_EN: Record<string, string> = {
+  analyzing: "Analyzing track…", eq: "Applying EQ correction…", compression: "Multiband compression…",
+  ms: "M/S processing…", saturation: "Harmonic saturation…", limiting: "True Peak limiting…",
+  rendering: "Rendering all formats…", complete: "Mastering complete!",
 };
 
 export default function MasterButton({
@@ -39,6 +46,7 @@ export default function MasterButton({
   isProcessing, onStart, onProgress, onComplete, onError,
   compact = false,
   downloadWindow = "24h",
+  lang = "de",
 }: Props) {
   const particleContainerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -95,7 +103,8 @@ export default function MasterButton({
           const data = JSON.parse(line.slice(6));
           if (data.step === "complete") { onComplete(data as MasterData); return true; }
           if (data.error)               { onError(); return true; }
-          onProgress({ step: data.step, label: STEP_LABELS[data.step] || data.label || data.step, progress: data.progress ?? 0 });
+          const labels = lang === "de" ? STEP_LABELS : STEP_LABELS_EN;
+          onProgress({ step: data.step, label: labels[data.step] || data.label || data.step, progress: data.progress ?? 0 });
         } catch (e) { if (process.env.NODE_ENV === "development") console.warn("[SSE] malformed chunk:", line, e); }
         return false;
       };
@@ -163,11 +172,11 @@ export default function MasterButton({
             <span className="flex items-center gap-3 justify-center">
               <span className="w-4 h-4 rounded-full border-2 border-transparent animate-spin"
                 style={{ borderTopColor: "rgba(255,255,255,0.8)", borderRightColor: "rgba(255,255,255,0.4)" }} />
-              Mastering…
+              {lang === "de" ? "Mastering läuft…" : "Mastering…"}
             </span>
           ) : (
             <span className="flex items-center gap-2 justify-center">
-              ▶ MASTER NOW
+              {lang === "de" ? "▶ JETZT MASTERN" : "▶ MASTER NOW"}
               {!compact && (
                 <kbd className="text-xs px-1.5 py-0.5 rounded mono opacity-60"
                   style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.2)", fontSize: 10 }}>
@@ -182,11 +191,11 @@ export default function MasterButton({
       {!isProcessing && !compact && (
         <div className="flex flex-col items-center gap-1">
           <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
-            Professionelle Mastering-Chain · KI-Parameterwahl · Format: <span style={{ color: "var(--accent-cyan)" }}>{selectedFormat.toUpperCase()}</span>
+            {lang === "de" ? "Professionelle Mastering-Kette · KI-Parameterwahl · Format: " : "Professional mastering chain · AI parameter selection · Format: "}<span style={{ color: "var(--accent-cyan)" }}>{selectedFormat.toUpperCase()}</span>
           </p>
           <p className="text-xs text-center flex items-center gap-1" style={{ color: "rgba(196,181,253,0.75)" }}>
             <span>⏱</span>
-            <span>Download-Fenster nach Fertigstellung: <strong>{downloadWindow}</strong></span>
+            <span>{lang === "de" ? "Download-Fenster nach Fertigstellung:" : "Download window after completion:"} <strong>{downloadWindow}</strong></span>
           </p>
         </div>
       )}

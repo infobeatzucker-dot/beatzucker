@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, SlidersHorizontal } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import UploadZone from "@/components/UploadZone";
 import AuthModal from "@/components/AuthModal";
 import AnalysisPanel from "@/components/AnalysisPanel";
@@ -19,10 +19,9 @@ import { AudioEngineProvider, useAudioEngine } from "@/contexts/AudioEngineConte
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { DAILY_MASTER_LIMIT } from "@/lib/constants";
 import type {
-  AppState, Platform, Preset, AnalysisData, MasterData, UploadedFile, ProgressStep,
+  AppState, Platform, Preset, AnalysisData, MasterData, UploadedFile, ProgressStep, Lang,
 } from "@/lib/types/mastering";
 
-type Lang = "de" | "en";
 
 // ── Auto-play master after mastering completes ─────────────────────────────────
 // Must live inside AudioEngineProvider so it can access the audio engine hook.
@@ -58,13 +57,17 @@ function MasterPlayTrigger({ shouldPlay, downloadRef }: {
 const T = {
   free_limit: {
     de: (used: number, limit: number) => used >= limit
-      ? `Tageslimit erreicht (${used}/${limit} Masters heute).`
-      : `${used} von ${limit} Masters heute genutzt`,
+      ? `Tageslimit erreicht (${used}/${limit} Masterings heute).`
+      : `${used} von ${limit} Masterings heute genutzt`,
     en: (used: number, limit: number) => used >= limit
       ? `Daily limit reached (${used}/${limit} masters today).`
       : `${used} of ${limit} masters used today`,
   },
   neue_datei: { de: "Neue Datei", en: "New File" },
+  studio: { de: "KI-Mastering-Studio", en: "AI mastering studio" },
+  dashboard: { de: "Mastering-Dashboard", en: "Mastering dashboard" },
+  ready: { de: "Bereit", en: "Ready" },
+  analyzing: { de: "Track wird analysiert…", en: "Analyzing track…" },
   download_window: {
     de: () => `⏱ Nach Fertigstellung 24 Stunden zum Download verfügbar — danach automatische Löschung`,
     en: () => `⏱ Download available for 24 hours after completion — then automatically deleted`,
@@ -99,7 +102,6 @@ export default function MasteringWorkspace({ lang }: Props) {
   const [selectedFormat,   setSelectedFormat]   = useState<string>("mp3128");
   const [referenceAnalysis, setReferenceAnalysis] = useState<AnalysisData | null>(null);
   const [savedRefs, setSavedRefs] = useState<SavedRef[]>([]);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
 
   // Scroll targets
@@ -161,9 +163,9 @@ export default function MasteringWorkspace({ lang }: Props) {
   const handleMasteringStart = useCallback(() => {
     isMasteringRef.current = true;
     setAppState("mastering");
-    setCurrentProgress({ step: "analyzing", label: "Analyzing track…", progress: 5 });
+    setCurrentProgress({ step: "analyzing", label: T.analyzing[lang], progress: 5 });
     // No scroll needed — progress is shown in a modal overlay
-  }, []);
+  }, [lang]);
 
   const handleProgressUpdate = useCallback((step: ProgressStep) => setCurrentProgress(step), []);
 
@@ -211,13 +213,21 @@ export default function MasteringWorkspace({ lang }: Props) {
         <ErrorBoundary>
         <AudioEngineProvider originalUrl={originalUrl} masteredUrl={masteredUrl}>
           <div
-            className="glass-panel-elevated p-6 md:p-8 relative"
+            className="mastering-dashboard glass-panel-elevated relative"
             style={{
               boxShadow: appState === "mastering"
                 ? "0 0 40px rgba(139,92,246,0.2), 0 0 80px rgba(56,189,248,0.05)"
                 : "0 4px 40px rgba(0,0,0,0.4)",
             }}
           >
+            <div className="dashboard-heading">
+              <div>
+                <span className="dashboard-kicker">{T.studio[lang]}</span>
+                <h2>{T.dashboard[lang]}</h2>
+              </div>
+              <span className="ready-status"><i /> {T.ready[lang]}</span>
+            </div>
+
             {/* Daily usage counter (fair-use limit, applies to everyone) */}
             {sessionStatus === "authenticated" && dailyUsed !== null && (
               <div style={{
@@ -242,102 +252,54 @@ export default function MasteringWorkspace({ lang }: Props) {
               </div>
             )}
 
-            {/* Step 1 — Platform + Preset + optional "Neue Datei" link */}
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="flex items-center justify-center rounded-full flex-shrink-0"
-                style={{ width: 18, height: 18, fontSize: "10px", fontWeight: 700, background: "rgba(139,92,246,0.15)", color: "var(--accent-purple)" }}
-              >
-                1
-              </span>
-              <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Ziel & Genre</span>
-            </div>
-            <div className="grid grid-cols-2 gap-5 mb-7">
-              <PlatformTargets value={platform} onChange={setPlatform} />
-              <div className="flex flex-col gap-1">
-                <PresetSelector value={preset} onChange={setPreset} />
-                {/* "Neue Datei" appears under preset when a file is loaded */}
-                <AnimatePresence>
-                  {appState !== "idle" && (
-                    <motion.button
-                      key="neue-datei-top"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      onClick={handleReset}
-                      className="text-xs flex items-center gap-1 hover:opacity-80 transition-opacity self-end pt-1"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
-                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
-                      </svg>
-                      {T.neue_datei[lang]}
-                    </motion.button>
-                  )}
-                </AnimatePresence>
+            <div className={`dashboard-main-grid ${appState === "analyzed" || appState === "mastering" || appState === "done" ? "without-upload" : ""}`}>
+              <div className="dashboard-control-card">
+                <PlatformTargets value={platform} onChange={setPlatform} lang={lang} />
+              </div>
+
+              <AnimatePresence mode="wait">
+                {(appState === "idle" || appState === "uploaded" || appState === "analyzing") && (
+                  <motion.div
+                    key="upload"
+                    className="dashboard-upload-card"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <UploadZone
+                      onUploadComplete={handleUploadComplete}
+                      onAnalysisComplete={handleAnalysisComplete}
+                      setAppState={setAppState}
+                      uploadedFile={uploadedFile}
+                      isAuthenticated={sessionStatus === "authenticated"}
+                      onSignInClick={() => setAuthOpen(true)}
+                      lang={lang}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="dashboard-control-card preset-card">
+                <PresetSelector value={preset} onChange={setPreset} lang={lang} />
+                {appState !== "idle" && (
+                  <button type="button" onClick={handleReset} className="new-file-button">
+                    <RotateCcw size={12} /> {T.neue_datei[lang]}
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Step 2 — Advanced (Intensity + Reference Track), collapsed by default */}
-            <button
-              onClick={() => setShowAdvanced((v) => !v)}
-              className="w-full flex items-center gap-2 mb-3 px-3 py-2 rounded-lg transition-all"
-              style={{
-                background: showAdvanced ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.06)",
-                border: `1px solid ${showAdvanced ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.22)"}`,
-              }}
-            >
-              <SlidersHorizontal size={14} strokeWidth={2} color="var(--accent-purple)" />
-              <span className="text-xs font-semibold" style={{ color: "var(--accent-purple)" }}>Erweitert — Intensität &amp; Referenz-Track</span>
-              <span className="text-xs" style={{ color: "var(--text-muted)" }}>(optional)</span>
-              <ChevronDown
-                size={13} strokeWidth={2.5} color="var(--accent-purple)"
-                style={{ marginLeft: "auto", transform: showAdvanced ? "rotate(180deg)" : "none", transition: "transform 0.2s ease" }}
+            <div className="dashboard-secondary-grid">
+              <MasteringIntensity value={intensity} onChange={setIntensity} lang={lang} />
+              <ReferenceTrack
+                onReference={(a) => setReferenceAnalysis(a as AnalysisData | null)}
+                savedRefs={savedRefs}
+                onSaveRef={handleSaveRef}
+                onDeleteRef={handleDeleteRef}
+                lang={lang}
               />
-            </button>
-            <AnimatePresence initial={false}>
-              {showAdvanced && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                  style={{ overflow: "hidden" }}
-                >
-                  <div className="grid grid-cols-2 gap-5 mb-7">
-                    <MasteringIntensity value={intensity} onChange={setIntensity} />
-                    <ReferenceTrack
-                      onReference={(a) => setReferenceAnalysis(a as AnalysisData | null)}
-                      savedRefs={savedRefs}
-                      onSaveRef={handleSaveRef}
-                      onDeleteRef={handleDeleteRef}
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Upload Zone */}
-            <AnimatePresence mode="wait">
-              {(appState === "idle" || appState === "uploaded" || appState === "analyzing") && (
-                <motion.div
-                  key="upload"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <UploadZone
-                    onUploadComplete={handleUploadComplete}
-                    onAnalysisComplete={handleAnalysisComplete}
-                    setAppState={setAppState}
-                    uploadedFile={uploadedFile}
-                    isAuthenticated={sessionStatus === "authenticated"}
-                    onSignInClick={() => setAuthOpen(true)}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            </div>
 
             {/* Player — shown after analysis (original only) */}
             <AnimatePresence>
@@ -349,7 +311,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <ABPlayer filename={uploadedFile.filename} />
+                  <ABPlayer filename={uploadedFile.filename} lang={lang} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -367,6 +329,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                     preAnalysis={analysis}
                     postAnalysis={masterData?.post_analysis ?? null}
                     isProcessing={appState === "mastering"}
+                    lang={lang}
                   />
                 </motion.div>
               )}
@@ -395,6 +358,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                     preAnalysis={analysis!}
                     onReset={handleReset}
                     onRemaster={handleRemaster}
+                    lang={lang}
                   />
                 </motion.div>
               )}
@@ -477,6 +441,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                   onComplete={handleMasteringComplete}
                   onError={handleMasteringError}
                   compact
+                  lang={lang}
                 />
               </div>
             </div>
@@ -488,6 +453,7 @@ export default function MasteringWorkspace({ lang }: Props) {
       <MasteringProgressModal
         isOpen={appState === "mastering"}
         step={currentProgress}
+        lang={lang}
       />
 
       {/* Auth modal — opened from the "Sign In / Register" prompt inside UploadZone */}

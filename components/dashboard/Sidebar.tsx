@@ -4,19 +4,19 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Library, UploadCloud, SlidersHorizontal, UserCircle, Menu, X } from "lucide-react";
+import { LayoutDashboard, Library, UploadCloud, SlidersHorizontal, UserCircle, Menu, X, Sparkles, ShieldCheck } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard",         icon: LayoutDashboard },
-  { label: "Library",   href: "/dashboard/library",  icon: Library },
+  { label: "Übersicht", href: "/dashboard",         icon: LayoutDashboard },
+  { label: "Bibliothek", href: "/dashboard/library",  icon: Library },
   { label: "Uploads",   href: "/dashboard/uploads",  icon: UploadCloud },
-  { label: "Presets",   href: "/dashboard/presets",  icon: SlidersHorizontal },
-  { label: "Profile",   href: "/dashboard/profile",  icon: UserCircle },
+  { label: "Referenzen", href: "/dashboard/presets", icon: SlidersHorizontal },
+  { label: "Profil",   href: "/dashboard/profile",  icon: UserCircle },
 ];
 
 function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
-    <nav className="flex flex-col gap-1">
+    <nav className="dashboard-nav flex flex-col gap-1">
       {NAV_ITEMS.map((item) => {
         const active = item.href === "/dashboard"
           ? pathname === "/dashboard"
@@ -27,13 +27,13 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            className={active ? "nav-item-active" : ""}
+            className={`dashboard-nav-item ${active ? "nav-item-active" : ""}`}
             style={{
               display: "flex",
               alignItems: "center",
               gap: "0.7rem",
-              padding: "0.6rem 0.85rem",
-              borderRadius: "10px",
+              padding: "0.72rem 0.85rem",
+              borderRadius: "12px",
               fontSize: "0.85rem",
               fontWeight: active ? 700 : 500,
               color: active ? "var(--accent-purple)" : "var(--text-secondary)",
@@ -50,15 +50,16 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ previewPath }: { previewPath?: string }) {
   const pathname = usePathname();
+  const effectivePathname = previewPath ?? pathname;
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <>
       {/* Desktop fixed sidebar */}
       <aside
-        className="hidden md:flex flex-col"
+        className="dashboard-sidebar hidden md:flex flex-col"
         style={{
           width: "var(--sidebar-width)",
           minHeight: "100vh",
@@ -66,32 +67,24 @@ export default function Sidebar() {
           top: 0,
           alignSelf: "flex-start",
           padding: "1.5rem 1rem",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
-          background: "rgba(8,10,18,0.6)",
         }}
       >
-        <Link href="/" className="flex items-center gap-2 px-2 mb-1" style={{ textDecoration: "none" }}>
-          <span className="font-black text-lg tracking-tight">
-            <span style={{ color: "var(--accent-purple)" }}>Beat</span>
-            <span style={{ color: "var(--accent-cyan)" }}>zucker</span>
+        <Link href="/" className="brand-lockup dashboard-brand px-2 mb-1" style={{ textDecoration: "none" }}>
+          <span className="brand-wave mini" aria-hidden="true">
+            {[10, 22, 32, 18, 26, 12].map((height, index) => <i key={index} style={{ height }} />)}
+          </span>
+          <span className="font-black text-lg tracking-tight" style={{ color: "#fff" }}>
+            Beatzucker
           </span>
         </Link>
-        <div className="px-2 mb-6 label" style={{ fontSize: "10px" }}>AI-Powered Mastering</div>
+        <div className="dashboard-brand-sub px-2 mb-7"><Sparkles size={10} /> KI-GESTÜTZTES MASTERING</div>
 
-        <NavLinks pathname={pathname} />
+        <NavLinks pathname={effectivePathname} />
 
         <div style={{ marginTop: "auto", paddingTop: "1.5rem" }}>
-          <div
-            className="px-3 py-2 rounded-lg text-center"
-            style={{
-              fontSize: "11px",
-              fontWeight: 600,
-              color: "var(--accent-cyan)",
-              background: "rgba(56,189,248,0.08)",
-              border: "1px solid rgba(56,189,248,0.2)",
-            }}
-          >
-            Kostenloses AI-Mastering
+          <div className="sidebar-free-card">
+            <span><ShieldCheck size={16} /> Kostenlos mastern</span>
+            <small>Alle Werkzeuge. Keine Paywall.</small>
           </div>
         </div>
       </aside>
@@ -110,10 +103,7 @@ export default function Sidebar() {
         }}
       >
         <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-          <span className="font-black text-base tracking-tight">
-            <span style={{ color: "var(--accent-purple)" }}>Beat</span>
-            <span style={{ color: "var(--accent-cyan)" }}>zucker</span>
-          </span>
+          <span className="font-black text-base tracking-tight" style={{ color: "#fff" }}>Beatzucker</span>
         </Link>
         <button
           onClick={() => setMobileOpen((v) => !v)}
@@ -141,7 +131,7 @@ export default function Sidebar() {
             }}
           >
             <div className="px-3 py-4">
-              <NavLinks pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+              <NavLinks pathname={effectivePathname} onNavigate={() => setMobileOpen(false)} />
             </div>
           </motion.div>
         )}

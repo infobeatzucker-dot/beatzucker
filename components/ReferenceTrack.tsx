@@ -9,6 +9,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { SlidersHorizontal, Save, BarChart3, Library } from "lucide-react";
+import type { Lang } from "@/lib/types/mastering";
 
 export interface ReferenceAnalysis {
   integrated_lufs:   number;
@@ -33,10 +34,11 @@ interface Props {
   savedRefs?: SavedRef[];
   onSaveRef?: (analysis: ReferenceAnalysis, name: string) => Promise<void>;
   onDeleteRef?: (id: string) => Promise<void>;
+  lang?: Lang;
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
+function fmtDate(iso: string, lang: Lang) {
+  return new Date(iso).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
 
 // ── Reference Popup ──────────────────────────────────────────────────────────
@@ -47,12 +49,14 @@ function ReferencePopup({
   canSave,
   onClose,
   onSave,
+  lang,
 }: {
   analysis: ReferenceAnalysis;
   filename: string;
   canSave?: boolean;
   onClose: () => void;
   onSave?: () => Promise<void>;
+  lang: Lang;
 }) {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
@@ -113,7 +117,7 @@ function ReferencePopup({
             <SlidersHorizontal size={17} strokeWidth={2} color="var(--accent-gold)" />
             <div>
               <div style={{ fontSize: "0.7rem", color: "var(--accent-gold)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700 }}>
-                Referenz-Analyse
+                {lang === "de" ? "Referenz-Analyse" : "Reference analysis"}
               </div>
               <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "0.1rem", maxWidth: "280px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {filename}
@@ -132,11 +136,11 @@ function ReferencePopup({
         <div style={{ padding: "1.1rem 1.25rem 0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.625rem", marginBottom: "1.1rem" }}>
             {[
-              { label: "Integrated",  value: `${analysis.integrated_lufs.toFixed(1)} LUFS`, color: "var(--accent-purple)" },
+              { label: lang === "de" ? "Integriert" : "Integrated", value: `${analysis.integrated_lufs.toFixed(1)} LUFS`, color: "var(--accent-purple)" },
               { label: "True Peak",   value: `${analysis.true_peak.toFixed(1)} dBTP`,        color: "var(--accent-cyan)" },
-              { label: "Centroid",    value: `${Math.round(analysis.spectral_centroid)} Hz`,  color: "#f59e0b" },
+              { label: lang === "de" ? "Schwerpunkt" : "Centroid", value: `${Math.round(analysis.spectral_centroid)} Hz`, color: "#f59e0b" },
               { label: "Rolloff",     value: `${Math.round(analysis.spectral_rolloff)} Hz`,   color: "var(--accent-cyan)" },
-              { label: "Flatness",    value: analysis.spectral_flatness.toFixed(3),           color: "var(--accent-purple)" },
+              { label: lang === "de" ? "Flachheit" : "Flatness", value: analysis.spectral_flatness.toFixed(3), color: "var(--accent-purple)" },
             ].map((m) => (
               <div key={m.label} style={{
                 background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
@@ -158,7 +162,7 @@ function ReferencePopup({
             borderRadius: "10px", padding: "0.875rem", marginBottom: "1.1rem",
           }}>
             <div style={{ fontSize: "0.65rem", color: "var(--text-muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.75rem", fontWeight: 600 }}>
-              Frequency Band Energy
+              {lang === "de" ? "Frequenzband-Energie" : "Frequency band energy"}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
               {bands.map((b) => (
@@ -187,7 +191,7 @@ function ReferencePopup({
           display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem",
         }}>
           <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-            KI matcht Loudness · Spektrum · Dynamik
+            {lang === "de" ? "KI gleicht Lautheit · Spektrum · Dynamik ab" : "AI matches loudness · spectrum · dynamics"}
           </span>
           <div style={{ display: "flex", gap: "0.5rem" }}>
             {canSave && (
@@ -205,9 +209,9 @@ function ReferencePopup({
                   transition: "all 0.2s",
                 }}
               >
-                {saveState === "saving" ? "…" : saveState === "saved" ? "✓ Gespeichert" : saveState === "error" ? "Fehler" : (
+                {saveState === "saving" ? "…" : saveState === "saved" ? (lang === "de" ? "✓ Gespeichert" : "✓ Saved") : saveState === "error" ? (lang === "de" ? "Fehler" : "Error") : (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                    <Save size={12} strokeWidth={2} /> Speichern
+                    <Save size={12} strokeWidth={2} /> {lang === "de" ? "Speichern" : "Save"}
                   </span>
                 )}
               </button>
@@ -238,6 +242,7 @@ export default function ReferenceTrack({
   savedRefs = [],
   onSaveRef,
   onDeleteRef,
+  lang = "de",
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [filename, setFilename]         = useState<string | null>(null);
@@ -276,9 +281,9 @@ export default function ReferenceTrack({
         };
         xhr.onload = () => {
           if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-          else reject(new Error("Upload failed"));
+          else reject(new Error(lang === "de" ? "Upload fehlgeschlagen" : "Upload failed"));
         };
-        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.onerror = () => reject(new Error(lang === "de" ? "Netzwerkfehler" : "Network error"));
         xhr.open("POST", "/api/upload");
         xhr.send(form);
       });
@@ -295,7 +300,7 @@ export default function ReferenceTrack({
         body: JSON.stringify({ file_id }),
       });
       clearInterval(analyzeTimer);
-      if (!analyzeRes.ok) throw new Error("Analysis failed");
+      if (!analyzeRes.ok) throw new Error(lang === "de" ? "Analyse fehlgeschlagen" : "Analysis failed");
       setAnalyzePct(100);
 
       const analysis: ReferenceAnalysis = await analyzeRes.json();
@@ -305,7 +310,7 @@ export default function ReferenceTrack({
       setPopupData({ analysis, filename: file.name });
       onReference(analysis, file.name);
     } catch (e) {
-      setError("Referenz-Track konnte nicht analysiert werden");
+      setError(lang === "de" ? "Referenztrack konnte nicht analysiert werden" : "Reference track could not be analyzed");
       setPhase("idle");
       console.warn(e);
     }
@@ -332,7 +337,7 @@ export default function ReferenceTrack({
       setView("upload");
       onReference(analysis, ref.name);
     } catch {
-      setError("Referenz-Daten konnten nicht geladen werden");
+      setError(lang === "de" ? "Referenzdaten konnten nicht geladen werden" : "Reference data could not be loaded");
     }
   };
 
@@ -357,6 +362,7 @@ export default function ReferenceTrack({
           canSave={canSaveRefs && !!onSaveRef}
           onClose={() => setPopupData(null)}
           onSave={handleSaveToLib}
+          lang={lang}
         />
       )}
 
@@ -364,7 +370,7 @@ export default function ReferenceTrack({
         {/* Header row */}
         <div className="flex items-center justify-between mb-2">
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span className="label">Reference Track</span>
+            <span className="label">{lang === "de" ? "Referenztrack" : "Reference track"}</span>
             {canSaveRefs && (
               <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", fontVariantNumeric: "tabular-nums" }}>
                 {savedRefs.length}/{refLimit}
@@ -377,12 +383,12 @@ export default function ReferenceTrack({
                 onClick={() => lastAnalysis && setPopupData({ analysis: lastAnalysis, filename: filename! })}
                 className="transition-opacity hover:opacity-70 flex items-center"
                 style={{ color: "var(--accent-gold)" }}
-                title="Analyse anzeigen"
+                title={lang === "de" ? "Analyse anzeigen" : "Show analysis"}
               ><BarChart3 size={13} strokeWidth={2} /></button>
             )}
             {filename && (
               <button onClick={handleClear} className="text-xs transition-opacity hover:opacity-70" style={{ color: "var(--text-muted)" }}>
-                ✕ Clear
+                ✕ {lang === "de" ? "Entfernen" : "Clear"}
               </button>
             )}
           </div>
@@ -405,7 +411,7 @@ export default function ReferenceTrack({
               >
                 {v === "upload" ? "↑ Upload" : (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                    <Library size={12} strokeWidth={2} /> Bibliothek
+                    <Library size={12} strokeWidth={2} /> {lang === "de" ? "Bibliothek" : "Library"}
                   </span>
                 )}
               </button>
@@ -430,7 +436,7 @@ export default function ReferenceTrack({
               {filename}
             </span>
             <span className="text-xs ml-auto flex-shrink-0" style={{ color: "var(--text-muted)" }}>
-              {fromLibrary ? "Bibliothek · KI matcht diesen" : "KI matcht diesen"}
+              {lang === "de" ? (fromLibrary ? "Bibliothek · KI gleicht daran ab" : "KI gleicht daran ab") : (fromLibrary ? "Library · AI matches this" : "AI matches this")}
             </span>
           </div>
 
@@ -450,7 +456,7 @@ export default function ReferenceTrack({
             </div>
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-                <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.07em", color: phase === "analyze" ? "var(--accent-cyan)" : "var(--text-muted)" }}>ANALYSE</span>
+                <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.07em", color: phase === "analyze" ? "var(--accent-cyan)" : "var(--text-muted)" }}>{lang === "de" ? "ANALYSE" : "ANALYSIS"}</span>
                 {phase === "analyze" && (
                   <span style={{ fontSize: "0.65rem", color: "var(--accent-cyan)", fontVariantNumeric: "tabular-nums" }}>{Math.round(analyzePct)}%</span>
                 )}
@@ -470,7 +476,7 @@ export default function ReferenceTrack({
                 padding: "0.4rem 0.6rem", borderRadius: "7px",
                 background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
               }}>
-                <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", flexShrink: 0 }}>{fmtDate(ref.createdAt)}</span>
+                <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", flexShrink: 0 }}>{fmtDate(ref.createdAt, lang)}</span>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {ref.name}
                 </span>
@@ -481,7 +487,7 @@ export default function ReferenceTrack({
                     background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)",
                     color: "var(--accent-purple)", cursor: "pointer", flexShrink: 0,
                   }}
-                >Laden</button>
+                >{lang === "de" ? "Laden" : "Load"}</button>
                 {onDeleteRef && (
                   <button
                     onClick={() => onDeleteRef(ref.id)}
@@ -491,7 +497,7 @@ export default function ReferenceTrack({
                       color: "#f87171", cursor: "pointer", flexShrink: 0,
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}
-                    title="Löschen"
+                    title={lang === "de" ? "Löschen" : "Delete"}
                   >✕</button>
                 )}
               </div>
@@ -510,7 +516,7 @@ export default function ReferenceTrack({
               <polyline points="17 8 12 3 7 8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            Upload reference (WAV / MP3)
+            {lang === "de" ? "Referenz hochladen (WAV / MP3)" : "Upload reference (WAV / MP3)"}
           </button>
         )}
 

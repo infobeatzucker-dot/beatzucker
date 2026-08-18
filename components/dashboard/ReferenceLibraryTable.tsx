@@ -43,7 +43,7 @@ export default function ReferenceLibraryTable() {
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
         <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", margin: 0 }}>
-          Gespeicherte Referenz-Track-Analysen — kein Audio, nur Analysedaten.
+          Gespeicherte Referenztrack-Analysen — kein Audio, nur Analysedaten.
         </p>
         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>
           {savedRefs.length} / {limit} gespeichert
@@ -51,7 +51,7 @@ export default function ReferenceLibraryTable() {
       </div>
       {savedRefs.length === 0 ? (
         <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontStyle: "italic" }}>
-          Noch keine Referenz-Tracks gespeichert. Analysiere einen Referenz-Track im Mastering-Tool und klicke „Speichern".
+          Noch keine Referenztracks gespeichert. Analysiere einen Referenztrack im Mastering-Studio und klicke „Speichern“.
         </p>
       ) : (
         <div style={{ overflowX: "auto" }}>

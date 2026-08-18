@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { AppState, AnalysisData, UploadedFile } from "@/lib/types/mastering";
+import { AppState, AnalysisData, UploadedFile, type Lang } from "@/lib/types/mastering";
 
 interface Props {
   onUploadComplete: (file: UploadedFile) => void;
@@ -10,6 +10,7 @@ interface Props {
   uploadedFile: UploadedFile | null;
   isAuthenticated?: boolean;
   onSignInClick?: () => void;
+  lang?: Lang;
 }
 
 const ACCEPTED_FORMATS = [".wav", ".flac", ".mp3", ".aiff", ".ogg", ".m4a"];
@@ -36,7 +37,7 @@ const WAVEFORM_BARS = Array.from({ length: 40 }, (_, i) => ({
 // Idle waveform animation bars
 function IdleWaveform() {
   return (
-    <div className="flex items-end justify-center gap-0.5 h-12 mb-4">
+    <div className="hero-waveform flex items-end justify-center gap-0.5 h-12 mb-4" aria-hidden="true">
       {WAVEFORM_BARS.map((bar, i) => (
         <div
           key={i}
@@ -44,7 +45,7 @@ function IdleWaveform() {
           style={{
             width: "3px",
             height: bar.height,
-            backgroundColor: "var(--accent-purple)",
+            background: "linear-gradient(180deg, #ee45d7 0%, #8261ff 52%, #49c8ff 100%)",
             animationDelay: bar.delay,
             animationDuration: bar.duration,
           }}
@@ -61,6 +62,7 @@ export default function UploadZone({
   uploadedFile,
   isAuthenticated = false,
   onSignInClick,
+  lang = "de",
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -79,11 +81,11 @@ export default function UploadZone({
       // Validate
       const ext = "." + file.name.split(".").pop()?.toLowerCase();
       if (!ACCEPTED_FORMATS.includes(ext)) {
-        setError(`Unsupported format. Accepted: ${ACCEPTED_FORMATS.join(", ")}`);
+        setError(lang === "de" ? `Nicht unterstütztes Format. Erlaubt: ${ACCEPTED_FORMATS.join(", ")}` : `Unsupported format. Accepted: ${ACCEPTED_FORMATS.join(", ")}`);
         return;
       }
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        setError(`File too large. Maximum: ${MAX_SIZE_MB}MB`);
+        setError(lang === "de" ? `Datei zu groß. Maximum: ${MAX_SIZE_MB} MB` : `File too large. Maximum: ${MAX_SIZE_MB} MB`);
         return;
       }
 
@@ -108,7 +110,7 @@ export default function UploadZone({
             if (xhr.status === 200) {
               resolve(JSON.parse(xhr.responseText));
             } else {
-              reject(new Error(JSON.parse(xhr.responseText)?.error || "Upload failed"));
+              reject(new Error(JSON.parse(xhr.responseText)?.error || (lang === "de" ? "Upload fehlgeschlagen" : "Upload failed")));
             }
           };
           xhr.onerror = () => reject(new Error("Network error"));
@@ -139,7 +141,7 @@ export default function UploadZone({
 
         if (!analysisRes.ok) {
           const err = await analysisRes.json();
-          throw new Error(err.error || "Analysis failed");
+          throw new Error(err.error || (lang === "de" ? "Analyse fehlgeschlagen" : "Analysis failed"));
         }
 
         setAnalyzeProgress(100);
@@ -149,11 +151,11 @@ export default function UploadZone({
       } catch (err: unknown) {
         setIsUploading(false);
         setIsAnalyzing(false);
-        setError(err instanceof Error ? err.message : "Upload failed");
+        setError(err instanceof Error ? err.message : (lang === "de" ? "Upload fehlgeschlagen" : "Upload failed"));
         setAppState("idle");
       }
     },
-    [onUploadComplete, onAnalysisComplete, setAppState]
+    [onUploadComplete, onAnalysisComplete, setAppState, lang]
   );
 
   const onDrop = useCallback(
@@ -197,7 +199,7 @@ export default function UploadZone({
               }}>
                 {isUploading && <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "var(--accent-purple)", boxShadow: "0 0 6px var(--accent-purple)", animation: "pulse 1s infinite" }} />}
                 {!isUploading && <span style={{ color: "var(--accent-cyan)" }}>✓</span>}
-                UPLOAD
+                {lang === "de" ? "HOCHLADEN" : "UPLOAD"}
               </span>
               <span style={{ fontSize: "0.72rem", color: "var(--accent-purple)", fontVariantNumeric: "tabular-nums" }}>
                 {isUploading ? `${uploadProgress}%` : "100%"}
@@ -228,7 +230,7 @@ export default function UploadZone({
                 display: "flex", alignItems: "center", gap: "0.35rem",
               }}>
                 {isAnalyzing && <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "var(--accent-cyan)", boxShadow: "0 0 6px var(--accent-cyan)", animation: "pulse 1s infinite" }} />}
-                ANALYSE
+                {lang === "de" ? "ANALYSE" : "ANALYSIS"}
               </span>
               {isAnalyzing && (
                 <span style={{ fontSize: "0.72rem", color: "var(--accent-cyan)", fontVariantNumeric: "tabular-nums" }}>
@@ -302,7 +304,7 @@ export default function UploadZone({
             border: "1px solid var(--border-subtle)",
           }}
         >
-          Replace
+          {lang === "de" ? "Ersetzen" : "Replace"}
         </button>
         <input
           ref={inputRef}
@@ -334,10 +336,10 @@ export default function UploadZone({
           </svg>
         </div>
         <h3 className="text-base font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-          Sign in to upload
+          {lang === "de" ? "Zum Hochladen anmelden" : "Sign in to upload"}
         </h3>
         <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
-          Create a free account to start mastering your tracks
+          {lang === "de" ? "Erstelle ein kostenloses Konto und mastere deine Tracks." : "Create a free account and start mastering your tracks."}
         </p>
         <button
           onClick={() => onSignInClick?.()}
@@ -347,10 +349,10 @@ export default function UploadZone({
             color: "#fff",
           }}
         >
-          Sign In / Register
+          {lang === "de" ? "Anmelden / Registrieren" : "Sign in / Register"}
         </button>
         <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
-          100% free · 10 masters per day · No credit card required
+          {lang === "de" ? "100 % kostenlos · 10 Masterings pro Tag · Keine Kreditkarte erforderlich" : "100% free · 10 masters per day · No credit card required"}
         </p>
       </div>
     );
@@ -391,10 +393,10 @@ export default function UploadZone({
       </div>
 
       <h3 className="text-base font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-        {isDragging ? "Drop your track here" : "Upload your track"}
+        {isDragging ? (lang === "de" ? "Track hier ablegen" : "Drop your track here") : (lang === "de" ? "Track hochladen" : "Upload your track")}
       </h3>
       <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
-        Drag & drop or click to browse
+        {lang === "de" ? "Per Drag-and-drop ablegen oder Datei auswählen" : "Drag and drop or click to browse"}
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         {ACCEPTED_FORMATS.map((fmt) => (
@@ -411,7 +413,7 @@ export default function UploadZone({
         ))}
       </div>
       <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
-        Max {MAX_SIZE_MB}MB · Stereo or Mono
+        {lang === "de" ? `Max. ${MAX_SIZE_MB} MB · Stereo oder Mono` : `Max. ${MAX_SIZE_MB} MB · Stereo or mono`}
       </p>
 
       {error && (

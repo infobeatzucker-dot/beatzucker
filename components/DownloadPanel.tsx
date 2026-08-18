@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MasterData, AnalysisData } from "@/lib/types/mastering";
+import { MasterData, AnalysisData, type Lang } from "@/lib/types/mastering";
 import ABPlayer from "./ABPlayer";
 import DonateButton from "./DonateButton";
 
@@ -15,6 +15,7 @@ interface Props {
   preAnalysis: AnalysisData;
   onReset:     () => void;
   onRemaster?: () => void;  // Keep file + analysis, go back to preset selection
+  lang?: Lang;
 }
 
 const FORMAT_CONFIG = [
@@ -29,7 +30,7 @@ const FORMAT_CONFIG = [
 
 type FormatKey = keyof MasterData["formats"];
 
-export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster }: Props) {
+export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster, lang = "de" }: Props) {
   const displayNotes = masterData.notes;
 
   // Build clean base name: strip extension + sanitize for filename
@@ -64,7 +65,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
   return (
     <div className="mt-6">
       {/* A/B Comparison Player — URLs are provided via AudioEngineContext */}
-      <ABPlayer filename={filename} />
+      <ABPlayer filename={filename} lang={lang} />
 
       {/* Success Banner */}
       <div
@@ -86,7 +87,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm mb-0.5" style={{ color: "var(--accent-cyan)" }}>
-              Mastering complete
+              {lang === "de" ? "Mastering abgeschlossen" : "Mastering complete"}
             </div>
             <div className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               {displayNotes}
@@ -113,12 +114,12 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
             <line x1="16" y1="17" x2="8" y2="17"/>
             <polyline points="10 9 9 9 8 9"/>
           </svg>
-          Mastering Report (PDF)
+          {lang === "de" ? "Mastering-Bericht (PDF)" : "Mastering report (PDF)"}
         </button>
       </div>
 
       {/* Download Options */}
-      <div className="label mb-3">Download Formats</div>
+      <div className="label mb-3">{lang === "de" ? "Download-Formate" : "Download formats"}</div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {FORMAT_CONFIG.map((fmt) => {
           const url = masterData.formats[fmt.key as FormatKey];
@@ -146,7 +147,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
                   {fmt.label}
                 </div>
                 <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  {fmt.desc}
+                  {lang === "de" ? ({ "Highest quality": "Höchste Qualität", "Studio quality": "Studioqualität", "CD quality": "CD-Qualität", "Lossless": "Verlustfrei", "High quality": "Hohe Qualität", "Standard": "Standard", "Streaming": "Streaming" } as Record<string, string>)[fmt.desc] : fmt.desc}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1">
@@ -158,7 +159,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
                     border: "1px solid rgba(56,189,248,0.2)",
                   }}
                 >
-                  FREE
+                  {lang === "de" ? "KOSTENLOS" : "FREE"}
                 </span>
                 {!isLocked && <span style={{ color: "var(--accent-purple)", fontSize: 14 }}>↓</span>}
               </div>
@@ -179,13 +180,13 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-          Möchtest du ein anderes Format? Wähle es oben aus und{" "}
+          {lang === "de" ? "Möchtest du ein anderes Format? Wähle es oben aus und " : "Want a different format? Select it above and "}
           {onRemaster ? (
             <button onClick={onRemaster} className="font-semibold hover:opacity-80" style={{ color: "var(--accent-purple)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-              mastere erneut
+              {lang === "de" ? "mastere erneut" : "master again"}
             </button>
-          ) : "mastere erneut"}.
-          {" "}Alle Funktionen sind kostenlos und unbegrenzt oft nutzbar.
+          ) : (lang === "de" ? "mastere erneut" : "master again")}.
+          {" "}{lang === "de" ? "Alle Funktionen sind kostenlos und unbegrenzt oft nutzbar." : "All features are free and can be used without limits."}
         </p>
       </div>
 
@@ -212,7 +213,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
             </svg>
-            Remaster (neue Parameter)
+            {lang === "de" ? "Erneut mastern (neue Parameter)" : "Remaster (new parameters)"}
           </motion.button>
         )}
 
@@ -234,7 +235,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
             <path d="M3 3v5h5"/>
           </svg>
-          Neuen Master erstellen
+          {lang === "de" ? "Neuen Master erstellen" : "Create new master"}
         </motion.button>
       </div>
     </div>

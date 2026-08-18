@@ -8,7 +8,7 @@ const ALL_STEPS: { key: string; label: string; icon: LucideIcon; color: string }
   { key: "analyzing",   label: "Analysis",             icon: Search,         color: "var(--accent-purple)" },
   { key: "eq",          label: "EQ Correction",         icon: Sliders,        color: "#818cf8" },
   { key: "compression", label: "Multiband Compression", icon: BarChart3,      color: "var(--accent-cyan)" },
-  { key: "ms",          label: "M/S Processing",        icon: ArrowLeftRight, color: "#22d3ee" },
+  { key: "ms",          label: "M/S-Bearbeitung",       icon: ArrowLeftRight, color: "#22d3ee" },
   { key: "saturation",  label: "Harmonic Saturation",   icon: Flame,          color: "#c4b5fd" },
   { key: "limiting",    label: "True Peak Limiting",    icon: OctagonAlert,   color: "#fb923c" },
   { key: "rendering",   label: "Format Rendering",      icon: Save,           color: "#4ade80" },

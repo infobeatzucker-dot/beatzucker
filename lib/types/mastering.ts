@@ -1,3 +1,4 @@
+export type Lang = "de" | "en";
 export type AppState = "idle" | "uploaded" | "analyzing" | "analyzed" | "mastering" | "done";
 export type Platform  = "spotify" | "apple" | "youtube" | "club" | "tidal" | "amazon" | "deezer" | "tiktok" | "soundcloud" | "broadcast" | "custom";
 export type Preset    = "auto" | "electronic" | "hiphop" | "rock" | "pop" | "jazz" | "classical" | "podcast" | "metal" | "rnb" | "ambient" | "lofi" | "country" | "trap" | "latin" | "dance" | "techno" | "edm";

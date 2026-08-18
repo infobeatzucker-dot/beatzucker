@@ -1,26 +1,35 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ProgressStep } from "@/lib/types/mastering";
+import { ProgressStep, type Lang } from "@/lib/types/mastering";
 
 interface Props {
   isOpen: boolean;
   step: ProgressStep | null;
+  lang?: Lang;
 }
 
 const STEPS = [
-  { key: "analyzing",   label: "Analyzing track…" },
-  { key: "eq",          label: "Applying EQ…" },
-  { key: "compression", label: "Compression…" },
-  { key: "ms",          label: "M/S processing…" },
-  { key: "saturation",  label: "Saturation…" },
+  { key: "analyzing",   label: "Track wird analysiert…" },
+  { key: "eq",          label: "EQ wird angewendet…" },
+  { key: "compression", label: "Kompression…" },
+  { key: "ms",          label: "M/S-Bearbeitung…" },
+  { key: "saturation",  label: "Sättigung…" },
   { key: "limiting",    label: "Limiting…" },
-  { key: "rendering",   label: "Rendering…" },
+  { key: "rendering",   label: "Ausgabe wird erstellt…" },
 ];
 
-export default function MasteringProgressModal({ isOpen, step }: Props) {
+const STEPS_EN = [
+  { key: "analyzing", label: "Analyzing track…" }, { key: "eq", label: "Applying EQ…" },
+  { key: "compression", label: "Compression…" }, { key: "ms", label: "M/S processing…" },
+  { key: "saturation", label: "Saturation…" }, { key: "limiting", label: "Limiting…" },
+  { key: "rendering", label: "Rendering…" },
+];
+
+export default function MasteringProgressModal({ isOpen, step, lang = "de" }: Props) {
   const progress = step?.progress ?? 0;
-  const label    = step?.label    ?? "Processing…";
+  const label = step?.label ?? (lang === "de" ? "Wird verarbeitet…" : "Processing…");
+  const displaySteps = lang === "de" ? STEPS : STEPS_EN;
 
   // Which step index is active (for the step dots)
   const activeIdx = STEPS.findIndex((s) => s.key === step?.step);
@@ -69,10 +78,10 @@ export default function MasteringProgressModal({ isOpen, step }: Props) {
                 />
                 <div>
                   <div className="font-bold text-base" style={{ color: "var(--text-primary)" }}>
-                    Mastering läuft…
+                    {lang === "de" ? "Mastering läuft…" : "Mastering in progress…"}
                   </div>
                   <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                    Bitte warten — das dauert 1–3 Minuten
+                    {lang === "de" ? "Bitte warten — das dauert 1–3 Minuten" : "Please wait — this takes 1–3 minutes"}
                   </div>
                 </div>
               </div>
@@ -105,7 +114,7 @@ export default function MasteringProgressModal({ isOpen, step }: Props) {
 
               {/* Step dots */}
               <div className="flex items-center gap-1.5">
-                {STEPS.map((s, i) => {
+                {displaySteps.map((s, i) => {
                   const done   = activeIdx > i;
                   const active = activeIdx === i;
                   return (
@@ -126,8 +135,8 @@ export default function MasteringProgressModal({ isOpen, step }: Props) {
                 })}
               </div>
               <div className="flex justify-between mt-1.5">
-                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>Analyse</span>
-                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>Rendering</span>
+                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{lang === "de" ? "Analyse" : "Analysis"}</span>
+                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{lang === "de" ? "Ausgabe" : "Output"}</span>
               </div>
             </div>
           </motion.div>

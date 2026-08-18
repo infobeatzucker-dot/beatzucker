@@ -4,14 +4,15 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { User, Coffee } from "lucide-react";
+import { ArrowRight, User, Coffee } from "lucide-react";
 import AuthModal from "./AuthModal";
 import AccountDropdown from "./AccountDropdown";
 import DonateButton from "./DonateButton";
 import { subscribeGlobalAudioState, toggleGlobalAudio, getGlobalAudioState } from "@/lib/globalAudio";
 import { DONATE_URL } from "@/lib/constants";
+import type { Lang } from "@/lib/types/mastering";
 
-export default function Header() {
+export default function Header({ lang = "de" }: { lang?: Lang }) {
   const [menuOpen, setMenuOpen]   = useState(false);
   const [scrolled, setScrolled]   = useState(false);
   const [authOpen, setAuthOpen]   = useState(false);
@@ -46,7 +47,7 @@ export default function Header() {
       <header
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? "rgba(8, 10, 15, 0.92)" : "rgba(8, 10, 15, 0.6)",
+          background: scrolled ? "rgba(5, 8, 22, 0.9)" : "rgba(5, 8, 22, 0.42)",
           backdropFilter: "blur(20px)",
           borderBottom: scrolled
             ? "1px solid rgba(139,92,246,0.18)"
@@ -54,13 +55,15 @@ export default function Header() {
           boxShadow: scrolled ? "0 4px 32px rgba(0,0,0,0.4)" : "none",
         }}
       >
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="header-inner">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-            <span className="font-black text-xl tracking-tight">
-              <span style={{ color: "var(--accent-purple)" }}>Beat</span>
-              <span style={{ color: "var(--accent-cyan)" }}>zucker</span>
+          <Link href="/" className="brand-lockup" style={{ textDecoration: "none" }}>
+            <span className="brand-wave" aria-hidden="true">
+              {[10, 22, 32, 18, 26, 12].map((height, index) => <i key={index} style={{ height }} />)}
+            </span>
+            <span className="font-black text-xl tracking-tight brand-name">
+              Beatzucker
             </span>
             <span
               className="hidden sm:block text-xs px-1.5 py-0.5 rounded font-semibold"
@@ -76,18 +79,19 @@ export default function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center header-nav">
             {[
-              { label: "Home", href: "/" },
-              { label: "Features", href: "/features" },
-              { label: "Hilfe", href: "/help" },
-              { label: "Wissen", href: "/ressourcen" },
+              { label: lang === "de" ? "Startseite" : "Home", href: "/" },
+              { label: lang === "de" ? "Funktionen" : "Features", href: "/features" },
+              { label: lang === "de" ? "So funktioniert's" : "How it works", href: "/#features" },
+              { label: lang === "de" ? "Wissen" : "Knowledge", href: "/ressourcen" },
+              { label: "FAQ", href: "/help" },
               ...(session ? [{ label: "Dashboard", href: "/dashboard" }] : []),
             ].map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="text-sm transition-colors hover:text-white"
+                className="text-sm transition-colors hover:text-white nav-link"
                 style={{ color: "var(--text-secondary)", textDecoration: "none" }}
               >
                 {item.label}
@@ -97,7 +101,7 @@ export default function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
-            <DonateButton variant="nav" />
+            <span className="hidden xl:block"><DonateButton variant="nav" /></span>
             {/* Global audio play/pause — visible whenever the player is loaded */}
             {audioState.available && (
               <button
@@ -152,11 +156,15 @@ export default function Header() {
                       cursor: "pointer",
                     }}
                   >
-                    Anmelden
+                    {lang === "de" ? "Anmelden" : "Sign in"}
                   </button>
                 </>
               )
             }
+
+            <a href="/#mastering" className="neon-cta header-cta hidden lg:inline-flex">
+              {lang === "de" ? "Jetzt mastern" : "Master now"} <ArrowRight size={15} aria-hidden="true" />
+            </a>
 
             {/* Mobile hamburger */}
             <button
@@ -192,12 +200,12 @@ export default function Header() {
             >
               <div className="px-4 py-5 flex flex-col gap-4">
                 {[
-                  { label: "Home", href: "/" },
-                  { label: "Features", href: "/features" },
-                  { label: "Hilfe", href: "/help" },
-                  { label: "Wissen", href: "/ressourcen" },
-                  { label: "Impressum", href: "/impressum" },
-                  { label: "Datenschutz", href: "/datenschutz" },
+                  { label: lang === "de" ? "Startseite" : "Home", href: "/" },
+                  { label: lang === "de" ? "Funktionen" : "Features", href: "/features" },
+                  { label: lang === "de" ? "Hilfe" : "Help", href: "/help" },
+                  { label: lang === "de" ? "Wissen" : "Knowledge", href: "/ressourcen" },
+                  { label: lang === "de" ? "Impressum" : "Legal notice", href: "/impressum" },
+                  { label: lang === "de" ? "Datenschutz" : "Privacy", href: "/datenschutz" },
                 ].map((item) => (
                   <Link
                     key={item.label}
@@ -222,7 +230,7 @@ export default function Header() {
                              cursor: "pointer", padding: 0 }}
                     onClick={() => { setMenuOpen(false); setAuthOpen(true); }}
                   >
-                    Anmelden / Registrieren
+                    {lang === "de" ? "Anmelden / Registrieren" : "Sign in / Register"}
                   </button>
                 )}
                 <a
