@@ -48,7 +48,7 @@ sudo docker rm "$CONTAINER" 2>/dev/null || true
 sudo docker run -d \
   --name "$CONTAINER" \
   --restart unless-stopped \
-  -p 0.0.0.0:3000:3000 \
+  -p 127.0.0.1:3001:3000 \
   --env-file "$APP_DIR/.env" \
   -v "$APP_DIR/uploads:/app/uploads" \
   -v "$APP_DIR/data:/app/data" \
@@ -58,7 +58,7 @@ echo "=== 6. Waiting for startup ==="
 sleep 15
 
 echo "=== 7. Smoke test ==="
-if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3000"; then
+if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
   echo "=== Deploy of $NEW_SHA succeeded. ==="
   exit 0
 fi
@@ -70,13 +70,13 @@ if [ -n "$ROLLBACK_TAG" ]; then
   sudo docker run -d \
     --name "$CONTAINER" \
     --restart unless-stopped \
-    -p 0.0.0.0:3000:3000 \
+    -p 127.0.0.1:3001:3000 \
     --env-file "$APP_DIR/.env" \
     -v "$APP_DIR/uploads:/app/uploads" \
     -v "$APP_DIR/data:/app/data" \
     "$ROLLBACK_TAG"
   sleep 10
-  if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3000"; then
+  if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
     echo "Rollback to previous image succeeded. Deploy of $NEW_SHA was aborted."
   else
     echo "FATAL: rollback also failed smoke test — manual intervention required!"
