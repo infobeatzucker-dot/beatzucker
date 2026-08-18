@@ -36,7 +36,18 @@ class MasteringParams:
     mb_high_ratio: float = 1.8
     stereo_width: float = 1.0
     saturation_amount: float = 0.15
-    bus_comp_threshold: float = -6.0
+    # Kalibriert auf den Referenzpegel, auf den mastering.normalize_to_reference_lufs()
+    # vor der Verarbeitung normalisiert (-18 LUFS), UND auf den Envelope-Detektor in
+    # compress_band(): der vergleicht nicht den Momentanpeak, sondern eine ueber
+    # attack/release geglaettete Huellkurve. Die liegt rund 11 dB unter dem Peak — bei
+    # -18 LUFS Referenz erreicht sie ueber typisches Material maximal -19 bis -23 dB.
+    # Der alte Wert -6.0 (aus der Zeit, als hier noch der ungeregelte Upload-Pegel
+    # ankam) lag weit darueber und wurde nie ueberschritten: die Stufe war wirkungslos.
+    # -28.0 ergibt nach Intensity-Skalierung (65%) rund -24.5 dB und damit ueber alle
+    # Materialtypen hinweg 0.3-1.3 dB Gain-Reduktion = brauchbare Glue-Kompression.
+    # Referenzpegel, Envelope-Zeitkonstanten und diese Schwelle haengen zusammen —
+    # wird eines geaendert, muss neu kalibriert werden.
+    bus_comp_threshold: float = -28.0
     bus_comp_ratio: float = 2.0
     notes: str = ""
 
@@ -78,8 +89,13 @@ def apply_intensity_scaling(params: MasteringParams, intensity: int) -> Masterin
     params.mb_high_ratio  = 1.0 + (params.mb_high_ratio - 1.0) * t
     params.bus_comp_ratio = 1.0 + (params.bus_comp_ratio - 1.0) * t
 
-    # Bus comp threshold — ease back at low intensity (–3 dB = barely touching)
-    params.bus_comp_threshold = -3.0 + (params.bus_comp_threshold - (-3.0)) * t
+    # Bus comp threshold — bei niedriger Intensity zurueckziehen. Der Ankerwert
+    # -18 dB liegt ueber der geglaetteten Huellkurve typischen Materials, greift
+    # also praktisch nicht; zusaetzlich geht bus_comp_ratio bei t=0 ohnehin auf
+    # 1.0:1 (= mathematisch keine Kompression), Transparenz ist damit doppelt
+    # abgesichert. Anker und Basiswert sind auf den -18-LUFS-Referenzpegel
+    # kalibriert, siehe Kommentar am Feld bus_comp_threshold.
+    params.bus_comp_threshold = -18.0 + (params.bus_comp_threshold - (-18.0)) * t
 
     # Saturation — scale linearly
     params.saturation_amount *= t
@@ -132,12 +148,16 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
         for key, value in preset_configs[preset].items():
             setattr(params, key, value)
 
-    # Auto-adjust based on analysis
+    # Auto-adjust based on analysis. Der Quellpegel selbst wird vor der Verarbeitung
+    # wegnormalisiert; er dient hier nur noch als Indiz dafuer, wie stark die Quelle
+    # bereits vorkomprimiert ist. Bereits laute (= dichte) Quellen bekommen eine
+    # hoehere Schwelle (weniger zusaetzliche Kompression), sehr leise/dynamische eine
+    # tiefere. Werte relativ zum Default -16.0, siehe Kommentar am Feld.
     integrated = analysis.get("integrated_lufs", -18.0)
     if integrated > -12:
-        params.bus_comp_threshold = -4.0  # Tighter compression for loud sources
+        params.bus_comp_threshold = -26.0  # bereits dichte Quelle -> sanfter kleben
     elif integrated < -24:
-        params.bus_comp_threshold = -8.0  # Gentler for quiet sources
+        params.bus_comp_threshold = -30.0  # sehr dynamische Quelle -> etwas fester
 
     # Sub-bass adjustment
     rms_sub = analysis.get("rms_sub", -30.0)

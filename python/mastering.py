@@ -45,8 +45,10 @@ def normalize_to_reference_lufs(audio: np.ndarray, sr: int, reference_lufs: floa
     """Gain-stage the input to a fixed reference loudness before any level-dependent
     processing (EQ, multiband compression, saturation, bus comp) runs.
 
-    Every threshold in this chain (mb_sub_threshold=-18, bus_comp_threshold=-6, ...)
-    is an absolute dBFS value. Without this step, the exact same preset/intensity
+    Every threshold in this chain (mb_sub_threshold, bus_comp_threshold, ...) is an
+    absolute dBFS value and is calibrated against THIS reference level — changing
+    reference_lufs without moving those thresholds will silently under- or
+    over-drive the compressors. Without this step, the exact same preset/intensity
     setting would compress a track delivered at -8 LUFS far more than one delivered
     at -24 LUFS, purely because of how the source was gain-staged before upload —
     not because of anything about the actual "intensity" the user asked for.
