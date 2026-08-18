@@ -8,6 +8,7 @@ import {
   type ParamKey, type ParamValues, type TabId, type ParamDef,
 } from "@/lib/masteringParams";
 import { GoniometerScope, SaturationScope, GainReductionScope } from "@/components/manual/AdjustScopes";
+import { stopGlobalAudio } from "@/lib/globalAudio";
 import type { AnalysisData, Lang, Platform, Preset } from "@/lib/types/mastering";
 
 interface Props {
@@ -106,35 +107,62 @@ export default function ManualAdjustModal({
   const [values, setValues] = useState<ParamValues>(base);
   const [tab, setTab] = useState<TabId>("eq");
 
-  // Markierter Bereich als Anteil 0..1 der Trackdauer
-  const [sel, setSel] = useState<{ a: number; b: number }>({ a: 0.35, b: 0.5 });
-  const [dragging, setDragging] = useState(false);
+  /**
+   * Der Vorhör-Bereich wird als Startsekunde + Länge geführt, nicht als zwei
+   * frei gezogene Kanten. Ein einzelner Klick auf die Wellenform genügt damit:
+   * er legt den Bereich um den Klickpunkt. Ziehen bleibt für den Feinschliff.
+   */
+  const [lenSec, setLenSec] = useState(8);
+  const [startSec, setStartSec] = useState(() => Math.max(0, durationSec * 0.35));
+  // Drag-Zustand bewusst als Ref, nicht als State: die Fenster-Listener müssen
+  // schon beim ersten mousemove/mouseup stehen. Über einen State-getriebenen
+  // Effekt wäre ein sehr schneller Klick verloren gegangen — genau das ist beim
+  // Testen passiert.
+  const dragRef = useRef<{ from: number; moved: boolean } | null>(null);
   const waveRef = useRef<HTMLCanvasElement>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewBusy, setPreviewBusy] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
+  /** Regler wurden bewegt, seit der laufende Ausschnitt gerendert wurde. */
+  const [stale, setStale] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  /** Zählt Render-Anfragen, damit eine überholte Antwort nichts überschreibt. */
+  const reqRef = useRef(0);
 
   useEffect(() => { if (open) setValues(base); }, [open, base]);
 
-  // Vorhör-Audio beim Schließen sauber stoppen, damit nichts weiterläuft
-  useEffect(() => {
-    if (open) return;
+  /** Vorhör-Audio verwerfen — der gerenderte Ausschnitt passt nicht mehr. */
+  const discardPreview = useCallback(() => {
+    reqRef.current++;   // laufende Anfrage entwerten
     audioRef.current?.pause();
     audioRef.current = null;
     setPlaying(false);
     setPreviewUrl(null);
+    setStale(false);
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      // Der Haupt-Player läuft womöglich noch. Ohne das hier hört man beim
+      // Starten des Ausschnitts beide Spuren gleichzeitig.
+      stopGlobalAudio();
+      return;
+    }
+    discardPreview();
     setPreviewError(null);
-  }, [open]);
+  }, [open, discardPreview]);
 
   useEffect(() => () => { audioRef.current?.pause(); }, []);
 
   const setParam = useCallback((key: ParamKey, v: number) => {
     setValues((prev) => ({ ...prev, [key]: v }));
-    // Ein bereits gerenderter Ausschnitt passt nach einer Reglerbewegung nicht mehr
-    setPreviewUrl(null);
+    // Den laufenden Ausschnitt NICHT stoppen: sonst verstummt die Wiedergabe
+    // bei jeder Reglerbewegung und es wirkt, als täte sich nichts. Er läuft
+    // weiter und wird nur als veraltet markiert — das Nachrendern übernimmt
+    // der Effekt unten, sobald man den Regler kurz loslässt.
+    setStale(true);
   }, []);
 
   const dirty = useMemo(() => Object.keys(changedOnly(values, base)).length, [values, base]);
@@ -146,22 +174,79 @@ export default function ManualAdjustModal({
     [],
   );
 
+  const dur = Math.max(1, durationSec);
+  const endSec = Math.min(dur, startSec + lenSec);
+  const fmtTime = (s: number) =>
+    `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+  /** Bereich setzen und dabei im Track halten. */
+  const placeRegion = useCallback((newStart: number, newLen: number) => {
+    const len = Math.max(2, Math.min(20, Math.min(newLen, dur)));
+    const st = Math.max(0, Math.min(dur - len, newStart));
+    setLenSec(len);
+    setStartSec(st);
+    // Wie bei den Reglern: laufende Wiedergabe nicht abwürgen, nur als veraltet
+    // markieren — der neue Ausschnitt wird automatisch nachgerendert.
+    setStale(true);
+  }, [dur]);
+
+  const ratioAt = useCallback((clientX: number) => {
+    const cv = waveRef.current;
+    if (!cv) return 0;
+    const r = cv.getBoundingClientRect();
+    return Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+  }, []);
+
+  // Ziehen für den Feinschliff: erst ab einer knappen halben Sekunde Bewegung,
+  // damit ein schlichter Klick nicht versehentlich einen Mini-Bereich aufzieht.
+  // Die Listener hängen dauerhaft und lesen den Drag-Zustand aus dem Ref.
+  useEffect(() => {
+    if (!open) return;
+    const move = (e: MouseEvent) => {
+      const d = dragRef.current;
+      if (!d) return;
+      const r = ratioAt(e.clientX);
+      if (Math.abs(r - d.from) * dur < 0.4) return;
+      d.moved = true;
+      const a = Math.min(d.from, r) * dur;
+      const b = Math.max(d.from, r) * dur;
+      placeRegion(a, b - a);
+    };
+    const up = (e: MouseEvent) => {
+      const d = dragRef.current;
+      if (!d) return;
+      dragRef.current = null;
+      // Reiner Klick ohne Ziehen: Bereich mittig um den Klickpunkt legen
+      if (!d.moved) placeRegion(ratioAt(e.clientX) * dur - lenSec / 2, lenSec);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    return () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+  }, [open, dur, lenSec, placeRegion, ratioAt]);
+
+  // ── Wellenform zeichnen (inkl. Abspielposition) ───────────────────────────
   useEffect(() => {
     const cv = waveRef.current;
     if (!cv || !open) return;
     const ctx = cv.getContext("2d");
     if (!ctx) return;
 
+    let raf = 0;
     const render = () => {
       const r = cv.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      cv.width = Math.round(r.width * dpr);
-      cv.height = Math.round(r.height * dpr);
+      if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) {
+        cv.width = Math.round(r.width * dpr);
+        cv.height = Math.round(r.height * dpr);
+      }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const w = r.width, h = r.height;
       ctx.clearRect(0, 0, w, h);
 
-      const lo = Math.min(sel.a, sel.b), hi = Math.max(sel.a, sel.b);
+      const lo = startSec / dur, hi = endSec / dur;
       const bw = w / bars.length;
       for (let i = 0; i < bars.length; i++) {
         const x = i * bw;
@@ -188,50 +273,52 @@ export default function ManualAdjustModal({
         ctx.stroke();
       }
       ctx.shadowBlur = 0;
+
+      // Abspielposition: das Vorhör-Audio enthält nur den Ausschnitt, seine
+      // Laufzeit wird also auf den markierten Bereich abgebildet.
+      const a = audioRef.current;
+      if (a && a.duration > 0) {
+        const prog = Math.min(1, a.currentTime / a.duration);
+        const px = (lo + (hi - lo) * prog) * w;
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "#48bfff";
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, h);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(px, 5, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      raf = requestAnimationFrame(render);
     };
 
     render();
     const ro = new ResizeObserver(render);
     ro.observe(cv);
-    return () => ro.disconnect();
-  }, [sel, bars, open]);
-
-  const ratioAt = (clientX: number) => {
-    const cv = waveRef.current;
-    if (!cv) return 0;
-    const r = cv.getBoundingClientRect();
-    return Math.min(1, Math.max(0, (clientX - r.left) / r.width));
-  };
-
-  useEffect(() => {
-    if (!dragging) return;
-    const move = (e: MouseEvent) => setSel((s) => ({ ...s, b: ratioAt(e.clientX) }));
-    const up = () => setDragging(false);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-    return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
-    };
-  }, [dragging]);
-
-  const startSec = Math.min(sel.a, sel.b) * durationSec;
-  const endSec = Math.max(sel.a, sel.b) * durationSec;
-  const fmtTime = (s: number) =>
-    `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+  }, [startSec, endSec, dur, bars, open]);
 
   // ── Ausschnitt durch die echte Kette rendern ──────────────────────────────
   const renderPreview = useCallback(async () => {
+    const token = ++reqRef.current;
     setPreviewBusy(true);
     setPreviewError(null);
     try {
+      // Der Haupt-Player darf hier nicht mitlaufen — sonst hört man beide Spuren
+      stopGlobalAudio();
       const res = await fetch("/api/adjust-preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           file_id: fileId,
           start_sec: startSec,
-          end_sec: Math.min(endSec, startSec + 20),
+          end_sec: endSec,
           platform, preset, intensity,
           analysis: analysis ?? undefined,
           reference_analysis: referenceAnalysis ?? undefined,
@@ -239,29 +326,58 @@ export default function ManualAdjustModal({
         }),
       });
       const data = await res.json().catch(() => ({}));
+      // Inzwischen weitergedreht oder Panel zu? Dann ist diese Antwort veraltet.
+      if (token !== reqRef.current) return;
       if (!res.ok) throw new Error(data?.error || "Vorhören fehlgeschlagen");
 
-      audioRef.current?.pause();
+      const prev = audioRef.current;
       const a = new Audio(data.url);
       a.loop = true;
+      // Nahtlos an der gleichen Stelle weiterhören statt zurück auf Anfang
+      const resumeAt = prev && prev.duration > 0 ? prev.currentTime / prev.duration : 0;
+      a.addEventListener("loadedmetadata", () => {
+        if (a.duration > 0 && resumeAt > 0) a.currentTime = a.duration * resumeAt;
+      }, { once: true });
       audioRef.current = a;
       setPreviewUrl(data.url);
+      setStale(false);
       await a.play();
+      prev?.pause();   // erst jetzt, damit keine Lücke entsteht
       setPlaying(true);
-      a.onended = () => setPlaying(false);
+      a.onpause = () => setPlaying(false);
+      a.onplay = () => setPlaying(true);
     } catch (e) {
+      if (token !== reqRef.current) return;
       setPreviewError(e instanceof Error ? e.message : "Vorhören fehlgeschlagen");
     } finally {
-      setPreviewBusy(false);
+      if (token === reqRef.current) setPreviewBusy(false);
     }
   }, [fileId, startSec, endSec, platform, preset, intensity, analysis, referenceAnalysis, values, base]);
 
+  /**
+   * Läuft gerade ein Ausschnitt und werden Regler bewegt, wird nach kurzer Ruhe
+   * automatisch neu gerendert. Ohne das müsste man nach jeder Reglerbewegung von
+   * Hand auf "vorhören" drücken — und hätte den Eindruck, die Regler bewirken
+   * nichts. Die Verzögerung fängt das Ziehen ab, damit nicht jede
+   * Zwischenstellung einen Render auslöst.
+   */
+  const renderRef = useRef(renderPreview);
+  renderRef.current = renderPreview;
+  useEffect(() => {
+    if (!stale || !playing || previewBusy) return;
+    const id = setTimeout(() => { void renderRef.current(); }, 700);
+    return () => clearTimeout(id);
+  }, [stale, playing, previewBusy, values, startSec, endSec]);
+
   const togglePlay = useCallback(() => {
     const a = audioRef.current;
-    if (!a) { void renderPreview(); return; }
-    if (a.paused) { void a.play(); setPlaying(true); }
+    // Ohne gerenderten Ausschnitt — oder wenn seit dem Rendern Regler bzw.
+    // Bereich verändert wurden — erst neu rendern. Sonst liefe der alte Stand
+    // weiter und die Änderungen blieben unhörbar.
+    if (!a || stale) { void renderPreview(); return; }
+    if (a.paused) { stopGlobalAudio(); void a.play(); setPlaying(true); }
     else { a.pause(); setPlaying(false); }
-  }, [renderPreview]);
+  }, [renderPreview, stale]);
 
   const tabDefs = PARAM_DEFS.filter((d) => d.tab === tab);
   const wide = tab === "ms" || tab === "sat" || tab === "bus";
@@ -323,25 +439,41 @@ export default function ManualAdjustModal({
                   </button>
                   <span className="adjust-range-chip">
                     {fmtTime(startSec)}–{fmtTime(endSec)}
-                    {previewUrl && (lang === "en" ? " · looping" : " · läuft in Schleife")}
+                    {previewUrl && !stale && (lang === "en" ? " · looping" : " · läuft in Schleife")}
                   </span>
+                  {stale && (
+                    <span className="adjust-stale">
+                      {previewBusy
+                        ? (lang === "en" ? "updating…" : "wird aktualisiert…")
+                        : playing
+                          ? (lang === "en" ? "updating shortly…" : "wird gleich aktualisiert…")
+                          : (lang === "en" ? "press play to hear changes" : "Play drücken, um die Änderung zu hören")}
+                    </span>
+                  )}
+                  <div className="adjust-lenpicker" role="group"
+                    aria-label={lang === "en" ? "Section length" : "Ausschnittlänge"}>
+                    {[5, 8, 12, 20].map((l) => (
+                      <button
+                        key={l}
+                        className={lenSec === l ? "is-active" : ""}
+                        onClick={() => placeRegion(startSec + lenSec / 2 - l / 2, l)}
+                      >
+                        {l}s
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {previewError && <span className="adjust-error">{previewError}</span>}
               </div>
               <canvas
                 ref={waveRef}
                 className="adjust-wave-canvas"
-                onMouseDown={(e) => {
-                  const r = ratioAt(e.clientX);
-                  setSel({ a: r, b: r });
-                  setDragging(true);
-                  setPreviewUrl(null);
-                }}
+                onMouseDown={(e) => { dragRef.current = { from: ratioAt(e.clientX), moved: false }; }}
               />
               <p className="adjust-hint">
                 {lang === "en"
-                  ? "Drag to mark a section and loop it while adjusting"
-                  : "Ziehen, um einen Bereich zu markieren und beim Justieren zu loopen"}
+                  ? "Click the waveform to move the section, or drag for a custom range"
+                  : "Klick auf die Wellenform verschiebt den Ausschnitt — Ziehen für einen eigenen Bereich"}
               </p>
             </div>
 
