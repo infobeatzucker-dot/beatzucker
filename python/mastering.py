@@ -629,13 +629,22 @@ def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
     """Compute only loudness/dynamics/spectral on the mastered numpy array.
     BPM and key are copied from params (they don't change after mastering).
     This avoids a second slow librosa.load + beat_track call (~30-60s).
+
+    WICHTIG: Alle Werte hier muessen mit DEMSELBEN Verfahren gemessen werden wie in
+    analyzer.analyze_audio(), sonst ist die Vorher/Nachher-Gegenueberstellung im
+    Mastering-Bericht wertlos — sie vergleicht dann zwei verschiedene Messgroessen
+    statt zweier Zustaende desselben Signals.
     """
     import math
 
-    mono = audio[0] if audio.ndim == 2 else audio
-    left = audio[0] if audio.ndim == 2 else audio
-    right = audio[1] if audio.ndim == 2 else audio
     is_stereo = audio.ndim == 2
+    left = audio[0] if is_stereo else audio
+    right = audio[1] if is_stereo else audio
+    # Mono-Summe wie in analyze_audio() (dort librosa.to_mono, das ist genau dieser
+    # Mittelwert). Vorher wurde hier nur der LINKE Kanal als "mono" verwendet — das
+    # verfaelschte alle Band-RMS-, DR- und Clipping-Werte der Nachanalyse gegenueber
+    # der Voranalyse.
+    mono = np.mean(audio, axis=0).astype(np.float32) if is_stereo else audio
 
     def safe(v, default=0.0):
         if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
@@ -667,17 +676,22 @@ def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
     rms_high = safe(rms_band(mono, sr,  5000, 12000), -80.0)
     rms_air  = safe(rms_band(mono, sr, 12000, 20000), -80.0)
 
-    # Spectral (fast numpy, no librosa)
-    fft = np.abs(np.fft.rfft(mono[:min(len(mono), sr * 5)]))  # max 5s for speed
-    freqs = np.fft.rfftfreq(min(len(mono), sr * 5), 1 / sr)
-    fft_sum = np.sum(fft) or 1.0
-    spectral_centroid = safe(float(np.sum(freqs * fft) / fft_sum), 0.0)
-    cumsum = np.cumsum(fft)
-    rolloff_idx = np.searchsorted(cumsum, 0.85 * cumsum[-1])
-    spectral_rolloff = safe(float(freqs[min(rolloff_idx, len(freqs) - 1)]), 0.0)
-    spectral_flatness = safe(float(
-        np.exp(np.mean(np.log(fft + 1e-10))) / (np.mean(fft) + 1e-10)
-    ), 0.0)
+    # Spektralwerte mit DEMSELBEN Verfahren wie analyzer.analyze_audio():
+    # librosa, ganzer Track, Mittel ueber alle Frames.
+    # Vorher lief hier eine einzelne FFT ueber nur die ersten 5 Sekunden des linken
+    # Kanals — ein voellig anderes Mass. An echtem Material ergab das im
+    # Mastering-Bericht eine Abweichung von ~900 Hz beim Centroid, mit falschem
+    # Vorzeichen: der Master wurde messbar heller (+512 Hz), angezeigt wurde aber
+    # dunkler (-397 Hz). Kostet rund 3-4 s bei ~50 s Mastering-Laufzeit.
+    try:
+        spectral_centroid = safe(float(np.mean(
+            librosa.feature.spectral_centroid(y=mono, sr=sr))), 0.0)
+        spectral_rolloff = safe(float(np.mean(
+            librosa.feature.spectral_rolloff(y=mono, sr=sr, roll_percent=0.85))), 0.0)
+        spectral_flatness = safe(float(np.mean(
+            librosa.feature.spectral_flatness(y=mono))), 0.0)
+    except Exception:
+        spectral_centroid = spectral_rolloff = spectral_flatness = 0.0
 
     # Stereo
     if is_stereo:

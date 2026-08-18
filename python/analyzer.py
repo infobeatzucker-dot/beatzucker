@@ -342,17 +342,24 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
         dc_offset=dc_offset,
         duration_seconds=duration,
         sample_rate=sr,
-        bit_depth=_parse_bit_depth(info.subtype_info),
+        bit_depth=_parse_bit_depth(info.subtype),
         channels=2 if is_stereo else 1,
     )
 
 
-def _parse_bit_depth(subtype_info: str) -> int:
-    """Parse bit depth from soundfile subtype string, e.g. 'PCM_24' → 24."""
-    if not subtype_info:
+def _parse_bit_depth(subtype: str) -> int:
+    """Parse bit depth from a soundfile *subtype* string, e.g. 'PCM_24' → 24.
+
+    Erwartet SoundFile.subtype ('PCM_16'), nicht subtype_info ('Signed 16 bit PCM') —
+    letzteres liess das Parsing stillschweigend scheitern und lieferte immer den
+    Default 24, unabhaengig von der tatsaechlichen Bit-Tiefe der Datei.
+    """
+    if not subtype:
         return 24
-    s = subtype_info.split()[0]
-    s = s.replace("PCM_", "").replace("FLOAT", "32").replace("DOUBLE", "64")
+    s = subtype.split()[0].upper()
+    s = (s.replace("PCM_", "")
+          .replace("FLOAT", "32").replace("DOUBLE", "64")
+          .replace("S8", "8").replace("U8", "8"))
     try:
         return int(s)
     except ValueError:

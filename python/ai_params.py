@@ -186,9 +186,20 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
         params.air_gain      = float(max(-3.0, min(4.0, params.air_gain      + centroid_diff / 2000.0 * 2.0)))
         params.presence_gain = float(max(-2.0, min(4.0, params.presence_gain + centroid_diff / 2000.0 * 1.0)))
 
-        # Stereo width match
-        ref_width = reference_analysis.get("stereo_width", 1.0)
-        params.stereo_width = float(max(0.5, min(2.0, ref_width)))
+        # Stereo width match.
+        # ACHTUNG: "stereo_width" bedeutet hier zweierlei. Als MESSWERT (aus der
+        # Analyse) ist es das Verhaeltnis Side-RMS/Mid-RMS — bei normaler Musik
+        # etwa 0.3-0.5. Als PARAMETER ist es ein MULTIPLIKATOR auf das
+        # Side-Signal (1.0 = unveraendert, siehe apply_ms_processing).
+        # Frueher wurde der Messwert der Referenz direkt als Multiplikator
+        # gesetzt: da typische Musik unter 0.5 misst, landete der Parameter
+        # praktisch immer auf dem Clamp-Boden 0.5 — jeder Referenz-Track hat das
+        # Stereobild eingeschnuert, egal ob die Referenz breiter oder schmaler
+        # war als die Quelle. Korrekt ist das VERHAELTNIS beider Messwerte.
+        ref_width = reference_analysis.get("stereo_width", 0.0)
+        src_width = analysis.get("stereo_width", 0.0)
+        if src_width > 0.01 and ref_width > 0.0:
+            params.stereo_width = float(max(0.5, min(2.0, ref_width / src_width)))
 
         # Sub bass: if reference has less sub, tighten compression
         ref_rms_sub = reference_analysis.get("rms_sub", -24.0)

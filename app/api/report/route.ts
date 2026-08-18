@@ -133,11 +133,11 @@ export async function GET(req: NextRequest) {
     <table>
       <thead><tr><th>Band</th><th>Original</th>${post ? "<th>Master</th>" : ""}</tr></thead>
       <tbody>
-        ${row("Sub (20–80 Hz)",   `${Number(pre.rms_sub).toFixed(1)}`,  post ? `${Number(post.rms_sub).toFixed(1)}`  : undefined)}
-        ${row("Low (80–300 Hz)",  `${Number(pre.rms_low).toFixed(1)}`,  post ? `${Number(post.rms_low).toFixed(1)}`  : undefined)}
-        ${row("Mid (300–3k Hz)",  `${Number(pre.rms_mid).toFixed(1)}`,  post ? `${Number(post.rms_mid).toFixed(1)}`  : undefined)}
-        ${row("High (3k–10k Hz)", `${Number(pre.rms_high).toFixed(1)}`, post ? `${Number(post.rms_high).toFixed(1)}` : undefined)}
-        ${row("Air (10k–20k Hz)", `${Number(pre.rms_air).toFixed(1)}`,  post ? `${Number(post.rms_air).toFixed(1)}`  : undefined)}
+        ${row("Sub (20–80 Hz)",    `${Number(pre.rms_sub).toFixed(1)}`,  post ? `${Number(post.rms_sub).toFixed(1)}`  : undefined)}
+        ${row("Low (80–500 Hz)",   `${Number(pre.rms_low).toFixed(1)}`,  post ? `${Number(post.rms_low).toFixed(1)}`  : undefined)}
+        ${row("Mid (500–5k Hz)",   `${Number(pre.rms_mid).toFixed(1)}`,  post ? `${Number(post.rms_mid).toFixed(1)}`  : undefined)}
+        ${row("High (5k–12k Hz)",  `${Number(pre.rms_high).toFixed(1)}`, post ? `${Number(post.rms_high).toFixed(1)}` : undefined)}
+        ${row("Air (12k–20k Hz)",  `${Number(pre.rms_air).toFixed(1)}`,  post ? `${Number(post.rms_air).toFixed(1)}`  : undefined)}
       </tbody>
     </table>
   </div>
