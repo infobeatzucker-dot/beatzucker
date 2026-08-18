@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import UploadZone from "@/components/UploadZone";
+import AuthModal from "@/components/AuthModal";
 import AnalysisPanel from "@/components/AnalysisPanel";
 import MasterButton from "@/components/MasterButton";
 import DownloadPanel from "@/components/DownloadPanel";
@@ -99,6 +100,7 @@ export default function MasteringWorkspace({ lang }: Props) {
   const [referenceAnalysis, setReferenceAnalysis] = useState<AnalysisData | null>(null);
   const [savedRefs, setSavedRefs] = useState<SavedRef[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   // Scroll targets
   const mainPanelRef  = useRef<HTMLDivElement>(null);
@@ -331,6 +333,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                     setAppState={setAppState}
                     uploadedFile={uploadedFile}
                     isAuthenticated={sessionStatus === "authenticated"}
+                    onSignInClick={() => setAuthOpen(true)}
                   />
                 </motion.div>
               )}
@@ -486,6 +489,9 @@ export default function MasteringWorkspace({ lang }: Props) {
         isOpen={appState === "mastering"}
         step={currentProgress}
       />
+
+      {/* Auth modal — opened from the "Sign In / Register" prompt inside UploadZone */}
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   );
 }
