@@ -16,8 +16,8 @@ const T = {
 
 const TESTIMONIALS = [
   {
-    name: "Marco R.",
-    initials: "MR",
+    name: "Jonas B.",
+    initials: "JB",
     color: "#8b5cf6",
     role: { de: "Electronic Producer", en: "Electronic Producer" },
     text: {
@@ -26,8 +26,8 @@ const TESTIMONIALS = [
     },
   },
   {
-    name: "Julia K.",
-    initials: "JK",
+    name: "Nina S.",
+    initials: "NS",
     color: "#38bdf8",
     role: { de: "Singer-Songwriterin", en: "Singer-Songwriter" },
     text: {
@@ -36,8 +36,8 @@ const TESTIMONIALS = [
     },
   },
   {
-    name: "Tobias N.",
-    initials: "TN",
+    name: "Kevin M.",
+    initials: "KM",
     color: "#c4b5fd",
     role: { de: "Hip-Hop Beatmaker", en: "Hip-Hop Beatmaker" },
     text: {
@@ -46,8 +46,8 @@ const TESTIMONIALS = [
     },
   },
   {
-    name: "Sarah M.",
-    initials: "SM",
+    name: "Laura T.",
+    initials: "LT",
     color: "#a78bfa",
     role: { de: "Indie-Gitarristin", en: "Indie Guitarist" },
     text: {
@@ -56,8 +56,8 @@ const TESTIMONIALS = [
     },
   },
   {
-    name: "Daniel W.",
-    initials: "DW",
+    name: "Fabian K.",
+    initials: "FK",
     color: "#34d399",
     role: { de: "Podcast-Produzent", en: "Podcast Producer" },
     text: {
@@ -66,8 +66,8 @@ const TESTIMONIALS = [
     },
   },
   {
-    name: "Lena F.",
-    initials: "LF",
+    name: "Melina P.",
+    initials: "MP",
     color: "#f472b6",
     role: { de: "DJ & Produzentin", en: "DJ & Producer" },
     text: {
