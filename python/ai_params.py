@@ -107,18 +107,80 @@ def apply_intensity_scaling(params: MasteringParams, intensity: int) -> Masterin
     return params
 
 
+# ─── Manuelle Nachjustierung ──────────────────────────────────────────────────
+#
+# Erlaubte Felder fuer manuelle Overrides samt zulaessigem Wertebereich. Diese
+# Werte kommen aus dem Browser und gehen direkt in die DSP-Kette — deshalb strikt
+# per Whitelist gefiltert und geklemmt, statt sie ungeprueft zu uebernehmen.
+# Bewusst NICHT enthalten: target_lufs und true_peak_ceiling. Beide sind durch
+# die gewaehlte Plattform vorgegeben und schuetzen davor, dass ein Master die
+# Ceiling reisst — die duerfen nicht per Regler ausgehebelt werden.
+OVERRIDE_RANGES: dict = {
+    "highpass_freq":      (20.0, 200.0),
+    "low_shelf_gain":     (-6.0,   6.0),
+    "mid_notch_gain":     (-6.0,   6.0),
+    "presence_gain":      (-6.0,   6.0),
+    "air_gain":           (-6.0,   6.0),
+    "mb_sub_threshold":  (-30.0,   0.0),
+    "mb_sub_ratio":        (1.0,   8.0),
+    "mb_low_threshold":  (-30.0,   0.0),
+    "mb_low_ratio":        (1.0,   8.0),
+    "mb_mid_threshold":  (-30.0,   0.0),
+    "mb_mid_ratio":        (1.0,   8.0),
+    "mb_high_threshold": (-30.0,   0.0),
+    "mb_high_ratio":       (1.0,   8.0),
+    "stereo_width":        (0.5,   2.0),
+    "saturation_amount":   (0.0,   0.5),
+    "bus_comp_threshold":(-32.0, -10.0),
+    "bus_comp_ratio":      (1.0,   3.0),
+}
+
+INT_OVERRIDE_FIELDS = {"highpass_freq"}
+
+
+def apply_overrides(params: MasteringParams, overrides: Optional[dict]) -> MasteringParams:
+    """Manuell eingestellte Werte ueber die automatisch berechneten legen.
+
+    Wird BEWUSST nach apply_intensity_scaling() aufgerufen: die Oberflaeche zeigt
+    dem Nutzer die fertig skalierten Endwerte an, also sind die zurueckgegebenen
+    Werte ebenfalls Endwerte und duerfen nicht noch einmal skaliert werden.
+    """
+    if not overrides:
+        return params
+
+    applied = []
+    for key, value in overrides.items():
+        if key not in OVERRIDE_RANGES:
+            continue  # unbekanntes Feld — ignorieren statt vertrauen
+        try:
+            v = float(value)
+        except (TypeError, ValueError):
+            continue
+        if v != v or v in (float("inf"), float("-inf")):
+            continue  # NaN/Inf abweisen
+        lo, hi = OVERRIDE_RANGES[key]
+        v = max(lo, min(hi, v))
+        setattr(params, key, int(round(v)) if key in INT_OVERRIDE_FIELDS else v)
+        applied.append(key)
+
+    if applied:
+        params.notes += f" Manuell angepasst: {len(applied)} Parameter."
+    return params
+
+
 def get_mastering_params(
     analysis: dict,
     platform: str = "spotify",
     preset: str = "auto",
     intensity: int = 65,
     reference_analysis: Optional[dict] = None,
+    overrides: Optional[dict] = None,
 ) -> MasteringParams:
     """Rule-based mastering parameters from genre presets + audio analysis."""
-    return get_default_params(analysis, platform, preset, intensity, reference_analysis)
+    return get_default_params(analysis, platform, preset, intensity, reference_analysis, overrides)
 
 
-def get_default_params(analysis: dict, platform: str, preset: str, intensity: int = 65, reference_analysis: Optional[dict] = None) -> MasteringParams:
+def get_default_params(analysis: dict, platform: str, preset: str, intensity: int = 65, reference_analysis: Optional[dict] = None, overrides: Optional[dict] = None) -> MasteringParams:
     """Parameters based on preset and analysis."""
     params = MasteringParams()
     params.target_lufs = PLATFORM_LUFS.get(platform, -14.0)
@@ -210,4 +272,7 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
 
         params.notes += " Reference track used for fallback spectral matching."
 
-    return apply_intensity_scaling(params, intensity)
+    # Manuelle Overrides ganz zuletzt — sie sind bereits Endwerte, siehe
+    # apply_overrides(). Alles davor ist die automatische Herleitung, die der
+    # Nutzer mit seinen Reglern gezielt uebersteuert.
+    return apply_overrides(apply_intensity_scaling(params, intensity), overrides)

@@ -15,6 +15,9 @@ import PresetSelector from "@/components/PresetSelector";
 import MasteringIntensity from "@/components/MasteringIntensity";
 import ReferenceTrack, { type SavedRef, type ReferenceAnalysis as RefAnalysis } from "@/components/ReferenceTrack";
 import MasteringProgressModal from "@/components/MasteringProgressModal";
+import ManualAdjustModal from "@/components/ManualAdjustModal";
+import type { ParamValues } from "@/lib/masteringParams";
+import { runMastering } from "@/lib/runMastering";
 import { AudioEngineProvider, useAudioEngine } from "@/contexts/AudioEngineContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { DAILY_MASTER_LIMIT } from "@/lib/constants";
@@ -103,6 +106,7 @@ export default function MasteringWorkspace({ lang }: Props) {
   const [referenceAnalysis, setReferenceAnalysis] = useState<AnalysisData | null>(null);
   const [savedRefs, setSavedRefs] = useState<SavedRef[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
+  const [adjustOpen, setAdjustOpen] = useState(false);
 
   // Scroll targets
   const mainPanelRef  = useRef<HTMLDivElement>(null);
@@ -202,6 +206,34 @@ export default function MasteringWorkspace({ lang }: Props) {
     setAppState("analyzed");
     scrollToPanel();
   }, [scrollToPanel]);
+
+  /**
+   * Übernimmt die manuell eingestellten Werte und rendert den Track damit neu.
+   * Läuft direkt über runMastering(), weil der MasterButton im Zustand "done"
+   * gar nicht gemountet ist — eine zweite Instanz nur zum Auslösen würde den
+   * Tastatur-Shortcut doppelt registrieren.
+   */
+  const handleApplyAdjustments = useCallback(async (overrides: ParamValues) => {
+    if (!uploadedFile) return;
+    setAdjustOpen(false);
+    setMasterData(null);
+    handleMasteringStart();
+    await runMastering({
+      fileId: uploadedFile.file_id,
+      originalName: uploadedFile.filename,
+      platform, preset, intensity,
+      selectedFormat,
+      analysis: analysis ?? undefined,
+      referenceAnalysis: referenceAnalysis ?? undefined,
+      overrides,
+      lang,
+      onProgress: handleProgressUpdate,
+      onComplete: handleMasteringComplete,
+      onError: handleMasteringError,
+    });
+  }, [uploadedFile, platform, preset, intensity, selectedFormat, analysis,
+      referenceAnalysis, lang, handleMasteringStart, handleProgressUpdate,
+      handleMasteringComplete, handleMasteringError]);
 
   // Audio engine URLs
   const originalUrl = uploadedFile ? `/api/preview?file_id=${uploadedFile.file_id}` : "";
@@ -358,6 +390,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                     preAnalysis={analysis!}
                     onReset={handleReset}
                     onRemaster={handleRemaster}
+                    onManualAdjust={() => setAdjustOpen(true)}
                     lang={lang}
                   />
                 </motion.div>
@@ -455,6 +488,25 @@ export default function MasteringWorkspace({ lang }: Props) {
         step={currentProgress}
         lang={lang}
       />
+
+      {/* ── Manuelle Nachjustierung ──────────────────────────────────────────── */}
+      {uploadedFile && (
+        <ManualAdjustModal
+          open={adjustOpen}
+          onClose={() => setAdjustOpen(false)}
+          lang={lang}
+          fileId={uploadedFile.file_id}
+          filename={uploadedFile.filename}
+          durationSec={uploadedFile.duration || analysis?.duration_seconds || 0}
+          platform={platform}
+          preset={preset}
+          intensity={intensity}
+          analysis={analysis}
+          referenceAnalysis={referenceAnalysis}
+          serverParams={masterData?.params ?? null}
+          onApply={handleApplyAdjustments}
+        />
+      )}
 
       {/* Auth modal — opened from the "Sign In / Register" prompt inside UploadZone */}
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />

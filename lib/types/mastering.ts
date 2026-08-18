@@ -43,6 +43,12 @@ export interface MasterData {
   };
   post_analysis: AnalysisData;
   notes: string;
+  /**
+   * Die Parameter, mit denen dieser Master tatsächlich gerendert wurde.
+   * Die manuelle Nachjustierung startet ihre Regler damit, damit der Klang beim
+   * ersten Reglerkontakt nicht unerwartet springt.
+   */
+  params?: Record<string, unknown>;
 }
 
 export interface UploadedFile {

@@ -15,6 +15,7 @@ interface Props {
   preAnalysis: AnalysisData;
   onReset:     () => void;
   onRemaster?: () => void;  // Keep file + analysis, go back to preset selection
+  onManualAdjust?: () => void;  // Regler-Panel für die manuelle Nachjustierung öffnen
   lang?: Lang;
 }
 
@@ -30,7 +31,7 @@ const FORMAT_CONFIG = [
 
 type FormatKey = keyof MasterData["formats"];
 
-export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster, lang = "de" }: Props) {
+export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster, onManualAdjust, lang = "de" }: Props) {
   const displayNotes = masterData.notes;
 
   // Build clean base name: strip extension + sanitize for filename
@@ -192,8 +193,34 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
 
       <DonateButton variant="panel" />
 
+      {/* Manuelle Nachjustierung – Regler-Panel für Feinschliff am fertigen Master */}
+      {onManualAdjust && (
+        <motion.button
+          onClick={onManualAdjust}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold"
+          style={{
+            background: "linear-gradient(135deg, rgba(139,92,246,0.16), rgba(72,191,255,0.12))",
+            border: "1px solid rgba(139,92,246,0.35)",
+            color: "var(--text-primary)",
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" strokeWidth="2"
+            strokeLinecap="round" stroke="var(--accent-purple)">
+            <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
+            <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
+            <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" />
+            <line x1="17" y1="16" x2="23" y2="16" />
+          </svg>
+          {lang === "de" ? "Manuell anpassen" : "Adjust manually"}
+        </motion.button>
+      )}
+
       {/* Action buttons row */}
-      <div className={`mt-6 flex gap-3 ${onRemaster ? "flex-col sm:flex-row" : ""}`}>
+      <div className={`mt-3 flex gap-3 ${onRemaster ? "flex-col sm:flex-row" : ""}`}>
         {/* Remaster – keep file, change params */}
         {onRemaster && (
           <motion.button

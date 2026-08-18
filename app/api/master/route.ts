@@ -32,6 +32,10 @@ export async function POST(req: NextRequest) {
   const originalName      = (body.original_name     as string) || "track";
   const analysis          = body.analysis           as object | undefined;
   const referenceAnalysis = body.reference_analysis as object | undefined;
+  // Manuell nachjustierte Parameter. Werden hier nur durchgereicht — gefiltert
+  // und geklemmt wird serverseitig in python/ai_params.apply_overrides(), damit
+  // die Whitelist genau dort liegt, wo die Werte ins DSP gehen.
+  const overrides         = body.overrides          as object | undefined;
 
   if (!fileId) {
     return new Response("file_id required", { status: 400 });
@@ -139,6 +143,7 @@ export async function POST(req: NextRequest) {
             output_dir: path.resolve(path.join(UPLOAD_DIR, "masters")),
             ...(analysis          ? { analysis }                               : {}),
             ...(referenceAnalysis ? { reference_analysis: referenceAnalysis } : {}),
+            ...(overrides         ? { overrides }                              : {}),
           }),
           signal: AbortSignal.timeout(540000), // 9 min timeout
         });

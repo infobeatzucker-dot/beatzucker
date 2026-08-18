@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { Platform, Preset, MasterData, ProgressStep, AnalysisData, type Lang } from "@/lib/types/mastering";
+import type { ParamValues } from "@/lib/masteringParams";
+import { runMastering } from "@/lib/runMastering";
 
 interface Props {
   fileId: string;
@@ -22,23 +24,8 @@ interface Props {
   lang?: Lang;
 }
 
-const STEP_LABELS: Record<string, string> = {
-  analyzing:   "Track wird analysiert…",
-  loading:     "Track wird geladen…",
-  eq:          "EQ-Korrektur wird angewendet…",
-  compression: "Multiband-Kompression…",
-  ms:          "M/S-Bearbeitung…",
-  saturation:  "Harmonische Sättigung…",
-  limiting:    "True-Peak-Limiting…",
-  rendering:   "Formate werden gerendert…",
-  complete:    "Mastering abgeschlossen!",
-};
-
-const STEP_LABELS_EN: Record<string, string> = {
-  analyzing: "Analyzing track…", loading: "Loading track…", eq: "Applying EQ correction…", compression: "Multiband compression…",
-  ms: "M/S processing…", saturation: "Harmonic saturation…", limiting: "True Peak limiting…",
-  rendering: "Rendering all formats…", complete: "Mastering complete!",
-};
+// Die Schritt-Beschriftungen leben jetzt in lib/runMastering.ts, damit sie für
+// jeden Mastering-Lauf gelten — auch für die, die nicht über diesen Button gehen.
 
 export default function MasterButton({
   fileId, originalName, platform, preset, intensity, selectedFormat,
@@ -51,7 +38,7 @@ export default function MasterButton({
 }: Props) {
   const particleContainerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const handleClickRef = useRef<() => void>(() => {});
+  const handleClickRef = useRef<(overrides?: ParamValues) => void>(() => {});
 
   // Particles while processing
   useEffect(() => {
@@ -73,7 +60,7 @@ export default function MasterButton({
     return () => clearInterval(interval);
   }, [isProcessing]);
 
-  const handleClick = async () => {
+  const handleClick = async (overrides?: ParamValues) => {
     if (isProcessing) return;
 
     // Create controller BEFORE calling onStart() so the ref is set
@@ -84,49 +71,12 @@ export default function MasterButton({
 
     onStart();
 
-    try {
-      const response = await fetch("/api/master", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file_id: fileId, original_name: originalName, platform, preset, intensity, format: selectedFormat, analysis, reference_analysis: referenceAnalysis }),
-        signal: controller.signal,
-      });
-      if (!response.ok || !response.body) { onError(); return; }
-
-      const reader  = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      const processChunk = (chunk: string): boolean => {
-        const line = chunk.trim();
-        if (!line.startsWith("data: ")) return false;
-        try {
-          const data = JSON.parse(line.slice(6));
-          if (data.step === "complete") { onComplete(data as MasterData); return true; }
-          if (data.error)               { onError(); return true; }
-          const labels = lang === "de" ? STEP_LABELS : STEP_LABELS_EN;
-          onProgress({ step: data.step, label: labels[data.step] || data.label || data.step, progress: data.progress ?? 0 });
-        } catch (e) { if (process.env.NODE_ENV === "development") console.warn("[SSE] malformed chunk:", line, e); }
-        return false;
-      };
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          buffer += decoder.decode();
-          if (buffer.trim()) for (const chunk of buffer.split("\n\n")) if (processChunk(chunk)) return;
-          break;
-        }
-        buffer += decoder.decode(value, { stream: true });
-        const chunks = buffer.split("\n\n");
-        buffer = chunks.pop() || "";
-        for (const chunk of chunks) if (processChunk(chunk)) return;
-      }
-      onError();
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === "AbortError") return;
-      onError();
-    }
+    await runMastering({
+      fileId, originalName, platform, preset, intensity, selectedFormat,
+      analysis, referenceAnalysis, overrides, lang,
+      signal: controller.signal,
+      onProgress, onComplete, onError,
+    });
   };
 
   // Keep ref in sync so keyboard shortcut can call latest version
@@ -154,7 +104,7 @@ export default function MasterButton({
     <div className={`flex flex-col items-center gap-4 ${compact ? "" : "mt-6"}`}>
       <div className="relative overflow-hidden rounded-2xl" ref={compact ? undefined : particleContainerRef}>
         <button
-          onClick={handleClick}
+          onClick={() => handleClick()}
           disabled={isProcessing}
           className={`gradient-border relative ${compact ? "px-8 py-3" : "px-12 py-4"} rounded-2xl font-bold text-base tracking-wide transition-all duration-300
             ${isProcessing ? "opacity-80 cursor-wait" : "hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"}`}
