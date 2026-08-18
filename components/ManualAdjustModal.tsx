@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { X, RotateCcw, Play, Pause, Music4, Loader2 } from "lucide-react";
 import {
@@ -30,9 +30,18 @@ interface Props {
 }
 
 /** Ein vertikaler Fader im Stil eines Mischpult-Kanalzugs. */
-function Fader({
+/**
+ * memo, weil beim Bewegen EINES Faders sonst alle anderen mitrendern — bei bis
+ * zu acht Fadern plus Scopes war das im Multiband-Tab deutlich zu spüren.
+ */
+const Fader = memo(function Fader({
   def, value, onChange, lang,
-}: { def: ParamDef; value: number; onChange: (v: number) => void; lang: Lang }) {
+}: {
+  def: ParamDef; value: number; lang: Lang;
+  // Nimmt den Schlüssel entgegen, damit der Aufrufer eine STABILE Funktion
+  // durchreichen kann — ein Inline-Closure pro Render würde memo aushebeln.
+  onChange: (key: ParamKey, v: number) => void;
+}) {
   const pct = ((value - def.min) / (def.max - def.min)) * 100;
   const atNeutral = def.neutral !== undefined && Math.abs(value - def.neutral) < def.step / 2;
 
@@ -52,14 +61,14 @@ function Fader({
           step={def.step}
           value={value}
           aria-label={t(def.label, lang)}
-          onChange={(e) => onChange(parseFloat(e.target.value))}
+          onChange={(e) => onChange(def.key, parseFloat(e.target.value))}
         />
       </div>
       <span className="adjust-name">{t(def.label, lang)}</span>
       <span className="adjust-unit">{t(def.unit, lang)}</span>
     </div>
   );
-}
+});
 
 /** Live-Kurve über den EQ-Fadern — zeigt die Summe der vier Glockenfilter. */
 function EqCurve({ values }: { values: ParamValues }) {
@@ -112,8 +121,20 @@ export default function ManualAdjustModal({
    * frei gezogene Kanten. Ein einzelner Klick auf die Wellenform genügt damit:
    * er legt den Bereich um den Klickpunkt. Ziehen bleibt für den Feinschliff.
    */
-  const [lenSec, setLenSec] = useState(8);
-  const [startSec, setStartSec] = useState(() => Math.max(0, durationSec * 0.35));
+  const dur = Math.max(1, durationSec);
+
+  /**
+   * Der Bereich wird in einem Ref geführt und nur beim Loslassen nach React
+   * übernommen. Vorher lief jede Mausbewegung durch drei setState-Aufrufe und
+   * hat damit das komplette Panel neu gerendert — inklusive aller Fader und der
+   * Zeichenschleife. Das war die Hauptursache für das Ruckeln beim Ziehen.
+   */
+  const regionRef = useRef({ start: Math.max(0, dur * 0.35), len: 8 });
+  const committedRef = useRef({ ...regionRef.current });
+  const [region, setRegion] = useState(() => ({ ...regionRef.current }));
+  /** Zeitanzeige wird direkt im DOM aktualisiert, ohne React-Rerender. */
+  const chipTimeRef = useRef<HTMLSpanElement>(null);
+
   // Drag-Zustand bewusst als Ref, nicht als State: die Fenster-Listener müssen
   // schon beim ersten mousemove/mouseup stehen. Über einen State-getriebenen
   // Effekt wäre ein sehr schneller Klick verloren gegangen — genau das ist beim
@@ -174,26 +195,42 @@ export default function ManualAdjustModal({
     [],
   );
 
-  const dur = Math.max(1, durationSec);
-  const endSec = Math.min(dur, startSec + lenSec);
+  const startSec = region.start;
+  const endSec = Math.min(dur, region.start + region.len);
   const fmtTime = (s: number) =>
     `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
-  /** Bereich setzen und dabei im Track halten. */
-  const placeRegion = useCallback((newStart: number, newLen: number) => {
-    const len = Math.max(2, Math.min(20, Math.min(newLen, dur)));
-    const st = Math.max(0, Math.min(dur - len, newStart));
-    setLenSec(len);
-    setStartSec(st);
+  /** Bereich im Ref setzen — zeichnet sofort, ohne React zu beschäftigen. */
+  const setRegionLive = useCallback((start: number, len: number) => {
+    const l = Math.max(2, Math.min(20, Math.min(len, dur)));
+    regionRef.current = { start: Math.max(0, Math.min(dur - l, start)), len: l };
+  }, [dur]);
+
+  /** Beim Loslassen nach React übernehmen und als veraltet markieren. */
+  const commitRegion = useCallback(() => {
+    const r = regionRef.current;
+    const p = committedRef.current;
+    if (Math.abs(p.start - r.start) < 0.01 && Math.abs(p.len - r.len) < 0.01) return;
+    committedRef.current = { ...r };
+    setRegion({ ...r });
     // Wie bei den Reglern: laufende Wiedergabe nicht abwürgen, nur als veraltet
     // markieren — der neue Ausschnitt wird automatisch nachgerendert.
     setStale(true);
-  }, [dur]);
+  }, []);
 
+  /**
+   * Hier bewusst KEIN gecachtes Rechteck: die Trefferberechnung läuft nur bei
+   * Mausereignissen, da fällt getBoundingClientRect() nicht ins Gewicht. Mit
+   * Cache war sie sogar fehlerhaft — beim ersten Messen stand die Breite des
+   * Canvas noch auf 0, und ohne ausgeliefertes ResizeObserver-Ereignis blieb
+   * dieser Wert stehen. Gecacht wird nur im Zeichenpfad, der 60-mal pro
+   * Sekunde läuft.
+   */
   const ratioAt = useCallback((clientX: number) => {
     const cv = waveRef.current;
     if (!cv) return 0;
     const r = cv.getBoundingClientRect();
+    if (r.width < 1) return 0;
     return Math.min(1, Math.max(0, (clientX - r.left) / r.width));
   }, []);
 
@@ -210,14 +247,19 @@ export default function ManualAdjustModal({
       d.moved = true;
       const a = Math.min(d.from, r) * dur;
       const b = Math.max(d.from, r) * dur;
-      placeRegion(a, b - a);
+      // Nur das Ref — die Zeichenschleife greift den Wert im nächsten Frame ab.
+      setRegionLive(a, b - a);
     };
     const up = (e: MouseEvent) => {
       const d = dragRef.current;
       if (!d) return;
       dragRef.current = null;
       // Reiner Klick ohne Ziehen: Bereich mittig um den Klickpunkt legen
-      if (!d.moved) placeRegion(ratioAt(e.clientX) * dur - lenSec / 2, lenSec);
+      if (!d.moved) {
+        const len = regionRef.current.len;
+        setRegionLive(ratioAt(e.clientX) * dur - len / 2, len);
+      }
+      commitRegion();
     };
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", up);
@@ -225,7 +267,7 @@ export default function ManualAdjustModal({
       window.removeEventListener("mousemove", move);
       window.removeEventListener("mouseup", up);
     };
-  }, [open, dur, lenSec, placeRegion, ratioAt]);
+  }, [open, dur, ratioAt, setRegionLive, commitRegion]);
 
   // ── Wellenform zeichnen (inkl. Abspielposition) ───────────────────────────
   useEffect(() => {
@@ -234,30 +276,60 @@ export default function ManualAdjustModal({
     const ctx = cv.getContext("2d");
     if (!ctx) return;
 
-    let raf = 0;
-    const render = () => {
+    let w = 1, h = 1;
+    let gradSel: CanvasGradient | null = null;
+    let gradIdle: CanvasGradient | null = null;
+    let lastLabel = "";
+
+    /**
+     * Geometrie und Verläufe nur bei Größenänderung neu berechnen. Vorher lief
+     * pro Frame ein getBoundingClientRect() (erzwingt Layout) und es wurde für
+     * JEDEN der 170 Balken ein eigener Farbverlauf erzeugt — bei 60 fps über
+     * 10.000 Verlaufsobjekte pro Sekunde.
+     */
+    const measure = () => {
       const r = cv.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) return;   // Layout steht noch nicht
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) {
-        cv.width = Math.round(r.width * dpr);
-        cv.height = Math.round(r.height * dpr);
-      }
+      w = r.width; h = r.height;
+      cv.width = Math.max(1, Math.round(w * dpr));
+      cv.height = Math.max(1, Math.round(h * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const w = r.width, h = r.height;
+      gradSel = ctx.createLinearGradient(0, 0, 0, h);
+      gradSel.addColorStop(0, "#48bfff");
+      gradSel.addColorStop(1, "#8b5cff");
+      gradIdle = ctx.createLinearGradient(0, 0, 0, h);
+      gradIdle.addColorStop(0, "rgba(139,92,246,.45)");
+      gradIdle.addColorStop(1, "rgba(139,92,246,.22)");
+    };
+    measure();
+
+    const bw = () => w / bars.length;
+
+    const draw = () => {
+      // Beim Öffnen steht die Breite des Panels noch nicht — dann hier erneut
+      // messen, statt sich allein auf ein ResizeObserver-Ereignis zu verlassen.
+      if (!gradSel) {
+        measure();
+        if (!gradSel) { raf = requestAnimationFrame(draw); return; }
+      }
+      const { start, len } = regionRef.current;
+      const lo = start / dur;
+      const hi = Math.min(1, (start + len) / dur);
+      const bWidth = bw();
       ctx.clearRect(0, 0, w, h);
 
-      const lo = startSec / dur, hi = endSec / dur;
-      const bw = w / bars.length;
-      for (let i = 0; i < bars.length; i++) {
-        const x = i * bw;
-        const bh = bars[i] * h * 0.8;
-        const y = (h - bh) / 2;
-        const inSel = i / bars.length >= lo && i / bars.length <= hi;
-        const g = ctx.createLinearGradient(0, y, 0, y + bh);
-        if (inSel) { g.addColorStop(0, "#48bfff"); g.addColorStop(1, "#8b5cff"); }
-        else { g.addColorStop(0, "rgba(139,92,246,.45)"); g.addColorStop(1, "rgba(139,92,246,.22)"); }
-        ctx.fillStyle = g;
-        ctx.fillRect(x + 1, y, Math.max(1, bw - 2), bh);
+      // In zwei Durchgängen: so wird fillStyle zweimal pro Frame gesetzt
+      // statt 170-mal ein neuer Verlauf gebaut.
+      for (let pass = 0; pass < 2; pass++) {
+        ctx.fillStyle = (pass === 0 ? gradIdle : gradSel) as CanvasGradient;
+        for (let i = 0; i < bars.length; i++) {
+          const t = i / bars.length;
+          const inSel = t >= lo && t <= hi;
+          if (inSel !== (pass === 1)) continue;
+          const bh = bars[i] * h * 0.8;
+          ctx.fillRect(i * bWidth + 1, (h - bh) / 2, Math.max(1, bWidth - 2), bh);
+        }
       }
 
       ctx.fillStyle = "rgba(72,191,255,.08)";
@@ -266,27 +338,23 @@ export default function ManualAdjustModal({
       ctx.lineWidth = 1.5;
       ctx.shadowColor = "#48bfff";
       ctx.shadowBlur = 6;
-      for (const p of [lo, hi]) {
-        ctx.beginPath();
-        ctx.moveTo(p * w, 0);
-        ctx.lineTo(p * w, h);
-        ctx.stroke();
-      }
+      ctx.beginPath();
+      ctx.moveTo(lo * w, 0); ctx.lineTo(lo * w, h);
+      ctx.moveTo(hi * w, 0); ctx.lineTo(hi * w, h);
+      ctx.stroke();
       ctx.shadowBlur = 0;
 
       // Abspielposition: das Vorhör-Audio enthält nur den Ausschnitt, seine
       // Laufzeit wird also auf den markierten Bereich abgebildet.
       const a = audioRef.current;
-      if (a && a.duration > 0) {
-        const prog = Math.min(1, a.currentTime / a.duration);
-        const px = (lo + (hi - lo) * prog) * w;
+      if (a && a.duration > 0 && !a.paused) {
+        const px = (lo + (hi - lo) * Math.min(1, a.currentTime / a.duration)) * w;
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.shadowColor = "#48bfff";
         ctx.shadowBlur = 10;
         ctx.beginPath();
-        ctx.moveTo(px, 0);
-        ctx.lineTo(px, h);
+        ctx.moveTo(px, 0); ctx.lineTo(px, h);
         ctx.stroke();
         ctx.shadowBlur = 0;
         ctx.fillStyle = "#fff";
@@ -295,14 +363,31 @@ export default function ManualAdjustModal({
         ctx.fill();
       }
 
-      raf = requestAnimationFrame(render);
+      // Nur WÄHREND des Ziehens schreibt die Schleife die Zeitanzeige direkt ins
+      // DOM — so bleibt React beim Ziehen unbehelligt. Sonst rendert React sie
+      // ganz normal; sie hängt damit nicht davon ab, dass diese Schleife läuft.
+      if (dragRef.current) {
+        const label = `${fmtTime(start)}–${fmtTime(start + len)}`;
+        if (label !== lastLabel && chipTimeRef.current) {
+          chipTimeRef.current.textContent = label;
+          lastLabel = label;
+        }
+      } else {
+        lastLabel = "";
+      }
+
+      raf = requestAnimationFrame(draw);
     };
 
-    render();
-    const ro = new ResizeObserver(render);
+    let raf = requestAnimationFrame(draw);
+
+    // ResizeObserver ruft ausschliesslich measure(). Rief er draw() auf, würde
+    // jede Größenänderung eine ZWEITE Endlosschleife starten — und
+    // cancelAnimationFrame beendet nur die zuletzt gespeicherte.
+    const ro = new ResizeObserver(measure);
     ro.observe(cv);
     return () => { cancelAnimationFrame(raf); ro.disconnect(); };
-  }, [startSec, endSec, dur, bars, open]);
+  }, [open, bars, dur]);
 
   // ── Ausschnitt durch die echte Kette rendern ──────────────────────────────
   const renderPreview = useCallback(async () => {
@@ -438,7 +523,10 @@ export default function ManualAdjustModal({
                       : playing ? <Pause size={15} /> : <Play size={15} />}
                   </button>
                   <span className="adjust-range-chip">
-                    {fmtTime(startSec)}–{fmtTime(endSec)}
+                    {/* React rendert den Wert normal; nur während des Ziehens
+                        schreibt die Zeichenschleife direkt hier hinein, damit
+                        jede Mausbewegung kein React-Rerender auslöst. */}
+                    <span ref={chipTimeRef}>{fmtTime(startSec)}–{fmtTime(endSec)}</span>
                     {previewUrl && !stale && (lang === "en" ? " · looping" : " · läuft in Schleife")}
                   </span>
                   {stale && (
@@ -455,8 +543,12 @@ export default function ManualAdjustModal({
                     {[5, 8, 12, 20].map((l) => (
                       <button
                         key={l}
-                        className={lenSec === l ? "is-active" : ""}
-                        onClick={() => placeRegion(startSec + lenSec / 2 - l / 2, l)}
+                        className={region.len === l ? "is-active" : ""}
+                        onClick={() => {
+                          const r = regionRef.current;
+                          setRegionLive(r.start + r.len / 2 - l / 2, l);
+                          commitRegion();
+                        }}
                       >
                         {l}s
                       </button>
@@ -498,7 +590,7 @@ export default function ManualAdjustModal({
                   <Fader
                     def={def}
                     value={values[def.key] ?? def.min}
-                    onChange={(v) => setParam(def.key, v)}
+                    onChange={setParam}
                     lang={lang}
                   />
                 </div>

@@ -35,27 +35,32 @@ function useCanvasLoop(
     let raf = 0;
     let t = 0;
     let stopped = false;
+    // Abmessungen cachen: getBoundingClientRect() pro Frame erzwingt jedes Mal
+    // ein Layout und war eine der Ruckel-Ursachen.
+    let w = 1, h = 1;
 
     const resize = () => {
       const r = cv.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      cv.width = Math.max(1, Math.round(r.width * dpr));
-      cv.height = Math.max(1, Math.round(r.height * dpr));
+      w = r.width; h = r.height;
+      cv.width = Math.max(1, Math.round(w * dpr));
+      cv.height = Math.max(1, Math.round(h * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
+    // Nur messen, niemals zeichnen — sonst startet jede Größenänderung eine
+    // weitere Endlosschleife, die nie wieder abgeräumt wird.
     const ro = new ResizeObserver(resize);
     ro.observe(cv);
 
     const frame = () => {
       if (stopped) return;
-      const r = cv.getBoundingClientRect();
-      ctx.clearRect(0, 0, r.width, r.height);
-      drawRef.current(ctx, r.width, r.height, t);
+      ctx.clearRect(0, 0, w, h);
+      drawRef.current(ctx, w, h, t);
       t += REDUCE_MOTION ? 0 : 0.022;
       raf = requestAnimationFrame(frame);
     };
-    frame();
+    raf = requestAnimationFrame(frame);
 
     return () => {
       stopped = true;
