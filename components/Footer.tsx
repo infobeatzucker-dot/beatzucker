@@ -39,7 +39,7 @@ export default function Footer() {
         {/* Privacy badge */}
         <div className="flex flex-col items-end gap-1">
           <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-            KI-Mastering · Professionelle Audiobearbeitung
+            Adaptives Mastering · Professionelle Audiobearbeitung
           </div>
           <div className="text-[10px] flex items-center gap-1" style={{ color: "#22c55e" }}>
             <Lock size={11} strokeWidth={2} />

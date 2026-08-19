@@ -8,6 +8,7 @@ const REQUIRED_FIELDS = [
   "spectral_rolloff", "spectral_flatness",
   "rms_sub", "rms_low", "rms_mid", "rms_high", "rms_air",
 ];
+const OPTIONAL_FIELDS = ["stereo_width", "mono_compatibility", "lra", "crest_factor", "transient_density"];
 
 const REF_LIMIT = 100;
 
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Analysedaten fehlen" }, { status: 400 });
   }
   for (const field of REQUIRED_FIELDS) {
-    if (typeof analysis[field] !== "number") {
+    if (typeof analysis[field] !== "number" || !Number.isFinite(analysis[field])) {
       return NextResponse.json({ error: `Feld fehlt: ${field}` }, { status: 400 });
     }
   }
@@ -67,10 +68,14 @@ export async function POST(req: NextRequest) {
     }, { status: 400 });
   }
 
-  // Only store the 10 required fields
+  // Store the tonal core plus optional dynamics/stereo values used by matching.
   const safeAnalysis: Record<string, number> = {};
   for (const field of REQUIRED_FIELDS) {
     safeAnalysis[field] = analysis[field] as number;
+  }
+  for (const field of OPTIONAL_FIELDS) {
+    const value = analysis[field];
+    if (typeof value === "number" && Number.isFinite(value)) safeAnalysis[field] = value;
   }
 
   const ref = await db.savedReference.create({

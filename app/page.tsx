@@ -15,10 +15,10 @@ import PromoPopup from "@/components/PromoPopup";
 type Lang = "de" | "en";
 
 const COPY = {
-  eyebrow: { de: "AI-POWERED MASTERING", en: "AI-POWERED MASTERING" },
+  eyebrow: { de: "ADAPTIVES AUDIO-MASTERING", en: "ADAPTIVE AUDIO MASTERING" },
   title: {
-    de: <>Professionelles<br />AI-Mastering für alle.</>,
-    en: <>Professional<br />AI mastering for everyone.</>,
+    de: <>Professionelles<br />Mastering für alle.</>,
+    en: <>Professional<br />mastering for everyone.</>,
   },
   intro: {
     de: <>Mit <strong>Beatzucker</strong>: Schnell, kostenlos, Studio-Qualität.</>,

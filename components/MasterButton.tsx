@@ -9,6 +9,7 @@ interface Props {
   fileId: string;
   originalName?: string;      // original filename for mastering history
   platform: Platform;
+  targetLufs?: number;
   preset: Preset;
   intensity: number;          // 0–100
   selectedFormat: string;
@@ -28,7 +29,7 @@ interface Props {
 // jeden Mastering-Lauf gelten — auch für die, die nicht über diesen Button gehen.
 
 export default function MasterButton({
-  fileId, originalName, platform, preset, intensity, selectedFormat,
+  fileId, originalName, platform, targetLufs, preset, intensity, selectedFormat,
   analysis,
   referenceAnalysis,
   isProcessing, onStart, onProgress, onComplete, onError,
@@ -72,7 +73,7 @@ export default function MasterButton({
     onStart();
 
     await runMastering({
-      fileId, originalName, platform, preset, intensity, selectedFormat,
+      fileId, originalName, platform, targetLufs, preset, intensity, selectedFormat,
       analysis, referenceAnalysis, overrides, lang,
       signal: controller.signal,
       onProgress, onComplete, onError,
@@ -142,7 +143,7 @@ export default function MasterButton({
       {!isProcessing && !compact && (
         <div className="flex flex-col items-center gap-1">
           <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
-            {lang === "de" ? "Professionelle Mastering-Kette · KI-Parameterwahl · Format: " : "Professional mastering chain · AI parameter selection · Format: "}<span style={{ color: "var(--accent-cyan)" }}>{selectedFormat.toUpperCase()}</span>
+            {lang === "de" ? "Professionelle Mastering-Kette · Adaptive Parameterwahl · Format: " : "Professional mastering chain · Adaptive parameter selection · Format: "}<span style={{ color: "var(--accent-cyan)" }}>{selectedFormat.toUpperCase()}</span>
           </p>
           <p className="text-xs text-center flex items-center gap-1" style={{ color: "rgba(196,181,253,0.75)" }}>
             <span>⏱</span>

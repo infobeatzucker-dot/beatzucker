@@ -86,9 +86,9 @@ function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null
   return <canvas ref={ref} className="adjust-spectrum" aria-hidden="true" />;
 }
 
-const fallbackBars = Array.from({ length: 240 }, (_, i) => .12 + Math.abs(Math.sin(i * .17)) * (.28 + .42 * Math.abs(Math.sin(i * .041 + 1.2))));
+const emptyBars = Array.from({ length: 240 }, () => .08);
 
-export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, filename, durationSec, serverParams, onApply }: Props) {
+export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, filename, durationSec, analysis, serverParams, onApply }: Props) {
   const base = useMemo(() => seedValues(serverParams), [serverParams]);
   const [values, setValues] = useState<ParamValues>(base), valuesRef = useRef(values); valuesRef.current = values;
   const [tab, setTab] = useState<TabId>("eq");
@@ -100,7 +100,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   const engineRef = useRef<ManualPreviewEngine | null>(null);
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null), [playing, setPlaying] = useState(false);
   const [engineBusy, setEngineBusy] = useState(false), [previewError, setPreviewError] = useState<string | null>(null);
-  const [waveBars, setWaveBars] = useState(fallbackBars), [waveLoading, setWaveLoading] = useState(false);
+  const [waveBars, setWaveBars] = useState(emptyBars), [waveLoading, setWaveLoading] = useState(false);
   const sourceUrl = useMemo(() => `/api/preview?file_id=${encodeURIComponent(fileId)}`, [fileId]);
   const startSec = region.start, endSec = Math.min(dur, region.start + region.len);
   const dirty = useMemo(() => Object.keys(changedOnly(values, base)).length, [values, base]);
@@ -137,19 +137,30 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         });
         const sorted = [...next].sort((a, b) => a - b), ceiling = sorted[Math.floor(sorted.length * .96)] || 1;
         if (!aborter.signal.aborted) setWaveBars(next.map((value) => Math.max(.06, Math.min(1, value / ceiling))));
-      } catch { if (!aborter.signal.aborted) setWaveBars(fallbackBars); }
+      } catch {
+        if (!aborter.signal.aborted) {
+          setWaveBars(emptyBars);
+          setPreviewError(lang === "en" ? "The waveform could not be analyzed." : "Die Wellenform konnte nicht analysiert werden.");
+        }
+      }
       finally { if (context) void context.close(); if (!aborter.signal.aborted) setWaveLoading(false); }
     })();
     return () => aborter.abort();
-  }, [open, fileId, sourceUrl]);
+  }, [open, fileId, sourceUrl, lang]);
 
   const ensureEngine = useCallback(() => {
     if (!engineRef.current) {
-      const engine = new ManualPreviewEngine(sourceUrl, valuesRef.current); engine.onState(setPlaying);
+      const engine = new ManualPreviewEngine(
+        sourceUrl,
+        valuesRef.current,
+        analysis?.integrated_lufs ?? -18,
+        analysis?.true_peak ?? -6,
+      );
+      engine.onState(setPlaying);
       engine.setRegion(regionRef.current.start, regionRef.current.start + regionRef.current.len); engineRef.current = engine; setAnalyser(engine.analyser);
     }
     return engineRef.current;
-  }, [sourceUrl]);
+  }, [sourceUrl, analysis?.integrated_lufs, analysis?.true_peak]);
   const setParam = useCallback((key: ParamKey, value: number) => setValues((previous) => {
     const next = { ...previous, [key]: value }; engineRef.current?.update(next); return next;
   }), []);
@@ -165,18 +176,18 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
 
   useEffect(() => {
     if (!open) return;
-    const move = (event: MouseEvent) => {
+    const move = (event: PointerEvent) => {
       const drag = dragRef.current; if (!drag) return;
       const delta = (ratioAt(event.clientX) - drag.ratio) * dur; if (Math.abs(delta) > .08) drag.moved = true;
       setRegionLive(drag.start + delta, regionRef.current.len);
     };
-    const up = (event: MouseEvent) => {
+    const up = (event: PointerEvent) => {
       const drag = dragRef.current; if (!drag) return;
       if (!drag.moved) setRegionLive(ratioAt(event.clientX) * dur - regionRef.current.len / 2, regionRef.current.len);
       dragRef.current = null; commitRegion();
     };
-    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+    return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
   }, [open, dur, ratioAt, setRegionLive, commitRegion]);
 
   const locateLoudest = useCallback(() => {
@@ -234,7 +245,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         <button className="adjust-loudest" onClick={locateLoudest} disabled={waveLoading}><LocateFixed size={12} />{lang === "en" ? "Loudest part" : "Lauteste Stelle"}</button>
         <div className="adjust-lenpicker">{[5, 8, 12, 20].filter((length) => length <= dur || length === 5).map((length) => <button key={length} className={Math.abs(region.len - Math.min(length, dur)) < .1 ? "is-active" : ""} onClick={() => { const current = regionRef.current; setRegionLive(current.start + current.len / 2 - length / 2, length); commitRegion(); }}>{length}s</button>)}</div>
       </div>{previewError && <span className="adjust-error">{previewError}</span>}</div>
-      <canvas ref={waveRef} className="adjust-wave-canvas" onMouseDown={(event) => { dragRef.current = { ratio: ratioAt(event.clientX), start: regionRef.current.start, moved: false }; }} />
+      <canvas ref={waveRef} className="adjust-wave-canvas" onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { ratio: ratioAt(event.clientX), start: regionRef.current.start, moved: false }; }} />
       <p className="adjust-hint">{waveLoading ? (lang === "en" ? "Reading waveform…" : "Wellenform wird analysiert…") : (lang === "en" ? "Click to position · drag to move the loop" : "Klicken zum Positionieren · Ziehen verschiebt den Loop")}</p></section>
 
       <nav className="adjust-tabs" role="tablist">{TABS.map((item) => <button key={item.id} role="tab" aria-selected={tab === item.id} className={`adjust-tab${tab === item.id ? " is-active" : ""}`} onClick={() => setTab(item.id)}>{t(item.label, lang)}</button>)}</nav>

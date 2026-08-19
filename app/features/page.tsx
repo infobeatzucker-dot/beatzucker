@@ -16,30 +16,30 @@ import {
 const T = {
   de: {
     badge: "Features",
-    hero_h1a: "KI-Mastering in Studio-Qualität.",
+    hero_h1a: "Adaptives Mastering in Studio-Qualität.",
     hero_h1b: "Ganz ohne Handarbeit.",
-    hero_sub: "Eine 13-stufige DSP-Kette trifft auf KI-gesteuerte Parameterwahl — Beatzucker liefert dir Ergebnisse auf Ozone/FabFilter-Niveau, und das in Sekunden statt Stunden.",
-    stat1: "13 Verarbeitungsstufen",
+    hero_sub: "Eine 12-stufige DSP-Kette trifft auf adaptive Parameterwahl — reproduzierbar, messbar und in Sekunden statt Stunden.",
+    stat1: "12 Verarbeitungsstufen",
     stat2: "7 Export-Formate",
     stat3: "11 Plattform-Presets",
-    stat4: "KI an Bord",
+    stat4: "Adaptive Engine",
     how_badge: "So läuft's ab",
     how_h2: "Dein Master in drei Schritten",
     step1_title: "Track rein",
-    step1_sub: "WAV, MP3, FLAC oder AIFF — bis zu 500 MB",
-    step2_title: "KI übernimmt",
+    step1_sub: "WAV, MP3, FLAC oder AIFF — bis zu 200 MB / 30 Minuten",
+    step2_title: "Engine analysiert",
     step2_sub: "Spektrum, Lautheit und Dynamik werden komplett durchleuchtet",
     step3_title: "Master laden",
     step3_sub: "WAV, FLAC, MP3 und AAC stehen sofort bereit",
     pipeline_badge: "Signalkette",
-    pipeline_h2: "Die 13 Stufen deiner Mastering-Kette",
+    pipeline_h2: "Die 12 Stufen deiner Mastering-Kette",
     pipeline_sub: "Jeder Schritt ist fürs Mastering feinjustiert — vom DC-Offset ganz am Anfang bis zur LUFS-Normalisierung am Ende.",
     platform_badge: "Streaming-Targets",
     platform_h2: "Für jede Plattform richtig laut",
     platform_sub: "Die Lautheit wird automatisch auf den Zielwert jedes großen Streaming-Diensts gebracht.",
     format_badge: "Export",
-    format_h2: "Ein Lauf, alle Dateiformate",
-    format_sub: "Du masterst einmal, bekommst aber jedes Format parallel — kein zweiter Upload nötig.",
+    format_h2: "Das passende Exportformat",
+    format_sub: "Wähle dein Zielformat; eine MP3-Vorschau wird zusätzlich erzeugt, sofern verfügbar.",
     features_badge: "Funktionsumfang",
     features_h2: "Das steckt in Beatzucker",
     cta_h2: "Lust auf deinen ersten automatischen Master?",
@@ -50,28 +50,28 @@ const T = {
     badge: "Features",
     hero_h1a: "Studio-Grade Mastering.",
     hero_h1b: "Zero Manual Work.",
-    hero_sub: "A 13-stage DSP chain paired with AI-driven parameter selection gets you Ozone/FabFilter-level results — in seconds, not hours.",
-    stat1: "13 Processing Stages",
+    hero_sub: "A 12-stage DSP chain paired with adaptive parameter selection delivers reproducible, measurable results in seconds.",
+    stat1: "12 Processing Stages",
     stat2: "7 Export Formats",
     stat3: "11 Platform Presets",
-    stat4: "AI Onboard",
+    stat4: "Adaptive Engine",
     how_badge: "The Process",
     how_h2: "Your Master in Three Steps",
     step1_title: "Drop It In",
-    step1_sub: "WAV, MP3, FLAC or AIFF — up to 500 MB",
-    step2_title: "AI Takes Over",
+    step1_sub: "WAV, MP3, FLAC or AIFF — up to 200 MB / 30 minutes",
+    step2_title: "Engine Analyzes",
     step2_sub: "Spectrum, loudness and dynamics get fully scanned",
     step3_title: "Grab Your Master",
     step3_sub: "WAV, FLAC, MP3 and AAC ready right away",
     pipeline_badge: "Signal Chain",
-    pipeline_h2: "The 13 Stages Behind Your Master",
+    pipeline_h2: "The 12 Stages Behind Your Master",
     pipeline_sub: "Every stage is tuned for professional mastering, from the initial DC offset fix to the final LUFS normalization.",
     platform_badge: "Streaming Targets",
     platform_h2: "Tuned to Hit Every Platform",
     platform_sub: "Loudness is automatically matched to the target value of each major streaming service.",
     format_badge: "Export",
     format_h2: "One Pass, Every File Format",
-    format_sub: "Master once, get every format in parallel — no second upload required.",
+    format_sub: "Choose the delivery format; an MP3 preview is also created when available.",
     features_badge: "Feature Set",
     features_h2: "Everything Beatzucker Packs In",
     cta_h2: "Ready to run your first automatic master?",
@@ -82,19 +82,18 @@ const T = {
 
 /* ─── DSP Pipeline stages ──────────────────────────────────────────────────── */
 const PIPELINE: { num: number; label: string; group: string; icon: LucideIcon | null; glyph?: string }[] = [
-  { num: 1,  label: "DC Remove",    group: "input",    icon: Zap },
-  { num: 2,  label: "Correction EQ", group: "eq",      icon: Sliders },
-  { num: 3,  label: "Low Shelf",    group: "eq",       icon: null, glyph: "〰" },
-  { num: 4,  label: "Mid Notch",    group: "eq",       icon: Wrench },
-  { num: 5,  label: "Air Shelf",    group: "eq",       icon: Sparkles },
-  { num: 6,  label: "De-Esser",     group: "comp",     icon: Mic2 },
-  { num: 7,  label: "Multiband Comp", group: "comp",   icon: SlidersHorizontal },
-  { num: 8,  label: "M/S Processing", group: "stereo", icon: null, glyph: "↔" },
-  { num: 9,  label: "Saturation",   group: "color",    icon: Flame },
-  { num: 10, label: "Final EQ",     group: "eq",       icon: Sliders },
-  { num: 11, label: "Bus Comp",     group: "comp",     icon: Target },
-  { num: 12, label: "True Peak Lim", group: "limit",   icon: Octagon },
-  { num: 13, label: "Dithering",    group: "output",   icon: BarChart3 },
+  { num: 1,  label: "DC Remove",       group: "input",  icon: Zap },
+  { num: 2,  label: "Gain Staging",    group: "input",  icon: Target },
+  { num: 3,  label: "Correction EQ",   group: "eq",     icon: Sliders },
+  { num: 4,  label: "De-Esser",        group: "comp",   icon: Mic2 },
+  { num: 5,  label: "Multiband Comp",  group: "comp",   icon: SlidersHorizontal },
+  { num: 6,  label: "M/S Processing",  group: "stereo", icon: null, glyph: "↔" },
+  { num: 7,  label: "Saturation",      group: "color",  icon: Flame },
+  { num: 8,  label: "Final EQ",        group: "eq",     icon: Sparkles },
+  { num: 9,  label: "Bus Comp",        group: "comp",   icon: Target },
+  { num: 10, label: "True Peak Lim",   group: "limit",  icon: Octagon },
+  { num: 11, label: "Dithering",       group: "output", icon: BarChart3 },
+  { num: 12, label: "Codec Verify",    group: "output", icon: Wrench },
 ];
 
 const GROUP_COLORS: Record<string, string> = {
@@ -116,7 +115,7 @@ const PLATFORMS: { icon: LucideIcon; name: string; lufs: string; peak: string; c
   { icon: ShoppingBag, name: "Amazon Music",  lufs: "−14 LUFS", peak: "−2 dBTP", color: "#ff9900" },
   { icon: Disc3,      name: "Deezer",        lufs: "−15 LUFS", peak: "−1 dBTP", color: "#a238ff" },
   { icon: Smartphone, name: "TikTok",        lufs: "−13 LUFS", peak: "−1 dBTP", color: "#ff0050" },
-  { icon: Cloud,       name: "SoundCloud",    lufs:  "−0 LUFS", peak: "−1 dBTP", color: "#ff5500" },
+  { icon: Cloud,       name: "SoundCloud",    lufs:  "−8 LUFS", peak: "−1 dBTP", color: "#ff5500" },
   { icon: Disc2,      name: "Club / DJ",     lufs:  "−9 LUFS", peak: "−1 dBTP", color: "var(--accent-cyan)" },
   { icon: Radio,      name: "Broadcast/TV",  lufs: "−23 LUFS", peak: "−1 dBTP", color: "#64748b" },
   { icon: Settings2,  name: "Custom",        lufs: "Manuell",  peak: "Manuell", color: "var(--accent-purple)" },
@@ -131,17 +130,17 @@ const FORMATS = [
 const FEATURES = [
   {
     color: "var(--accent-purple)",
-    title: { de: "Automatische Parameterwahl per KI", en: "Smart Parameter Selection" },
+    title: { de: "Adaptive Parameterwahl", en: "Adaptive Parameter Selection" },
     desc: {
-      de: "Statt fixer Presets schaut sich die KI dein Audiomaterial genau an und stellt EQ, Kompression, Stereobreite und Limiter passend zu Genre, Zielplattform und Dynamik ein.",
-      en: "Instead of fixed presets, the AI studies your audio and dials in EQ, compression, stereo width and limiting to match genre, target platform and dynamics.",
+      de: "Messwerte für Spektrum, Dynamik und Stereobild passen EQ, Kompression und Breite reproduzierbar an Preset und Zielplattform an.",
+      en: "Spectrum, dynamics and stereo measurements reproducibly adapt EQ, compression and width to the selected preset and target platform.",
     },
-    tags: ["Auto AI", "Genre-aware", "Plattform-optimiert", "Kostenlos"],
+    tags: ["Adaptive", "Messwertbasiert", "Plattform-optimiert", "Kostenlos"],
     visual: "ai",
   },
   {
     color: "var(--accent-cyan)",
-    title: { de: "13 Verarbeitungsschritte in einer Kette", en: "A 13-Step Processing Chain" },
+    title: { de: "12 Verarbeitungsschritte in einer Kette", en: "A 12-Step Processing Chain" },
     desc: {
       de: "Vom DC-Remove über Correction EQ, De-Esser, Multiband-Kompression und M/S-Processing bis zu Saturation, Bus-Comp, True-Peak-Limiter und Noise-Shaped Dithering — der komplette Profi-Workflow läuft in Sekunden durch.",
       en: "DC removal, correction EQ, de-essing, multiband compression, M/S processing, saturation, bus compression, true peak limiting and noise-shaped dithering — the full pro workflow runs in seconds.",
@@ -193,10 +192,10 @@ const FEATURES = [
     color: "var(--accent-purple)",
     title: { de: "Referenz-Matching", en: "Reference Matching" },
     desc: {
-      de: "Du lädst einfach einen Track hoch, an dem du dich orientieren willst — die KI gleicht Lautheit, Klangbalance, Dynamik und Stereobreite automatisch daran an.",
-      en: "Upload a track you want to sound like, and the AI automatically matches loudness, tonal balance, dynamics and stereo width to it.",
+      de: "Du lädst einen Track als Orientierung hoch — die Engine nähert Klangbalance, Dynamik und Stereobreite daran an, während das Plattformziel die Lautheit vorgibt.",
+      en: "Upload a reference track and the engine approaches its tonal balance, dynamics and stereo width while the platform target controls loudness.",
     },
-    tags: ["AI Matching", "Reference", "Spectral", "Kostenlos"],
+    tags: ["Adaptive Matching", "Reference", "Spectral", "Kostenlos"],
     visual: "reference",
   },
   {
@@ -213,18 +212,18 @@ const FEATURES = [
     color: "var(--accent-gold)",
     title: { de: "Vorher-Nachher-Report", en: "Before/After Report" },
     desc: {
-      de: "Ein ausführlicher Vergleich zwischen Original und Master zeigt dir LUFS-Werte, die von der KI gewählten Parameter, eine Loudness-Tabelle, Dynamic Range und sämtliche Einstellungen — alles direkt im Browser.",
-      en: "A detailed original-vs-master comparison lays out LUFS values, the parameters the AI chose, a loudness table, dynamic range and every setting used — all right in your browser.",
+      de: "Ein ausführlicher Vergleich zwischen Original und Master zeigt LUFS-Werte, adaptive Parameter, Dynamic Range und sämtliche Einstellungen — alles direkt im Browser.",
+      en: "A detailed original-vs-master comparison shows LUFS values, adaptive parameters, dynamic range and every setting used — all right in your browser.",
     },
     tags: ["Pre/Post", "LUFS", "Parameter"],
     visual: "report",
   },
   {
     color: "var(--accent-purple)",
-    title: { de: "Export in jedem Format", en: "Every Format, One Export" },
+    title: { de: "Exportformat nach Wahl", en: "Your Choice of Export Format" },
     desc: {
-      de: "Ob WAV 32-bit Float, WAV 24/16-bit mit TPDF-Dither, FLAC 24-bit, MP3 mit 320 oder 128 kbps oder AAC mit 256 kbps — du bekommst sie alle gleichzeitig, ohne mehrfach zu exportieren.",
-      en: "WAV 32-bit float, WAV 24/16-bit with TPDF dither, FLAC 24-bit, MP3 at 320 or 128 kbps, AAC at 256 kbps — you get all of them at once, no repeat exports needed.",
+      de: "Wähle WAV 32-bit Float, WAV 24/16-bit, FLAC 24-bit, MP3 oder AAC als Ziel. Zusätzlich wird eine kleine MP3-Vorschau erzeugt, wenn der Encoder verfügbar ist.",
+      en: "Choose WAV 32-bit float, WAV 24/16-bit, FLAC 24-bit, MP3 or AAC for delivery. A compact MP3 preview is also created when the encoder is available.",
     },
     tags: ["WAV", "FLAC", "MP3", "AAC"],
     visual: "formats",
@@ -280,7 +279,7 @@ function VisualAI() {
       </div>
       <Wand2 size={28} strokeWidth={2} color="var(--accent-purple)" />
       <div className="absolute bottom-0 right-4 text-[9px] mono" style={{ color: "var(--accent-purple)" }}>
-        AI params ✓
+        Adaptive params ✓
       </div>
     </div>
   );
@@ -382,7 +381,7 @@ function VisualReference() {
           ))}
         </div>
       </div>
-      <div className="text-xs" style={{ color: "var(--accent-purple)" }}>→ AI →</div>
+      <div className="text-xs" style={{ color: "var(--accent-purple)" }}>→ adaptive →</div>
       <div className="flex flex-col items-center gap-1">
         <div className="text-[9px]" style={{ color: "var(--text-muted)" }}>OUT</div>
         <div className="flex gap-0.5 items-end h-6">
@@ -696,8 +695,8 @@ export default function FeaturesPage() {
         </div>
 
         <div className="glass-panel p-5" style={{ overflowX: "auto" }}>
-          {/* Render in 2 rows (7 + 6) */}
-          {[PIPELINE.slice(0, 7), PIPELINE.slice(7, 13)].map((row, ri) => (
+          {/* Render in 2 compact rows */}
+          {[PIPELINE.slice(0, 6), PIPELINE.slice(6, 12)].map((row, ri) => (
             <div key={ri} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: ri === 0 ? 8 : 0, flexWrap: "nowrap", minWidth: "max-content" }}>
               {row.map((stage, si) => (
                 <div key={stage.num} style={{ display: "flex", alignItems: "center", gap: 4 }}>

@@ -28,18 +28,20 @@ export interface AnalysisData {
   sample_rate:        number;
   bit_depth:          number;
   channels:           number;
+  /** Server signature binding this analysis to its uploaded file. */
+  analysis_token?:    string;
 }
 
 export interface MasterData {
   master_id: string;
   formats: {
-    wav32:  string;
-    wav24:  string;
-    wav16:  string;
-    flac:   string;
-    mp3320: string;
-    mp3128: string;
-    aac256: string;
+    wav32?:  string;
+    wav24?:  string;
+    wav16?:  string;
+    flac?:   string;
+    mp3320?: string;
+    mp3128?: string;
+    aac256?: string;
   };
   post_analysis: AnalysisData;
   notes: string;

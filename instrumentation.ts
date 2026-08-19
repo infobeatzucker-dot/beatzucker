@@ -8,8 +8,7 @@ export async function register() {
 
   const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
-    console.error(`[startup] Missing required env vars: ${missing.join(", ")}`);
-    process.exit(1);
+    throw new Error(`[startup] Missing required env vars: ${missing.join(", ")}`);
   }
 
   // Warn about optional but recommended vars
@@ -25,6 +24,8 @@ export async function register() {
 
   if (process.env.NEXTAUTH_SECRET === "change-this-to-a-random-secret-in-production") {
     console.error("[startup] NEXTAUTH_SECRET is using the default placeholder — change it!");
-    if (process.env.NODE_ENV === "production") process.exit(1);
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("[startup] Refusing to start with the default NEXTAUTH_SECRET");
+    }
   }
 }

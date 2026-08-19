@@ -34,9 +34,13 @@ export interface AudioEngineContextType {
   // A/B state
   mode: "A" | "B";
   masterUnavailable: boolean;
+  loudnessMatched: boolean;
+  loudnessCompensationDb: number;
+  loudnessCompensatedSource: "ORIGINAL" | "MASTER" | null;
 
   // Controls
   setMode: (m: "A" | "B") => void;
+  setLoudnessMatched: (enabled: boolean) => void;
   togglePlay: () => void;
   seek: (t: number) => void;
   playMaster: () => void;   // Switch to B + attempt autoplay from start
@@ -58,10 +62,14 @@ export function AudioEngineProvider({
   children,
   originalUrl,
   masteredUrl,
+  originalLufs,
+  masteredLufs,
 }: {
   children: ReactNode;
   originalUrl: string;
   masteredUrl: string;
+  originalLufs?: number;
+  masteredLufs?: number;
 }) {
   const audioRef          = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef       = useRef<AudioContext | null>(null);
@@ -69,6 +77,7 @@ export function AudioEngineProvider({
   const rafRef            = useRef<number>(0);
   const masteredBlobRef   = useRef<string>("");   // Blob URL for reliable B seeking
   const modeRef           = useRef<"A" | "B">("A");
+  const loudnessMatchedRef = useRef(true);
 
   const [analyserMono, setAnalyserMono] = useState<AnalyserNode | null>(null);
   const [analyserL,    setAnalyserL]    = useState<AnalyserNode | null>(null);
@@ -79,6 +88,7 @@ export function AudioEngineProvider({
   const [duration,          setDuration]          = useState(0);
   const [mode,              setModeState]         = useState<"A" | "B">("A");
   const [masterUnavailable, setMasterUnavailable] = useState(false);
+  const [loudnessMatched,   setLoudnessMatchedState] = useState(true);
 
   const [staticWaveform,  setStaticWaveform]  = useState<Float32Array | null>(null);
   const [peakWaveform,    setPeakWaveform]    = useState<Float32Array | null>(null);
@@ -87,6 +97,24 @@ export function AudioEngineProvider({
 
   // Keep modeRef in sync with state so setMode closure always sees latest value
   useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => { loudnessMatchedRef.current = loudnessMatched; }, [loudnessMatched]);
+
+  // Match both sources to the quieter integrated loudness. We never boost a
+  // source for comparison, avoiding browser clipping and preserving headroom.
+  const gainForMode = useCallback((targetMode: "A" | "B", matched = loudnessMatchedRef.current) => {
+    if (!matched || !Number.isFinite(originalLufs) || !Number.isFinite(masteredLufs)) return 1;
+    const sourceLufs = targetMode === "A" ? Number(originalLufs) : Number(masteredLufs);
+    const quietestLufs = Math.min(Number(originalLufs), Number(masteredLufs));
+    const attenuationDb = Math.min(0, quietestLufs - sourceLufs);
+    return Math.pow(10, attenuationDb / 20);
+  }, [originalLufs, masteredLufs]);
+
+  const hasLoudnessPair = Number.isFinite(originalLufs) && Number.isFinite(masteredLufs);
+  const loudnessDeltaDb = hasLoudnessPair ? Number(masteredLufs) - Number(originalLufs) : 0;
+  const loudnessCompensationDb = hasLoudnessPair ? -Math.abs(loudnessDeltaDb) : 0;
+  const loudnessCompensatedSource: "ORIGINAL" | "MASTER" | null = !hasLoudnessPair || Math.abs(loudnessDeltaDb) < 0.05
+    ? null
+    : loudnessDeltaDb > 0 ? "MASTER" : "ORIGINAL";
 
   // ── Create/reuse audio element ───────────────────────────────────────────────
   // The element lives as a module-level singleton so audio keeps playing across
@@ -259,7 +287,7 @@ export function AudioEngineProvider({
 
       // Master gain node – used to fade volume during A/B switch
       const gain = ctx.createGain();
-      gain.gain.value = 1;
+      gain.gain.value = gainForMode(modeRef.current);
       gainRef.current = gain;
 
       // Mono analyser (spectrum + waveform)
@@ -291,7 +319,7 @@ export function AudioEngineProvider({
     } catch (e) {
       console.warn("Web Audio init failed:", e);
     }
-  }, []);
+  }, [gainForMode]);
 
   // ── Mode switch (A = original, B = mastered) ────────────────────────────────
   const setMode = useCallback((newMode: "A" | "B") => {
@@ -332,7 +360,7 @@ export function AudioEngineProvider({
           if (gain && ctx) {
             gain.gain.cancelScheduledValues(ctx.currentTime);
             gain.gain.setValueAtTime(0, ctx.currentTime);
-            gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.08);
+            gain.gain.linearRampToValueAtTime(gainForMode(newMode), ctx.currentTime + 0.08);
           }
         }
       }, { once: true });
@@ -363,7 +391,31 @@ export function AudioEngineProvider({
     } else {
       doSwitch();
     }
-  }, [originalUrl, masteredUrl, masterUnavailable, isPlaying]);
+  }, [originalUrl, masteredUrl, masterUnavailable, isPlaying, gainForMode]);
+
+  const setLoudnessMatched = useCallback((enabled: boolean) => {
+    loudnessMatchedRef.current = enabled;
+    setLoudnessMatchedState(enabled);
+    const gain = gainRef.current;
+    const ctx = audioCtxRef.current;
+    if (!gain || !ctx) return;
+    const now = ctx.currentTime;
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(gain.gain.value, now);
+    gain.gain.linearRampToValueAtTime(gainForMode(modeRef.current, enabled), now + 0.06);
+  }, [gainForMode]);
+
+  // Also react when fresh analysis values arrive after a master completed or
+  // when playMaster() changes mode without going through the regular switcher.
+  useEffect(() => {
+    const gain = gainRef.current;
+    const ctx = audioCtxRef.current;
+    if (!gain || !ctx) return;
+    const now = ctx.currentTime;
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(gain.gain.value, now);
+    gain.gain.linearRampToValueAtTime(gainForMode(mode, loudnessMatched), now + 0.06);
+  }, [gainForMode, loudnessMatched, mode]);
 
   // ── Playback controls ────────────────────────────────────────────────────────
   const togglePlay = useCallback(() => {
@@ -436,7 +488,11 @@ export function AudioEngineProvider({
         duration,
         mode,
         masterUnavailable,
+        loudnessMatched,
+        loudnessCompensationDb,
+        loudnessCompensatedSource,
         setMode,
+        setLoudnessMatched,
         togglePlay,
         seek,
         playMaster,

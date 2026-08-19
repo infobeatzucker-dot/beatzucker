@@ -17,14 +17,14 @@ const FEATURES: {
 }[] = [
   {
     icon: Brain,
-    title: { de: "KI-gestützte Analyse", en: "AI-Powered Analysis" },
+    title: { de: "Adaptive Audioanalyse", en: "Adaptive Audio Analysis" },
     desc: {
-      de: "Die KI schaut sich Genre, Energie, Dynamik und Klangbalance deines Tracks an und stellt darauf basierend automatisch die passenden Mastering-Parameter ein.",
-      en: "The AI examines your track's genre, energy, dynamics and tonal balance, then automatically sets the mastering parameters that fit.",
+      de: "Die Engine misst Energie, Dynamik, Spektrum und Stereobild deines Tracks und leitet daraus reproduzierbar passende Mastering-Parameter ab.",
+      en: "The engine measures energy, dynamics, spectrum and stereo image, then derives reproducible mastering parameters from those measurements.",
     },
     details: {
-      de: ["Genre-Erkennung", "Spektralanalyse", "Dynamikmessung", "BPM & Tonerkennung"],
-      en: ["Genre detection", "Spectral analysis", "Dynamic range measurement", "BPM & key detection"],
+      de: ["Preset-Adaption", "Spektralanalyse", "Dynamikmessung", "BPM & Tonerkennung"],
+      en: ["Preset adaptation", "Spectral analysis", "Dynamic range measurement", "BPM & key detection"],
     },
     color: "var(--accent-purple)",
   },
@@ -32,8 +32,8 @@ const FEATURES: {
     icon: Settings2,
     title: { de: "Professionelle Signalkette", en: "A Professional Signal Chain" },
     desc: {
-      de: "Eine 13-stufige Kette baut auf Spotifys Pedalboard, pyloudnorm nach ITU-R BS.1770-4 und Multiband-Kompression auf — Werkzeuge, mit denen auch erfahrene Mastering-Engineers arbeiten.",
-      en: "A 13-stage chain built on Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4) and multiband compression — the same tools experienced mastering engineers rely on.",
+      de: "Eine 12-stufige Kette baut auf Spotifys Pedalboard, pyloudnorm nach ITU-R BS.1770-4 und Multiband-Kompression auf — bewährte Bausteine professioneller Audiobearbeitung.",
+      en: "A 12-stage chain built on Spotify's Pedalboard, pyloudnorm (ITU-R BS.1770-4) and multiband compression — proven building blocks for professional audio processing.",
     },
     details: {
       de: ["Korrektur-EQ", "Multiband-Kompression", "M/S-Processing", "True-Peak-Limiting"],
@@ -60,12 +60,11 @@ const CHAIN_STEPS = {
   de: [
     "DC-Offset-Entfernung",
     "Vor-Analyse",
-    "KI-Parameter",
+    "Adaptive Parameter",
     "Korrektur-EQ",
     "De-Esser",
     "Multiband-Comp",
     "M/S-Processing",
-    "Stereo-Enhancement",
     "Sättigung",
     "Final-EQ",
     "Bus-Kompression",
@@ -75,12 +74,11 @@ const CHAIN_STEPS = {
   en: [
     "DC Offset Removal",
     "Pre-Analysis",
-    "AI Parameters",
+    "Adaptive Parameters",
     "Correction EQ",
     "De-Esser",
     "Multiband Comp",
     "M/S Processing",
-    "Stereo Enhancement",
     "Saturation",
     "Final EQ",
     "Bus Compression",

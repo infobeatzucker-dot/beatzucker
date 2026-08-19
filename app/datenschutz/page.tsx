@@ -157,7 +157,7 @@ export default function DatenschutzPage() {
         <p>
           Eine automatisierte Entscheidungsfindung oder Profiling im Sinne des Art. 22 DSGVO
           findet nicht statt. Der Mastering-Dienst verarbeitet Audiodateien rein technisch
-          (Signalverarbeitung und KI-gestützte Parameterauswahl) und trifft keine Entscheidungen
+          (Signalverarbeitung und messwertbasierte adaptive Parameterauswahl) und trifft keine Entscheidungen
           mit rechtlicher oder ähnlich bedeutsamer Wirkung auf betroffene Personen.
         </p>
       </div>

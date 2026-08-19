@@ -34,6 +34,9 @@ export async function GET(req: NextRequest) {
   if (!masterId) {
     return NextResponse.json({ error: "master_id required" }, { status: 400 });
   }
+  if (!(format in FORMAT_EXT)) {
+    return NextResponse.json({ error: "Ungültiges Format" }, { status: 400 });
+  }
 
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
@@ -62,29 +65,13 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Serve file ────────────────────────────────────────────────────────────
-  // Try requested format; if not on disk, fall back to best available format
-  const FALLBACK_ORDER = ["mp3128", "mp3320", "wav16", "wav24", "wav32", "flac", "aac256"];
-
-  let actualFormat = format;
-  let filePath     = path.join(UPLOAD_DIR, "masters", `${masterId}_${format}.${FORMAT_EXT[format] || "mp3"}`);
+  const actualFormat = format;
+  const filePath = path.join(UPLOAD_DIR, "masters", `${masterId}_${format}.${FORMAT_EXT[format]}`);
 
   if (!existsSync(filePath)) {
-    // Find first available format for this master
-    let found = false;
-    for (const fb of FALLBACK_ORDER) {
-      const fbPath = path.join(UPLOAD_DIR, "masters", `${masterId}_${fb}.${FORMAT_EXT[fb] || "mp3"}`);
-      if (existsSync(fbPath)) {
-        filePath     = fbPath;
-        actualFormat = fb;
-        found        = true;
-        break;
-      }
-    }
-    if (!found) {
-      return NextResponse.json({
-        error: "Master-Datei nicht gefunden oder abgelaufen.",
-      }, { status: 404 });
-    }
+    return NextResponse.json({
+      error: "Dieses Format wurde nicht erzeugt oder ist abgelaufen.",
+    }, { status: 404 });
   }
 
   const ext        = FORMAT_EXT[actualFormat] || "mp3";

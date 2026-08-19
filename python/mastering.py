@@ -13,11 +13,14 @@ from scipy.ndimage import maximum_filter1d
 from numba import jit
 import os
 import uuid
+import logging
 from dataclasses import dataclass
 from typing import Callable, Optional
 
 from ai_params import MasteringParams
-from analyzer import compute_dr, rms_band, compute_lra
+from analyzer import compute_dr, rms_band, compute_lra, compute_true_peak
+
+logger = logging.getLogger("beatzucker.mastering")
 
 
 @dataclass
@@ -155,15 +158,40 @@ def linkwitz_riley_crossover(audio: np.ndarray, sr: int, crossover_hz: float, or
     return low, high
 
 
-def compress_band(audio: np.ndarray, sr: int, threshold_db: float, ratio: float,
-                  attack_ms: float = 20, release_ms: float = 100) -> np.ndarray:
-    """Stereo-linked compressor using scipy IIR envelope follower.
-    Linked detection: max(L, R) drives both channels simultaneously
-    to prevent stereo-image pumping.
+@jit(nopython=True, cache=True)
+def _follow_envelope(level: np.ndarray, attack_coeff: float,
+                     release_coeff: float) -> np.ndarray:
+    """Stateful attack/release envelope follower.
+
+    A single state is essential here: independently filtering attack and
+    release envelopes and switching between them creates discontinuities and
+    does not model a compressor detector.
     """
+    envelope = np.empty(len(level), dtype=np.float32)
+    state = 0.0
+    for i in range(len(level)):
+        coeff = attack_coeff if level[i] > state else release_coeff
+        state = coeff * state + (1.0 - coeff) * level[i]
+        envelope[i] = state
+    return envelope
+
+
+def compress_band(audio: np.ndarray, sr: int, threshold_db: float, ratio: float,
+                  attack_ms: float = 20, release_ms: float = 100,
+                  max_reduction_db: float = 4.0) -> np.ndarray:
+    """Stereo-linked feed-forward compressor with bounded gain reduction.
+
+    The louder channel drives one stateful detector for both channels, which
+    prevents stereo-image movement. The reduction cap is a mastering-quality
+    guardrail: an unusual upload or aggressive manual setting cannot silently
+    turn a subtle stage into broadband crushing.
+    """
+    if ratio <= 1.0001 or max_reduction_db <= 0:
+        return audio.astype(np.float32, copy=True)
+
     threshold = db_to_linear(threshold_db)
-    attack_coeff  = np.exp(-1.0 / (sr * attack_ms  / 1000))
-    release_coeff = np.exp(-1.0 / (sr * release_ms / 1000))
+    attack_coeff = float(np.exp(-1.0 / max(1.0, sr * attack_ms / 1000)))
+    release_coeff = float(np.exp(-1.0 / max(1.0, sr * release_ms / 1000)))
 
     # Linked stereo: single envelope from the louder channel
     if audio.ndim == 2:
@@ -171,25 +199,15 @@ def compress_band(audio: np.ndarray, sr: int, threshold_db: float, ratio: float,
     else:
         level = np.abs(audio).astype(np.float32)
 
-    b_att = np.array([1.0 - attack_coeff],  dtype=np.float64)
-    a_att = np.array([1.0, -attack_coeff],  dtype=np.float64)
-    b_rel = np.array([1.0 - release_coeff], dtype=np.float64)
-    a_rel = np.array([1.0, -release_coeff], dtype=np.float64)
-
-    # First-order IIR: lfilter is fine here (no numerical instability at order 1)
-    env_att = scipy_signal.lfilter(b_att, a_att, level.astype(np.float64)).astype(np.float32)
-    env_rel = scipy_signal.lfilter(b_rel, a_rel, level.astype(np.float64)).astype(np.float32)
+    envelope = _follow_envelope(level, attack_coeff, release_coeff)
     del level
-
-    rising   = np.diff(env_att, prepend=env_att[0]) >= 0
-    envelope = np.where(rising, env_att, env_rel).astype(np.float32)
-    del env_att, env_rel, rising
 
     gain = np.ones(len(envelope), dtype=np.float32)
     over = envelope > threshold
     if np.any(over):
         gain[over] = (threshold * (envelope[over] / threshold) ** (1.0 / ratio)
                       / envelope[over])
+        np.maximum(gain, db_to_linear(-abs(max_reduction_db)), out=gain)
     del envelope, over
 
     return (audio * gain).astype(np.float32)
@@ -213,16 +231,21 @@ def apply_multiband_compression(audio: np.ndarray, sr: int, params: MasteringPar
     def _band_rel(base_ms: float, ratio: float) -> float:
         return max(40.0, base_ms * (2.0 / max(ratio, 1.0)))
 
-    sub_c = compress_band(sub, sr, params.mb_sub_threshold, params.mb_sub_ratio, params.mb_sub_attack, params.mb_sub_release)
+    sub_c = compress_band(sub, sr, params.mb_sub_threshold, params.mb_sub_ratio,
+                          params.mb_sub_attack, params.mb_sub_release,
+                          max_reduction_db=4.0)
     del sub; gc.collect()
     low_c = compress_band(low, sr, params.mb_low_threshold, params.mb_low_ratio,
-                          _band_atk(30, params.mb_low_ratio), _band_rel(120, params.mb_low_ratio))
+                          _band_atk(30, params.mb_low_ratio), _band_rel(120, params.mb_low_ratio),
+                          max_reduction_db=3.5)
     del low; gc.collect()
     mid_c = compress_band(mid, sr, params.mb_mid_threshold, params.mb_mid_ratio,
-                          _band_atk(15, params.mb_mid_ratio), _band_rel(80, params.mb_mid_ratio))
+                          _band_atk(15, params.mb_mid_ratio), _band_rel(80, params.mb_mid_ratio),
+                          max_reduction_db=3.0)
     del mid; gc.collect()
     high_c = compress_band(high, sr, params.mb_high_threshold, params.mb_high_ratio,
-                           _band_atk(8, params.mb_high_ratio), _band_rel(40, params.mb_high_ratio))
+                           _band_atk(8, params.mb_high_ratio), _band_rel(40, params.mb_high_ratio),
+                           max_reduction_db=2.5)
     del high; gc.collect()
 
     result = (sub_c + low_c + mid_c + high_c).astype(np.float32)
@@ -250,7 +273,9 @@ def apply_deesser(audio: np.ndarray, sr: int,
     sibilance, above_high = linkwitz_riley_crossover(above_low, sr, high_hz)
     del above_low
 
-    sibilance_c = compress_band(sibilance, sr, threshold_db, ratio, attack_ms=2.0, release_ms=60.0)
+    sibilance_c = compress_band(sibilance, sr, threshold_db, ratio,
+                                attack_ms=2.0, release_ms=60.0,
+                                max_reduction_db=3.0)
     del sibilance
 
     result = (below + sibilance_c + above_high).astype(np.float32)
@@ -309,21 +334,12 @@ def apply_saturation(audio: np.ndarray, sr: int, amount: float) -> np.ndarray:
 
     # 2× upsample before nonlinearity (axis=-1 = time axis for [ch, samples] arrays)
     audio_up = scipy_signal.resample_poly(audio, 2, 1, axis=-1).astype(np.float32)
-    nyq_up   = sr  # Nyquist at 2× original sr
-
-    sos_low  = scipy_signal.butter(4, 5000 / nyq_up, btype="low",  output="sos")
-    sos_high = scipy_signal.butter(4, 5000 / nyq_up, btype="high", output="sos")
-
-    if audio_up.ndim == 2:
-        result = np.zeros_like(audio_up)
-        for i in range(2):
-            low_part  = scipy_signal.sosfilt(sos_low,  audio_up[i])
-            high_part = scipy_signal.sosfilt(sos_high, audio_up[i])
-            result[i] = (soft_clip(low_part, drive=amount) + high_part).astype(np.float32)
-    else:
-        low_part  = scipy_signal.sosfilt(sos_low,  audio_up)
-        high_part = scipy_signal.sosfilt(sos_high, audio_up)
-        result = (soft_clip(low_part, drive=amount) + high_part).astype(np.float32)
+    # Complementary LR4 split: when amount tends to zero, both bands recombine
+    # flat. Independent Butterworth LP/HP filters did not guarantee this and
+    # could colour the signal even before the nonlinear processing.
+    low_part, high_part = linkwitz_riley_crossover(audio_up, sr * 2, 5000)
+    result = (soft_clip(low_part, drive=amount) + high_part).astype(np.float32)
+    del low_part, high_part
 
     # 2× downsample — resample_poly includes built-in anti-aliasing FIR
     result = scipy_signal.resample_poly(result, 1, 2, axis=-1).astype(np.float32)
@@ -343,7 +359,8 @@ def apply_bus_compression(audio: np.ndarray, sr: int, params: MasteringParams) -
                          params.bus_comp_threshold,
                          params.bus_comp_ratio,
                          attack_ms=50.0,
-                         release_ms=100.0)
+                         release_ms=100.0,
+                         max_reduction_db=2.0)
 
 
 # ─── 11. LIMITING ──────────────────────────────────────────────────────────────
@@ -444,6 +461,11 @@ def _limit_to_ceiling(audio: np.ndarray, sr: int, ceiling_db: float) -> np.ndarr
     ds     = max(1, sr // 1000)      # downsample factor (≈ 44 at 44.1 kHz)
     n_ds   = n_full // ds
 
+    if n_ds == 0:
+        # Very short diagnostic/test signals: avoid empty interpolation arrays.
+        reduction = float(np.min(desired_gain)) if n_full else 1.0
+        return (audio * reduction).astype(np.float32)
+
     # Peak-hold downsample: worst-case (minimum) gain per block
     gain_ds = desired_gain[:n_ds * ds].reshape(n_ds, ds).min(axis=1)
 
@@ -464,13 +486,23 @@ def _limit_to_ceiling(audio: np.ndarray, sr: int, ceiling_db: float) -> np.ndarr
     xs_full = np.arange(n_full, dtype=np.float64)
     smoothed = np.interp(xs_full, xs_ds, smoothed_ds).astype(np.float32)
 
-    # ── Apply gain + hard safety clip ─────────────────────────────────────────
+    # ── Apply gain + sample-domain safety guard ───────────────────────────────
     audio = (audio * smoothed).astype(np.float32)
     np.clip(audio, -ceiling_lin, ceiling_lin, out=audio)
+
+    # Interpolation/smoothing can leave a small reconstructed-signal overshoot.
+    # A final global trim preserves waveform shape and guarantees the requested
+    # true-peak ceiling without adding a second hard-clipping stage.
+    final_envelope = _true_peak_envelope(audio, sr, oversample=4)
+    final_peak = float(np.max(final_envelope)) if len(final_envelope) else 0.0
+    if final_peak > ceiling_lin:
+        audio *= np.float32(ceiling_lin / max(final_peak, 1e-12))
     return audio
 
 
-def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, target_lufs: float) -> np.ndarray:
+def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float,
+                            target_lufs: float,
+                            max_gain_reduction_db: float = 4.0) -> np.ndarray:
     """
     True Peak limiter with proper lookahead + smooth attack/release.
 
@@ -479,23 +511,35 @@ def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, targe
       2. True-peak detection via 4x oversampling + 5 ms forward lookahead
       3. Smooth gain reduction: instant attack, 50 ms release (IIR)
       4. Hard safety clip as final guard
-      5. Up to 2 loudness-correction passes: re-measure the achieved LUFS after
-         limiting (which only ever reduces level, so dense/hot masters can land
-         below target) and nudge back up + re-limit, so the delivered loudness
-         actually lands near the platform target instead of silently under it.
+      5. A maximum-gain-reduction guardrail. If loudness and dynamics conflict,
+         the result may land below the nominal LUFS target instead of being
+         repeatedly driven into the limiter.
     """
     meter = pyln.Meter(sr)
 
     # ── 1. LUFS normalization ────────────────────────────────────────────────
     lufs_in = audio.T if audio.ndim == 2 else audio.reshape(-1, 1)
     current_lufs = meter.integrated_loudness(lufs_in)
+    loudness_constrained = False
     if np.isfinite(current_lufs):
-        audio = audio * db_to_linear(target_lufs - current_lufs)
+        requested_gain_db = target_lufs - current_lufs
+        peak_envelope = _true_peak_envelope(audio, sr, oversample=4)
+        current_tp_lin = float(np.max(peak_envelope)) if len(peak_envelope) else 0.0
+        current_tp_db = linear_to_db(max(current_tp_lin, 1e-12))
+
+        # The normalization gain may ask the limiter for at most the configured
+        # amount of peak reduction. This makes the loudness target a goal rather
+        # than an unconditional order to destroy transients.
+        max_gain_db = ceiling_db - current_tp_db + abs(max_gain_reduction_db)
+        applied_gain_db = min(requested_gain_db, max_gain_db)
+        loudness_constrained = applied_gain_db < requested_gain_db - 0.05
+        audio = audio * db_to_linear(applied_gain_db)
 
     audio = _limit_to_ceiling(audio, sr, ceiling_db)
 
-    # ── Loudness-correction passes ───────────────────────────────────────────
-    for _ in range(2):
+    # One small correction is useful when metering/limiting interaction causes
+    # a benign miss. Never chase loudness when the dynamics guardrail engaged.
+    for _ in range(0 if loudness_constrained else 1):
         lufs_in = audio.T if audio.ndim == 2 else audio.reshape(-1, 1)
         achieved_lufs = meter.integrated_loudness(lufs_in)
         if not np.isfinite(achieved_lufs):
@@ -505,7 +549,7 @@ def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float, targe
             break  # close enough (or already at/above target)
         # Damped, bounded nudge — re-limiting will re-catch any new peak overs
         # this reintroduces, so this converges rather than overshooting.
-        trim_db = min(undershoot * 0.9, 3.0)
+        trim_db = min(undershoot * 0.75, 0.75)
         audio = audio * db_to_linear(trim_db)
         audio = _limit_to_ceiling(audio, sr, ceiling_db)
 
@@ -557,12 +601,21 @@ def apply_dither(audio: np.ndarray, target_bit_depth: int = 16) -> np.ndarray:
 
 
 def export_formats(audio: np.ndarray, sr: int, output_dir: str, master_id: str, selected_format: str = "mp3128") -> dict:
-    """Export only the selected format (plus mp3128 as preview fallback)."""
+    """Export the selected format plus MP3 preview, without disguised fallbacks.
+
+    A key in ``paths`` always denotes the codec/bit depth named by that key. If
+    FFmpeg cannot create a requested lossy format, mastering fails explicitly
+    instead of returning a WAV file under an MP3/AAC download label.
+    """
     os.makedirs(output_dir, exist_ok=True)
     paths = {}
 
-    # Always produce mp3128 as a free preview fallback
-    formats_to_render = {selected_format, "mp3128"}
+    # Produce the chosen delivery plus a high-quality browser preview. 128 kbps
+    # is still available as an explicit delivery choice, but it is a poor basis
+    # for a critical A/B decision: its low-pass and codec artefacts can be heard
+    # as mastering differences. MP3 320 keeps the preview broadly compatible
+    # while making the comparison much more representative of the PCM master.
+    formats_to_render = {selected_format, "mp3320"}
 
     # WAV formats (soundfile)
     if "wav32" in formats_to_render:
@@ -589,9 +642,9 @@ def export_formats(audio: np.ndarray, sr: int, output_dir: str, master_id: str, 
     # FFmpeg formats (mp3/aac)
     need_ffmpeg = formats_to_render & {"mp3320", "mp3128", "aac256"}
     if need_ffmpeg:
+        tmp_wav = os.path.join(output_dir, f"{master_id}_tmp.wav")
         try:
             import ffmpeg
-            tmp_wav = os.path.join(output_dir, f"{master_id}_tmp.wav")
             sf.write(tmp_wav, audio.T if audio.ndim == 2 else audio, sr, subtype="PCM_24")
 
             if "mp3320" in need_ffmpeg:
@@ -609,23 +662,69 @@ def export_formats(audio: np.ndarray, sr: int, output_dir: str, master_id: str, 
                 ffmpeg.input(tmp_wav).output(p, audio_bitrate="256k", acodec="aac").overwrite_output().run(quiet=True)
                 paths["aac256"] = p
 
-            os.remove(tmp_wav)
         except Exception as e:
-            print(f"FFmpeg export error: {e}")
-            # Fallback: WAV 24-bit copy
-            fallback = os.path.join(output_dir, f"{master_id}_wav24.wav")
-            if not os.path.exists(fallback):
-                sf.write(fallback, audio.T if audio.ndim == 2 else audio, sr, subtype="PCM_24")
-            for fmt in need_ffmpeg:
-                paths[fmt] = fallback
+            # A missing preview is non-fatal when the paid/selected lossless
+            # export itself succeeded. A selected lossy export must be honest.
+            if selected_format in {"mp3320", "mp3128", "aac256"}:
+                raise RuntimeError(f"Requested {selected_format} export failed") from e
+        finally:
+            if os.path.exists(tmp_wav):
+                os.remove(tmp_wav)
 
     return paths
+
+
+def load_and_verify_export(path: str, expected_format: str, expected_sr: int) -> tuple[np.ndarray, int]:
+    """Decode the delivered file and reject missing, empty or mislabeled output."""
+    if not path or not os.path.isfile(path) or os.path.getsize(path) == 0:
+        raise RuntimeError(f"{expected_format} export is missing or empty")
+
+    lossless_subtypes = {
+        "wav32": {"FLOAT"},
+        "wav24": {"PCM_24"},
+        "wav16": {"PCM_16"},
+        "flac": {"PCM_24"},
+    }
+    if expected_format in lossless_subtypes:
+        info = sf.info(path)
+        if info.samplerate != expected_sr or info.subtype not in lossless_subtypes[expected_format]:
+            raise RuntimeError(
+                f"{expected_format} verification failed: {info.samplerate} Hz/{info.subtype}"
+            )
+        decoded, decoded_sr = sf.read(path, always_2d=True, dtype="float32")
+        audio = decoded.T
+    else:
+        # libsndfile handles MP3 on current deployments. AAC support varies, so
+        # use the same FFmpeg installation as export as a deterministic fallback.
+        try:
+            audio, decoded_sr = librosa.load(path, sr=None, mono=False)
+        except Exception:
+            import ffmpeg
+            verify_wav = f"{path}.verify.wav"
+            try:
+                ffmpeg.input(path).output(
+                    verify_wav, format="wav", acodec="pcm_f32le"
+                ).overwrite_output().run(quiet=True)
+                decoded, decoded_sr = sf.read(verify_wav, always_2d=True, dtype="float32")
+                audio = decoded.T
+            finally:
+                if os.path.exists(verify_wav):
+                    os.remove(verify_wav)
+
+    audio = np.asarray(audio, dtype=np.float32)
+    if audio.size == 0 or not np.all(np.isfinite(audio)):
+        raise RuntimeError(f"{expected_format} decoded to invalid audio")
+    if int(decoded_sr) != int(expected_sr):
+        raise RuntimeError(f"{expected_format} sample rate changed unexpectedly")
+    return audio, int(decoded_sr)
 
 
 # ─── FAST POST-ANALYSIS (in-memory, no librosa BPM/key re-run) ────────────────
 
 def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
-                          pre_bpm: float = 0.0, pre_key: str = "Unknown") -> dict:
+                          pre_bpm: float = 0.0, pre_key: str = "Unknown",
+                          pre_transient_density: float = 0.0,
+                          output_bit_depth: int = 0) -> dict:
     """Compute only loudness/dynamics/spectral on the mastered numpy array.
     BPM and key are copied from params (they don't change after mastering).
     This avoids a second slow librosa.load + beat_track call (~30-60s).
@@ -659,9 +758,9 @@ def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
     except Exception:
         integrated_lufs = -70.0
 
-    # True peak
+    # Sample peak for crest/DR, true peak separately across all channels.
     peak = float(np.max(np.abs(mono)))
-    true_peak = safe(20 * np.log10(peak) if peak > 1e-10 else -120.0, -120.0)
+    true_peak = safe(compute_true_peak(audio, sr, oversample=4), -120.0)
 
     # DR / crest
     rms_total = float(np.sqrt(np.mean(mono ** 2)))
@@ -728,12 +827,12 @@ def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
         "mono_compatibility": mono_compat,
         "bpm":                safe(pre_bpm, 0.0),
         "key":                pre_key,
-        "transient_density":  0.0,
-        "clipping_detected":  bool(np.any(np.abs(mono) > 0.99)),
+        "transient_density":  safe(pre_transient_density, 0.0),
+        "clipping_detected":  bool(np.any(np.abs(audio) > 0.99)),
         "dc_offset":          safe(float(np.mean(mono)), 0.0),
         "duration_seconds":   duration,
         "sample_rate":        int(sr),
-        "bit_depth":          24,
+        "bit_depth":          int(output_bit_depth),
         "channels":           2 if is_stereo else 1,
     }
 
@@ -763,6 +862,12 @@ def master_audio(
     emit("loading", 19)
 
     # 1. Load audio
+    source_info = sf.info(file_path)
+    max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
+    if source_info.channels not in (1, 2):
+        raise ValueError("Only mono and stereo audio are supported")
+    if source_info.duration <= 0 or source_info.duration > max_duration:
+        raise ValueError(f"Audio duration must be between 0 and {max_duration:g} seconds")
     audio, sr = librosa.load(file_path, sr=None, mono=False)
     if audio.ndim == 1:
         audio = np.stack([audio, audio])  # Mono to stereo
@@ -770,38 +875,44 @@ def master_audio(
     # 1b. Remove DC offset
     audio = remove_dc_simple(audio)
 
-    # 1c. Gain-stage to a fixed reference loudness so the absolute-dB thresholds
-    # below behave consistently regardless of how loud the source was delivered.
-    audio = normalize_to_reference_lufs(audio, sr)
+    intensity = max(0.0, min(1.0, params.processing_intensity / 100.0))
+
+    # Gain-stage to a fixed reference so absolute detector thresholds behave
+    # consistently. At exactly 0% all creative stages are bypassed; the output
+    # limiter still performs platform normalization and ceiling protection.
+    if intensity > 0.0:
+        audio = normalize_to_reference_lufs(audio, sr)
 
     emit("eq", 20)
 
-    # 4. Correction EQ
-    audio = apply_correction_eq(audio, sr, params)
+    if intensity > 0.0:
+        # 4. Correction EQ
+        audio = apply_correction_eq(audio, sr, params)
 
-    # 4b. De-esser (before multiband compression exaggerates any sibilance further)
-    audio = apply_deesser(audio, sr)
+        # 4b. De-esser. Its ratio follows intensity instead of being a hidden,
+        # fixed-strength processor at every setting.
+        audio = apply_deesser(audio, sr, ratio=1.0 + 1.5 * intensity)
 
     emit("compression", 38)
 
-    # 5. Multiband compression
-    audio = apply_multiband_compression(audio, sr, params)
+    if intensity > 0.0:
+        audio = apply_multiband_compression(audio, sr, params)
 
     emit("ms", 52)
 
-    # 6. M/S processing
-    audio = apply_ms_processing(audio, sr, params)
+    if intensity > 0.0:
+        audio = apply_ms_processing(audio, sr, params)
 
     emit("saturation", 65)
 
-    # 8. Saturation
-    audio = apply_saturation(audio, sr, params.saturation_amount)
+    if intensity > 0.0:
+        audio = apply_saturation(audio, sr, params.saturation_amount)
 
     # 9. Final EQ (gentle air shelf — only when mix is thin above 12 kHz)
     air_rms = float(pre_analysis.get("rms_air", -80.0)) if pre_analysis else -80.0
-    if air_rms < -26.0:
+    if intensity > 0.0 and air_rms < -26.0:
         final_board = Pedalboard([
-            HighShelfFilter(cutoff_frequency_hz=12000, gain_db=0.8, q=0.707),
+            HighShelfFilter(cutoff_frequency_hz=12000, gain_db=0.8 * intensity, q=0.707),
         ])
         audio = np.stack([
             final_board(audio[0:1].T, sr).T[0],
@@ -810,23 +921,53 @@ def master_audio(
 
     emit("limiting", 74)
 
-    # 10. Bus compression
-    audio = apply_bus_compression(audio, sr, params)
+    if intensity > 0.0:
+        audio = apply_bus_compression(audio, sr, params)
 
     # 11. True Peak limiting + LUFS normalization
     audio = apply_true_peak_limiter(audio, sr, params.true_peak_ceiling, params.target_lufs)
 
     emit("rendering", 88)
 
-    # 12. Export all formats — use provided master_id or generate a fallback UUID
+    # 12. Export the selected format plus preview; generate an ID only for direct calls.
     if not master_id:
         master_id = str(uuid.uuid4())
     paths = export_formats(audio, sr, output_dir, master_id, selected_format)
 
+    selected_path = paths.get(selected_format)
+    if not selected_path:
+        raise RuntimeError(f"Selected {selected_format} export was not produced")
+
+    # Decode what the user will actually download. Lossy codecs can create new
+    # inter-sample overshoots even when the PCM feeding the encoder was safe.
+    # Re-trim and render once when required, then report measurements from the
+    # delivered codec rather than from an in-memory precursor.
+    post_audio, post_sr = load_and_verify_export(selected_path, selected_format, sr)
+    delivered_tp = compute_true_peak(post_audio, post_sr, oversample=4)
+    if delivered_tp > params.true_peak_ceiling + 0.05:
+        codec_trim_db = params.true_peak_ceiling - delivered_tp - 0.05
+        audio = (audio * db_to_linear(codec_trim_db)).astype(np.float32)
+        paths = export_formats(audio, sr, output_dir, master_id, selected_format)
+        selected_path = paths.get(selected_format)
+        if not selected_path:
+            raise RuntimeError(f"Selected {selected_format} re-export was not produced")
+        post_audio, post_sr = load_and_verify_export(selected_path, selected_format, sr)
+        delivered_tp = compute_true_peak(post_audio, post_sr, oversample=4)
+        params.notes += f" Codec safety trim: {codec_trim_db:.2f} dB."
+        if delivered_tp > params.true_peak_ceiling + 0.1:
+            raise RuntimeError(
+                f"{selected_format} true peak remains above ceiling after safety render"
+            )
+
     # Post-analysis — lightweight in-memory measurement (skip BPM/key, they don't change)
     pre_bpm = float(pre_analysis.get("bpm", 0.0)) if pre_analysis else 0.0
     pre_key = str(pre_analysis.get("key", "Unknown")) if pre_analysis else "Unknown"
-    post_analysis = _quick_post_analysis(audio, sr, params, pre_bpm, pre_key)
+    pre_transients = float(pre_analysis.get("transient_density", 0.0)) if pre_analysis else 0.0
+    bit_depth_by_format = {"wav32": 32, "wav24": 24, "wav16": 16, "flac": 24}
+    output_bit_depth = bit_depth_by_format.get(selected_format, 0)
+    post_analysis = _quick_post_analysis(
+        post_audio, post_sr, params, pre_bpm, pre_key, pre_transients, output_bit_depth
+    )
 
     emit("complete", 100)
 

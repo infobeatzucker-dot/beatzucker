@@ -16,7 +16,7 @@ const T = {
   before: { de: "Vorher", en: "Before" },
   after: { de: "Nachher", en: "After" },
   original: { de: "Original-Mix", en: "Original mix" },
-  mastered: { de: "KI-Master", en: "AI master" },
+  mastered: { de: "Adaptiver Master", en: "Adaptive master" },
   example: { de: "Visualisierte Beispielwerte", en: "Illustrative example values" },
   monitor: { de: "A/B-KLANGVERGLEICH", en: "A/B MASTERING MONITOR" },
   originalSignal: { de: "ORIGINAL-SIGNAL", en: "ORIGINAL SIGNAL" },

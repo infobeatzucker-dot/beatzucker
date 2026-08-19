@@ -67,7 +67,7 @@ const T = {
       : `${used} of ${limit} masters used today`,
   },
   neue_datei: { de: "Neue Datei", en: "New File" },
-  studio: { de: "KI-Mastering-Studio", en: "AI mastering studio" },
+  studio: { de: "Adaptives Mastering-Studio", en: "Adaptive mastering studio" },
   dashboard: { de: "Mastering-Dashboard", en: "Mastering dashboard" },
   ready: { de: "Bereit", en: "Ready" },
   analyzing: { de: "Track wird analysiert…", en: "Analyzing track…" },
@@ -99,6 +99,7 @@ export default function MasteringWorkspace({ lang }: Props) {
   const [analysis,         setAnalysis]         = useState<AnalysisData | null>(null);
   const [masterData,       setMasterData]       = useState<MasterData | null>(null);
   const [platform,         setPlatform]         = useState<Platform>("spotify");
+  const [customLufs,       setCustomLufs]       = useState<number>(-14);
   const [preset,           setPreset]           = useState<Preset>("auto");
   const [intensity,        setIntensity]        = useState<number>(65);
   const [currentProgress,  setCurrentProgress]  = useState<ProgressStep | null>(null);
@@ -221,7 +222,7 @@ export default function MasteringWorkspace({ lang }: Props) {
     await runMastering({
       fileId: uploadedFile.file_id,
       originalName: uploadedFile.filename,
-      platform, preset, intensity,
+      platform, targetLufs: customLufs, preset, intensity,
       selectedFormat,
       analysis: analysis ?? undefined,
       referenceAnalysis: referenceAnalysis ?? undefined,
@@ -231,19 +232,26 @@ export default function MasteringWorkspace({ lang }: Props) {
       onComplete: handleMasteringComplete,
       onError: handleMasteringError,
     });
-  }, [uploadedFile, platform, preset, intensity, selectedFormat, analysis,
+  }, [uploadedFile, platform, customLufs, preset, intensity, selectedFormat, analysis,
       referenceAnalysis, lang, handleMasteringStart, handleProgressUpdate,
       handleMasteringComplete, handleMasteringError]);
 
   // Audio engine URLs
   const originalUrl = uploadedFile ? `/api/preview?file_id=${uploadedFile.file_id}` : "";
-  const masteredUrl = masterData?.formats.mp3128 || masterData?.formats.mp3320 || masterData?.formats.wav16 || "";
+  // Prefer the high-quality browser preview. MP3 128 remains a valid selected
+  // delivery format, but should not be the default source for critical A/B.
+  const masteredUrl = masterData?.formats.mp3320 || masterData?.formats.mp3128 || masterData?.formats.wav16 || "";
 
   return (
     <>
       <div ref={mainPanelRef}>
         <ErrorBoundary>
-        <AudioEngineProvider originalUrl={originalUrl} masteredUrl={masteredUrl}>
+        <AudioEngineProvider
+          originalUrl={originalUrl}
+          masteredUrl={masteredUrl}
+          originalLufs={analysis?.integrated_lufs}
+          masteredLufs={masterData?.post_analysis.integrated_lufs}
+        >
           <div
             className="mastering-dashboard glass-panel-elevated relative"
             style={{
@@ -286,7 +294,7 @@ export default function MasteringWorkspace({ lang }: Props) {
 
             <div className={`dashboard-main-grid ${appState === "analyzed" || appState === "mastering" || appState === "done" ? "without-upload" : ""}`}>
               <div className="dashboard-control-card">
-                <PlatformTargets value={platform} onChange={setPlatform} lang={lang} />
+                <PlatformTargets value={platform} onChange={setPlatform} customLufs={customLufs} onCustomLufsChange={setCustomLufs} lang={lang} />
               </div>
 
               <AnimatePresence mode="wait">
@@ -463,6 +471,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                   fileId={uploadedFile.file_id}
                   originalName={uploadedFile.filename}
                   platform={platform}
+                  targetLufs={customLufs}
                   preset={preset}
                   intensity={intensity}
                   selectedFormat={selectedFormat}

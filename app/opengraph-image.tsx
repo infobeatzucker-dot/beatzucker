@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Beatzucker – AI-Powered Professional Audio Mastering";
+export const alt = "Beatzucker – Adaptive Professional Audio Mastering";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -103,12 +103,12 @@ export default async function Image() {
             marginBottom: 40,
           }}
         >
-          AI-Powered Professional Audio Mastering
+          Adaptive Professional Audio Mastering
         </div>
 
         {/* Feature pills */}
         <div style={{ display: "flex", gap: 12 }}>
-          {["13-Stage DSP", "7 Formats", "11 Platforms", "AI Parameter Selection"].map(
+          {["12-Stage DSP", "7 Formats", "11 Platforms", "Adaptive Parameters"].map(
             (label) => (
               <div
                 key={label}

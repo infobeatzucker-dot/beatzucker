@@ -18,6 +18,11 @@ export interface ReferenceAnalysis {
   spectral_rolloff:  number;
   spectral_flatness: number;
   rms_sub: number; rms_low: number; rms_mid: number; rms_high: number; rms_air: number;
+  stereo_width?: number;
+  mono_compatibility?: number;
+  lra?: number;
+  crest_factor?: number;
+  transient_density?: number;
 }
 
 export interface SavedRef {

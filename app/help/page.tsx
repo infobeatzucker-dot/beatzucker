@@ -344,8 +344,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Wie läuft das Mastering bei Beatzucker ab?",
         qEn: "What actually happens when I master a track here?",
-        aDe: "Du lädst deine WAV- oder MP3-Datei hoch, legst Zielplattform und Genre-Preset fest und regelst die Mastering-Intensität. Ein Klick auf Mastern (oder die Taste M) genügt, dann übernimmt die KI: Sie analysiert dein Audio, bestimmt die passenden Parameter und schickt den Track durch eine 13-stufige DSP-Pipeline.",
-        aEn: "Upload a WAV or MP3, pick a target platform and genre preset, and dial in the mastering intensity. One click on Master (or a tap of M) hands it to the AI — it reads your audio, works out the right parameters, and runs the track through a 13-stage DSP pipeline.",
+        aDe: "Du lädst deine WAV- oder MP3-Datei hoch, legst Zielplattform und Genre-Preset fest und regelst die Mastering-Intensität. Ein Klick auf Mastern (oder die Taste M) genügt: Die Engine analysiert dein Audio, leitet passende Parameter ab und schickt den Track durch eine 12-stufige DSP-Pipeline.",
+        aEn: "Upload a WAV or MP3, pick a target platform and genre preset, and dial in the mastering intensity. One click on Master (or a tap of M) starts the engine: it measures your audio, derives suitable parameters, and runs the track through a 12-stage DSP pipeline.",
       },
       {
         qDe: "Welche Formate kann ich hoch- und runterladen?",

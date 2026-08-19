@@ -893,6 +893,22 @@ body::before {
 .platform-more { --platform-tone: #7b83a1; }
 .platform-more .platform-mark { transition: transform .2s ease; }
 .platform-more-grid { padding-top: 1px; }
+.custom-lufs-control {
+  margin-top: 10px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr minmax(100px, 1.6fr) auto;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(167,139,250,.22);
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(72,191,255,.045));
+}
+.custom-lufs-control label { color: #aeb5cc; font-size: .55rem; }
+.custom-lufs-control input { width: 100%; accent-color: #a78bfa; }
+.custom-lufs-control output { min-width: 66px; color: #d6c8ff; font: 600 .62rem/1 var(--font-mono, monospace); text-align: right; }
+.adjust-wave-canvas { touch-action: none; }
 
 .preset-tile { --platform-tone: #966bff; min-height: 70px; color: #969cb2; }
 .preset-tile.active {

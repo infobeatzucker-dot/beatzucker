@@ -10,12 +10,16 @@ import { rateLimit } from "@/lib/rateLimit";
 import { sendMasteringErrorEmail } from "@/lib/email";
 import { sendMasteringCompleteEmail } from "@/lib/email";
 import { DAILY_MASTER_LIMIT } from "@/lib/constants";
+import { normalizeAnalysis, normalizeReferenceAnalysis, verifyAnalysis } from "@/lib/analysisValidation";
 
 // Allow up to 10 minutes – mastering a full track can take 3–5 min
 export const maxDuration = 600;
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 const PYTHON_URL = process.env.PYTHON_SERVICE_URL || "http://localhost:8001";
+const PLATFORMS = new Set(["spotify", "apple", "youtube", "club", "tidal", "amazon", "deezer", "tiktok", "soundcloud", "broadcast", "custom"]);
+const PRESETS = new Set(["auto", "electronic", "hiphop", "rock", "pop", "jazz", "classical", "podcast", "metal", "rnb", "ambient", "lofi", "country", "trap", "latin", "dance", "techno", "edm"]);
+const FORMATS = new Set(["wav32", "wav24", "wav16", "flac", "mp3320", "mp3128", "aac256"]);
 
 // SSE helper
 function encodeSSE(data: object) {
@@ -25,20 +29,38 @@ function encodeSSE(data: object) {
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const fileId    = body.file_id    as string | undefined;
-  const platform  = (body.platform  as string) || "spotify";
-  const presetRaw = (body.preset    as string) || "auto";
-  const intensity = Math.min(100, Math.max(0, Number(body.intensity ?? 65)));
-  const format    = (body.format    as string) || "mp3128";
+  const platformRaw = (body.platform as string) || "spotify";
+  const presetRaw = (body.preset as string) || "auto";
+  const formatRaw = (body.format as string) || "mp3128";
+  const intensityRaw = Number(body.intensity ?? 65);
+  const intensity = Number.isFinite(intensityRaw) ? Math.min(100, Math.max(0, intensityRaw)) : 65;
+  const targetLufsRaw = Number(body.target_lufs);
+  const targetLufs = platformRaw === "custom" && Number.isFinite(targetLufsRaw)
+    ? Math.min(-6, Math.max(-23, targetLufsRaw)) : undefined;
+  const platform = PLATFORMS.has(platformRaw) ? platformRaw : "";
+  const format = FORMATS.has(formatRaw) ? formatRaw : "";
   const originalName      = (body.original_name     as string) || "track";
-  const analysis          = body.analysis           as object | undefined;
-  const referenceAnalysis = body.reference_analysis as object | undefined;
+  const normalizedAnalysis = normalizeAnalysis(body.analysis);
+  const analysis = normalizedAnalysis && verifyAnalysis(fileId || "", normalizedAnalysis, body.analysis?.analysis_token)
+    ? normalizedAnalysis : undefined;
+  const referenceAnalysis = body.reference_analysis === undefined
+    ? undefined : normalizeReferenceAnalysis(body.reference_analysis);
   // Manuell nachjustierte Parameter. Werden hier nur durchgereicht — gefiltert
   // und geklemmt wird serverseitig in python/ai_params.apply_overrides(), damit
   // die Whitelist genau dort liegt, wo die Werte ins DSP gehen.
   const overrides         = body.overrides          as object | undefined;
 
-  if (!fileId) {
-    return new Response("file_id required", { status: 400 });
+  if (!fileId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(fileId)) {
+    return Response.json({ error: "Ungültige Datei-ID" }, { status: 400 });
+  }
+  if (!platform || !PRESETS.has(presetRaw) || !format) {
+    return Response.json({ error: "Ungültige Mastering-Einstellung" }, { status: 400 });
+  }
+  if (platform === "custom" && targetLufs === undefined) {
+    return Response.json({ error: "Benutzerdefiniertes LUFS-Ziel fehlt" }, { status: 400 });
+  }
+  if (body.reference_analysis !== undefined && !referenceAnalysis) {
+    return Response.json({ error: "Ungültige Referenzanalyse" }, { status: 400 });
   }
 
   // ── Auth + quota check ────────────────────────────────────────────────────
@@ -117,7 +139,7 @@ export async function POST(req: NextRequest) {
 
         // Find uploaded file
         const files = existsSync(UPLOAD_DIR) ? await readdir(UPLOAD_DIR) : [];
-        const filename = files.find((f) => f.startsWith(fileId));
+        const filename = files.find((f) => f.startsWith(`${fileId}.`));
 
         if (!filename) {
           send({ error: "File not found", step: "error", progress: 0 });
@@ -136,6 +158,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             file_path: filePath,
             platform,
+            ...(targetLufs !== undefined ? { target_lufs: targetLufs } : {}),
             preset,
             intensity,
             format,

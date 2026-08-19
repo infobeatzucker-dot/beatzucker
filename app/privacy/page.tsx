@@ -151,7 +151,7 @@ export default function PrivacyPage() {
         <p>
           No automated decision-making or profiling within the meaning of Art. 22 GDPR takes
           place. The mastering service processes audio files purely technically (signal processing
-          and AI-assisted parameter selection) and makes no decisions with legal or similarly
+          and measurement-based adaptive parameter selection) and makes no decisions with legal or similarly
           significant effects on individuals.
         </p>
       </div>

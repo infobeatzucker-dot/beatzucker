@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
 
   title: {
-    default: "Beatzucker – AI-Powered Professional Audio Mastering",
+    default: "Beatzucker – Adaptive Professional Audio Mastering",
     template: "%s | Beatzucker",
   },
   description:
-    "Upload your track. Get a professional master in seconds. 13-stage DSP pipeline, AI parameter selection, 7 export formats. Free to start.",
+    "Upload your track. Get a professional master in seconds. 12-stage DSP pipeline, adaptive parameter selection, 7 export formats. Free to start.",
   keywords: [
     "audio mastering",
     "AI mastering",
@@ -54,15 +54,15 @@ export const metadata: Metadata = {
     type: "website",
     url: BASE_URL,
     siteName: "Beatzucker",
-    title: "Beatzucker – AI-Powered Professional Audio Mastering",
+    title: "Beatzucker – Adaptive Professional Audio Mastering",
     description:
-      "Upload your track. Get a professional master in seconds. 13-stage DSP pipeline, AI parameter selection, 7 export formats. Free to start.",
+      "Upload your track. Get a professional master in seconds. 12-stage DSP pipeline, adaptive parameter selection, 7 export formats. Free to start.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Beatzucker – AI-Powered Professional Audio Mastering",
+        alt: "Beatzucker – Adaptive Professional Audio Mastering",
       },
     ],
     locale: "de_DE",
@@ -70,9 +70,9 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Beatzucker – AI Audio Mastering",
+    title: "Beatzucker – Adaptive Audio Mastering",
     description:
-      "Professional audio mastering in seconds. 13-stage DSP + AI parameter selection. Free to start.",
+      "Professional audio mastering in seconds. 12-stage DSP + adaptive parameter selection. Free to start.",
     images: ["/opengraph-image"],
   },
 
@@ -114,7 +114,7 @@ const jsonLd = {
       "@id": `${BASE_URL}/#website`,
       url: BASE_URL,
       name: "Beatzucker",
-      description: "AI-Powered Professional Audio Mastering",
+      description: "Adaptive Professional Audio Mastering",
       publisher: { "@id": `${BASE_URL}/#organization` },
       inLanguage: ["de-DE", "en-US"],
     },
@@ -127,19 +127,19 @@ const jsonLd = {
       operatingSystem: "Web",
       url: BASE_URL,
       description:
-        "Professional automated audio mastering service. 13-stage DSP signal chain, AI-assisted parameter selection, 7 export formats, 11 platform targets.",
+        "Professional automated audio mastering service. 12-stage DSP signal chain, adaptive parameter selection, 7 export formats, 11 platform targets.",
       offers: [
         {
           "@type": "Offer",
           name: "Free",
           price: "0",
           priceCurrency: "EUR",
-          description: "Full DSP mastering pipeline, AI-assisted parameter selection, reference track matching, all 7 export formats, 24h download window — completely free, fair daily usage limit per account",
+          description: "Full DSP mastering pipeline, adaptive parameter selection, reference track matching, 7 selectable export formats, 24h download window — completely free, fair daily usage limit per account",
         },
       ],
       featureList: [
-        "13-stage DSP mastering pipeline",
-        "AI-assisted parameter selection",
+        "12-stage DSP mastering pipeline",
+        "Adaptive parameter selection",
         "7 export formats (WAV 32/24/16, FLAC, MP3 320/128, AAC 256)",
         "11 platform targets (Spotify, Apple Music, YouTube, Club, …)",
         "Real-time A/B comparison player",

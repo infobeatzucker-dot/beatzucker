@@ -7,6 +7,7 @@ import os
 import json
 import asyncio
 import logging
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -44,7 +45,23 @@ def cleanup_old_files(upload_dir: str, max_age_hours: int = 24):
 async def lifespan(app: FastAPI):
     upload_dir = os.environ.get("TEMP_UPLOAD_DIR", "./uploads")
     cleanup_old_files(upload_dir)
-    yield
+    cleanup_old_files(os.path.join(upload_dir, "masters"))
+
+    async def periodic_cleanup():
+        while True:
+            await asyncio.sleep(3600)
+            cleanup_old_files(upload_dir)
+            cleanup_old_files(os.path.join(upload_dir, "masters"))
+
+    cleanup_task = asyncio.create_task(periodic_cleanup())
+    try:
+        yield
+    finally:
+        cleanup_task.cancel()
+        try:
+            await cleanup_task
+        except asyncio.CancelledError:
+            pass
 
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
@@ -80,6 +97,7 @@ class AnalyzeRequest(BaseModel):
 class MasterRequest(BaseModel):
     file_path: str
     platform: str = "spotify"
+    target_lufs: Optional[float] = None
     preset: str = "auto"
     intensity: int = 65
     format: str = "mp3128"
@@ -97,10 +115,22 @@ ALLOWED_UPLOAD_DIR = os.path.abspath(os.environ.get("TEMP_UPLOAD_DIR", "./upload
 def validate_file_path(file_path: str) -> str:
     """Resolve and validate that the path is within the allowed upload directory."""
     resolved = os.path.abspath(file_path)
-    if not resolved.startswith(ALLOWED_UPLOAD_DIR):
+    try:
+        inside_uploads = os.path.commonpath([resolved, ALLOWED_UPLOAD_DIR]) == ALLOWED_UPLOAD_DIR
+    except ValueError:
+        inside_uploads = False
+    if not inside_uploads:
         raise HTTPException(403, "Path outside allowed directory")
     if not os.path.exists(resolved):
         raise HTTPException(404, "File not found")
+    return resolved
+
+
+def validate_output_dir(output_dir: str) -> str:
+    resolved = os.path.abspath(output_dir)
+    expected = os.path.join(ALLOWED_UPLOAD_DIR, "masters")
+    if resolved != expected:
+        raise HTTPException(403, "Invalid output directory")
     return resolved
 
 
@@ -118,6 +148,11 @@ async def get_info(req: FilePathRequest):
         req.file_path = validate_file_path(req.file_path)
 
         info = sf.info(req.file_path)
+        max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
+        if info.channels not in (1, 2):
+            raise HTTPException(415, "Only mono and stereo audio are supported")
+        if info.duration <= 0 or info.duration > max_duration:
+            raise HTTPException(413, f"Audio may not exceed {max_duration:g} seconds")
         return {
             "duration": info.duration,
             "sample_rate": info.samplerate,
@@ -150,6 +185,17 @@ async def analyze(req: AnalyzeRequest):
 async def master(req: MasterRequest):
     """Full mastering chain with SSE progress streaming."""
     req.file_path = validate_file_path(req.file_path)
+    req.output_dir = validate_output_dir(req.output_dir)
+    if req.format not in {"wav32", "wav24", "wav16", "flac", "mp3320", "mp3128", "aac256"}:
+        raise HTTPException(400, "Unsupported output format")
+    if req.platform not in {"spotify", "apple", "youtube", "club", "tidal", "amazon", "deezer", "tiktok", "soundcloud", "broadcast", "custom"}:
+        raise HTTPException(400, "Unsupported platform")
+    if req.platform == "custom" and (req.target_lufs is None or not -23.0 <= req.target_lufs <= -6.0):
+        raise HTTPException(400, "Custom LUFS target out of range")
+    if not 0 <= req.intensity <= 100:
+        raise HTTPException(400, "Intensity out of range")
+    if req.master_id and not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", req.master_id):
+        raise HTTPException(400, "Invalid master id")
 
     # Real progress labels, keyed by the step names master_audio() actually emits
     # (see the emit() calls throughout mastering.py's master_audio()).
@@ -191,6 +237,7 @@ async def master(req: MasterRequest):
                 None,
                 lambda: get_mastering_params(
                     analysis_dict, req.platform, req.preset, req.intensity,
+                    target_lufs=req.target_lufs,
                     reference_analysis=req.reference_analysis,
                     overrides=req.overrides,
                 )

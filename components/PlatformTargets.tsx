@@ -54,7 +54,13 @@ function PlatformCard({ option, active, onClick }: { option: PlatformOption; act
   );
 }
 
-export default function PlatformTargets({ value, onChange, lang = "de" }: { value: Platform; onChange: (p: Platform) => void; lang?: Lang }) {
+export default function PlatformTargets({ value, onChange, customLufs = -14, onCustomLufsChange, lang = "de" }: {
+  value: Platform;
+  onChange: (p: Platform) => void;
+  customLufs?: number;
+  onCustomLufsChange?: (value: number) => void;
+  lang?: Lang;
+}) {
   const [expanded, setExpanded] = useState(MORE_PLATFORMS.some((item) => item.id === value));
   const localize = (option: PlatformOption): PlatformOption => {
     if (lang === "de") return option;
@@ -91,6 +97,28 @@ export default function PlatformTargets({ value, onChange, lang = "de" }: { valu
             {MORE_PLATFORMS.map((option) => (
               <PlatformCard key={option.id} option={localize(option)} active={value === option.id} onClick={() => onChange(option.id)} />
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence initial={false}>
+        {value === "custom" && (
+          <motion.div
+            className="custom-lufs-control"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <label htmlFor="custom-lufs">{lang === "de" ? "Eigenes Lautheitsziel" : "Custom loudness target"}</label>
+            <input
+              id="custom-lufs"
+              type="range"
+              min={-23}
+              max={-6}
+              step={0.5}
+              value={customLufs}
+              onChange={(event) => onCustomLufsChange?.(Number(event.target.value))}
+            />
+            <output>{customLufs.toFixed(1)} LUFS</output>
           </motion.div>
         )}
       </AnimatePresence>

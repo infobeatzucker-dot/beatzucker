@@ -20,6 +20,7 @@ export class ManualPreviewEngine {
   private readonly ctx: AudioContext;
   private readonly audio: HTMLAudioElement;
   private readonly source: MediaElementAudioSourceNode;
+  private readonly input: GainNode;
   private readonly eq: Record<"hp" | "low" | "mid" | "presence" | "air", BiquadFilterNode>;
   private readonly bandCompressors: Record<BandName, DynamicsCompressorNode>;
   private readonly stereoGains: GainNode[];
@@ -32,12 +33,16 @@ export class ManualPreviewEngine {
   private destroyed = false;
   private stateListener: ((playing: boolean) => void) | null = null;
 
-  constructor(url: string, values: ParamValues) {
+  constructor(url: string, values: ParamValues, inputLufs = -18, inputTruePeak = -6) {
     this.ctx = new AudioContext({ latencyHint: "interactive" });
     this.audio = new Audio(url);
     this.audio.preload = "auto";
     this.audio.crossOrigin = "anonymous";
     this.source = this.ctx.createMediaElementSource(this.audio);
+    this.input = this.ctx.createGain();
+    const requestedGainDb = Math.max(-24, Math.min(24, -18 - inputLufs));
+    const peakSafeGainDb = -0.18 - inputTruePeak;
+    this.input.gain.value = Math.pow(10, Math.min(requestedGainDb, peakSafeGainDb) / 20);
 
     const hp = this.ctx.createBiquadFilter(); hp.type = "highpass"; hp.Q.value = 0.707;
     const low = this.ctx.createBiquadFilter(); low.type = "lowshelf"; low.frequency.value = 80;
@@ -45,7 +50,7 @@ export class ManualPreviewEngine {
     const presence = this.ctx.createBiquadFilter(); presence.type = "peaking"; presence.frequency.value = 3000; presence.Q.value = 0.8;
     const air = this.ctx.createBiquadFilter(); air.type = "highshelf"; air.frequency.value = 12000;
     this.eq = { hp, low, mid, presence, air };
-    this.source.connect(hp).connect(low).connect(mid).connect(presence).connect(air);
+    this.source.connect(this.input).connect(hp).connect(low).connect(mid).connect(presence).connect(air);
 
     const sum = this.ctx.createGain();
     const createBand = (name: BandName, filters: Array<[BiquadFilterType, number]>) => {
@@ -63,7 +68,7 @@ export class ManualPreviewEngine {
         }
       }
       const compressor = this.ctx.createDynamicsCompressor();
-      compressor.knee.value = 12;
+      compressor.knee.value = 0;
       compressor.attack.value = name === "high" ? 0.008 : name === "mid" ? 0.015 : 0.03;
       compressor.release.value = name === "sub" ? 0.16 : 0.1;
       previous.connect(compressor).connect(sum);
@@ -93,9 +98,9 @@ export class ManualPreviewEngine {
     this.shaper = this.ctx.createWaveShaper();
     this.shaper.oversample = "4x";
     this.bus = this.ctx.createDynamicsCompressor();
-    this.bus.knee.value = 16;
-    this.bus.attack.value = 0.025;
-    this.bus.release.value = 0.16;
+    this.bus.knee.value = 0;
+    this.bus.attack.value = 0.05;
+    this.bus.release.value = 0.1;
 
     const limiter = this.ctx.createDynamicsCompressor();
     limiter.threshold.value = -1;
@@ -108,8 +113,18 @@ export class ManualPreviewEngine {
     this.analyser.fftSize = 1024;
     this.analyser.smoothingTimeConstant = 0.76;
     this.output = this.ctx.createGain();
-    this.output.gain.value = 0.82;
-    merger.connect(this.shaper).connect(this.bus).connect(limiter).connect(this.analyser).connect(this.output).connect(this.ctx.destination);
+    this.output.gain.value = 1;
+
+    // Saturation mirrors the server's complementary 5 kHz split: only the
+    // lower branch is shaped; highs remain clean and recombine afterwards.
+    const satLow1 = this.ctx.createBiquadFilter(); satLow1.type = "lowpass"; satLow1.frequency.value = 5000; satLow1.Q.value = 0.707;
+    const satLow2 = this.ctx.createBiquadFilter(); satLow2.type = "lowpass"; satLow2.frequency.value = 5000; satLow2.Q.value = 0.707;
+    const satHigh1 = this.ctx.createBiquadFilter(); satHigh1.type = "highpass"; satHigh1.frequency.value = 5000; satHigh1.Q.value = 0.707;
+    const satHigh2 = this.ctx.createBiquadFilter(); satHigh2.type = "highpass"; satHigh2.frequency.value = 5000; satHigh2.Q.value = 0.707;
+    const satSum = this.ctx.createGain();
+    merger.connect(satLow1).connect(satLow2).connect(this.shaper).connect(satSum);
+    merger.connect(satHigh1).connect(satHigh2).connect(satSum);
+    satSum.connect(this.bus).connect(limiter).connect(this.analyser).connect(this.output).connect(this.ctx.destination);
 
     this.audio.addEventListener("play", this.handlePlay);
     this.audio.addEventListener("pause", this.handlePause);
@@ -197,11 +212,11 @@ export class ManualPreviewEngine {
       for (let i = 0; i < samples; i++) curve[i] = (i / (samples - 1)) * 2 - 1;
       return curve;
     }
-    const drive = 1 + Math.max(0, amount) * 34;
-    const norm = Math.tanh(drive);
+    // Same transfer curve as python/mastering.py: tanh(x*k)/k, k=1+2a.
+    const drive = 1 + Math.max(0, amount) * 2;
     for (let i = 0; i < samples; i++) {
       const x = (i / (samples - 1)) * 2 - 1;
-      curve[i] = Math.tanh(x * drive) / norm;
+      curve[i] = Math.tanh(x * drive) / drive;
     }
     return curve;
   }

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { existsSync } from "fs";
 import { readdir } from "fs/promises";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { rateLimit } from "@/lib/rateLimit";
+import { normalizeAnalysis, signAnalysis } from "@/lib/analysisValidation";
 
 // Allow up to 3 minutes – librosa analysis on long tracks can take 60–90s
 export const maxDuration = 180;
@@ -11,15 +15,21 @@ const PYTHON_URL = process.env.PYTHON_SERVICE_URL || "http://localhost:8001";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return NextResponse.json({ error: "Anmeldung erforderlich" }, { status: 401 });
+    if (!rateLimit(`analyze:${session.user.id}`, 12, 10 * 60 * 1000)) {
+      return NextResponse.json({ error: "Zu viele Analysen. Bitte warte einen Moment." }, { status: 429 });
+    }
+
     const { file_id } = await req.json();
 
-    if (!file_id) {
-      return NextResponse.json({ error: "file_id required" }, { status: 400 });
+    if (typeof file_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(file_id)) {
+      return NextResponse.json({ error: "Ungültige Datei-ID" }, { status: 400 });
     }
 
     // Find the uploaded file
     const files = existsSync(UPLOAD_DIR) ? await readdir(UPLOAD_DIR) : [];
-    const filename = files.find((f) => f.startsWith(file_id));
+    const filename = files.find((f) => f.startsWith(`${file_id}.`));
 
     if (!filename) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
@@ -32,7 +42,7 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ file_path: filePath }),
-      signal: AbortSignal.timeout(120000), // 2 min – librosa BPM/key detection takes time
+      signal: AbortSignal.timeout(170000),
     });
 
     if (!res.ok) {
@@ -40,39 +50,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(err, { status: res.status });
     }
 
-    const analysis = await res.json();
-    return NextResponse.json(analysis);
+    const analysis = normalizeAnalysis(await res.json());
+    if (!analysis) return NextResponse.json({ error: "Analyseservice lieferte ungültige Messwerte" }, { status: 502 });
+    const token = signAnalysis(file_id, analysis);
+    if (!token) return NextResponse.json({ error: "Analysesignatur ist nicht konfiguriert" }, { status: 500 });
+    return NextResponse.json({ ...analysis, analysis_token: token });
   } catch (err: unknown) {
     console.error("Analyze error:", err);
-    // Fall back to mock data for any Python service failure (timeout, connection refused, etc.)
-    return NextResponse.json(getMockAnalysis());
+    const timeout = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
+    return NextResponse.json(
+      { error: timeout ? "Analyse hat das Zeitlimit überschritten" : "Analyseservice nicht erreichbar" },
+      { status: timeout ? 504 : 503 },
+    );
   }
-}
-
-function getMockAnalysis() {
-  return {
-    integrated_lufs: -18.5,
-    true_peak: -1.2,
-    dr_value: 14,
-    crest_factor: 12.3,
-    rms_sub: -24.1,
-    rms_low: -20.8,
-    rms_mid: -22.4,
-    rms_high: -28.6,
-    rms_air: -34.2,
-    spectral_centroid: 2400,
-    spectral_rolloff: 8000,
-    spectral_flatness: 0.12,
-    stereo_width: 0.85,
-    mono_compatibility: 0.92,
-    bpm: 128,
-    key: "C minor",
-    transient_density: 0.45,
-    clipping_detected: false,
-    dc_offset: 0.001,
-    duration_seconds: 180,
-    sample_rate: 44100,
-    bit_depth: 24,
-    channels: 2,
-  };
 }

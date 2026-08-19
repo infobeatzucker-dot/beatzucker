@@ -77,7 +77,7 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
             Beatzucker
           </span>
         </Link>
-        <div className="dashboard-brand-sub px-2 mb-7"><Sparkles size={10} /> KI-GESTÜTZTES MASTERING</div>
+        <div className="dashboard-brand-sub px-2 mb-7"><Sparkles size={10} /> ADAPTIVES MASTERING</div>
 
         <NavLinks pathname={effectivePathname} />
 

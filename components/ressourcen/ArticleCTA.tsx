@@ -83,8 +83,8 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
           }}
         >
           {lang === "de"
-            ? "Beatzucker mastert deinen Track in Sekunden — KI-gestützt, plattformoptimiert, kostenlos starten."
-            : "Beatzucker masters your track in seconds — AI-powered, platform-optimized, free to start."}
+            ? "Beatzucker mastert deinen Track in Sekunden — adaptiv, plattformoptimiert, kostenlos starten."
+            : "Beatzucker masters your track in seconds — adaptive, platform-optimized, free to start."}
         </p>
 
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>

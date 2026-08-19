@@ -25,7 +25,7 @@ const faqJsonLd = {
       name: "Wie funktioniert Beatzucker?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Lade eine WAV- oder MP3-Datei hoch, wähle Zielplattform und Genre-Preset, stelle die Mastering-Intensität ein und klicke auf Mastern. Die KI analysiert dein Audio, wählt automatisch die optimalen Parameter und die 13-stufige DSP-Pipeline verarbeitet deinen Track professionell.",
+        text: "Lade eine WAV- oder MP3-Datei hoch, wähle Zielplattform und Genre-Preset, stelle die Mastering-Intensität ein und klicke auf Mastern. Die Engine analysiert dein Audio, leitet passende Parameter ab und verarbeitet den Track in einer 12-stufigen DSP-Pipeline.",
       },
     },
     {

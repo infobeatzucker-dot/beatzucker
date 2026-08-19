@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 import { existsSync, statSync } from "fs";
-import { readdir, readFile } from "fs/promises";
+import { open, readdir, readFile } from "fs/promises";
 import path from "path";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 
@@ -17,7 +19,12 @@ const CONTENT_TYPES: Record<string, string> = {
 
 export async function GET(req: NextRequest) {
   const fileId = req.nextUrl.searchParams.get("file_id");
-  if (!fileId) return new Response("file_id required", { status: 400 });
+  if (!fileId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(fileId)) {
+    return new Response("Invalid file_id", { status: 400 });
+  }
+
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return new Response("Unauthorized", { status: 401 });
 
   // Path traversal protection
   if (fileId.includes("..") || fileId.includes("/") || fileId.includes("\\")) {
@@ -25,13 +32,14 @@ export async function GET(req: NextRequest) {
   }
 
   const files = existsSync(UPLOAD_DIR) ? await readdir(UPLOAD_DIR) : [];
-  const filename = files.find((f) => f.startsWith(fileId));
+  const filename = files.find((f) => f.startsWith(`${fileId}.`));
   if (!filename) return new Response("Not found", { status: 404 });
 
   const filePath = path.resolve(path.join(UPLOAD_DIR, filename));
   // Ensure resolved path stays within upload directory
   const resolvedUpload = path.resolve(UPLOAD_DIR);
-  if (!filePath.startsWith(resolvedUpload)) {
+  const relative = path.relative(resolvedUpload, filePath);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
     return new Response("Invalid path", { status: 400 });
   }
   if (!existsSync(filePath)) return new Response("Not found", { status: 404 });
@@ -47,10 +55,18 @@ export async function GET(req: NextRequest) {
     const [startStr, endStr] = range.replace(/bytes=/, "").split("-");
     const start = parseInt(startStr, 10);
     const end = endStr ? parseInt(endStr, 10) : fileSize - 1;
+    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end >= fileSize) {
+      return new Response("Invalid range", { status: 416, headers: { "Content-Range": `bytes */${fileSize}` } });
+    }
     const chunkSize = end - start + 1;
 
-    const buffer = await readFile(filePath);
-    const chunk = buffer.slice(start, end + 1);
+    const handle = await open(filePath, "r");
+    const chunk = Buffer.allocUnsafe(chunkSize);
+    try {
+      await handle.read(chunk, 0, chunkSize, start);
+    } finally {
+      await handle.close();
+    }
 
     return new Response(chunk, {
       status: 206,

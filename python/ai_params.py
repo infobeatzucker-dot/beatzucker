@@ -36,19 +36,11 @@ class MasteringParams:
     mb_high_ratio: float = 1.8
     stereo_width: float = 1.0
     saturation_amount: float = 0.15
-    # Kalibriert auf den Referenzpegel, auf den mastering.normalize_to_reference_lufs()
-    # vor der Verarbeitung normalisiert (-18 LUFS), UND auf den Envelope-Detektor in
-    # compress_band(): der vergleicht nicht den Momentanpeak, sondern eine ueber
-    # attack/release geglaettete Huellkurve. Die liegt rund 11 dB unter dem Peak — bei
-    # -18 LUFS Referenz erreicht sie ueber typisches Material maximal -19 bis -23 dB.
-    # Der alte Wert -6.0 (aus der Zeit, als hier noch der ungeregelte Upload-Pegel
-    # ankam) lag weit darueber und wurde nie ueberschritten: die Stufe war wirkungslos.
-    # -28.0 ergibt nach Intensity-Skalierung (65%) rund -24.5 dB und damit ueber alle
-    # Materialtypen hinweg 0.3-1.3 dB Gain-Reduktion = brauchbare Glue-Kompression.
-    # Referenzpegel, Envelope-Zeitkonstanten und diese Schwelle haengen zusammen —
-    # wird eines geaendert, muss neu kalibriert werden.
-    bus_comp_threshold: float = -28.0
+    # Calibrated for the -18 LUFS internal reference and the stateful detector in
+    # mastering.compress_band(). The stage is additionally capped at 2 dB GR.
+    bus_comp_threshold: float = -20.5
     bus_comp_ratio: float = 2.0
+    processing_intensity: int = 65
     notes: str = ""
 
 
@@ -75,6 +67,7 @@ def apply_intensity_scaling(params: MasteringParams, intensity: int) -> Masterin
     100% = maximum processing
     """
     t = max(0.0, min(1.0, intensity / 100.0))
+    params.processing_intensity = int(round(t * 100))
 
     # EQ gains — scale toward 0 at low intensity
     params.low_shelf_gain *= t
@@ -89,12 +82,7 @@ def apply_intensity_scaling(params: MasteringParams, intensity: int) -> Masterin
     params.mb_high_ratio  = 1.0 + (params.mb_high_ratio - 1.0) * t
     params.bus_comp_ratio = 1.0 + (params.bus_comp_ratio - 1.0) * t
 
-    # Bus comp threshold — bei niedriger Intensity zurueckziehen. Der Ankerwert
-    # -18 dB liegt ueber der geglaetteten Huellkurve typischen Materials, greift
-    # also praktisch nicht; zusaetzlich geht bus_comp_ratio bei t=0 ohnehin auf
-    # 1.0:1 (= mathematisch keine Kompression), Transparenz ist damit doppelt
-    # abgesichert. Anker und Basiswert sind auf den -18-LUFS-Referenzpegel
-    # kalibriert, siehe Kommentar am Feld bus_comp_threshold.
+    # Pull the threshold above typical detector level at low intensity.
     params.bus_comp_threshold = -18.0 + (params.bus_comp_threshold - (-18.0)) * t
 
     # Saturation — scale linearly
@@ -173,17 +161,23 @@ def get_mastering_params(
     platform: str = "spotify",
     preset: str = "auto",
     intensity: int = 65,
+    target_lufs: Optional[float] = None,
     reference_analysis: Optional[dict] = None,
     overrides: Optional[dict] = None,
 ) -> MasteringParams:
     """Rule-based mastering parameters from genre presets + audio analysis."""
-    return get_default_params(analysis, platform, preset, intensity, reference_analysis, overrides)
+    return get_default_params(analysis, platform, preset, intensity, target_lufs, reference_analysis, overrides)
 
 
-def get_default_params(analysis: dict, platform: str, preset: str, intensity: int = 65, reference_analysis: Optional[dict] = None, overrides: Optional[dict] = None) -> MasteringParams:
+def get_default_params(analysis: dict, platform: str, preset: str, intensity: int = 65,
+                       target_lufs: Optional[float] = None,
+                       reference_analysis: Optional[dict] = None,
+                       overrides: Optional[dict] = None) -> MasteringParams:
     """Parameters based on preset and analysis."""
     params = MasteringParams()
     params.target_lufs = PLATFORM_LUFS.get(platform, -14.0)
+    if platform == "custom" and target_lufs is not None:
+        params.target_lufs = float(max(-23.0, min(-6.0, target_lufs)))
 
     # Adjust based on preset
     preset_configs = {
@@ -210,34 +204,49 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
         for key, value in preset_configs[preset].items():
             setattr(params, key, value)
 
-    # Auto-adjust based on analysis. Der Quellpegel selbst wird vor der Verarbeitung
-    # wegnormalisiert; er dient hier nur noch als Indiz dafuer, wie stark die Quelle
-    # bereits vorkomprimiert ist. Bereits laute (= dichte) Quellen bekommen eine
-    # hoehere Schwelle (weniger zusaetzliche Kompression), sehr leise/dynamische eine
-    # tiefere. Werte relativ zum Default -16.0, siehe Kommentar am Feld.
-    integrated = analysis.get("integrated_lufs", -18.0)
-    if integrated > -12:
-        params.bus_comp_threshold = -26.0  # bereits dichte Quelle -> sanfter kleben
-    elif integrated < -24:
-        params.bus_comp_threshold = -30.0  # sehr dynamische Quelle -> etwas fester
+    # Adaptive decisions use level-independent structure (LRA, crest and relative
+    # band balance). Absolute upload level is deliberately ignored because the
+    # DSP is gain-staged to -18 LUFS before these thresholds are applied.
+    lra = float(analysis.get("lra", 8.0))
+    crest = float(analysis.get("crest_factor", 10.0))
+    if lra < 4.0 or crest < 7.5:
+        params.bus_comp_threshold = -18.5
+        params.bus_comp_ratio = max(1.2, params.bus_comp_ratio * 0.75)
+    elif lra > 12.0 and crest > 11.0:
+        params.bus_comp_threshold = -21.5
+        params.bus_comp_ratio = min(3.0, params.bus_comp_ratio * 1.1)
 
-    # Sub-bass adjustment
+    # Sub-bass adjustment from relative spectrum, not absolute file level.
     rms_sub = analysis.get("rms_sub", -30.0)
-    if rms_sub > -18:
-        params.mb_sub_threshold = -12.0
-        params.mb_sub_ratio = 4.0
+    rms_low = analysis.get("rms_low", -24.0)
+    rms_mid = analysis.get("rms_mid", -24.0)
+    if rms_sub > max(rms_low, rms_mid) - 3.0:
+        params.mb_sub_threshold = max(params.mb_sub_threshold, -15.0)
+        params.mb_sub_ratio = max(params.mb_sub_ratio, 3.5)
 
     # Loudness Range (LRA) guardrail — avoid double-squashing already-dynamics-
     # limited sources, and go a touch firmer on very dynamic raw mixes so the
     # bus compressor has something meaningful to do.
-    lra = analysis.get("lra", 8.0)
     if lra < 4.0:
         params.bus_comp_ratio = max(1.2, params.bus_comp_ratio * 0.8)
     elif lra > 12.0:
         params.bus_comp_ratio = min(4.0, params.bus_comp_ratio * 1.1)
 
-    params.notes = f"Auto-selected for {preset} preset targeting {platform} at {params.target_lufs} LUFS."
-    params.genre = preset if preset != "auto" else "Unknown"
+    # Conservative tonal and stereo guardrails use additional measured values.
+    centroid = float(analysis.get("spectral_centroid", 2500.0))
+    if centroid < 1600.0:
+        params.presence_gain += 0.5
+        params.air_gain += 0.6
+    elif centroid > 4500.0:
+        params.presence_gain -= 0.5
+        params.air_gain -= 0.8
+
+    mono_compat = float(analysis.get("mono_compatibility", 1.0))
+    if mono_compat < 0.2:
+        params.stereo_width = min(params.stereo_width, 1.0)
+
+    params.notes = f"Adaptive rules for {preset} preset targeting {platform} at {params.target_lufs} LUFS."
+    params.genre = preset if preset != "auto" else "Adaptive"
 
     # Basic reference-matching adjustments (used when Claude API unavailable)
     if reference_analysis:
@@ -270,7 +279,32 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
             params.mb_sub_ratio = min(6.0, params.mb_sub_ratio + 1.0)
             params.mb_sub_threshold = max(-20.0, params.mb_sub_threshold + 2.0)
 
-        params.notes += " Reference track used for fallback spectral matching."
+        # Match low/mid balance with a small shelf move. Comparing each band to
+        # its own mid band makes this independent of reference file loudness.
+        src_low_balance = analysis.get("rms_low", -24.0) - analysis.get("rms_mid", -24.0)
+        ref_low_balance = reference_analysis.get("rms_low", -24.0) - reference_analysis.get("rms_mid", -24.0)
+        params.low_shelf_gain = float(max(-3.0, min(3.0,
+            params.low_shelf_gain + (ref_low_balance - src_low_balance) * 0.25)))
+
+        # Dynamics matching remains deliberately conservative. It nudges glue
+        # compression but never changes the limiter ceiling or platform target.
+        src_lra = float(analysis.get("lra", 8.0))
+        ref_lra = reference_analysis.get("lra")
+        if isinstance(ref_lra, (int, float)):
+            dynamics_delta = src_lra - float(ref_lra)
+            if dynamics_delta > 2.0:
+                params.bus_comp_threshold -= min(1.5, dynamics_delta * 0.2)
+                params.bus_comp_ratio = min(3.0, params.bus_comp_ratio + 0.2)
+            elif dynamics_delta < -2.0:
+                params.bus_comp_threshold += min(1.5, -dynamics_delta * 0.2)
+                params.bus_comp_ratio = max(1.2, params.bus_comp_ratio - 0.2)
+
+        # Never widen toward a reference that itself has weak mono compatibility.
+        ref_mono = reference_analysis.get("mono_compatibility")
+        if isinstance(ref_mono, (int, float)) and ref_mono < 0.2:
+            params.stereo_width = min(params.stereo_width, 1.0)
+
+        params.notes += " Reference track used for tonal, stereo and dynamics matching."
 
     # Manuelle Overrides ganz zuletzt — sie sind bereits Endwerte, siehe
     # apply_overrides(). Alles davor ist die automatische Herleitung, die der

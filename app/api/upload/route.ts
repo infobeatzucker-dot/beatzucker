@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, mkdir, unlink } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
@@ -109,7 +109,9 @@ export async function POST(req: NextRequest) {
     const filePath = path.join(UPLOAD_DIR, filename);
     await writeFile(filePath, buffer);
 
-    // Get basic info from Python service if available
+    // Validate decodability, channel count and duration before accepting the
+    // upload. Continuing with duration=0 only postpones an inevitable failure
+    // until the expensive analysis/mastering request.
     let duration = 0;
     const pythonUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:8001";
     try {
@@ -117,14 +119,22 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ file_path: filePath }),
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(10000),
       });
-      if (infoRes.ok) {
-        const info = await infoRes.json();
-        duration = info.duration || 0;
+      if (!infoRes.ok) {
+        const detail = await infoRes.text().catch(() => "");
+        await unlink(filePath).catch(() => {});
+        return NextResponse.json({
+          error: detail || "Audio file is not a supported mono/stereo track.",
+        }, { status: infoRes.status });
       }
+      const info = await infoRes.json();
+      duration = info.duration || 0;
     } catch {
-      // Python service not available, continue without duration
+      await unlink(filePath).catch(() => {});
+      return NextResponse.json({
+        error: "Audio validation service is temporarily unavailable.",
+      }, { status: 503 });
     }
 
     return NextResponse.json({

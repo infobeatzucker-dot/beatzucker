@@ -4,6 +4,7 @@ Returns comprehensive measurements for mastering parameter selection.
 """
 
 import logging
+import os
 import numpy as np
 import soundfile as sf
 import librosa
@@ -55,12 +56,18 @@ class AudioAnalysis:
 
 
 def rms_band(audio: np.ndarray, sr: int, low_hz: float, high_hz: float) -> float:
-    """Compute RMS energy in a frequency band, returned in dB.
-    Capped at 60s to bound memory – RMS doesn't need the full track.
+    """Compute representative band RMS in dB with bounded memory.
+
+    For long material, six evenly spaced ten-second windows are measured. Using
+    only the first minute made intros disproportionately control automatic tonal
+    decisions on tracks with breakdowns, fades or long quiet openings.
     """
-    # Cap at 60s to avoid OOM on long tracks
-    MAX_SAMPLES = sr * 60
-    chunk = audio[:MAX_SAMPLES] if len(audio) > MAX_SAMPLES else audio
+    window_samples = max(1, sr * 10)
+    if len(audio) <= sr * 60:
+        chunks = [audio]
+    else:
+        starts = np.linspace(0, len(audio) - window_samples, 6, dtype=int)
+        chunks = [audio[start:start + window_samples] for start in starts]
 
     nyq = sr / 2
     low = max(0.001, low_hz / nyq)
@@ -71,8 +78,11 @@ def rms_band(audio: np.ndarray, sr: int, low_hz: float, high_hz: float) -> float
 
     # sosfilt = numerically stable SOS form, single-pass (low RAM), no overflow
     sos = scipy_signal.butter(4, [low, high], btype="bandpass", output="sos")
-    filtered = scipy_signal.sosfilt(sos, chunk)
-    rms = np.sqrt(np.mean(filtered ** 2))
+    energies = []
+    for chunk in chunks:
+        filtered = scipy_signal.sosfilt(sos, chunk)
+        energies.append(float(np.mean(filtered ** 2)))
+    rms = np.sqrt(np.mean(energies))
 
     if rms < 1e-10:
         return -80.0
@@ -80,7 +90,12 @@ def rms_band(audio: np.ndarray, sr: int, low_hz: float, high_hz: float) -> float
 
 
 def compute_dr(audio: np.ndarray, block_size: int = 4096) -> float:
-    """Compute Dynamic Range value (DR14 algorithm approximation)."""
+    """Compute a DR-style crest metric from the loudest programme blocks.
+
+    Peaks and RMS values must remain paired by block. Sorting the two lists
+    independently can combine a peak from one moment with the RMS of another
+    and produces a metric that describes no real section of the recording.
+    """
     num_blocks = len(audio) // block_size
     if num_blocks < 2:
         return 0.0
@@ -95,13 +110,14 @@ def compute_dr(audio: np.ndarray, block_size: int = 4096) -> float:
         block_rms.append(rms)
         block_peak.append(peak)
 
-    block_rms.sort(reverse=True)
-    block_peak.sort(reverse=True)
+    block_rms = np.asarray(block_rms)
+    block_peak = np.asarray(block_peak)
 
-    # Take top 20% for peak average
+    # Select the loudest 20% by RMS, then use the peaks from those same blocks.
     top_n = max(1, len(block_rms) // 5)
-    avg_peak = np.mean(block_peak[:top_n])
-    avg_rms = np.mean(block_rms[:top_n])
+    indices = np.argpartition(block_rms, -top_n)[-top_n:]
+    avg_peak = float(np.mean(block_peak[indices]))
+    avg_rms = float(np.mean(block_rms[indices]))
 
     if avg_rms < 1e-10:
         return 0.0
@@ -145,17 +161,34 @@ def detect_key(y: np.ndarray, sr: int) -> str:
     return f"{notes[best_key]} {'minor' if is_minor else 'major'}"
 
 
-def compute_true_peak(audio: np.ndarray, sr: int, oversample: int = 2) -> float:
-    """Compute True Peak using oversampling (ITU-R BS.1770-4).
-    Oversample=2 (was 4) halves RAM usage – still accurate enough for mastering.
-    For extra safety we only oversample the first 30s to bound memory.
+def compute_true_peak(audio: np.ndarray, sr: int, oversample: int = 4,
+                      block_sec: float = 30.0, overlap_sec: float = 0.05) -> float:
+    """Channel-aware, full-programme true peak with bounded memory.
+
+    ``audio`` is mono [samples] or channel-first [channels, samples]. Each block
+    includes overlap and only its valid centre is measured, avoiding resampler
+    edge artefacts while still scanning the complete file.
     """
-    # Limit to 30s to prevent OOM on long tracks
-    MAX_SAMPLES = sr * 30
-    chunk = audio[:MAX_SAMPLES] if len(audio) > MAX_SAMPLES else audio
-    upsampled = scipy_signal.resample_poly(chunk.astype(np.float32), oversample, 1)
-    peak = np.max(np.abs(upsampled))
-    del upsampled  # free memory immediately
+    data = np.asarray(audio, dtype=np.float32)
+    n = data.shape[-1]
+    if n == 0:
+        return -120.0
+    block = max(1, int(block_sec * sr))
+    overlap = max(0, int(overlap_sec * sr))
+    peak = 0.0
+    pos = 0
+    while pos < n:
+        start = max(0, pos - overlap)
+        valid_len = min(block, n - pos)
+        end = min(n, pos + valid_len + overlap)
+        chunk = data[..., start:end]
+        upsampled = scipy_signal.resample_poly(chunk, oversample, 1, axis=-1)
+        valid_start = (pos - start) * oversample
+        valid_end = valid_start + valid_len * oversample
+        if valid_end > valid_start:
+            peak = max(peak, float(np.max(np.abs(upsampled[..., valid_start:valid_end]))))
+        del upsampled
+        pos += valid_len
     if peak < 1e-10:
         return -120.0
     return float(20 * np.log10(peak))
@@ -203,10 +236,16 @@ def compute_lra(audio: np.ndarray, sr: int) -> float:
                 np.sum([G[ch] * z[ch] for ch in range(n_ch)], axis=0)
             )
 
-        abs_gated = block_loudness[np.isfinite(block_loudness) & (block_loudness >= -70.0)]
+        block_energy = np.sum([G[ch] * z[ch] for ch in range(n_ch)], axis=0)
+        abs_mask = np.isfinite(block_loudness) & (block_loudness >= -70.0)
+        abs_gated = block_loudness[abs_mask]
         if len(abs_gated) == 0:
             return 0.0
-        rel_threshold = np.mean(abs_gated) - 20.0
+
+        # EBU relative gating is derived from mean linear energy, not from the
+        # arithmetic mean of logarithmic LUFS values.
+        mean_abs_energy = float(np.mean(block_energy[abs_mask]))
+        rel_threshold = -0.691 + 10.0 * np.log10(max(mean_abs_energy, 1e-20)) - 20.0
         rel_gated = abs_gated[abs_gated >= rel_threshold]
         if len(rel_gated) == 0:
             return 0.0
@@ -222,9 +261,16 @@ def compute_lra(audio: np.ndarray, sr: int) -> float:
 
 def analyze_audio(file_path: str) -> AudioAnalysis:
     """Perform full audio analysis on a file."""
-    # Load audio
-    y, sr = librosa.load(file_path, sr=None, mono=False)
     info = sf.info(file_path)
+    max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
+    if info.channels not in (1, 2):
+        raise ValueError("Only mono and stereo audio are supported")
+    if info.duration <= 0 or info.duration > max_duration:
+        raise ValueError(f"Audio duration must be between 0 and {max_duration:g} seconds")
+
+    # Load only after cheap metadata validation to avoid memory exhaustion from
+    # very long compressed files or unsupported multichannel containers.
+    y, sr = librosa.load(file_path, sr=None, mono=False)
 
     channels = y.ndim
     is_stereo = channels == 2
@@ -250,7 +296,7 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
     integrated_lufs = float(meter.integrated_loudness(lufs_input))
 
     # True Peak
-    true_peak = compute_true_peak(mono, sr)
+    true_peak = compute_true_peak(y, sr)
 
     # Dynamic Range
     dr_value = compute_dr(mono)
@@ -350,20 +396,24 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
 def _parse_bit_depth(subtype: str) -> int:
     """Parse bit depth from a soundfile *subtype* string, e.g. 'PCM_24' → 24.
 
-    Erwartet SoundFile.subtype ('PCM_16'), nicht subtype_info ('Signed 16 bit PCM') —
-    letzteres liess das Parsing stillschweigend scheitern und lieferte immer den
-    Default 24, unabhaengig von der tatsaechlichen Bit-Tiefe der Datei.
+    Lossy subtypes return 0 because MP3/AAC have no meaningful PCM bit depth.
     """
     if not subtype:
-        return 24
+        return 0
     s = subtype.split()[0].upper()
-    s = (s.replace("PCM_", "")
-          .replace("FLOAT", "32").replace("DOUBLE", "64")
-          .replace("S8", "8").replace("U8", "8"))
+    if s == "FLOAT":
+        return 32
+    if s == "DOUBLE":
+        return 64
+    if s in {"S8", "U8"}:
+        return 8
+    if not s.startswith("PCM_"):
+        # Lossy codecs do not have a meaningful PCM bit depth.
+        return 0
     try:
-        return int(s)
+        return int(s.replace("PCM_", ""))
     except ValueError:
-        return 24
+        return 0
 
 
 def _sanitize_float(v, default: float = 0.0) -> float:

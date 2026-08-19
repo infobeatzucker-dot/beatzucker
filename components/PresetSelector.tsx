@@ -74,7 +74,7 @@ export default function PresetSelector({ value, onChange, lang = "de" }: { value
           aria-pressed={value === "auto"}
         >
           <span className="preset-icon"><Wand2 size={21} strokeWidth={1.9} /></span>
-          <strong>Auto AI</strong>
+          <strong>Auto</strong>
           <small>{lang === "de" ? "Empfohlen" : "Recommended"}</small>
         </button>
         {visible.map((option) => <PresetTile key={option.id} option={localize(option)} active={value === option.id} onClick={() => onChange(option.id)} />)}

@@ -299,7 +299,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
             }}
           />
           <span className="text-xs font-semibold tracking-widest" style={{ color: accent }}>
-            A/B PLAYER
+            {lang === "de" ? "A/B HÖRVERGLEICH" : "A/B LISTENING TEST"}
           </span>
         </div>
         <span className="mono text-xs truncate max-w-48" style={{ color: "var(--text-muted)" }}>
@@ -348,11 +348,48 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
                 />
               )}
               <span className="relative z-10">
-                {m} · {m === "A" ? "ORIGINAL" : "MASTER"}
+                {m} · {m === "A" ? "ORIGINAL" : (lang === "de" ? "MASTER" : "MASTERED")}
               </span>
             </motion.button>
           );
         })}
+      </div>
+
+      {/* A fair mastering comparison must not reward the louder source. */}
+      <div className="flex items-center justify-between gap-3 px-5 pb-3">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={engine.loudnessMatched}
+          onClick={() => engine.setLoudnessMatched(!engine.loudnessMatched)}
+          className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs"
+          style={{
+            color: engine.loudnessMatched ? "#67e8f9" : "var(--text-muted)",
+            background: engine.loudnessMatched ? "rgba(56,189,248,0.08)" : "rgba(255,255,255,0.025)",
+            border: `1px solid ${engine.loudnessMatched ? "rgba(56,189,248,0.22)" : "rgba(255,255,255,0.07)"}`,
+          }}
+        >
+          <span
+            aria-hidden="true"
+            className="relative h-4 w-7 rounded-full"
+            style={{ background: engine.loudnessMatched ? "rgba(56,189,248,0.35)" : "rgba(255,255,255,0.09)" }}
+          >
+            <span
+              className="absolute top-0.5 h-3 w-3 rounded-full transition-transform"
+              style={{
+                left: 2,
+                background: engine.loudnessMatched ? "#67e8f9" : "#7c8499",
+                transform: engine.loudnessMatched ? "translateX(12px)" : "translateX(0)",
+              }}
+            />
+          </span>
+          {lang === "de" ? "Lautheit angeglichen" : "Loudness matched"}
+        </button>
+        {engine.loudnessMatched && engine.loudnessCompensatedSource && engine.loudnessCompensationDb < -0.05 && (
+          <span className="mono text-[10px] tracking-wider" style={{ color: "rgba(255,255,255,0.34)" }}>
+            {engine.loudnessCompensatedSource} {engine.loudnessCompensationDb.toFixed(1)} dB
+          </span>
+        )}
       </div>
 
       {/* Waveform + Oscilloscope canvas area — clickable to seek */}

@@ -19,7 +19,7 @@ const STEP_LABELS_EN: Record<string, string> = {
   analyzing: "Analyzing track…", loading: "Loading track…",
   eq: "Applying EQ correction…", compression: "Multiband compression…",
   ms: "M/S processing…", saturation: "Harmonic saturation…",
-  limiting: "True Peak limiting…", rendering: "Rendering all formats…",
+  limiting: "True Peak limiting…", rendering: "Rendering selected format…",
   complete: "Mastering complete!",
 };
 
@@ -27,6 +27,7 @@ export interface RunMasteringArgs {
   fileId: string;
   originalName?: string;
   platform: Platform;
+  targetLufs?: number;
   preset: Preset;
   intensity: number;
   selectedFormat: string;
@@ -50,7 +51,7 @@ export interface RunMasteringArgs {
  * würden den Tastatur-Shortcut doppelt registrieren.
  */
 export async function runMastering({
-  fileId, originalName, platform, preset, intensity, selectedFormat,
+  fileId, originalName, platform, targetLufs, preset, intensity, selectedFormat,
   analysis, referenceAnalysis, overrides, lang = "de", signal,
   onProgress, onComplete, onError,
 }: RunMasteringArgs): Promise<void> {
@@ -62,6 +63,7 @@ export async function runMastering({
         file_id: fileId,
         original_name: originalName,
         platform, preset, intensity,
+        ...(platform === "custom" && Number.isFinite(targetLufs) ? { target_lufs: targetLufs } : {}),
         format: selectedFormat,
         analysis,
         reference_analysis: referenceAnalysis,

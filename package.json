@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"next dev\" \"cd python && uvicorn main:app --port 8001 --reload\"",
+    "dev": "concurrently \"next dev\" \"node scripts/run-python-dev.mjs\"",
     "dev:next": "next dev",
-    "dev:python": "cd python && uvicorn main:app --port 8001 --reload",
+    "dev:python": "node scripts/run-python-dev.mjs",
     "build": "next build",
     "start": "next start",
     "db:push": "prisma db push",
