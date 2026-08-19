@@ -149,10 +149,8 @@ export async function POST(req: NextRequest) {
         });
 
         if (!res.ok || !res.body) {
-          await simulateMockProgress(send, format, masterId);
-          await finalizeMaster(dbMasterId, userId, masterId);
-          controller.close();
-          return;
+          const detail = await res.text().catch(() => "");
+          throw new Error(`Mastering-Service nicht erreichbar (${res.status})${detail ? `: ${detail.slice(0, 160)}` : ""}`);
         }
 
         // Stream SSE from Python
@@ -161,6 +159,7 @@ export async function POST(req: NextRequest) {
         let buffer    = "";
         let pythonCompleted = false;
         let finalPayload: Record<string, unknown> | null = null;
+        let pythonError = "";
 
         outer: while (true) {
           const { done, value } = await reader.read();
@@ -175,7 +174,10 @@ export async function POST(req: NextRequest) {
                   const data = JSON.parse(line.slice(6)) as Record<string, unknown>;
                   send(data);
                   if (data.step === "complete") { pythonCompleted = true; finalPayload = data; break outer; }
-                  if (data.error || data.step === "error") break outer;
+                  if (data.error || data.step === "error") {
+                    pythonError = typeof data.error === "string" ? data.error : "Mastering wurde abgebrochen";
+                    break outer;
+                  }
                 } catch { /* ignore */ }
               }
             }
@@ -197,6 +199,8 @@ export async function POST(req: NextRequest) {
                 finalPayload = data;
                 break outer;
               } else if (data.error || data.step === "error") {
+                send(data);
+                pythonError = typeof data.error === "string" ? data.error : "Mastering wurde abgebrochen";
                 break outer;
               } else {
                 send(data);
@@ -206,8 +210,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!pythonCompleted) {
-          await simulateMockProgress(send, format, masterId);
-          finalPayload = null; // mock — no real LUFS
+          throw new Error(pythonError || "Mastering-Service wurde ohne fertiges Ergebnis beendet");
         }
 
         // Persist results
@@ -223,7 +226,11 @@ export async function POST(req: NextRequest) {
             if (user?.email) sendMasteringErrorEmail(user.email, originalName).catch((err) => console.error("[email] mastering-error:", err));
           } catch { /* ignore */ }
         }
-        await simulateMockProgress(send, format, masterId);
+        send({
+          step: "error",
+          progress: 0,
+          error: err instanceof Error ? err.message : "Mastering fehlgeschlagen",
+        });
         controller.close();
         return;
       }
@@ -281,59 +288,4 @@ async function finalizeMaster(
   } catch (e) {
     console.error("finalizeMaster error:", e);
   }
-}
-
-async function simulateMockProgress(
-  send: (data: object) => void,
-  format = "mp3128",
-  masterId: string,
-) {
-  const renderLabel = `Rendering ${format.toUpperCase()}…`;
-  const steps = [
-    { step: "analyzing",   progress: 10, label: "Analyzing track…" },
-    { step: "eq",          progress: 30, label: "Applying EQ correction…" },
-    { step: "compression", progress: 50, label: "Multiband compression…" },
-    { step: "ms",          progress: 60, label: "M/S processing…" },
-    { step: "saturation",  progress: 70, label: "Harmonic saturation…" },
-    { step: "limiting",    progress: 85, label: "True Peak limiting…" },
-    { step: "rendering",   progress: 95, label: renderLabel },
-  ];
-
-  for (const step of steps) {
-    await delay(600 + Math.random() * 400);
-    send(step);
-  }
-
-  await delay(800);
-
-  const formatUrl = `/api/download?master_id=${masterId}&format=${format}`;
-  send({
-    step: "complete",
-    progress: 100,
-    master_id: masterId,
-    formats: {
-      wav32:  format === "wav32"  ? formatUrl : "",
-      wav24:  format === "wav24"  ? formatUrl : "",
-      wav16:  format === "wav16"  ? formatUrl : "",
-      flac:   format === "flac"   ? formatUrl : "",
-      mp3320: format === "mp3320" ? formatUrl : "",
-      mp3128: format === "mp3128" ? formatUrl : "",
-      aac256: format === "aac256" ? formatUrl : "",
-    },
-    post_analysis: {
-      integrated_lufs: -14.0, true_peak: -1.0, dr_value: 11,
-      crest_factor: 9.8, rms_sub: -18.2, rms_low: -16.4,
-      rms_mid: -17.8, rms_high: -22.1, rms_air: -28.6,
-      spectral_centroid: 2800, spectral_rolloff: 9500, spectral_flatness: 0.14,
-      stereo_width: 1.05, mono_compatibility: 0.94,
-      bpm: 128, key: "C minor", transient_density: 0.48,
-      clipping_detected: false, dc_offset: 0.0,
-      duration_seconds: 180, sample_rate: 44100, bit_depth: 24, channels: 2,
-    },
-    notes: "Electronic/Dance track. Applied sub-bass tightening, bright air shelf, and wide stereo field. Optimized for Spotify at -14 LUFS.",
-  });
-}
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

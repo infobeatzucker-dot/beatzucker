@@ -6,12 +6,9 @@ import type { Lang } from "@/lib/types/mastering";
 /**
  * Animierte Audio-Scopes für die Tabs, in denen nur ein bis zwei Fader stehen.
  *
- * Sie visualisieren, was der jeweilige Regler mit dem Signal macht — das
- * Goniometer reagiert auf die Stereobreite, die Transferkurve auf den Drive,
- * das GR-Meter auf Schwelle und Ratio. Die Signalquelle ist eine Simulation,
- * keine Messung des laufenden Audios: der eigentliche Klangeindruck kommt aus
- * dem Abhören, hier geht es darum, die Wirkung eines Reglers sichtbar zu machen,
- * bevor man ihn bewegt.
+ * Die Scopes lesen den Analyser der lokalen Web-Audio-Kette. Ohne laufendes
+ * Signal fallen sie auf eine sehr ruhige Demo-Bewegung zurück, damit das Panel
+ * nicht wie ein defekter schwarzer Bildschirm wirkt.
  */
 
 const REDUCE_MOTION =
@@ -86,8 +83,11 @@ function ScopeShell({
 }
 
 /** Goniometer — Punktwolke wird mit steigender Breite horizontal weiter. */
-export function GoniometerScope({ width, lang }: { width: number; lang: Lang }) {
+export function GoniometerScope({ width, lang, analyser, playing }: {
+  width: number; lang: Lang; analyser?: AnalyserNode | null; playing?: boolean;
+}) {
   const trail = useRef<{ x: number; y: number }[]>([]);
+  const bins = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const ref = useCanvasLoop((ctx, w, h, t) => {
     const cx = w / 2, cy = h / 2;
     const r = Math.min(w, h) / 2 - 16;
@@ -105,9 +105,16 @@ export function GoniometerScope({ width, lang }: { width: number; lang: Lang }) 
     ctx.beginPath(); ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
 
+    let energy = 0.18;
+    if (analyser && playing) {
+      if (!bins.current || bins.current.length !== analyser.frequencyBinCount) bins.current = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(bins.current);
+      for (let i = 2; i < Math.min(100, bins.current.length); i++) energy += bins.current[i] / 255 / 98;
+      energy = Math.min(1, energy);
+    }
     for (let i = 0; i < 3; i++) {
-      const l = Math.sin(t * 1.7 + i * 0.6) * 0.6 + Math.sin(t * 3.1 + i) * 0.25;
-      const rr = (Math.sin(t * 1.7 + i * 0.6 + 0.4) * 0.6 + Math.sin(t * 2.6 + i * 1.3) * 0.25) * width;
+      const l = (Math.sin(t * 1.7 + i * 0.6) * 0.6 + Math.sin(t * 3.1 + i) * 0.25) * energy;
+      const rr = (Math.sin(t * 1.7 + i * 0.6 + 0.4) * 0.6 + Math.sin(t * 2.6 + i * 1.3) * 0.25) * width * energy;
       trail.current.push({ x: cx + (l - rr) * r * 0.5, y: cy - (l + rr) * r * 0.5 });
     }
     if (trail.current.length > 150) trail.current.splice(0, trail.current.length - 150);
@@ -119,7 +126,7 @@ export function GoniometerScope({ width, lang }: { width: number; lang: Lang }) 
       ctx.arc(trail.current[j].x, trail.current[j].y, 1.6, 0, Math.PI * 2);
       ctx.fill();
     }
-  }, [width]);
+  }, [width, analyser, playing]);
 
   const reading =
     width < 0.9 ? (lang === "en" ? "narrow · mono-safe" : "schmal · mono-sicher")
@@ -134,7 +141,10 @@ export function GoniometerScope({ width, lang }: { width: number; lang: Lang }) 
 }
 
 /** Transferkurve + Obertonbalken — zeigt, wie stark der Drive die Kurve biegt. */
-export function SaturationScope({ drive, lang }: { drive: number; lang: Lang }) {
+export function SaturationScope({ drive, lang, analyser, playing }: {
+  drive: number; lang: Lang; analyser?: AnalyserNode | null; playing?: boolean;
+}) {
+  const bins = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const ref = useCanvasLoop((ctx, w, h, t) => {
     const pad = 20;
     const ox = pad, oy = h - pad, ax = w - pad * 5, ay = pad;
@@ -179,13 +189,18 @@ export function SaturationScope({ drive, lang }: { drive: number; lang: Lang }) 
 
     const bw = 14, gap = 7;
     const bx = w - pad - 4 * (bw + gap);
+    if (analyser && playing) {
+      if (!bins.current || bins.current.length !== analyser.frequencyBinCount) bins.current = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(bins.current);
+    }
     for (let k = 0; k < 4; k++) {
-      const amp = Math.max(2, (drive * 92) / (k + 1) * (0.8 + 0.2 * Math.sin(t * 4 + k)));
+      const live = bins.current?.[Math.min(bins.current.length - 1, 8 + k * 18)] ?? 70;
+      const amp = Math.max(2, (drive * 70 + live * 0.18) / (k * 0.45 + 1) * (0.88 + 0.12 * Math.sin(t * 4 + k)));
       const bh = Math.min(amp, oy - ay - 4);
       ctx.fillStyle = k % 2 ? "rgba(72,191,255,.75)" : "rgba(139,92,246,.75)";
       ctx.fillRect(bx + k * (bw + gap), oy - bh, bw, bh);
     }
-  }, [drive]);
+  }, [drive, analyser, playing]);
 
   return (
     <ScopeShell
@@ -199,9 +214,13 @@ export function SaturationScope({ drive, lang }: { drive: number; lang: Lang }) 
 
 /** Gain-Reduction-Meter mit laufender GR-Kurve. */
 export function GainReductionScope({
-  threshold, ratio, lang,
-}: { threshold: number; ratio: number; lang: Lang }) {
+  threshold, ratio, lang, analyser, playing, getReduction,
+}: {
+  threshold: number; ratio: number; lang: Lang;
+  analyser?: AnalyserNode | null; playing?: boolean; getReduction?: () => number;
+}) {
   const lastGr = useRef(0);
+  const timeData = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const ref = useCanvasLoop((ctx, w, h, t) => {
     const pad = 18;
     const thrNorm = Math.min(1, Math.max(0, (threshold + 32) / 22));
@@ -210,8 +229,16 @@ export function GainReductionScope({
       Math.max(0, Math.sin(x * 3) * 0.5 + 0.5 + Math.sin(x * 7.3) * 0.15);
     const grAt = (s: number) => (s > thrNorm ? (s - thrNorm) * (1 - 1 / ratio) : 0);
 
-    const sig = sigAt(t);
-    const gr = grAt(sig) * 22;
+    let sig = sigAt(t);
+    if (analyser && playing) {
+      if (!timeData.current || timeData.current.length !== analyser.fftSize) timeData.current = new Uint8Array(analyser.fftSize);
+      analyser.getByteTimeDomainData(timeData.current);
+      let peak = 0;
+      for (let i = 0; i < timeData.current.length; i += 4) peak = Math.max(peak, Math.abs(timeData.current[i] - 128) / 128);
+      sig = peak;
+    }
+    const measured = getReduction?.() ?? 0;
+    const gr = playing && getReduction ? measured : grAt(sig) * 22;
     lastGr.current = gr;
 
     const barW = 30, bx = pad, by = pad, bh = h - pad * 2;
@@ -263,7 +290,7 @@ export function GainReductionScope({
       ctx.stroke();
       ctx.shadowBlur = 0;
     }
-  }, [threshold, ratio]);
+  }, [threshold, ratio, analyser, playing, getReduction]);
 
   // Stärkste Gain-Reduktion, die diese Einstellung bei Vollpegel erreichen kann.
   // Ein fester, ablesbarer Wert sagt hier mehr als eine zappelnde Live-Zahl.
@@ -275,6 +302,60 @@ export function GainReductionScope({
       label={lang === "en" ? "Gain reduction" : "Gain Reduction"}
       reading={`${lang === "en" ? "up to" : "bis"} −${maxGr.toFixed(1)} dB`}
     >
+      <canvas ref={ref} />
+    </ScopeShell>
+  );
+}
+
+/** Vier laufende Spektrumbänder für den Multiband-Kompressor. */
+export function MultibandScope({ analyser, playing, values, lang }: {
+  analyser?: AnalyserNode | null; playing?: boolean;
+  values: Partial<Record<string, number>>; lang: Lang;
+}) {
+  const bins = useRef<Uint8Array<ArrayBuffer> | null>(null);
+  const levels = useRef([0.15, 0.18, 0.14, 0.1]);
+  const ref = useCanvasLoop((ctx, w, h, t) => {
+    if (analyser && playing) {
+      if (!bins.current || bins.current.length !== analyser.frequencyBinCount) bins.current = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(bins.current);
+    }
+    const ranges = [[1, 5], [5, 24], [24, 110], [110, 300]];
+    const names = ["SUB", "LOW", "MID", "HIGH"];
+    const keys = ["mb_sub", "mb_low", "mb_mid", "mb_high"];
+    const gap = 12;
+    const cardW = (w - gap * 5) / 4;
+    for (let b = 0; b < 4; b++) {
+      let raw = 0.12 + 0.05 * Math.sin(t * 2 + b);
+      if (bins.current && analyser && playing) {
+        let sum = 0, count = 0;
+        for (let i = ranges[b][0]; i < Math.min(ranges[b][1], bins.current.length); i++) { sum += bins.current[i] / 255; count++; }
+        raw = count ? sum / count : 0;
+      }
+      levels.current[b] += (raw - levels.current[b]) * 0.16;
+      const threshold = values[`${keys[b]}_threshold`] ?? -18;
+      const ratio = values[`${keys[b]}_ratio`] ?? 2;
+      const reduction = Math.max(0, levels.current[b] - (threshold + 36) / 36) * (1 - 1 / ratio);
+      const x = gap + b * (cardW + gap);
+      const meterY = 32, meterH = h - 56;
+      ctx.fillStyle = "rgba(255,255,255,.035)";
+      ctx.fillRect(x, meterY, cardW, meterH);
+      const fillH = meterH * Math.min(1, levels.current[b]);
+      const grad = ctx.createLinearGradient(0, meterY + meterH, 0, meterY);
+      grad.addColorStop(0, "#8b5cff"); grad.addColorStop(1, "#48bfff");
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, meterY + meterH - fillH, cardW, fillH);
+      if (reduction > 0) {
+        ctx.fillStyle = "rgba(235,86,216,.85)";
+        ctx.fillRect(x, meterY + meterH - fillH, cardW, Math.min(fillH, reduction * meterH * 2));
+      }
+      ctx.fillStyle = "rgba(230,235,255,.72)";
+      ctx.font = "600 9px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(names[b], x + cardW / 2, 18);
+    }
+  }, [analyser, playing, values]);
+  return (
+    <ScopeShell label={lang === "en" ? "Live band activity" : "Live-Bandaktivität"} reading={playing ? "LIVE" : "READY"}>
       <canvas ref={ref} />
     </ScopeShell>
   );

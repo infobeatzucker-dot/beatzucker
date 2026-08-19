@@ -2,631 +2,253 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { X, RotateCcw, Play, Pause, Music4, Loader2 } from "lucide-react";
+import { X, RotateCcw, Play, Pause, Loader2, LocateFixed, Radio } from "lucide-react";
 import {
   PARAM_DEFS, TABS, seedValues, changedOnly, formatValue, t,
   type ParamKey, type ParamValues, type TabId, type ParamDef,
 } from "@/lib/masteringParams";
-import { GoniometerScope, SaturationScope, GainReductionScope } from "@/components/manual/AdjustScopes";
+import { GoniometerScope, SaturationScope, GainReductionScope, MultibandScope } from "@/components/manual/AdjustScopes";
+import { ManualPreviewEngine } from "@/lib/manualPreviewEngine";
 import { stopGlobalAudio } from "@/lib/globalAudio";
 import type { AnalysisData, Lang, Platform, Preset } from "@/lib/types/mastering";
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
-  lang?: Lang;
-  fileId: string;
-  filename: string;
-  durationSec: number;
-  platform: Platform;
-  preset: Preset;
-  intensity: number;
-  analysis: AnalysisData | null;
-  referenceAnalysis?: AnalysisData | null;
-  /** Die Parameter, mit denen der aktuelle Master entstanden ist. */
+  open: boolean; onClose: () => void; lang?: Lang; fileId: string; filename: string;
+  durationSec: number; platform: Platform; preset: Preset; intensity: number;
+  analysis: AnalysisData | null; referenceAnalysis?: AnalysisData | null;
   serverParams?: Record<string, unknown> | null;
-  /** Übernimmt die eingestellten Werte und startet ein neues Mastering. */
   onApply: (overrides: ParamValues) => void;
 }
 
-/** Ein vertikaler Fader im Stil eines Mischpult-Kanalzugs. */
-/**
- * memo, weil beim Bewegen EINES Faders sonst alle anderen mitrendern — bei bis
- * zu acht Fadern plus Scopes war das im Multiband-Tab deutlich zu spüren.
- */
-const Fader = memo(function Fader({
-  def, value, onChange, lang,
-}: {
-  def: ParamDef; value: number; lang: Lang;
-  // Nimmt den Schlüssel entgegen, damit der Aufrufer eine STABILE Funktion
-  // durchreichen kann — ein Inline-Closure pro Render würde memo aushebeln.
-  onChange: (key: ParamKey, v: number) => void;
+const Fader = memo(function Fader({ def, value, onChange, lang }: {
+  def: ParamDef; value: number; lang: Lang; onChange: (key: ParamKey, value: number) => void;
 }) {
   const pct = ((value - def.min) / (def.max - def.min)) * 100;
-  const atNeutral = def.neutral !== undefined && Math.abs(value - def.neutral) < def.step / 2;
-
-  return (
-    <div className={`adjust-channel${atNeutral ? " is-neutral" : ""}`}>
-      <span className="adjust-readout">{formatValue(def, value)}</span>
-      <div className="adjust-faderwrap">
-        <div className="adjust-fadertrack">
-          <div className="adjust-faderfill" style={{ height: `${pct}%` }} />
-        </div>
-        <div className="adjust-faderthumb" style={{ bottom: `${pct}%` }} />
-        <input
-          type="range"
-          className="adjust-fadinput"
-          min={def.min}
-          max={def.max}
-          step={def.step}
-          value={value}
-          aria-label={t(def.label, lang)}
-          onChange={(e) => onChange(def.key, parseFloat(e.target.value))}
-        />
-      </div>
-      <span className="adjust-name">{t(def.label, lang)}</span>
-      <span className="adjust-unit">{t(def.unit, lang)}</span>
+  const neutral = def.neutral !== undefined && Math.abs(value - def.neutral) < def.step / 2;
+  return <div className={`adjust-channel${neutral ? " is-neutral" : ""}`}>
+    <span className="adjust-readout">{formatValue(def, value)}</span>
+    <div className="adjust-faderwrap">
+      <div className="adjust-fadertrack"><div className="adjust-faderfill" style={{ height: `${pct}%` }} /></div>
+      <div className="adjust-faderthumb" style={{ bottom: `${pct}%` }} />
+      <input className="adjust-fadinput" type="range" min={def.min} max={def.max} step={def.step} value={value}
+        aria-label={t(def.label, lang)} onChange={(event) => onChange(def.key, Number(event.target.value))} />
     </div>
-  );
+    <span className="adjust-name">{t(def.label, lang)}</span><span className="adjust-unit">{t(def.unit, lang)}</span>
+  </div>;
 });
 
-/** Live-Kurve über den EQ-Fadern — zeigt die Summe der vier Glockenfilter. */
 function EqCurve({ values }: { values: ParamValues }) {
   const path = useMemo(() => {
-    const gains = [
-      values.low_shelf_gain ?? 0,
-      values.mid_notch_gain ?? 0,
-      values.presence_gain ?? 0,
-      values.air_gain ?? 0,
-    ];
+    const gains = [values.low_shelf_gain ?? 0, values.mid_notch_gain ?? 0, values.presence_gain ?? 0, values.air_gain ?? 0];
     const xs = [90, 300, 550, 790];
-    const pts: string[] = [];
-    for (let x = 0; x <= 900; x += 15) {
+    const points: string[] = [];
+    for (let x = 0; x <= 900; x += 12) {
       let y = 28;
-      for (let i = 0; i < 4; i++) {
-        const d = (x - xs[i]) / 175;
-        y -= gains[i] * 3.2 * Math.exp(-d * d);
-      }
-      pts.push(`${x},${y.toFixed(1)}`);
+      gains.forEach((gain, index) => { const d = (x - xs[index]) / 175; y -= gain * 3.2 * Math.exp(-d * d); });
+      points.push(`${x},${y.toFixed(1)}`);
     }
-    return `M${pts.join(" L")}`;
+    return `M${points.join(" L")}`;
   }, [values]);
-
-  return (
-    <svg className="adjust-eqcurve" viewBox="0 0 900 56" preserveAspectRatio="none" aria-hidden="true">
-      <defs>
-        <linearGradient id="bz-eqfill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#48bfff" stopOpacity=".32" />
-          <stop offset="100%" stopColor="#48bfff" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={`${path} L900,56 L0,56 Z`} fill="url(#bz-eqfill)" />
-      <path d={path} fill="none" stroke="#48bfff" strokeWidth="2" strokeLinecap="round" />
-      <line x1="0" y1="28" x2="900" y2="28" stroke="rgba(255,255,255,.08)" strokeWidth="1" />
-    </svg>
-  );
+  return <svg className="adjust-eqcurve" viewBox="0 0 900 56" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="bz-eqfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#48bfff" stopOpacity=".32" /><stop offset="100%" stopColor="#48bfff" stopOpacity="0" /></linearGradient></defs>
+    <path d={`${path} L900,56 L0,56 Z`} fill="url(#bz-eqfill)" /><path d={path} fill="none" stroke="#48bfff" strokeWidth="2" strokeLinecap="round" />
+    <line x1="0" y1="28" x2="900" y2="28" stroke="rgba(255,255,255,.08)" />
+  </svg>;
 }
 
-export default function ManualAdjustModal({
-  open, onClose, lang = "de", fileId, filename, durationSec,
-  platform, preset, intensity, analysis, referenceAnalysis,
-  serverParams, onApply,
-}: Props) {
-  const base = useMemo(() => seedValues(serverParams), [serverParams]);
-  const [values, setValues] = useState<ParamValues>(base);
-  const [tab, setTab] = useState<TabId>("eq");
-
-  /**
-   * Der Vorhör-Bereich wird als Startsekunde + Länge geführt, nicht als zwei
-   * frei gezogene Kanten. Ein einzelner Klick auf die Wellenform genügt damit:
-   * er legt den Bereich um den Klickpunkt. Ziehen bleibt für den Feinschliff.
-   */
-  const dur = Math.max(1, durationSec);
-
-  /**
-   * Der Bereich wird in einem Ref geführt und nur beim Loslassen nach React
-   * übernommen. Vorher lief jede Mausbewegung durch drei setState-Aufrufe und
-   * hat damit das komplette Panel neu gerendert — inklusive aller Fader und der
-   * Zeichenschleife. Das war die Hauptursache für das Ruckeln beim Ziehen.
-   */
-  const regionRef = useRef({ start: Math.max(0, dur * 0.35), len: 8 });
-  const committedRef = useRef({ ...regionRef.current });
-  const [region, setRegion] = useState(() => ({ ...regionRef.current }));
-  /** Zeitanzeige wird direkt im DOM aktualisiert, ohne React-Rerender. */
-  const chipTimeRef = useRef<HTMLSpanElement>(null);
-
-  // Drag-Zustand bewusst als Ref, nicht als State: die Fenster-Listener müssen
-  // schon beim ersten mousemove/mouseup stehen. Über einen State-getriebenen
-  // Effekt wäre ein sehr schneller Klick verloren gegangen — genau das ist beim
-  // Testen passiert.
-  const dragRef = useRef<{ from: number; moved: boolean } | null>(null);
-  const waveRef = useRef<HTMLCanvasElement>(null);
-
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewBusy, setPreviewBusy] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
-  /** Regler wurden bewegt, seit der laufende Ausschnitt gerendert wurde. */
-  const [stale, setStale] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  /** Zählt Render-Anfragen, damit eine überholte Antwort nichts überschreibt. */
-  const reqRef = useRef(0);
-
-  useEffect(() => { if (open) setValues(base); }, [open, base]);
-
-  /** Vorhör-Audio verwerfen — der gerenderte Ausschnitt passt nicht mehr. */
-  const discardPreview = useCallback(() => {
-    reqRef.current++;   // laufende Anfrage entwerten
-    audioRef.current?.pause();
-    audioRef.current = null;
-    setPlaying(false);
-    setPreviewUrl(null);
-    setStale(false);
-  }, []);
-
+function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null; playing: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    if (open) {
-      // Der Haupt-Player läuft womöglich noch. Ohne das hier hört man beim
-      // Starten des Ausschnitts beide Spuren gleichzeitig.
-      stopGlobalAudio();
-      return;
-    }
-    discardPreview();
-    setPreviewError(null);
-  }, [open, discardPreview]);
-
-  useEffect(() => () => { audioRef.current?.pause(); }, []);
-
-  const setParam = useCallback((key: ParamKey, v: number) => {
-    setValues((prev) => ({ ...prev, [key]: v }));
-    // Den laufenden Ausschnitt NICHT stoppen: sonst verstummt die Wiedergabe
-    // bei jeder Reglerbewegung und es wirkt, als täte sich nichts. Er läuft
-    // weiter und wird nur als veraltet markiert — das Nachrendern übernimmt
-    // der Effekt unten, sobald man den Regler kurz loslässt.
-    setStale(true);
-  }, []);
-
-  const dirty = useMemo(() => Object.keys(changedOnly(values, base)).length, [values, base]);
-
-  // ── Wellenform zeichnen ───────────────────────────────────────────────────
-  const bars = useMemo(
-    () => Array.from({ length: 170 }, (_, i) =>
-      0.1 + Math.abs(Math.sin(i * 0.15)) * (0.35 + 0.5 * Math.abs(Math.sin(i * 0.043 + 1.2)))),
-    [],
-  );
-
-  const startSec = region.start;
-  const endSec = Math.min(dur, region.start + region.len);
-  const fmtTime = (s: number) =>
-    `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
-
-  /** Bereich im Ref setzen — zeichnet sofort, ohne React zu beschäftigen. */
-  const setRegionLive = useCallback((start: number, len: number) => {
-    const l = Math.max(2, Math.min(20, Math.min(len, dur)));
-    regionRef.current = { start: Math.max(0, Math.min(dur - l, start)), len: l };
-  }, [dur]);
-
-  /** Beim Loslassen nach React übernehmen und als veraltet markieren. */
-  const commitRegion = useCallback(() => {
-    const r = regionRef.current;
-    const p = committedRef.current;
-    if (Math.abs(p.start - r.start) < 0.01 && Math.abs(p.len - r.len) < 0.01) return;
-    committedRef.current = { ...r };
-    setRegion({ ...r });
-    // Wie bei den Reglern: laufende Wiedergabe nicht abwürgen, nur als veraltet
-    // markieren — der neue Ausschnitt wird automatisch nachgerendert.
-    setStale(true);
-  }, []);
-
-  /**
-   * Hier bewusst KEIN gecachtes Rechteck: die Trefferberechnung läuft nur bei
-   * Mausereignissen, da fällt getBoundingClientRect() nicht ins Gewicht. Mit
-   * Cache war sie sogar fehlerhaft — beim ersten Messen stand die Breite des
-   * Canvas noch auf 0, und ohne ausgeliefertes ResizeObserver-Ereignis blieb
-   * dieser Wert stehen. Gecacht wird nur im Zeichenpfad, der 60-mal pro
-   * Sekunde läuft.
-   */
-  const ratioAt = useCallback((clientX: number) => {
-    const cv = waveRef.current;
-    if (!cv) return 0;
-    const r = cv.getBoundingClientRect();
-    if (r.width < 1) return 0;
-    return Math.min(1, Math.max(0, (clientX - r.left) / r.width));
-  }, []);
-
-  // Ziehen für den Feinschliff: erst ab einer knappen halben Sekunde Bewegung,
-  // damit ein schlichter Klick nicht versehentlich einen Mini-Bereich aufzieht.
-  // Die Listener hängen dauerhaft und lesen den Drag-Zustand aus dem Ref.
-  useEffect(() => {
-    if (!open) return;
-    const move = (e: MouseEvent) => {
-      const d = dragRef.current;
-      if (!d) return;
-      const r = ratioAt(e.clientX);
-      if (Math.abs(r - d.from) * dur < 0.4) return;
-      d.moved = true;
-      const a = Math.min(d.from, r) * dur;
-      const b = Math.max(d.from, r) * dur;
-      // Nur das Ref — die Zeichenschleife greift den Wert im nächsten Frame ab.
-      setRegionLive(a, b - a);
-    };
-    const up = (e: MouseEvent) => {
-      const d = dragRef.current;
-      if (!d) return;
-      dragRef.current = null;
-      // Reiner Klick ohne Ziehen: Bereich mittig um den Klickpunkt legen
-      if (!d.moved) {
-        const len = regionRef.current.len;
-        setRegionLive(ratioAt(e.clientX) * dur - len / 2, len);
-      }
-      commitRegion();
-    };
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-    return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
-    };
-  }, [open, dur, ratioAt, setRegionLive, commitRegion]);
-
-  // ── Wellenform zeichnen (inkl. Abspielposition) ───────────────────────────
-  useEffect(() => {
-    const cv = waveRef.current;
-    if (!cv || !open) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
-
-    let w = 1, h = 1;
-    let gradSel: CanvasGradient | null = null;
-    let gradIdle: CanvasGradient | null = null;
-    let lastLabel = "";
-
-    /**
-     * Geometrie und Verläufe nur bei Größenänderung neu berechnen. Vorher lief
-     * pro Frame ein getBoundingClientRect() (erzwingt Layout) und es wurde für
-     * JEDEN der 170 Balken ein eigener Farbverlauf erzeugt — bei 60 fps über
-     * 10.000 Verlaufsobjekte pro Sekunde.
-     */
-    const measure = () => {
-      const r = cv.getBoundingClientRect();
-      if (r.width < 1 || r.height < 1) return;   // Layout steht noch nicht
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = r.width; h = r.height;
-      cv.width = Math.max(1, Math.round(w * dpr));
-      cv.height = Math.max(1, Math.round(h * dpr));
+    const canvas = ref.current, ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    let width = 1, height = 1, raf = 0;
+    const data = analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+      width = rect.width; height = rect.height; canvas.width = Math.max(1, Math.round(width * dpr)); canvas.height = Math.max(1, Math.round(height * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      gradSel = ctx.createLinearGradient(0, 0, 0, h);
-      gradSel.addColorStop(0, "#48bfff");
-      gradSel.addColorStop(1, "#8b5cff");
-      gradIdle = ctx.createLinearGradient(0, 0, 0, h);
-      gradIdle.addColorStop(0, "rgba(139,92,246,.45)");
-      gradIdle.addColorStop(1, "rgba(139,92,246,.22)");
     };
-    measure();
-
-    const bw = () => w / bars.length;
-
+    resize(); const ro = new ResizeObserver(resize); ro.observe(canvas);
     const draw = () => {
-      // Beim Öffnen steht die Breite des Panels noch nicht — dann hier erneut
-      // messen, statt sich allein auf ein ResizeObserver-Ereignis zu verlassen.
-      if (!gradSel) {
-        measure();
-        if (!gradSel) { raf = requestAnimationFrame(draw); return; }
+      ctx.clearRect(0, 0, width, height); if (analyser && data && playing) analyser.getByteFrequencyData(data);
+      const count = 52;
+      for (let i = 0; i < count; i++) {
+        const bin = Math.max(0, Math.min((data?.length ?? 1) - 1, Math.round(Math.pow(i / count, 1.8) * (data?.length ?? 1) * .7)));
+        const level = playing && data ? data[bin] / 255 : .06, bar = Math.max(2, level * height * .72);
+        ctx.fillStyle = `rgba(${72 + i * 2},${191 - i},255,${.08 + level * .22})`;
+        ctx.fillRect(i / count * width, height - bar, Math.max(1, width / count - 2), bar);
       }
-      const { start, len } = regionRef.current;
-      const lo = start / dur;
-      const hi = Math.min(1, (start + len) / dur);
-      const bWidth = bw();
-      ctx.clearRect(0, 0, w, h);
-
-      // In zwei Durchgängen: so wird fillStyle zweimal pro Frame gesetzt
-      // statt 170-mal ein neuer Verlauf gebaut.
-      for (let pass = 0; pass < 2; pass++) {
-        ctx.fillStyle = (pass === 0 ? gradIdle : gradSel) as CanvasGradient;
-        for (let i = 0; i < bars.length; i++) {
-          const t = i / bars.length;
-          const inSel = t >= lo && t <= hi;
-          if (inSel !== (pass === 1)) continue;
-          const bh = bars[i] * h * 0.8;
-          ctx.fillRect(i * bWidth + 1, (h - bh) / 2, Math.max(1, bWidth - 2), bh);
-        }
-      }
-
-      ctx.fillStyle = "rgba(72,191,255,.08)";
-      ctx.fillRect(lo * w, 0, (hi - lo) * w, h);
-      ctx.strokeStyle = "#48bfff";
-      ctx.lineWidth = 1.5;
-      ctx.shadowColor = "#48bfff";
-      ctx.shadowBlur = 6;
-      ctx.beginPath();
-      ctx.moveTo(lo * w, 0); ctx.lineTo(lo * w, h);
-      ctx.moveTo(hi * w, 0); ctx.lineTo(hi * w, h);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Abspielposition: das Vorhör-Audio enthält nur den Ausschnitt, seine
-      // Laufzeit wird also auf den markierten Bereich abgebildet.
-      const a = audioRef.current;
-      if (a && a.duration > 0 && !a.paused) {
-        const px = (lo + (hi - lo) * Math.min(1, a.currentTime / a.duration)) * w;
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2;
-        ctx.shadowColor = "#48bfff";
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.moveTo(px, 0); ctx.lineTo(px, h);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.arc(px, 5, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Nur WÄHREND des Ziehens schreibt die Schleife die Zeitanzeige direkt ins
-      // DOM — so bleibt React beim Ziehen unbehelligt. Sonst rendert React sie
-      // ganz normal; sie hängt damit nicht davon ab, dass diese Schleife läuft.
-      if (dragRef.current) {
-        const label = `${fmtTime(start)}–${fmtTime(start + len)}`;
-        if (label !== lastLabel && chipTimeRef.current) {
-          chipTimeRef.current.textContent = label;
-          lastLabel = label;
-        }
-      } else {
-        lastLabel = "";
-      }
-
       raf = requestAnimationFrame(draw);
     };
-
-    let raf = requestAnimationFrame(draw);
-
-    // ResizeObserver ruft ausschliesslich measure(). Rief er draw() auf, würde
-    // jede Größenänderung eine ZWEITE Endlosschleife starten — und
-    // cancelAnimationFrame beendet nur die zuletzt gespeicherte.
-    const ro = new ResizeObserver(measure);
-    ro.observe(cv);
+    raf = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(raf); ro.disconnect(); };
-  }, [open, bars, dur]);
+  }, [analyser, playing]);
+  return <canvas ref={ref} className="adjust-spectrum" aria-hidden="true" />;
+}
 
-  // ── Ausschnitt durch die echte Kette rendern ──────────────────────────────
-  const renderPreview = useCallback(async () => {
-    const token = ++reqRef.current;
-    setPreviewBusy(true);
-    setPreviewError(null);
-    try {
-      // Der Haupt-Player darf hier nicht mitlaufen — sonst hört man beide Spuren
-      stopGlobalAudio();
-      const res = await fetch("/api/adjust-preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          file_id: fileId,
-          start_sec: startSec,
-          end_sec: endSec,
-          platform, preset, intensity,
-          analysis: analysis ?? undefined,
-          reference_analysis: referenceAnalysis ?? undefined,
-          overrides: changedOnly(values, base),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      // Inzwischen weitergedreht oder Panel zu? Dann ist diese Antwort veraltet.
-      if (token !== reqRef.current) return;
-      if (!res.ok) throw new Error(data?.error || "Vorhören fehlgeschlagen");
+const fallbackBars = Array.from({ length: 240 }, (_, i) => .12 + Math.abs(Math.sin(i * .17)) * (.28 + .42 * Math.abs(Math.sin(i * .041 + 1.2))));
 
-      const prev = audioRef.current;
-      const a = new Audio(data.url);
-      a.loop = true;
-      // Nahtlos an der gleichen Stelle weiterhören statt zurück auf Anfang
-      const resumeAt = prev && prev.duration > 0 ? prev.currentTime / prev.duration : 0;
-      a.addEventListener("loadedmetadata", () => {
-        if (a.duration > 0 && resumeAt > 0) a.currentTime = a.duration * resumeAt;
-      }, { once: true });
-      audioRef.current = a;
-      setPreviewUrl(data.url);
-      setStale(false);
-      await a.play();
-      prev?.pause();   // erst jetzt, damit keine Lücke entsteht
-      setPlaying(true);
-      a.onpause = () => setPlaying(false);
-      a.onplay = () => setPlaying(true);
-    } catch (e) {
-      if (token !== reqRef.current) return;
-      setPreviewError(e instanceof Error ? e.message : "Vorhören fehlgeschlagen");
-    } finally {
-      if (token === reqRef.current) setPreviewBusy(false);
-    }
-  }, [fileId, startSec, endSec, platform, preset, intensity, analysis, referenceAnalysis, values, base]);
+export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, filename, durationSec, serverParams, onApply }: Props) {
+  const base = useMemo(() => seedValues(serverParams), [serverParams]);
+  const [values, setValues] = useState<ParamValues>(base), valuesRef = useRef(values); valuesRef.current = values;
+  const [tab, setTab] = useState<TabId>("eq");
+  const dur = Math.max(1, durationSec);
+  const regionRef = useRef({ start: Math.max(0, dur * .35), len: Math.min(8, dur) });
+  const [region, setRegion] = useState({ ...regionRef.current });
+  const dragRef = useRef<{ ratio: number; start: number; moved: boolean } | null>(null);
+  const waveRef = useRef<HTMLCanvasElement>(null), chipTimeRef = useRef<HTMLSpanElement>(null);
+  const engineRef = useRef<ManualPreviewEngine | null>(null);
+  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null), [playing, setPlaying] = useState(false);
+  const [engineBusy, setEngineBusy] = useState(false), [previewError, setPreviewError] = useState<string | null>(null);
+  const [waveBars, setWaveBars] = useState(fallbackBars), [waveLoading, setWaveLoading] = useState(false);
+  const sourceUrl = useMemo(() => `/api/preview?file_id=${encodeURIComponent(fileId)}`, [fileId]);
+  const startSec = region.start, endSec = Math.min(dur, region.start + region.len);
+  const dirty = useMemo(() => Object.keys(changedOnly(values, base)).length, [values, base]);
+  const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
-  /**
-   * Läuft gerade ein Ausschnitt und werden Regler bewegt, wird nach kurzer Ruhe
-   * automatisch neu gerendert. Ohne das müsste man nach jeder Reglerbewegung von
-   * Hand auf "vorhören" drücken — und hätte den Eindruck, die Regler bewirken
-   * nichts. Die Verzögerung fängt das Ziehen ab, damit nicht jede
-   * Zwischenstellung einen Render auslöst.
-   */
-  const renderRef = useRef(renderPreview);
-  renderRef.current = renderPreview;
+  const destroyEngine = useCallback(() => {
+    engineRef.current?.destroy(); engineRef.current = null; setAnalyser(null); setPlaying(false); setEngineBusy(false);
+  }, []);
   useEffect(() => {
-    if (!stale || !playing || previewBusy) return;
-    const id = setTimeout(() => { void renderRef.current(); }, 700);
-    return () => clearTimeout(id);
-  }, [stale, playing, previewBusy, values, startSec, endSec]);
+    if (open) {
+      setValues(base); setPreviewError(null); stopGlobalAudio();
+      const next = { start: Math.max(0, dur * .35), len: Math.min(8, dur) }; regionRef.current = next; setRegion({ ...next });
+    } else destroyEngine();
+  }, [open, base, dur, destroyEngine]);
+  useEffect(() => destroyEngine, [destroyEngine]);
 
-  const togglePlay = useCallback(() => {
-    const a = audioRef.current;
-    // Ohne gerenderten Ausschnitt — oder wenn seit dem Rendern Regler bzw.
-    // Bereich verändert wurden — erst neu rendern. Sonst liefe der alte Stand
-    // weiter und die Änderungen blieben unhörbar.
-    if (!a || stale) { void renderPreview(); return; }
-    if (a.paused) { stopGlobalAudio(); void a.play(); setPlaying(true); }
-    else { a.pause(); setPlaying(false); }
-  }, [renderPreview, stale]);
+  useEffect(() => {
+    if (!open || !fileId) return;
+    const aborter = new AbortController(); setWaveLoading(true);
+    void (async () => {
+      let context: AudioContext | null = null;
+      try {
+        const response = await fetch(sourceUrl, { signal: aborter.signal }); if (!response.ok) throw new Error("waveform");
+        context = new AudioContext(); const buffer = await context.decodeAudioData((await response.arrayBuffer()).slice(0));
+        const count = 240, next = Array.from({ length: count }, (_, index) => {
+          let peak = 0, sum = 0, samples = 0;
+          const from = Math.floor(index / count * buffer.length), to = Math.max(from + 1, Math.floor((index + 1) / count * buffer.length));
+          const stride = Math.max(1, Math.floor((to - from) / 180));
+          for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            for (let i = from; i < to; i += stride) { const value = Math.abs(data[i] || 0); peak = Math.max(peak, value); sum += value * value; samples++; }
+          }
+          return peak * .65 + Math.sqrt(sum / Math.max(1, samples)) * .35;
+        });
+        const sorted = [...next].sort((a, b) => a - b), ceiling = sorted[Math.floor(sorted.length * .96)] || 1;
+        if (!aborter.signal.aborted) setWaveBars(next.map((value) => Math.max(.06, Math.min(1, value / ceiling))));
+      } catch { if (!aborter.signal.aborted) setWaveBars(fallbackBars); }
+      finally { if (context) void context.close(); if (!aborter.signal.aborted) setWaveLoading(false); }
+    })();
+    return () => aborter.abort();
+  }, [open, fileId, sourceUrl]);
 
-  const tabDefs = PARAM_DEFS.filter((d) => d.tab === tab);
-  const wide = tab === "ms" || tab === "sat" || tab === "bus";
+  const ensureEngine = useCallback(() => {
+    if (!engineRef.current) {
+      const engine = new ManualPreviewEngine(sourceUrl, valuesRef.current); engine.onState(setPlaying);
+      engine.setRegion(regionRef.current.start, regionRef.current.start + regionRef.current.len); engineRef.current = engine; setAnalyser(engine.analyser);
+    }
+    return engineRef.current;
+  }, [sourceUrl]);
+  const setParam = useCallback((key: ParamKey, value: number) => setValues((previous) => {
+    const next = { ...previous, [key]: value }; engineRef.current?.update(next); return next;
+  }), []);
+  const setRegionLive = useCallback((start: number, len: number) => {
+    const safeLen = Math.max(1, Math.min(20, Math.min(len, dur)));
+    const next = { start: Math.max(0, Math.min(dur - safeLen, start)), len: safeLen }; regionRef.current = next;
+    engineRef.current?.setRegion(next.start, next.start + next.len);
+  }, [dur]);
+  const commitRegion = useCallback(() => setRegion({ ...regionRef.current }), []);
+  const ratioAt = useCallback((clientX: number) => {
+    const rect = waveRef.current?.getBoundingClientRect(); return rect?.width ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
+  }, []);
 
-  return (
-    /*
-     * Bewusst OHNE AnimatePresence-Ausblendung: der Backdrop deckt den ganzen
-     * Bildschirm ab und fängt Klicks. Bliebe er nach dem Schließen noch für eine
-     * Exit-Animation im DOM, wäre die Seite so lange blockiert — und wenn diese
-     * Animation hängt (gedrosseltes requestAnimationFrame in einem Hintergrund-
-     * Tab), dauerhaft. Getestet und reproduziert: der Backdrop stand mit
-     * opacity 0, pointer-events auto und verdeckte die Seite weiterhin.
-     * Ein pointerEvents-Wert im exit-Zustand hilft nicht, den überträgt
-     * framer-motion nicht ins DOM. Also unmountet der Backdrop sofort; nur das
-     * Einblenden ist animiert, wo kein solcher Zustand entstehen kann.
-     */
-    <>
-      {open && (
-        <div
-          className="adjust-backdrop"
-          onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-          role="dialog" aria-modal="true"
-          aria-label={lang === "en" ? "Adjust manually" : "Manuell anpassen"}
-        >
-          <motion.div
-            className="adjust-modal"
-            initial={{ opacity: 0, y: 24, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 320, damping: 30 }}
-          >
-            <header className="adjust-head">
-              <div>
-                <h2>
-                  <span className="adjust-dot" aria-hidden="true" />
-                  {lang === "en" ? "Adjust manually" : "Manuell anpassen"}
-                </h2>
-                <p>
-                  {filename}
-                  {dirty > 0 && (
-                    <span className="adjust-dirty">
-                      {" · "}{dirty} {lang === "en" ? "changed" : "geändert"}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <button className="adjust-close" onClick={onClose}
-                aria-label={lang === "en" ? "Close" : "Schließen"}>
-                <X size={16} />
-              </button>
-            </header>
+  useEffect(() => {
+    if (!open) return;
+    const move = (event: MouseEvent) => {
+      const drag = dragRef.current; if (!drag) return;
+      const delta = (ratioAt(event.clientX) - drag.ratio) * dur; if (Math.abs(delta) > .08) drag.moved = true;
+      setRegionLive(drag.start + delta, regionRef.current.len);
+    };
+    const up = (event: MouseEvent) => {
+      const drag = dragRef.current; if (!drag) return;
+      if (!drag.moved) setRegionLive(ratioAt(event.clientX) * dur - regionRef.current.len / 2, regionRef.current.len);
+      dragRef.current = null; commitRegion();
+    };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+  }, [open, dur, ratioAt, setRegionLive, commitRegion]);
 
-            <div className="adjust-wave">
-              <div className="adjust-wave-bar">
-                <div className="adjust-transport">
-                  <button className="adjust-play" onClick={togglePlay} disabled={previewBusy}
-                    aria-label={playing ? (lang === "en" ? "Pause" : "Pause") : (lang === "en" ? "Play" : "Abspielen")}>
-                    {previewBusy ? <Loader2 size={15} className="adjust-spin" />
-                      : playing ? <Pause size={15} /> : <Play size={15} />}
-                  </button>
-                  <span className="adjust-range-chip">
-                    {/* React rendert den Wert normal; nur während des Ziehens
-                        schreibt die Zeichenschleife direkt hier hinein, damit
-                        jede Mausbewegung kein React-Rerender auslöst. */}
-                    <span ref={chipTimeRef}>{fmtTime(startSec)}–{fmtTime(endSec)}</span>
-                    {previewUrl && !stale && (lang === "en" ? " · looping" : " · läuft in Schleife")}
-                  </span>
-                  {stale && (
-                    <span className="adjust-stale">
-                      {previewBusy
-                        ? (lang === "en" ? "updating…" : "wird aktualisiert…")
-                        : playing
-                          ? (lang === "en" ? "updating shortly…" : "wird gleich aktualisiert…")
-                          : (lang === "en" ? "press play to hear changes" : "Play drücken, um die Änderung zu hören")}
-                    </span>
-                  )}
-                  <div className="adjust-lenpicker" role="group"
-                    aria-label={lang === "en" ? "Section length" : "Ausschnittlänge"}>
-                    {[5, 8, 12, 20].map((l) => (
-                      <button
-                        key={l}
-                        className={region.len === l ? "is-active" : ""}
-                        onClick={() => {
-                          const r = regionRef.current;
-                          setRegionLive(r.start + r.len / 2 - l / 2, l);
-                          commitRegion();
-                        }}
-                      >
-                        {l}s
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {previewError && <span className="adjust-error">{previewError}</span>}
-              </div>
-              <canvas
-                ref={waveRef}
-                className="adjust-wave-canvas"
-                onMouseDown={(e) => { dragRef.current = { from: ratioAt(e.clientX), moved: false }; }}
-              />
-              <p className="adjust-hint">
-                {lang === "en"
-                  ? "Click the waveform to move the section, or drag for a custom range"
-                  : "Klick auf die Wellenform verschiebt den Ausschnitt — Ziehen für einen eigenen Bereich"}
-              </p>
-            </div>
+  const locateLoudest = useCallback(() => {
+    const windowBars = Math.max(1, Math.round(regionRef.current.len / dur * waveBars.length));
+    let best = 0, bestSum = -1, running = 0;
+    for (let i = 0; i < waveBars.length; i++) {
+      running += waveBars[i]; if (i >= windowBars) running -= waveBars[i - windowBars];
+      if (i >= windowBars - 1 && running > bestSum) { bestSum = running; best = i - windowBars + 1; }
+    }
+    setRegionLive(best / waveBars.length * dur, regionRef.current.len); commitRegion();
+  }, [waveBars, dur, setRegionLive, commitRegion]);
 
-            <nav className="adjust-tabs" role="tablist">
-              {TABS.map((tb) => (
-                <button
-                  key={tb.id}
-                  role="tab"
-                  aria-selected={tab === tb.id}
-                  className={`adjust-tab${tab === tb.id ? " is-active" : ""}`}
-                  onClick={() => setTab(tb.id)}
-                >
-                  {t(tb.label, lang)}
-                </button>
-              ))}
-            </nav>
+  useEffect(() => {
+    const canvas = waveRef.current, ctx = canvas?.getContext("2d"); if (!canvas || !ctx || !open) return;
+    let width = 1, height = 1, raf = 0;
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2); width = rect.width; height = rect.height;
+      canvas.width = Math.max(1, Math.round(width * dpr)); canvas.height = Math.max(1, Math.round(height * dpr)); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize(); const ro = new ResizeObserver(resize); ro.observe(canvas);
+    const draw = () => {
+      const current = regionRef.current, lo = current.start / dur, hi = (current.start + current.len) / dur; ctx.clearRect(0, 0, width, height);
+      const bg = ctx.createLinearGradient(0, 0, 0, height); bg.addColorStop(0, "rgba(72,191,255,.42)"); bg.addColorStop(1, "rgba(139,92,246,.2)");
+      const active = ctx.createLinearGradient(0, 0, 0, height); active.addColorStop(0, "#48bfff"); active.addColorStop(1, "#a461ff");
+      const bw = width / waveBars.length;
+      waveBars.forEach((value, index) => { const ratio = index / waveBars.length, bar = Math.max(2, value * height * .82); ctx.fillStyle = ratio >= lo && ratio <= hi ? active : bg; ctx.fillRect(index * bw + .5, (height - bar) / 2, Math.max(1, bw - 1.4), bar); });
+      ctx.fillStyle = "rgba(72,191,255,.075)"; ctx.fillRect(lo * width, 0, (hi - lo) * width, height);
+      ctx.strokeStyle = "#48bfff"; ctx.lineWidth = 1.5; ctx.shadowColor = "#48bfff"; ctx.shadowBlur = 7;
+      [lo, hi].forEach((ratio) => { ctx.beginPath(); ctx.moveTo(ratio * width, 0); ctx.lineTo(ratio * width, height); ctx.stroke(); }); ctx.shadowBlur = 0;
+      const engine = engineRef.current;
+      if (engine && !engine.paused) { const x = Math.min(1, engine.currentTime / dur) * width; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.shadowColor = "#48bfff"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); ctx.shadowBlur = 0; }
+      if (dragRef.current && chipTimeRef.current) chipTimeRef.current.textContent = `${fmtTime(current.start)}–${fmtTime(current.start + current.len)}`;
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw); return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+  }, [open, waveBars, dur]);
 
-            <div className={`adjust-strip${wide ? " is-wide" : ""}`}>
-              {tab === "eq" && <EqCurve values={values} />}
-              {tabDefs.map((def) => (
-                <div key={def.key} className={wide ? "adjust-channel-fixed" : "adjust-channel-flex"}>
-                  <Fader
-                    def={def}
-                    value={values[def.key] ?? def.min}
-                    onChange={setParam}
-                    lang={lang}
-                  />
-                </div>
-              ))}
-              {tab === "ms" && <GoniometerScope width={values.stereo_width ?? 1} lang={lang} />}
-              {tab === "sat" && <SaturationScope drive={values.saturation_amount ?? 0} lang={lang} />}
-              {tab === "bus" && (
-                <GainReductionScope
-                  threshold={values.bus_comp_threshold ?? -24}
-                  ratio={values.bus_comp_ratio ?? 1.4}
-                  lang={lang}
-                />
-              )}
-            </div>
+  const togglePlay = useCallback(async () => {
+    setEngineBusy(true); setPreviewError(null); stopGlobalAudio();
+    try { const engine = ensureEngine(); engine.update(valuesRef.current); await engine.toggle(regionRef.current.start, regionRef.current.start + regionRef.current.len); }
+    catch { setPreviewError(lang === "en" ? "Live preview could not be started." : "Die Live-Vorschau konnte nicht gestartet werden."); }
+    finally { setEngineBusy(false); }
+  }, [ensureEngine, lang]);
 
-            <footer className="adjust-foot">
-              <button className="adjust-ghost" onClick={() => { setValues(base); setPreviewUrl(null); }}
-                disabled={dirty === 0}>
-                <RotateCcw size={13} />
-                {lang === "en" ? "Reset" : "Zurücksetzen"}
-              </button>
-              <div className="adjust-foot-right">
-                <button className="adjust-preview" onClick={renderPreview} disabled={previewBusy}>
-                  {previewBusy ? <Loader2 size={13} className="adjust-spin" /> : <Music4 size={13} />}
-                  {previewBusy
-                    ? (lang === "en" ? "Rendering…" : "Wird gerendert…")
-                    : (lang === "en" ? "Preview section exactly" : "Ausschnitt genau vorhören")}
-                </button>
-                <button className="adjust-commit" onClick={() => onApply(changedOnly(values, base))}>
-                  {lang === "en" ? "Remaster with these values" : "Neu mastern mit diesen Werten"}
-                </button>
-              </div>
-            </footer>
-          </motion.div>
-        </div>
-      )}
-    </>
-  );
+  const tabDefs = PARAM_DEFS.filter((definition) => definition.tab === tab), wide = tab === "ms" || tab === "sat" || tab === "bus";
+  return <>{open && <div className="adjust-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }} role="dialog" aria-modal="true">
+    <motion.div className="adjust-modal" initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
+      <header className="adjust-head"><div><h2><span className="adjust-dot" />{lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}<span className="adjust-live-badge"><Radio size={10} /> LIVE</span></h2>
+        <p>{filename}{dirty > 0 && <span className="adjust-dirty"> · {dirty} {lang === "en" ? "changed" : "geändert"}</span>}</p></div>
+        <button className="adjust-close" onClick={onClose} aria-label={lang === "en" ? "Close" : "Schließen"}><X size={16} /></button></header>
+
+      <section className="adjust-wave"><div className="adjust-wave-bar"><div className="adjust-transport">
+        <button className="adjust-play" onClick={() => void togglePlay()} disabled={engineBusy}>{engineBusy ? <Loader2 size={15} className="adjust-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}</button>
+        <span className="adjust-range-chip"><span ref={chipTimeRef}>{fmtTime(startSec)}–{fmtTime(endSec)}</span>{playing && " · LOOP"}</span>
+        <button className="adjust-loudest" onClick={locateLoudest} disabled={waveLoading}><LocateFixed size={12} />{lang === "en" ? "Loudest part" : "Lauteste Stelle"}</button>
+        <div className="adjust-lenpicker">{[5, 8, 12, 20].filter((length) => length <= dur || length === 5).map((length) => <button key={length} className={Math.abs(region.len - Math.min(length, dur)) < .1 ? "is-active" : ""} onClick={() => { const current = regionRef.current; setRegionLive(current.start + current.len / 2 - length / 2, length); commitRegion(); }}>{length}s</button>)}</div>
+      </div>{previewError && <span className="adjust-error">{previewError}</span>}</div>
+      <canvas ref={waveRef} className="adjust-wave-canvas" onMouseDown={(event) => { dragRef.current = { ratio: ratioAt(event.clientX), start: regionRef.current.start, moved: false }; }} />
+      <p className="adjust-hint">{waveLoading ? (lang === "en" ? "Reading waveform…" : "Wellenform wird analysiert…") : (lang === "en" ? "Click to position · drag to move the loop" : "Klicken zum Positionieren · Ziehen verschiebt den Loop")}</p></section>
+
+      <nav className="adjust-tabs" role="tablist">{TABS.map((item) => <button key={item.id} role="tab" aria-selected={tab === item.id} className={`adjust-tab${tab === item.id ? " is-active" : ""}`} onClick={() => setTab(item.id)}>{t(item.label, lang)}</button>)}</nav>
+      <div className={`adjust-strip${wide ? " is-wide" : ""}${tab === "mb" ? " is-multiband" : ""}`}>
+        {tab === "eq" && <><SpectrumBackdrop analyser={analyser} playing={playing} /><EqCurve values={values} /></>}
+        {tab === "mb" && <MultibandScope analyser={analyser} playing={playing} values={values} lang={lang} />}
+        {tabDefs.map((definition) => <div key={definition.key} className={wide ? "adjust-channel-fixed" : "adjust-channel-flex"}><Fader def={definition} value={values[definition.key] ?? definition.min} onChange={setParam} lang={lang} /></div>)}
+        {tab === "ms" && <GoniometerScope width={values.stereo_width ?? 1} lang={lang} analyser={analyser} playing={playing} />}
+        {tab === "sat" && <SaturationScope drive={values.saturation_amount ?? 0} lang={lang} analyser={analyser} playing={playing} />}
+        {tab === "bus" && <GainReductionScope threshold={values.bus_comp_threshold ?? -24} ratio={values.bus_comp_ratio ?? 1.4} lang={lang} analyser={analyser} playing={playing} getReduction={() => engineRef.current?.busReduction ?? 0} />}
+      </div>
+      <footer className="adjust-foot"><button className="adjust-ghost" disabled={!dirty} onClick={() => { setValues(base); engineRef.current?.update(base); }}><RotateCcw size={13} />{lang === "en" ? "Reset" : "Zurücksetzen"}</button>
+        <div className="adjust-live-note"><span />{lang === "en" ? "Instant Web Audio preview · final export uses the full mastering engine" : "Sofortige Web-Audio-Vorschau · finaler Export nutzt die vollständige Mastering-Engine"}</div>
+        <button className="adjust-commit" disabled={!dirty} onClick={() => onApply(changedOnly(values, base))}>{lang === "en" ? "Create new master" : "Neuen Master erstellen"}</button></footer>
+    </motion.div>
+  </div>}</>;
 }
