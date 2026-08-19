@@ -14,8 +14,36 @@ APP_DIR="/opt/beatzucker"
 IMAGE="beatzucker:latest"
 CONTAINER="beatzucker"
 ROLLBACK_TAG="beatzucker:pre-deploy-$(date +%Y%m%d_%H%M%S)"
+KEEP_BACKUPS=3   # wie viele pre-deploy-Images pro Projekt aufbewahrt werden
 
 cd "$APP_DIR" || { echo "FATAL: $APP_DIR not found"; exit 1; }
+
+# Alte pre-deploy-Backup-Images und ungenutzten Build-Cache aufraeumen. Ohne
+# das haeuft sich pro Deploy ein weiteres ~2.7GB-Image an (nichts loescht die
+# von selbst) plus wachsender BuildKit-Cache — beides zusammen hat die
+# Festplatte des Servers zuletzt auf 81% Auslastung gebracht (54.9GB Cache +
+# 21 alte Backup-Images). Laeuft am Ende jedes Deploys, egal ob erfolgreich
+# oder mit Rollback, damit sich das nicht wieder anhaeuft.
+cleanup_old_images() {
+  local repo="${IMAGE%%:*}"
+  echo "=== Cleanup: behalte die $KEEP_BACKUPS neuesten '$repo:pre-deploy-*' Images ==="
+  local old_tags
+  old_tags=$(sudo docker images "$repo" --format '{{.Tag}}|{{.CreatedAt}}' \
+    | grep 'pre-deploy-' \
+    | sort -t'|' -k2 -r \
+    | tail -n "+$((KEEP_BACKUPS + 1))" \
+    | cut -d'|' -f1)
+  if [ -n "$old_tags" ]; then
+    while IFS= read -r tag; do
+      sudo docker rmi "$repo:$tag" > /dev/null 2>&1 && echo "  entfernt: $repo:$tag"
+    done <<< "$old_tags"
+  else
+    echo "  nichts zu entfernen"
+  fi
+  # Nur wirklich alten Cache raeumen (nicht -a): frische Layer bleiben nutzbar,
+  # damit der naechste Build von hier profitiert statt komplett neu zu bauen.
+  sudo docker builder prune -f --filter "until=48h" > /dev/null 2>&1 || true
+}
 
 echo "=== 1. Checking working tree ==="
 if [ -n "$(git status --porcelain)" ]; then
@@ -39,6 +67,7 @@ fi
 echo "=== 4. Building new image ==="
 if ! sudo docker build -t "$IMAGE" .; then
   echo "FATAL: docker build failed. Nothing was changed on the running container."
+  cleanup_old_images
   exit 1
 fi
 
@@ -60,6 +89,7 @@ sleep 15
 echo "=== 7. Smoke test ==="
 if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
   echo "=== Deploy of $NEW_SHA succeeded. ==="
+  cleanup_old_images
   exit 0
 fi
 
@@ -84,4 +114,7 @@ if [ -n "$ROLLBACK_TAG" ]; then
 else
   echo "FATAL: no rollback image available — manual intervention required!"
 fi
+# Auch nach einem Rollback aufraeumen: der ROLLBACK_TAG ist gerade erst
+# getaggt worden und damit garantiert unter den neuesten $KEEP_BACKUPS.
+cleanup_old_images
 exit 1
