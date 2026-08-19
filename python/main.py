@@ -90,26 +90,6 @@ class MasterRequest(BaseModel):
     overrides: Optional[dict] = None            # manuell nachjustierte Parameter (Whitelist in ai_params)
 
 
-class PreviewSegmentRequest(BaseModel):
-    """Rendert NUR einen kurzen Ausschnitt durch die echte Mastering-Kette.
-
-    Fuer die manuelle Nachjustierung: ein voller Track braucht Minuten, ein
-    10-Sekunden-Ausschnitt wenige Sekunden — schnell genug, um beim Schrauben
-    an den Reglern wirklich gegenzuhoeren, und im Gegensatz zur
-    Web-Audio-Vorschau im Browser das exakte Endergebnis.
-    """
-    file_path: str
-    start_sec: float = 0.0
-    end_sec: float = 10.0
-    platform: str = "spotify"
-    preset: str = "auto"
-    intensity: int = 65
-    output_dir: str = "./uploads/masters"
-    analysis: Optional[dict] = None
-    reference_analysis: Optional[dict] = None
-    overrides: Optional[dict] = None
-
-
 # ─── Path validation ───────────────────────────────────────────────────────────
 
 ALLOWED_UPLOAD_DIR = os.path.abspath(os.environ.get("TEMP_UPLOAD_DIR", "./uploads"))
@@ -149,94 +129,6 @@ async def get_info(req: FilePathRequest):
     except Exception as e:
         logger.exception("Error in /info")
         raise HTTPException(500, "Internal server error")
-
-
-@app.post("/preview_segment")
-async def preview_segment(req: PreviewSegmentRequest):
-    """Ausschnitt mit den aktuellen (ggf. manuell angepassten) Parametern mastern.
-
-    Schneidet serverseitig auf den markierten Bereich zu und schickt nur den
-    durch die vollstaendige Kette. Rueckgabe ist der master_id des gerenderten
-    Ausschnitts, der ueber /api/download wie ein normales Master abrufbar ist.
-    """
-    src = validate_file_path(req.file_path)
-
-    # Bereich begrenzen: mindestens 1 s, hoechstens 20 s. Ohne Obergrenze koennte
-    # ein Client ueber diesen "schnellen" Pfad den ganzen Track rendern lassen und
-    # damit die Warteschlange blockieren.
-    start = max(0.0, float(req.start_sec))
-    end = float(req.end_sec)
-    if end - start < 1.0:
-        end = start + 1.0
-    if end - start > 20.0:
-        end = start + 20.0
-
-    loop = asyncio.get_event_loop()
-
-    def _render() -> dict:
-        import soundfile as _sf
-        import numpy as _np
-        import uuid as _uuid
-
-        info = _sf.info(src)
-        sr = info.samplerate
-        begin_frame = int(start * sr)
-        frames = int((end - start) * sr)
-        if begin_frame >= info.frames:
-            raise HTTPException(400, "Segment liegt hinter dem Trackende")
-        frames = min(frames, info.frames - begin_frame)
-
-        data, _ = _sf.read(src, start=begin_frame, frames=frames, always_2d=True)
-        if data.shape[0] < sr:  # zu kurz zum sinnvollen Mastern
-            raise HTTPException(400, "Segment zu kurz")
-
-        os.makedirs(req.output_dir, exist_ok=True)
-        seg_id = f"seg_{_uuid.uuid4().hex[:12]}"
-        seg_path = os.path.join(req.output_dir, f"{seg_id}_src.wav")
-        _sf.write(seg_path, data, sr, subtype="FLOAT")
-
-        try:
-            # Analyse des Ausschnitts: die uebergebene Track-Analyse passt nicht
-            # (andere Lautheit/Dynamik als der Gesamttrack), also frisch messen.
-            seg_analysis = analysis_to_dict(analyze_audio(seg_path))
-            params = get_mastering_params(
-                seg_analysis, req.platform, req.preset, req.intensity,
-                reference_analysis=req.reference_analysis,
-                overrides=req.overrides,
-            )
-            result = master_audio(
-                seg_path, params, req.output_dir,
-                selected_format="mp3128", pre_analysis=seg_analysis, master_id=seg_id,
-            )
-            return {
-                "master_id": result.master_id,
-                "post_analysis": result.post_analysis,
-                "start_sec": start,
-                "end_sec": end,
-            }
-        finally:
-            try:
-                os.remove(seg_path)
-            except OSError:
-                pass
-
-    try:
-        out = await loop.run_in_executor(None, _render)
-    except HTTPException:
-        raise
-    except Exception:
-        logger.exception("Error in /preview_segment")
-        raise HTTPException(500, "Preview failed")
-
-    # NaN/Inf entfernen, damit die JSON-Serialisierung nicht scheitert
-    import math
-    post = out.get("post_analysis")
-    if isinstance(post, dict):
-        out["post_analysis"] = {
-            k: (0.0 if isinstance(v, float) and (math.isnan(v) or math.isinf(v)) else v)
-            for k, v in post.items()
-        }
-    return out
 
 
 @app.post("/analyze")
