@@ -26,15 +26,43 @@ const Fader = memo(function Fader({ def, value, onChange, lang }: {
 }) {
   const pct = ((value - def.min) / (def.max - def.min)) * 100;
   const neutral = def.neutral !== undefined && Math.abs(value - def.neutral) < def.step / 2;
+  const clampValue = (next: number) => Math.min(def.max, Math.max(def.min, next));
+  const quantize = (next: number) => {
+    const stepped = def.min + Math.round((clampValue(next) - def.min) / def.step) * def.step;
+    return Number(clampValue(stepped).toFixed(4));
+  };
+  const updateFromPointer = (clientY: number, element: HTMLDivElement) => {
+    const rect = element.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (rect.bottom - clientY) / Math.max(1, rect.height)));
+    onChange(def.key, quantize(def.min + ratio * (def.max - def.min)));
+  };
   return <div className={`adjust-channel${neutral ? " is-neutral" : ""}`}>
     <span className="adjust-readout">{formatValue(def, value)}</span>
-    <div className="adjust-faderwrap">
+    <div className="adjust-faderwrap"
+      onPointerDown={(event) => {
+        event.preventDefault();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        updateFromPointer(event.clientY, event.currentTarget);
+      }}
+      onPointerMove={(event) => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) updateFromPointer(event.clientY, event.currentTarget);
+      }}>
       <div className="adjust-fadertrack"><div className="adjust-faderfill" style={{ height: `${pct}%` }} /></div>
       <div className="adjust-faderthumb" style={{ bottom: `${pct}%` }} />
       <input className="adjust-fadinput" type="range" min={def.min} max={def.max} step={def.step} value={value}
         aria-label={t(def.label, lang)}
         onInput={(event) => onChange(def.key, Number(event.currentTarget.value))}
-        onChange={(event) => onChange(def.key, Number(event.currentTarget.value))} />
+        onChange={(event) => onChange(def.key, Number(event.currentTarget.value))}
+        onKeyDown={(event) => {
+          const direction = event.key === "ArrowUp" || event.key === "ArrowRight" ? 1 : event.key === "ArrowDown" || event.key === "ArrowLeft" ? -1 : 0;
+          if (direction) {
+            event.preventDefault();
+            onChange(def.key, quantize(value + direction * def.step));
+          } else if (event.key === "Home" || event.key === "End") {
+            event.preventDefault();
+            onChange(def.key, event.key === "Home" ? def.min : def.max);
+          }
+        }} />
     </div>
     <span className="adjust-name">{t(def.label, lang)}</span><span className="adjust-unit">{t(def.unit, lang)}</span>
   </div>;

@@ -1561,6 +1561,7 @@ body::before {
 .adjust-faderwrap {
   position: relative; width: 34px; height: 150px;
   display: flex; justify-content: center;
+  touch-action: none;
 }
 .adjust-fadertrack {
   position: absolute; top: 0; bottom: 0; left: 50%;
