@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { X, RotateCcw, Play, Pause, Loader2, LocateFixed, Radio } from "lucide-react";
 import {
@@ -31,7 +32,9 @@ const Fader = memo(function Fader({ def, value, onChange, lang }: {
       <div className="adjust-fadertrack"><div className="adjust-faderfill" style={{ height: `${pct}%` }} /></div>
       <div className="adjust-faderthumb" style={{ bottom: `${pct}%` }} />
       <input className="adjust-fadinput" type="range" min={def.min} max={def.max} step={def.step} value={value}
-        aria-label={t(def.label, lang)} onInput={(event) => onChange(def.key, Number(event.currentTarget.value))} />
+        aria-label={t(def.label, lang)}
+        onInput={(event) => onChange(def.key, Number(event.currentTarget.value))}
+        onChange={(event) => onChange(def.key, Number(event.currentTarget.value))} />
     </div>
     <span className="adjust-name">{t(def.label, lang)}</span><span className="adjust-unit">{t(def.unit, lang)}</span>
   </div>;
@@ -253,7 +256,8 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   }, [ensureEngine, lang, base]);
 
   const tabDefs = PARAM_DEFS.filter((definition) => definition.tab === tab), wide = tab === "ms" || tab === "sat" || tab === "bus";
-  return <>{open && <div className="adjust-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) handleClose(); }} role="dialog" aria-modal="true" aria-label={lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}>
+  if (!open || typeof document === "undefined") return null;
+  return createPortal(<div className="adjust-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) handleClose(); }} role="dialog" aria-modal="true" aria-label={lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}>
     <motion.div className="adjust-modal" onPointerDown={(event) => event.stopPropagation()} initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
       <header className="adjust-head"><div><h2><span className="adjust-dot" />{lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}<span className="adjust-live-badge"><Radio size={10} /> LIVE</span></h2>
         <p>{filename}{dirty > 0 && <span className="adjust-dirty"> · {dirty} {lang === "en" ? "changed" : "geändert"}</span>}</p></div>
@@ -285,5 +289,5 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         <div className="adjust-live-note"><span />{lang === "en" ? "Instant Web Audio preview · final export uses the full mastering engine" : "Sofortige Web-Audio-Vorschau · finaler Export nutzt die vollständige Mastering-Engine"}</div>
         <button className="adjust-commit" disabled={!dirty} onClick={() => onApply(changedOnly(values, base))}>{lang === "en" ? "Create new master" : "Neuen Master erstellen"}</button></footer>
     </motion.div>
-  </div>}</>;
+  </div>, document.body);
 }
