@@ -31,7 +31,7 @@ const Fader = memo(function Fader({ def, value, onChange, lang }: {
       <div className="adjust-fadertrack"><div className="adjust-faderfill" style={{ height: `${pct}%` }} /></div>
       <div className="adjust-faderthumb" style={{ bottom: `${pct}%` }} />
       <input className="adjust-fadinput" type="range" min={def.min} max={def.max} step={def.step} value={value}
-        aria-label={t(def.label, lang)} onChange={(event) => onChange(def.key, Number(event.target.value))} />
+        aria-label={t(def.label, lang)} onInput={(event) => onChange(def.key, Number(event.currentTarget.value))} />
     </div>
     <span className="adjust-name">{t(def.label, lang)}</span><span className="adjust-unit">{t(def.unit, lang)}</span>
   </div>;
@@ -257,7 +257,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     <motion.div className="adjust-modal" onPointerDown={(event) => event.stopPropagation()} initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
       <header className="adjust-head"><div><h2><span className="adjust-dot" />{lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}<span className="adjust-live-badge"><Radio size={10} /> LIVE</span></h2>
         <p>{filename}{dirty > 0 && <span className="adjust-dirty"> · {dirty} {lang === "en" ? "changed" : "geändert"}</span>}</p></div>
-        <button type="button" className="adjust-close" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleClose(); }} aria-label={lang === "en" ? "Close" : "Schließen"}><X size={16} /></button></header>
+        <button type="button" className="adjust-close" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleClose(); }} aria-label={lang === "en" ? "Close" : "Schließen"}><X size={16} /></button></header>
 
       <section className="adjust-wave"><div className="adjust-wave-bar"><div className="adjust-transport">
         <button type="button" className="adjust-play" onClick={() => void togglePlay()} disabled={engineBusy} aria-label={playing ? (lang === "en" ? "Pause live preview" : "Live-Vorschau pausieren") : (lang === "en" ? "Play live preview" : "Live-Vorschau abspielen")}>{engineBusy ? <Loader2 size={15} className="adjust-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}</button>
