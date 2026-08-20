@@ -558,20 +558,25 @@ const VISUALS: Record<string, () => React.ReactElement> = {
 };
 
 /* ─── Page ──────────────────────────────────────────────────────────────────── */
-export default function FeaturesPage() {
-  const [lang, setLang] = useState<"de" | "en">("de");
+export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de" | "en" }) {
+  const [lang, setLang] = useState<"de" | "en">(initialLang);
   const t = T[lang];
+  const changeLanguage = (next: "de" | "en") => {
+    if (next === lang) return;
+    setLang(next);
+    window.location.href = next === "en" ? "/en/features" : "/features";
+  };
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>
-      <BreadcrumbJsonLd name="Features" url="https://beatzucker.de/features" />
-      <Header />
+      <BreadcrumbJsonLd name="Features" url={lang === "en" ? "https://beatzucker.de/en/features" : "https://beatzucker.de/features"} />
+      <Header lang={lang} />
 
       {/* Language toggle */}
       <div className="fixed top-16 right-4 z-40 flex gap-1 rounded-lg p-1"
         style={{ background: "rgba(14,17,23,0.85)", border: "1px solid var(--border-subtle)", backdropFilter: "blur(8px)" }}>
         {(["de", "en"] as const).map((l) => (
-          <button key={l} onClick={() => setLang(l)}
+          <button key={l} onClick={() => changeLanguage(l)}
             className="px-2.5 py-1 rounded-md text-xs font-bold uppercase transition-all"
             style={lang === l
               ? { background: "var(--accent-purple)", color: "#fff" }
@@ -930,7 +935,7 @@ export default function FeaturesPage() {
       <section style={{ textAlign: "center", padding: "3rem 2rem 5rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <h2 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: "1rem" }}>{t.cta_h2}</h2>
         <p style={{ color: "var(--text-secondary)", marginBottom: "2rem" }}>{t.cta_sub}</p>
-        <Link href="/" style={{
+        <Link href={lang === "en" ? "/en" : "/"} style={{
           background: "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
           color: "#fff", padding: "0.875rem 2.5rem", borderRadius: "10px",
           textDecoration: "none", fontSize: "1rem", fontWeight: 700, display: "inline-block",
@@ -939,8 +944,8 @@ export default function FeaturesPage() {
         </Link>
       </section>
 
-      <Footer />
-      <ScrollToTop />
+      <Footer lang={lang} />
+      <ScrollToTop lang={lang} />
     </div>
   );
 }

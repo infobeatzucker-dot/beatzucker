@@ -29,10 +29,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${BASE}/en/features`,
+      lastModified: coreUpdated,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${BASE}/help`,
       lastModified: coreUpdated,
       changeFrequency: "monthly",
       priority: 0.7,
+    },
+    {
+      url: `${BASE}/en/help`,
+      lastModified: coreUpdated,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${BASE}/mix-check`,
+      lastModified: coreUpdated,
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
+      url: `${BASE}/en/mix-check`,
+      lastModified: coreUpdated,
+      changeFrequency: "monthly",
+      priority: 0.8,
     },
 
     /* ── Ressourcen / Wissen ──────────────────────────────────── */
@@ -98,6 +122,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: coreUpdated,
       changeFrequency: "yearly",
       priority: 0.2,
+    },
+    {
+      url: `${BASE}/legal-notice`,
+      lastModified: coreUpdated,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
+    {
+      url: `${BASE}/cancellation-policy`,
+      lastModified: coreUpdated,
+      changeFrequency: "yearly",
+      priority: 0.1,
     },
   ];
 }

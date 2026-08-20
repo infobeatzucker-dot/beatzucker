@@ -4,7 +4,14 @@ import LegalLayout from "@/app/components/LegalLayout";
 export const metadata: Metadata = {
   title: { absolute: "Datenschutzerklärung – Beatzucker" },
   description: "Wie Beatzucker mit deinen Daten umgeht: automatische Löschung von Audiodateien, keine Weitergabe an Dritte, DSGVO-konform gehostet in der EU.",
-  alternates: { canonical: "https://beatzucker.de/datenschutz" },
+  alternates: {
+    canonical: "https://beatzucker.de/datenschutz",
+    languages: {
+      "de-DE": "https://beatzucker.de/datenschutz",
+      en: "https://beatzucker.de/privacy",
+      "x-default": "https://beatzucker.de/datenschutz",
+    },
+  },
 };
 
 const SECTIONS = [
@@ -40,6 +47,11 @@ export default function DatenschutzPage() {
           Hochgeladene Original-Audiodateien werden ausschließlich zur Verarbeitung des
           Mastering-Auftrags verwendet und unmittelbar nach Abschluss der Verarbeitung vom
           Server gelöscht (spätestens nach 60 Minuten).
+        </p>
+        <p>
+          Beim öffentlichen Mix-Check wird die hochgeladene Datei unmittelbar nach Abschluss,
+          Abbruch oder Fehlschlag der Analyse gelöscht. Dabei werden weder ein Nutzerkonto noch
+          ein Mastering-Auftrag oder eine Audiodatei dauerhaft gespeichert.
         </p>
         <p>
           Gemasterte Ausgabedateien werden nach Abschluss der Verarbeitung für
@@ -169,17 +181,14 @@ export default function DatenschutzPage() {
         </p>
         <ul>
           <li><strong>Upload-Audiodatei:</strong> sofortige Löschung nach Verarbeitung (max. 60 Min.)</li>
+          <li><strong>Öffentlicher Mix-Check:</strong> sofortige Löschung nach Abschluss oder Abbruch der Analyse</li>
           <li><strong>Gemasterte Ausgabedatei:</strong> 24 Stunden nach Verarbeitungsabschluss</li>
           <li><strong>Server-Logs:</strong> 7 Tage</li>
           <li><strong>Konto- und Mastering-Metadaten:</strong> bis zur Konto-Löschung</li>
         </ul>
         <p>
-          Zur EU-Streitbeilegung: Die Europäische Kommission stellt eine Plattform zur
-          Online-Streitbeilegung (OS) bereit:{" "}
-          <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">
-            ec.europa.eu/consumers/odr
-          </a>. Wir sind nicht verpflichtet und nicht bereit, an einem
-          Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
+          Wir sind weder verpflichtet noch bereit, an Streitbeilegungsverfahren vor einer
+          Verbraucherschlichtungsstelle teilzunehmen.
         </p>
       </div>
 

@@ -4,7 +4,14 @@ import LegalLayout from "@/app/components/LegalLayout";
 export const metadata: Metadata = {
   title: { absolute: "Terms of Service – Beatzucker" },
   description: "Terms of Service for Beatzucker's free AI audio mastering service — usage terms, fair use limits, copyright, and liability.",
-  alternates: { canonical: "https://beatzucker.de/terms" },
+  alternates: {
+    canonical: "https://beatzucker.de/terms",
+    languages: {
+      "de-DE": "https://beatzucker.de/agb",
+      en: "https://beatzucker.de/terms",
+      "x-default": "https://beatzucker.de/agb",
+    },
+  },
 };
 
 const SECTIONS = [

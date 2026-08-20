@@ -4,7 +4,14 @@ import LegalLayout from "@/app/components/LegalLayout";
 export const metadata: Metadata = {
   title: { absolute: "AGB – Beatzucker" },
   description: "AGB von Beatzucker: Nutzungsbedingungen für den kostenlosen KI-Audio-Mastering-Dienst — Leistungsumfang, faire Nutzung, Urheberrecht und Haftung.",
-  alternates: { canonical: "https://beatzucker.de/agb" },
+  alternates: {
+    canonical: "https://beatzucker.de/agb",
+    languages: {
+      "de-DE": "https://beatzucker.de/agb",
+      en: "https://beatzucker.de/terms",
+      "x-default": "https://beatzucker.de/agb",
+    },
+  },
 };
 
 const SECTIONS = [

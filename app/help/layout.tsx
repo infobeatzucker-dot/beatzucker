@@ -6,6 +6,11 @@ export const metadata: Metadata = {
     "Antworten auf alle Fragen zu Beatzucker: Quickstart, Mastering-Pipeline, A/B-Player, Plattform-Presets, Funktionen, Tastaturkürzel und technische Details.",
   alternates: {
     canonical: "https://beatzucker.de/help",
+    languages: {
+      "de-DE": "https://beatzucker.de/help",
+      en: "https://beatzucker.de/en/help",
+      "x-default": "https://beatzucker.de/help",
+    },
   },
   openGraph: {
     title: "Beatzucker Hilfe & FAQ",

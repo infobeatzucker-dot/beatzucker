@@ -5,7 +5,14 @@ export const metadata: Metadata = {
   title: { absolute: "Impressum – Beatzucker" },
   description: "Impressum und Anbieterkennzeichnung von Beatzucker gemäß §5 TMG — Anbieter, Kontakt und rechtliche Hinweise zum kostenlosen Mastering-Dienst.",
   robots: { index: true, follow: true },
-  alternates: { canonical: "https://beatzucker.de/impressum" },
+  alternates: {
+    canonical: "https://beatzucker.de/impressum",
+    languages: {
+      "de-DE": "https://beatzucker.de/impressum",
+      en: "https://beatzucker.de/legal-notice",
+      "x-default": "https://beatzucker.de/impressum",
+    },
+  },
 };
 
 export default function ImpressumPage() {
@@ -45,14 +52,10 @@ export default function ImpressumPage() {
       </div>
 
       <div className="legal-section">
-        <h2>EU-Streitschlichtung</h2>
+        <h2>Verbraucherstreitbeilegung</h2>
         <p>
-          Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:{" "}
-          <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">
-            https://ec.europa.eu/consumers/odr/
-          </a>
-          .<br />
-          Unsere E-Mail-Adresse finden Sie oben im Impressum.
+          Wir sind weder verpflichtet noch bereit, an Streitbeilegungsverfahren vor einer
+          Verbraucherschlichtungsstelle teilzunehmen.
         </p>
       </div>
 

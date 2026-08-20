@@ -570,9 +570,14 @@ function KbdKey({ k, wide }: { k: string; wide?: boolean }) {
 }
 
 /* ─── Page ─────────────────────────────────────────────────── */
-export default function HelpPage() {
-  const [lang, setLang] = useState<Lang>("de");
+export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang }) {
+  const [lang, setLang] = useState<Lang>(initialLang);
   const [search, setSearch] = useState("");
+  const changeLanguage = (next: Lang) => {
+    if (next === lang) return;
+    setLang(next);
+    window.location.href = next === "en" ? "/en/help" : "/help";
+  };
 
   // ─ Filter FAQ
   const filtered = useMemo(() => {
@@ -593,8 +598,8 @@ export default function HelpPage() {
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>
-      <BreadcrumbJsonLd name="Hilfe" url="https://beatzucker.de/help" />
-      <Header />
+      <BreadcrumbJsonLd name={lang === "en" ? "Help" : "Hilfe"} url={lang === "en" ? "https://beatzucker.de/en/help" : "https://beatzucker.de/help"} />
+      <Header lang={lang} />
 
       {/* ── Language Toggle ── */}
       <div style={{ position: "fixed", top: 80, right: 16, zIndex: 40 }}>
@@ -604,7 +609,7 @@ export default function HelpPage() {
           backdropFilter: "blur(8px)",
         }}>
           {(["de","en"] as Lang[]).map(l => (
-            <button key={l} onClick={() => setLang(l)} style={{
+            <button key={l} onClick={() => changeLanguage(l)} style={{
               padding: "5px 12px", border: "none", cursor: "pointer",
               fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
               textTransform: "uppercase",
@@ -878,8 +883,8 @@ export default function HelpPage() {
 
       </main>
 
-      <Footer />
-      <ScrollToTop />
+      <Footer lang={lang} />
+      <ScrollToTop lang={lang} />
 
       {/* ── Animation Keyframes ── */}
       <style>{`

@@ -6,6 +6,11 @@ export const metadata: Metadata = {
     "12-stufige DSP-Pipeline, adaptive Parameterauswahl, A/B-Vergleichsplayer, 7 Exportformate und Echtzeit-Visualizer. Alle Features von Beatzucker im Überblick.",
   alternates: {
     canonical: "https://beatzucker.de/features",
+    languages: {
+      "de-DE": "https://beatzucker.de/features",
+      en: "https://beatzucker.de/en/features",
+      "x-default": "https://beatzucker.de/features",
+    },
   },
   openGraph: {
     title: "Beatzucker Features – Adaptive Audio Mastering",

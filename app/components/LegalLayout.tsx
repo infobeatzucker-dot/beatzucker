@@ -11,7 +11,7 @@ interface LegalSection {
 
 interface LegalLayoutProps {
   title: string;
-  activePage?: "agb" | "datenschutz" | "widerruf" | "impressum" | "terms" | "privacy";
+  activePage?: "agb" | "datenschutz" | "widerruf" | "impressum" | "terms" | "privacy" | "legal-notice" | "cancellation-policy";
   sections?: LegalSection[];
   children: React.ReactNode;
   lang?: "de" | "en";
@@ -27,6 +27,8 @@ const NAV_ITEMS_DE = [
 const NAV_ITEMS_EN = [
   { key: "terms",   href: "/terms",   label: "Terms of Service" },
   { key: "privacy", href: "/privacy", label: "Privacy Policy" },
+  { key: "cancellation-policy", href: "/cancellation-policy", label: "Cancellation Policy" },
+  { key: "legal-notice", href: "/legal-notice", label: "Legal Notice" },
 ];
 
 export default function LegalLayout({ title, activePage, sections, children, lang = "de" }: LegalLayoutProps) {
@@ -37,7 +39,7 @@ export default function LegalLayout({ title, activePage, sections, children, lan
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>
-      <Header />
+      <Header lang={lang} />
 
       <main style={{ maxWidth: "860px", margin: "0 auto", padding: "6rem 2rem 5rem" }}>
 
@@ -156,13 +158,13 @@ export default function LegalLayout({ title, activePage, sections, children, lan
 
         {/* Bottom print link */}
         <div style={{ marginTop: "3rem", textAlign: "right" as const }}>
-          <PrintButton />
+          <PrintButton lang={lang} />
         </div>
 
       </main>
 
-      <Footer />
-      <ScrollToTop />
+      <Footer lang={lang} />
+      <ScrollToTop lang={lang} />
     </div>
   );
 }

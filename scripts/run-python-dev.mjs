@@ -11,11 +11,15 @@ const venvPython = process.platform === "win32"
 const executable = existsSync(venvPython)
   ? venvPython
   : (process.platform === "win32" ? "python" : "python3");
+// Next.js resolves the default ./uploads directory from the project root,
+// while Uvicorn runs inside /python. Pass one absolute directory to both so
+// local API requests are not rejected as being outside Python's allow-list.
+const uploadDir = path.resolve(projectDir, process.env.TEMP_UPLOAD_DIR || "uploads");
 
 const child = spawn(
   executable,
   ["-m", "uvicorn", "main:app", "--port", "8001", "--reload"],
-  { cwd: pythonDir, stdio: "inherit", shell: false },
+  { cwd: pythonDir, stdio: "inherit", shell: false, env: { ...process.env, TEMP_UPLOAD_DIR: uploadDir } },
 );
 
 child.on("error", (error) => {

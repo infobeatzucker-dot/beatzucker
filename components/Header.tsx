@@ -22,6 +22,9 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
   const { data: session } = useSession();
   const homeHref = lang === "en" ? "/en" : "/";
   const knowledgeHref = lang === "en" ? "/en/knowledge" : "/ressourcen";
+  const featuresHref = lang === "en" ? "/en/features" : "/features";
+  const helpHref = lang === "en" ? "/en/help" : "/help";
+  const mixCheckHref = lang === "en" ? "/en/mix-check" : "/mix-check";
 
   // Subscribe to global audio state
   useEffect(() => {
@@ -84,10 +87,11 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
           <nav className="hidden md:flex items-center header-nav">
             {[
               { label: lang === "de" ? "Startseite" : "Home", href: homeHref },
-              { label: lang === "de" ? "Funktionen" : "Features", href: "/features" },
-              { label: lang === "de" ? "So funktioniert's" : "How it works", href: "/#features" },
+              { label: lang === "de" ? "Funktionen" : "Features", href: featuresHref },
+              { label: lang === "de" ? "So funktioniert's" : "How it works", href: `${homeHref}#features` },
               { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
-              { label: "FAQ", href: "/help" },
+              { label: "Mix-Check", href: mixCheckHref },
+              { label: "FAQ", href: helpHref },
               ...(session ? [{ label: "Dashboard", href: "/dashboard" }] : []),
             ].map((item) => (
               <Link
@@ -164,7 +168,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
               )
             }
 
-            <a href="/#mastering" className="neon-cta header-cta hidden lg:inline-flex">
+            <a href={`${homeHref}#mastering`} className="neon-cta header-cta hidden lg:inline-flex">
               {lang === "de" ? "Jetzt mastern" : "Master now"} <ArrowRight size={15} aria-hidden="true" />
             </a>
 
@@ -203,10 +207,11 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
               <div className="px-4 py-5 flex flex-col gap-4">
                 {[
                   { label: lang === "de" ? "Startseite" : "Home", href: homeHref },
-                  { label: lang === "de" ? "Funktionen" : "Features", href: "/features" },
-                  { label: lang === "de" ? "Hilfe" : "Help", href: "/help" },
+                  { label: lang === "de" ? "Funktionen" : "Features", href: featuresHref },
+                  { label: lang === "de" ? "Hilfe" : "Help", href: helpHref },
                   { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
-                  { label: lang === "de" ? "Impressum" : "Legal notice", href: "/impressum" },
+                  { label: "Mix-Check", href: mixCheckHref },
+                  { label: lang === "de" ? "Impressum" : "Legal notice", href: lang === "en" ? "/legal-notice" : "/impressum" },
                   { label: lang === "de" ? "Datenschutz" : "Privacy", href: lang === "de" ? "/datenschutz" : "/privacy" },
                 ].map((item) => (
                   <Link

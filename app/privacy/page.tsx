@@ -4,7 +4,14 @@ import LegalLayout from "@/app/components/LegalLayout";
 export const metadata: Metadata = {
   title: { absolute: "Privacy Policy – Beatzucker" },
   description: "How Beatzucker handles your data: automatic deletion of audio files, no sharing with third parties, GDPR-compliant hosting in the EU.",
-  alternates: { canonical: "https://beatzucker.de/privacy" },
+  alternates: {
+    canonical: "https://beatzucker.de/privacy",
+    languages: {
+      "de-DE": "https://beatzucker.de/datenschutz",
+      en: "https://beatzucker.de/privacy",
+      "x-default": "https://beatzucker.de/datenschutz",
+    },
+  },
 };
 
 const SECTIONS = [
@@ -40,6 +47,11 @@ export default function PrivacyPage() {
           Uploaded original audio files are used exclusively to process the mastering job and
           are deleted from the server immediately after processing is complete
           (at most within 60 minutes).
+        </p>
+        <p>
+          For the public Mix Check, the uploaded file is deleted immediately after the analysis
+          completes, is cancelled, or fails. No user account, mastering job, or audio file is
+          stored permanently as part of the check.
         </p>
         <p>
           Mastered output files are retained on the server for
@@ -163,16 +175,14 @@ export default function PrivacyPage() {
         </p>
         <ul>
           <li><strong>Uploaded audio file:</strong> deleted immediately after processing (max. 60 min.)</li>
+          <li><strong>Public Mix Check:</strong> deleted immediately after completion or cancellation of the analysis</li>
           <li><strong>Mastered output file:</strong> 24 hours after processing completion</li>
           <li><strong>Server logs:</strong> 7 days</li>
           <li><strong>Account and mastering metadata:</strong> until account deletion</li>
         </ul>
         <p>
-          EU Online Dispute Resolution: The European Commission provides an ODR platform at{" "}
-          <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">
-            ec.europa.eu/consumers/odr
-          </a>. We are neither obliged nor willing to participate in dispute resolution
-          proceedings before a consumer arbitration board.
+          We are neither obliged nor willing to participate in dispute resolution proceedings
+          before a consumer arbitration board.
         </p>
       </div>
 
