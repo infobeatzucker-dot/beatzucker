@@ -97,6 +97,14 @@
 .metric-result small { color: #67718c; font-size: 0.48rem; }
 .show-after .metric-result { color: #e182f1; text-shadow: 0 0 10px rgba(225, 130, 241, 0.16); }
 .compare-example-note { padding-top: 5px; border-top: 1px solid rgba(255, 255, 255, 0.05); color: #505870; font-size: 0.49rem; text-align: right; }
+.compare-proof-strip { margin: 14px 10px 0; display: grid; grid-template-columns: 1fr 1fr auto; align-items: stretch; gap: 10px; }
+.compare-proof { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 12px 14px; border: 1px solid rgba(255,255,255,.055); border-radius: 13px; background: rgba(255,255,255,.018); }
+.compare-proof > span { width: 32px; height: 32px; flex: 0 0 32px; display: grid; place-items: center; border-radius: 9px; color: #67cffc; background: rgba(66,193,255,.075); border: 1px solid rgba(66,193,255,.12); }
+.compare-proof div { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.compare-proof strong { color: #b9c0d4; font-size: .66rem; }
+.compare-proof small { color: #626b85; font-size: .53rem; line-height: 1.45; }
+.compare-proof-strip > a { min-width: 190px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 13px; color: #d6c9ff; border: 1px solid rgba(139,92,246,.2); background: linear-gradient(135deg, rgba(139,92,246,.09), rgba(56,189,248,.055)); font-size: .62rem; font-weight: 750; text-decoration: none; transition: border-color .2s ease, transform .2s ease, background .2s ease; }
+.compare-proof-strip > a:hover { transform: translateY(-1px); border-color: rgba(139,92,246,.38); background: linear-gradient(135deg, rgba(139,92,246,.14), rgba(56,189,248,.08)); }
 
 @keyframes compare-wave-pulse {
   0%, 100% { transform: scaleY(0.96); }
@@ -117,6 +125,8 @@
 @media (max-width: 850px) {
   .compare-lower-grid { grid-template-columns: 1fr 1fr; }
   .compare-metrics { grid-column: 1 / -1; height: auto; }
+  .compare-proof-strip { grid-template-columns: 1fr 1fr; }
+  .compare-proof-strip > a { grid-column: 1 / -1; min-height: 44px; }
 }
 
 @media (max-width: 620px) {
@@ -127,4 +137,6 @@
   .compare-lower-grid { grid-template-columns: 1fr; }
   .compare-meter-card, .compare-metrics { height: auto; min-height: 170px; }
   .compare-metrics { grid-column: auto; }
+  .compare-proof-strip { margin-inline: 0; grid-template-columns: 1fr; }
+  .compare-proof-strip > a { grid-column: auto; min-height: 46px; }
 }

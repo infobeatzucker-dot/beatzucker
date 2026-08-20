@@ -16,16 +16,23 @@ const CATEGORIES: { key: "all" | ArticleCategory; de: string; en: string }[] = [
 
 interface Props {
   articles: RessourceArticle[];
+  initialLang?: Lang;
 }
 
-export default function ArticleGrid({ articles }: Props) {
-  const [lang, setLang] = useState<Lang>("de");
+export default function ArticleGrid({ articles, initialLang = "de" }: Props) {
+  const [lang, setLang] = useState<Lang>(initialLang);
   const [category, setCategory] = useState<"all" | ArticleCategory>("all");
 
   const filtered = useMemo(
     () => (category === "all" ? articles : articles.filter((a) => a.category === category)),
     [articles, category]
   );
+
+  const changeLanguage = (next: Lang) => {
+    if (next === lang) return;
+    setLang(next);
+    window.location.href = next === "en" ? "/en/knowledge" : "/ressourcen";
+  };
 
   return (
     <div>
@@ -69,7 +76,7 @@ export default function ArticleGrid({ articles }: Props) {
           {(["de", "en"] as Lang[]).map((l) => (
             <button
               key={l}
-              onClick={() => setLang(l)}
+              onClick={() => changeLanguage(l)}
               style={{
                 padding: "0.3rem 0.75rem",
                 borderRadius: "6px",

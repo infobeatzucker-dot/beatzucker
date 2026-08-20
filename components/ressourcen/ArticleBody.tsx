@@ -7,6 +7,7 @@ type Lang = "de" | "en";
 
 interface Props {
   article: RessourceArticle;
+  initialLang?: Lang;
 }
 
 function renderBody(text: string) {
@@ -109,8 +110,16 @@ function Section({ sec, lang }: { sec: LocalizedSection; lang: Lang }) {
   );
 }
 
-export default function ArticleBody({ article }: Props) {
-  const [lang, setLang] = useState<Lang>("de");
+export default function ArticleBody({ article, initialLang = "de" }: Props) {
+  const [lang, setLang] = useState<Lang>(initialLang);
+
+  const changeLanguage = (next: Lang) => {
+    if (next === lang) return;
+    setLang(next);
+    window.location.href = next === "en"
+      ? `/en/knowledge/${article.slug}`
+      : `/ressourcen/${article.slug}`;
+  };
 
   return (
     <div>
@@ -119,7 +128,7 @@ export default function ArticleBody({ article }: Props) {
         {(["de", "en"] as Lang[]).map((l) => (
           <button
             key={l}
-            onClick={() => setLang(l)}
+            onClick={() => changeLanguage(l)}
             style={{
               padding: "0.3rem 0.9rem",
               borderRadius: "6px",

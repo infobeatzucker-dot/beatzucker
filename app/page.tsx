@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, Gift, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import Header from "@/components/Header";
@@ -45,18 +46,20 @@ const USPS = [
   },
 ] as const;
 
-export default function Home() {
-  const [lang, setLang] = useState<Lang>("de");
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem("beatzucker-language");
-    if (saved === "de" || saved === "en") setLang(saved);
-  }, []);
+export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
+  const [lang, setLang] = useState<Lang>(initialLang);
+  const router = useRouter();
 
   useEffect(() => {
     document.documentElement.lang = lang;
     window.localStorage.setItem("beatzucker-language", lang);
   }, [lang]);
+
+  const changeLanguage = (next: Lang) => {
+    if (next === lang) return;
+    setLang(next);
+    router.push(next === "en" ? "/en" : "/");
+  };
 
   return (
     <div className="min-h-screen site-shell">
@@ -77,7 +80,7 @@ export default function Home() {
                   <button
                     key={item}
                     type="button"
-                    onClick={() => setLang(item)}
+                    onClick={() => changeLanguage(item)}
                     className={lang === item ? "active" : ""}
                     aria-pressed={lang === item}
                   >

@@ -27,7 +27,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: { absolute: article.metaTitle.de },
     description: article.metaDescription.de,
     keywords: article.keywords.de,
-    alternates: { canonical: `https://beatzucker.de/ressourcen/${article.slug}` },
+    alternates: {
+      canonical: `https://beatzucker.de/ressourcen/${article.slug}`,
+      languages: {
+        "de-DE": `https://beatzucker.de/ressourcen/${article.slug}`,
+        en: `https://beatzucker.de/en/knowledge/${article.slug}`,
+        "x-default": `https://beatzucker.de/ressourcen/${article.slug}`,
+      },
+    },
     openGraph: {
       type: "article",
       title: article.metaTitle.de,
@@ -35,6 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `https://beatzucker.de/ressourcen/${article.slug}`,
       publishedTime: article.publishedAt,
       modifiedTime: article.updatedAt ?? article.publishedAt,
+      locale: "de_DE",
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: article.title.de }],
     },
   };
 }
@@ -148,7 +157,7 @@ export default async function ArticlePage({ params }: Props) {
           </header>
 
           {/* Article body (client component with DE/EN toggle) */}
-          <ArticleBody article={article} />
+          <ArticleBody article={article} initialLang="de" />
 
           {/* CTA */}
           <ArticleCTA lang="de" variant={article.slug === "hitverdaechtiger-song" ? "hero" : "default"} />

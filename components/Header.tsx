@@ -20,6 +20,8 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
   const [audioState, setAudioState] = useState(() => getGlobalAudioState());
 
   const { data: session } = useSession();
+  const homeHref = lang === "en" ? "/en" : "/";
+  const knowledgeHref = lang === "en" ? "/en/knowledge" : "/ressourcen";
 
   // Subscribe to global audio state
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
         <div className="header-inner">
 
           {/* Logo */}
-          <Link href="/" className="brand-lockup" style={{ textDecoration: "none" }}>
+          <Link href={homeHref} className="brand-lockup" style={{ textDecoration: "none" }}>
             <span className="brand-wave" aria-hidden="true">
               {[10, 22, 32, 18, 26, 12].map((height, index) => <i key={index} style={{ height }} />)}
             </span>
@@ -81,10 +83,10 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center header-nav">
             {[
-              { label: lang === "de" ? "Startseite" : "Home", href: "/" },
+              { label: lang === "de" ? "Startseite" : "Home", href: homeHref },
               { label: lang === "de" ? "Funktionen" : "Features", href: "/features" },
               { label: lang === "de" ? "So funktioniert's" : "How it works", href: "/#features" },
-              { label: lang === "de" ? "Wissen" : "Knowledge", href: "/ressourcen" },
+              { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
               { label: "FAQ", href: "/help" },
               ...(session ? [{ label: "Dashboard", href: "/dashboard" }] : []),
             ].map((item) => (
@@ -200,10 +202,10 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
             >
               <div className="px-4 py-5 flex flex-col gap-4">
                 {[
-                  { label: lang === "de" ? "Startseite" : "Home", href: "/" },
+                  { label: lang === "de" ? "Startseite" : "Home", href: homeHref },
                   { label: lang === "de" ? "Funktionen" : "Features", href: "/features" },
                   { label: lang === "de" ? "Hilfe" : "Help", href: "/help" },
-                  { label: lang === "de" ? "Wissen" : "Knowledge", href: "/ressourcen" },
+                  { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
                   { label: lang === "de" ? "Impressum" : "Legal notice", href: "/impressum" },
                   { label: lang === "de" ? "Datenschutz" : "Privacy", href: lang === "de" ? "/datenschutz" : "/privacy" },
                 ].map((item) => (

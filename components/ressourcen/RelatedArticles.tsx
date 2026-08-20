@@ -37,7 +37,7 @@ export default function RelatedArticles({ articles, lang }: Props) {
         {articles.map((a) => (
           <Link
             key={a.slug}
-            href={`/ressourcen/${a.slug}`}
+            href={lang === "en" ? `/en/knowledge/${a.slug}` : `/ressourcen/${a.slug}`}
             style={{ textDecoration: "none" }}
           >
             <div

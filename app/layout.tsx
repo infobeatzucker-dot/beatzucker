@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
 
   title: {
-    default: "Beatzucker – Adaptive Professional Audio Mastering",
+    default: "Beatzucker – Professionelles Online Audio Mastering",
     template: "%s | Beatzucker",
   },
   description:
-    "Upload your track. Get a professional master in seconds. 12-stage DSP pipeline, adaptive parameter selection, 7 export formats. Free to start.",
+    "Mastere deinen Track online in wenigen Minuten. Adaptive 12-stufige DSP-Kette, manuelle Live-Feinabstimmung und 7 Exportformate – kostenlos starten.",
   keywords: [
     "audio mastering",
     "AI mastering",
@@ -46,7 +46,8 @@ export const metadata: Metadata = {
     canonical: BASE_URL,
     languages: {
       "de-DE": BASE_URL,
-      "en-US": BASE_URL,
+      "en": `${BASE_URL}/en`,
+      "x-default": BASE_URL,
     },
   },
 
@@ -54,15 +55,15 @@ export const metadata: Metadata = {
     type: "website",
     url: BASE_URL,
     siteName: "Beatzucker",
-    title: "Beatzucker – Adaptive Professional Audio Mastering",
+    title: "Beatzucker – Professionelles Online Audio Mastering",
     description:
-      "Upload your track. Get a professional master in seconds. 12-stage DSP pipeline, adaptive parameter selection, 7 export formats. Free to start.",
+      "Mastere deinen Track online in wenigen Minuten – mit adaptiver DSP-Kette, Live-Feinabstimmung und 7 Exportformaten.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Beatzucker – Adaptive Professional Audio Mastering",
+        alt: "Beatzucker – professionelles Online Audio Mastering",
       },
     ],
     locale: "de_DE",
@@ -70,9 +71,9 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Beatzucker – Adaptive Audio Mastering",
+    title: "Beatzucker – Professionelles Online Mastering",
     description:
-      "Professional audio mastering in seconds. 12-stage DSP + adaptive parameter selection. Free to start.",
+      "Adaptives Audio Mastering mit Live-Feinabstimmung und 7 Exportformaten. Kostenlos starten.",
     images: ["/opengraph-image"],
   },
 

@@ -11,15 +11,17 @@ interface Props {
 export default function Breadcrumb({ article, lang = "de" }: Props) {
   const homeLabel  = "Beatzucker";
   const wissenLabel = lang === "de" ? "Wissen" : "Knowledge";
+  const homeUrl = lang === "en" ? "https://beatzucker.de/en" : "https://beatzucker.de";
+  const knowledgeUrl = lang === "en" ? "https://beatzucker.de/en/knowledge" : "https://beatzucker.de/ressourcen";
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: homeLabel, item: "https://beatzucker.de" },
-      { "@type": "ListItem", position: 2, name: wissenLabel, item: "https://beatzucker.de/ressourcen" },
+      { "@type": "ListItem", position: 1, name: homeLabel, item: homeUrl },
+      { "@type": "ListItem", position: 2, name: wissenLabel, item: knowledgeUrl },
       ...(article
-        ? [{ "@type": "ListItem", position: 3, name: article.title[lang], item: `https://beatzucker.de/ressourcen/${article.slug}` }]
+        ? [{ "@type": "ListItem", position: 3, name: article.title[lang], item: `${knowledgeUrl}/${article.slug}` }]
         : []),
     ],
   };
@@ -42,11 +44,11 @@ export default function Breadcrumb({ article, lang = "de" }: Props) {
           flexWrap: "wrap",
         }}
       >
-        <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>
+        <Link href={lang === "en" ? "/en" : "/"} style={{ color: "var(--text-muted)", textDecoration: "none" }}>
           {homeLabel}
         </Link>
         <span>›</span>
-        <Link href="/ressourcen" style={{ color: "var(--text-muted)", textDecoration: "none" }}>
+        <Link href={lang === "en" ? "/en/knowledge" : "/ressourcen"} style={{ color: "var(--text-muted)", textDecoration: "none" }}>
           {wissenLabel}
         </Link>
         {article && (

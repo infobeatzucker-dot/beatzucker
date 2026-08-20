@@ -17,7 +17,14 @@ export const metadata: Metadata = {
     "ki mastering",
     "home recording",
   ],
-  alternates: { canonical: "https://beatzucker.de/ressourcen" },
+  alternates: {
+    canonical: "https://beatzucker.de/ressourcen",
+    languages: {
+      "de-DE": "https://beatzucker.de/ressourcen",
+      en: "https://beatzucker.de/en/knowledge",
+      "x-default": "https://beatzucker.de/ressourcen",
+    },
+  },
   openGraph: {
     type: "website",
     title: "Audio Mastering Wissen – Guides & Tipps",

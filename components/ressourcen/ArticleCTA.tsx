@@ -89,7 +89,7 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
 
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
           <Link
-            href="/"
+            href={lang === "en" ? "/en" : "/"}
             style={{
               display: "inline-block",
               padding: "0.75rem 1.75rem",

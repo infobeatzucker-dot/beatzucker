@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import { Activity, ArrowRight, Gauge, Sparkles, Waves } from "lucide-react";
+import { Activity, ArrowRight, FileCheck2, Gauge, ScanLine, Sparkles, Waves } from "lucide-react";
 
 type Lang = "de" | "en";
 type CompareMode = "before" | "after";
@@ -26,6 +26,10 @@ const T = {
   groupLabel: { de: "Vorher-Nachher-Ansicht", en: "Before-and-after view" },
   loudnessLabel: { de: "Lautheit", en: "Loudness" },
   rangeLabel: { de: "Dynamikumfang", en: "Dynamic range" },
+  proof: [
+    { title: { de: "Ausgabedatei gemessen", en: "Delivery file measured" }, text: { de: "Nachher-Werte stammen aus dem finalen Export – bei MP3/AAC nach dem Codec.", en: "After values come from the final export, including after MP3/AAC encoding." }, icon: FileCheck2 },
+    { title: { de: "A/B direkt im Ergebnis", en: "A/B in your result" }, text: { de: "Original und Master lassen sich im Player ohne Seitenwechsel vergleichen.", en: "Compare the original and master directly in the result player." }, icon: ScanLine },
+  ],
 };
 
 const METRICS = [
@@ -125,6 +129,18 @@ export default function BeforeAfterShowcase({ lang = "de" }: { lang?: Lang }) {
               <div className="compare-example-note">{T.example[lang]}</div>
             </div>
           </div>
+        </div>
+
+        <div className="compare-proof-strip" aria-label={lang === "de" ? "So prüft Beatzucker das Ergebnis" : "How Beatzucker verifies the result"}>
+          {T.proof.map(({ title, text, icon: Icon }) => (
+            <div className="compare-proof" key={title.de}>
+              <span><Icon size={17} aria-hidden="true" /></span>
+              <div><strong>{title[lang]}</strong><small>{text[lang]}</small></div>
+            </div>
+          ))}
+          <a href={lang === "en" ? "/en#mastering" : "/#mastering"}>
+            {lang === "de" ? "Eigenen Track analysieren" : "Analyze your own track"} <ArrowRight size={14} />
+          </a>
         </div>
       </div>
     </section>

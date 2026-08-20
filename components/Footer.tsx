@@ -12,7 +12,7 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
         ["/widerruf", "Widerruf"],
       ]
     : [
-        ["/features", "Features"], ["/help", "Help"], ["/ressourcen", "Knowledge"],
+        ["/features", "Features"], ["/help", "Help"], ["/en/knowledge", "Knowledge"],
         ["/impressum", "Legal notice"], ["/privacy", "Privacy"], ["/terms", "Terms"],
         ["/widerruf", "Cancellation policy"],
       ];

@@ -23,7 +23,7 @@ export default function ArticleCard({ article, lang }: Props) {
 
   return (
     <Link
-      href={`/ressourcen/${article.slug}`}
+      href={lang === "en" ? `/en/knowledge/${article.slug}` : `/ressourcen/${article.slug}`}
       style={{ textDecoration: "none", display: "block" }}
     >
       <div
