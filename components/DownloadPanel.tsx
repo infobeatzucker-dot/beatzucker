@@ -31,8 +31,33 @@ const FORMAT_CONFIG = [
 
 type FormatKey = keyof MasterData["formats"];
 
+function resultSummary(masterData: MasterData, platform: string, preset: string, intensity: number, lang: Lang) {
+  const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+  const presetName = preset === "auto" ? (lang === "de" ? "Auto" : "Auto") : preset.charAt(0).toUpperCase() + preset.slice(1);
+  const measured = Number(masterData.post_analysis?.integrated_lufs);
+  const target = Number.isFinite(measured)
+    ? measured.toFixed(1).replace("-", "−").replace(".", lang === "de" ? "," : ".")
+    : "—";
+  const parts = lang === "de"
+    ? [`Adaptive Regelung für das Preset „${presetName}“ mit Ziel ${platformName} bei ${target} LUFS.`, `Intensität: ${intensity} %.`]
+    : [`Adaptive rules for the ${presetName} preset, targeting ${platformName} at ${target} LUFS.`, `Intensity: ${intensity}%.`];
+
+  if (/Reference track used/i.test(masterData.notes)) {
+    parts.push(lang === "de" ? "Der Referenztrack wurde für Klang, Stereo und Dynamik berücksichtigt." : "The reference track was used for tonal, stereo and dynamics matching.");
+  }
+  const manualCount = masterData.notes.match(/Manuell angepasst:\s*(\d+) Parameter/i)?.[1];
+  if (manualCount) {
+    parts.push(lang === "de" ? `${manualCount} manuelle Parameter wurden angewendet.` : `${manualCount} manual parameters were applied.`);
+  }
+  const codecTrim = masterData.notes.match(/Codec safety trim:\s*([\d.]+) dB/i)?.[1];
+  if (codecTrim) {
+    parts.push(lang === "de" ? `Sicherheitsabsenkung für den Codec: ${codecTrim.replace(".", ",")} dB.` : `Codec safety trim: ${codecTrim} dB.`);
+  }
+  return parts.join(" ");
+}
+
 export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster, onManualAdjust, lang = "de" }: Props) {
-  const displayNotes = masterData.notes;
+  const displayNotes = resultSummary(masterData, platform, preset, intensity, lang);
 
   // Build clean base name: strip extension + sanitize for filename
   const cleanName = filename
@@ -48,8 +73,8 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
       intensity,
       pre:   preAnalysis,
       post:  masterData.post_analysis,
-      notes: masterData.notes,
-      date:  new Date().toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" }),
+      notes: displayNotes,
+      date:  new Date().toLocaleString(lang === "de" ? "de-DE" : "en-GB", { dateStyle: "long", timeStyle: "short" }),
     };
     const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
     window.open(`/api/report?data=${b64}`, "_blank");
@@ -187,7 +212,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
               {lang === "de" ? "mastere erneut" : "master again"}
             </button>
           ) : (lang === "de" ? "mastere erneut" : "master again")}.
-          {" "}{lang === "de" ? "Alle Funktionen sind kostenlos und unbegrenzt oft nutzbar." : "All features are free and can be used without limits."}
+          {" "}{lang === "de" ? "Alle Funktionen sind kostenlos; pro Account sind derzeit 10 Masterings täglich möglich." : "All features are free; each account can currently create 10 masters per day."}
         </p>
       </div>
 

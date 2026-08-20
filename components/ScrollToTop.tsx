@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Lang } from "@/lib/types/mastering";
 
-export default function ScrollToTop() {
+export default function ScrollToTop({ lang = "de" }: { lang?: Lang }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function ScrollToTop() {
           exit={{ opacity: 0, scale: 0.7, y: 16 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          aria-label="Nach oben scrollen"
+          aria-label={lang === "de" ? "Nach oben scrollen" : "Scroll to top"}
           style={{
             position: "fixed",
             bottom: "2rem",

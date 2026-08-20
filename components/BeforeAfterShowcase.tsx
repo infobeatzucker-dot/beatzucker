@@ -24,6 +24,8 @@ const T = {
   loudness: { de: "Lautheit", en: "Loudness" },
   dynamics: { de: "Dynamik", en: "Dynamics" },
   groupLabel: { de: "Vorher-Nachher-Ansicht", en: "Before-and-after view" },
+  loudnessLabel: { de: "Lautheit", en: "Loudness" },
+  rangeLabel: { de: "Dynamikumfang", en: "Dynamic range" },
 };
 
 const METRICS = [
@@ -90,7 +92,7 @@ export default function BeforeAfterShowcase({ lang = "de" }: { lang?: Lang }) {
           <div className="compare-lower-grid">
             <div className="compare-meter-card">
               <div className="compare-card-title"><span>{T.loudness[lang]}</span><i>LUFS</i></div>
-              <div className="compare-loudness" aria-label={`Lautheit ${isAfter ? "minus 9" : "minus 14,2"} LUFS`}>
+              <div className="compare-loudness" aria-label={`${T.loudnessLabel[lang]} ${isAfter ? "−9" : lang === "de" ? "−14,2" : "−14.2"} LUFS`}>
                 {["M", "S", "I"].map((label, index) => (
                   <div className="compare-loudness-channel" key={label}>
                     <span>{label}</span>
@@ -102,7 +104,7 @@ export default function BeforeAfterShowcase({ lang = "de" }: { lang?: Lang }) {
             </div>
             <div className="compare-meter-card">
               <div className="compare-card-title"><span>{T.dynamics[lang]}</span><i>DR</i></div>
-              <div className="compare-dynamics" aria-label={`Dynamikumfang ${isAfter ? "10,8" : "8,1"}`}>
+              <div className="compare-dynamics" aria-label={`${T.rangeLabel[lang]} ${isAfter ? (lang === "de" ? "10,8" : "10.8") : (lang === "de" ? "8,1" : "8.1")}`}>
                 <div className="dynamics-bars" aria-hidden="true">
                   {DYNAMICS_BARS.map((height, index) => (
                     <i key={index} style={{ height: `${isAfter ? height : Math.max(14, height * 0.68)}%` }} />

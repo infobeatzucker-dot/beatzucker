@@ -94,7 +94,7 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing,
           <span>{lang === "de" ? "LIVE-AUDIOANALYSE" : "LIVE AUDIO INTELLIGENCE"}</span>
           <h3>{lang === "de" ? "Track-Analyse" : "Track analysis"}</h3>
         </div>
-        <div className={`analysis-live-status ${isProcessing ? "processing" : ""}`}><i /> {isProcessing ? (lang === "de" ? "Analyse läuft" : "Analyzing") : "Live"}</div>
+        <div className={`analysis-live-status ${isProcessing ? "processing" : ""}`}><i /> {isProcessing ? (lang === "de" ? "Mastering läuft" : "Mastering") : "Live"}</div>
       </div>
       {/* Main visualizers grid */}
       <div className="visualizer-grid grid md:grid-cols-3 gap-4 mb-4">

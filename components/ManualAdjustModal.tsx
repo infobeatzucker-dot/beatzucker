@@ -117,6 +117,10 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   const destroyEngine = useCallback(() => {
     engineRef.current?.destroy(); engineRef.current = null; setAnalyser(null); setPlaying(false); setEngineBusy(false);
   }, []);
+  const handleClose = useCallback(() => {
+    destroyEngine();
+    onClose();
+  }, [destroyEngine, onClose]);
   useEffect(() => {
     if (open) {
       setValues(base); setPreviewError(null); setAuditionBase(false); auditionBaseRef.current = false; stopGlobalAudio();
@@ -124,6 +128,19 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     } else destroyEngine();
   }, [open, base, dur, destroyEngine]);
   useEffect(() => destroyEngine, [destroyEngine]);
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") handleClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open, handleClose]);
 
   useEffect(() => {
     if (!open || !fileId) return;
@@ -236,14 +253,14 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   }, [ensureEngine, lang, base]);
 
   const tabDefs = PARAM_DEFS.filter((definition) => definition.tab === tab), wide = tab === "ms" || tab === "sat" || tab === "bus";
-  return <>{open && <div className="adjust-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }} role="dialog" aria-modal="true">
-    <motion.div className="adjust-modal" initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
+  return <>{open && <div className="adjust-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) handleClose(); }} role="dialog" aria-modal="true" aria-label={lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}>
+    <motion.div className="adjust-modal" onPointerDown={(event) => event.stopPropagation()} initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
       <header className="adjust-head"><div><h2><span className="adjust-dot" />{lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}<span className="adjust-live-badge"><Radio size={10} /> LIVE</span></h2>
         <p>{filename}{dirty > 0 && <span className="adjust-dirty"> · {dirty} {lang === "en" ? "changed" : "geändert"}</span>}</p></div>
-        <button className="adjust-close" onClick={onClose} aria-label={lang === "en" ? "Close" : "Schließen"}><X size={16} /></button></header>
+        <button type="button" className="adjust-close" onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); handleClose(); }} onClick={(event) => { event.stopPropagation(); handleClose(); }} aria-label={lang === "en" ? "Close" : "Schließen"}><X size={16} /></button></header>
 
       <section className="adjust-wave"><div className="adjust-wave-bar"><div className="adjust-transport">
-        <button className="adjust-play" onClick={() => void togglePlay()} disabled={engineBusy}>{engineBusy ? <Loader2 size={15} className="adjust-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}</button>
+        <button type="button" className="adjust-play" onClick={() => void togglePlay()} disabled={engineBusy} aria-label={playing ? (lang === "en" ? "Pause live preview" : "Live-Vorschau pausieren") : (lang === "en" ? "Play live preview" : "Live-Vorschau abspielen")}>{engineBusy ? <Loader2 size={15} className="adjust-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}</button>
         <span className="adjust-range-chip"><span ref={chipTimeRef}>{fmtTime(startSec)}–{fmtTime(endSec)}</span>{playing && " · LOOP"}</span>
         <div className="adjust-ab" aria-label={lang === "en" ? "Compare server master and manual changes" : "Server-Master und manuelle Änderungen vergleichen"}>
           <button className={auditionBase ? "is-active" : ""} onClick={() => { if (!auditionBase) toggleAudition(); }} disabled={!dirty}>A <span>{lang === "en" ? "Master" : "Master"}</span></button>

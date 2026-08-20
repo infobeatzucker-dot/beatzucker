@@ -129,7 +129,7 @@ export default function Home() {
       </main>
 
       <Footer lang={lang} />
-      <ScrollToTop />
+      <ScrollToTop lang={lang} />
       <PromoPopup />
     </div>
   );

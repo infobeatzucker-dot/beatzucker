@@ -143,7 +143,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
             )}
             {/* Show session-aware content; during loading show guest buttons as fallback */}
             {session
-              ? <AccountDropdown />
+              ? <AccountDropdown lang={lang} />
               : (
                 <>
                   <button

@@ -130,7 +130,7 @@ export default function ProfileSettings() {
       {section("Nutzung", (
         <>
           <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginBottom: "1rem" }}>
-            Alle Funktionen sind kostenlos und unbegrenzt nutzbar. Ein faires Tageslimit schützt lediglich vor Serverüberlastung.
+            Alle Funktionen sind kostenlos. Zum Schutz vor Serverüberlastung sind derzeit {data.dailyLimit} Masterings pro Tag möglich.
           </p>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.4rem" }}>
             <span>Masters heute</span>

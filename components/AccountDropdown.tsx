@@ -4,13 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { User, LogOut } from "lucide-react";
+import type { Lang } from "@/lib/types/mastering";
 
 interface AccountInfo {
   dailyUsed: number;
   dailyLimit: number;
 }
 
-export default function AccountDropdown() {
+export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
   const { data: session } = useSession();
   const [open, setOpen]   = useState(false);
   const [info, setInfo]   = useState<AccountInfo | null>(null);
@@ -62,10 +63,10 @@ export default function AccountDropdown() {
           color: "#fff",
           padding: 0,
         }}
-        aria-label="Konto"
+        aria-label={lang === "de" ? "Konto" : "Account"}
       >
         {user.image
-          ? <img src={user.image} alt={user.name ?? "Profilbild"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ? <img src={user.image} alt={user.name ?? (lang === "de" ? "Profilbild" : "Profile picture")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           : initial}
       </button>
 
@@ -102,7 +103,7 @@ export default function AccountDropdown() {
             <div style={{ padding: "0.65rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
               <div style={{ display: "flex", justifyContent: "space-between",
                             fontSize: "0.72rem", color: "var(--text-muted)", marginBottom: "0.3rem" }}>
-                <span>Masters heute</span>
+                <span>{lang === "de" ? "Masters heute" : "Masters today"}</span>
                 <span style={{ color: pct >= 90 ? "#f87171" : "#fff" }}>
                   {info!.dailyUsed} / {info!.dailyLimit}
                 </span>
@@ -140,7 +141,7 @@ export default function AccountDropdown() {
                 fontSize: "0.85rem", color: "var(--text-muted)", cursor: "pointer",
               }}
             >
-              <LogOut size={14} strokeWidth={2} /> Abmelden
+              <LogOut size={14} strokeWidth={2} /> {lang === "de" ? "Abmelden" : "Sign out"}
             </button>
           </div>
         </div>
