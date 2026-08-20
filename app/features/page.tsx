@@ -179,6 +179,16 @@ const FEATURES = [
     visual: "ab",
   },
   {
+    color: "var(--accent-purple)",
+    title: { de: "Manuelles Mastering mit Live-Vorschau", en: "Manual Mastering with Live Preview" },
+    desc: {
+      de: "Nach dem Auto-Master kannst du EQ, Multiband-Kompression, Stereobreite, Sättigung, Bus-Kompression und Limiter direkt nachjustieren. Ein frei positionierbarer Audioloop und der A/B-Vergleich machen jede Änderung nahezu in Echtzeit hörbar; anschließend rendert die vollständige DSP-Kette einen neuen Master.",
+      en: "After the automatic master, fine-tune EQ, multiband compression, stereo width, saturation, bus compression and limiting. A movable audio loop and instant A/B comparison make changes audible in near real time before the full DSP chain renders a new master.",
+    },
+    tags: ["Live Preview", "EQ", "Multiband", "A/B"],
+    visual: "manual",
+  },
+  {
     color: "var(--accent-gold)",
     title: { de: "Tiefenanalyse deines Tracks", en: "Deep Track Analysis" },
     desc: {
@@ -356,6 +366,31 @@ function VisualAB() {
   );
 }
 
+function VisualManual() {
+  const faders = [38, 66, 48, 78];
+  return (
+    <div className="h-16 flex items-end justify-center gap-4" aria-hidden="true">
+      {faders.map((level, index) => (
+        <div key={level} className="relative h-12 w-3 flex justify-center">
+          <span className="absolute inset-y-0 w-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.12)" }} />
+          <span
+            className="absolute bottom-0 w-0.5 rounded-full"
+            style={{ height: `${level}%`, background: index % 2 ? "var(--accent-purple)" : "var(--accent-cyan)", boxShadow: `0 0 7px ${index % 2 ? "var(--accent-purple)" : "var(--accent-cyan)"}` }}
+          />
+          <span
+            className="absolute left-1/2 h-1.5 w-3 -translate-x-1/2 translate-y-1/2 rounded-sm border border-white/60 bg-white"
+            style={{ bottom: `${level}%` }}
+          />
+        </div>
+      ))}
+      <div className="ml-1 self-center rounded-md border px-2 py-1 text-[9px] font-bold"
+        style={{ color: "var(--accent-cyan)", borderColor: "rgba(56,189,248,.35)", background: "rgba(56,189,248,.08)" }}>
+        LIVE
+      </div>
+    </div>
+  );
+}
+
 function VisualAnalysis() {
   const metrics = [{ l: "LUFS", v: "−14.0" }, { l: "DR", v: "11" }, { l: "BPM", v: "128" }];
   return (
@@ -511,6 +546,7 @@ const VISUALS: Record<string, () => React.ReactElement> = {
   slider: VisualSlider,
   platforms: VisualPlatforms,
   ab: VisualAB,
+  manual: VisualManual,
   analysis: VisualAnalysis,
   reference: VisualReference,
   waterfall: VisualWaterfall,

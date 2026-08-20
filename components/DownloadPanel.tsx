@@ -47,7 +47,10 @@ function resultSummary(masterData: MasterData, platform: string, preset: string,
   }
   const manualCount = masterData.notes.match(/Manuell angepasst:\s*(\d+) Parameter/i)?.[1];
   if (manualCount) {
-    parts.push(lang === "de" ? `${manualCount} manuelle Parameter wurden angewendet.` : `${manualCount} manual parameters were applied.`);
+    const count = Number(manualCount);
+    parts.push(lang === "de"
+      ? count === 1 ? "1 manueller Parameter wurde angewendet." : `${manualCount} manuelle Parameter wurden angewendet.`
+      : count === 1 ? "1 manual parameter was applied." : `${manualCount} manual parameters were applied.`);
   }
   const codecTrim = masterData.notes.match(/Codec safety trim:\s*([\d.]+) dB/i)?.[1];
   if (codecTrim) {
