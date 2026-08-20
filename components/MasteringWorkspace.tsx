@@ -109,6 +109,7 @@ export default function MasteringWorkspace({ lang }: Props) {
   const [authOpen, setAuthOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [masteringError, setMasteringError] = useState<string | null>(null);
+  const adjustReopenGuardRef = useRef(0);
 
   // Scroll targets
   const mainPanelRef  = useRef<HTMLDivElement>(null);
@@ -161,6 +162,18 @@ export default function MasteringWorkspace({ lang }: Props) {
       const y = el.getBoundingClientRect().top + window.scrollY - 80;
       window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
     }, 50);
+  }, []);
+
+  const openManualAdjust = useCallback(() => {
+    // Closing the fixed modal can expose its opener before the browser has
+    // finished the same pointer sequence. Ignore that one click-through.
+    if (Date.now() < adjustReopenGuardRef.current) return;
+    setAdjustOpen(true);
+  }, []);
+
+  const closeManualAdjust = useCallback(() => {
+    adjustReopenGuardRef.current = Date.now() + 500;
+    setAdjustOpen(false);
   }, []);
 
   const handleUploadComplete   = useCallback((file: UploadedFile) => {
@@ -446,7 +459,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                     preAnalysis={analysis!}
                     onReset={handleReset}
                     onRemaster={handleRemaster}
-                    onManualAdjust={() => setAdjustOpen(true)}
+                    onManualAdjust={openManualAdjust}
                     lang={lang}
                   />
                 </motion.div>
@@ -551,7 +564,7 @@ export default function MasteringWorkspace({ lang }: Props) {
       {uploadedFile && (
         <ManualAdjustModal
           open={adjustOpen}
-          onClose={() => setAdjustOpen(false)}
+          onClose={closeManualAdjust}
           lang={lang}
           fileId={uploadedFile.file_id}
           uploadToken={uploadedFile.upload_token}
