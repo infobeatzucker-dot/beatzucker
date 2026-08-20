@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Gift, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import Header from "@/components/Header";
@@ -48,6 +48,16 @@ const USPS = [
 export default function Home() {
   const [lang, setLang] = useState<Lang>("de");
 
+  useEffect(() => {
+    const saved = window.localStorage.getItem("beatzucker-language");
+    if (saved === "de" || saved === "en") setLang(saved);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    window.localStorage.setItem("beatzucker-language", lang);
+  }, [lang]);
+
   return (
     <div className="min-h-screen site-shell">
       <Header lang={lang} />
@@ -62,9 +72,15 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: "easeOut" }}
             >
-              <div className="language-switch" aria-label="Sprache wählen">
+              <div className="language-switch" aria-label={lang === "de" ? "Sprache wählen" : "Choose language"}>
                 {(["de", "en"] as Lang[]).map((item) => (
-                  <button key={item} type="button" onClick={() => setLang(item)} className={lang === item ? "active" : ""}>
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setLang(item)}
+                    className={lang === item ? "active" : ""}
+                    aria-pressed={lang === item}
+                  >
                     {item.toUpperCase()}
                   </button>
                 ))}
@@ -112,7 +128,7 @@ export default function Home() {
         <TestimonialsSection lang={lang} />
       </main>
 
-      <Footer />
+      <Footer lang={lang} />
       <ScrollToTop />
       <PromoPopup />
     </div>

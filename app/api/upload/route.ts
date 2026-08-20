@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir, unlink } from "fs/promises";
-import { existsSync } from "fs";
+import { mkdir, unlink } from "fs/promises";
+import { createWriteStream, existsSync } from "fs";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import { rateLimit } from "@/lib/rateLimit";
+import { signUpload } from "@/lib/uploadAuthorization";
+import { sanitizeOriginalFilename } from "@/lib/filename";
+import { pythonServiceHeaders } from "@/lib/pythonService";
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 const MAX_SIZE = 200 * 1024 * 1024; // 200MB
@@ -58,15 +63,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const declaredLength = Number(req.headers.get("content-length") ?? 0);
+    // Multipart boundaries and headers need only a few KB; allow 1 MB overhead.
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_SIZE + 1024 * 1024) {
+      return NextResponse.json({ error: "File too large. Max 200MB." }, { status: 413 });
+    }
     const contentType = req.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
       return NextResponse.json({ error: "Must be multipart/form-data" }, { status: 400 });
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+    const file = formData.get("file");
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
@@ -85,16 +95,20 @@ export async function POST(req: NextRequest) {
       await mkdir(UPLOAD_DIR, { recursive: true });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const signature = Buffer.from(await file.slice(0, 32).arrayBuffer());
 
     // Validate actual file content via magic bytes (prevents MIME spoofing)
-    if (!hasValidAudioMagicBytes(buffer)) {
+    if (!hasValidAudioMagicBytes(signature)) {
       return NextResponse.json({
         error: "File content does not match a supported audio format.",
       }, { status: 415 });
     }
 
     const fileId = randomUUID();
+    const uploadToken = signUpload(fileId, session.user.id);
+    if (!uploadToken) {
+      return NextResponse.json({ error: "Upload-Signatur ist nicht konfiguriert" }, { status: 500 });
+    }
     // Derive extension from validated MIME type, not client filename
     const MIME_TO_EXT: Record<string, string> = {
       "audio/wav": "wav", "audio/x-wav": "wav", "audio/wave": "wav",
@@ -107,7 +121,13 @@ export async function POST(req: NextRequest) {
     const ext = MIME_TO_EXT[file.type] ?? "wav";
     const filename = `${fileId}.${ext}`;
     const filePath = path.join(UPLOAD_DIR, filename);
-    await writeFile(filePath, buffer);
+    try {
+      const webStream = file.stream() as Parameters<typeof Readable.fromWeb>[0];
+      await pipeline(Readable.fromWeb(webStream), createWriteStream(filePath, { flags: "wx" }));
+    } catch {
+      await unlink(filePath).catch(() => {});
+      return NextResponse.json({ error: "Upload could not be stored." }, { status: 500 });
+    }
 
     // Validate decodability, channel count and duration before accepting the
     // upload. Continuing with duration=0 only postpones an inevitable failure
@@ -117,7 +137,7 @@ export async function POST(req: NextRequest) {
     try {
       const infoRes = await fetch(`${pythonUrl}/info`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: pythonServiceHeaders(),
         body: JSON.stringify({ file_path: filePath }),
         signal: AbortSignal.timeout(10000),
       });
@@ -139,7 +159,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       file_id: fileId,
-      filename: file.name,
+      upload_token: uploadToken,
+      filename: sanitizeOriginalFilename(file.name, `track.${ext}`),
       duration,
       format: ext.toUpperCase(),
       size: file.size,

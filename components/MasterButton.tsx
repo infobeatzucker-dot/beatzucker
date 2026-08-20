@@ -7,6 +7,7 @@ import { runMastering } from "@/lib/runMastering";
 
 interface Props {
   fileId: string;
+  uploadToken: string;
   originalName?: string;      // original filename for mastering history
   platform: Platform;
   targetLufs?: number;
@@ -19,7 +20,7 @@ interface Props {
   onStart: () => void;
   onProgress: (step: ProgressStep) => void;
   onComplete: (data: MasterData) => void;
-  onError: () => void;
+  onError: (message: string) => void;
   compact?: boolean;          // compact layout for sticky popup (no hint text, smaller button)
   downloadWindow?: "24h"; // shown as reminder below the button
   lang?: Lang;
@@ -29,7 +30,7 @@ interface Props {
 // jeden Mastering-Lauf gelten — auch für die, die nicht über diesen Button gehen.
 
 export default function MasterButton({
-  fileId, originalName, platform, targetLufs, preset, intensity, selectedFormat,
+  fileId, uploadToken, originalName, platform, targetLufs, preset, intensity, selectedFormat,
   analysis,
   referenceAnalysis,
   isProcessing, onStart, onProgress, onComplete, onError,
@@ -73,7 +74,7 @@ export default function MasterButton({
     onStart();
 
     await runMastering({
-      fileId, originalName, platform, targetLufs, preset, intensity, selectedFormat,
+      fileId, uploadToken, originalName, platform, targetLufs, preset, intensity, selectedFormat,
       analysis, referenceAnalysis, overrides, lang,
       signal: controller.signal,
       onProgress, onComplete, onError,

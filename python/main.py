@@ -8,12 +8,14 @@ import json
 import asyncio
 import logging
 import re
+import hmac
+import subprocess
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import soundfile as sf
@@ -22,6 +24,7 @@ import librosa
 from analyzer import analyze_audio, analysis_to_dict
 from ai_params import get_mastering_params
 from mastering import master_audio
+from waveform import extract_waveform_peaks
 
 
 # ─── Cleanup job on startup ────────────────────────────────────────────────────
@@ -43,15 +46,17 @@ def cleanup_old_files(upload_dir: str, max_age_hours: int = 24):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if os.environ.get("NODE_ENV") == "production" and len(os.environ.get("PYTHON_SERVICE_SECRET", "")) < 32:
+        raise RuntimeError("PYTHON_SERVICE_SECRET must contain at least 32 characters in production")
     upload_dir = os.environ.get("TEMP_UPLOAD_DIR", "./uploads")
-    cleanup_old_files(upload_dir)
-    cleanup_old_files(os.path.join(upload_dir, "masters"))
+    cleanup_old_files(upload_dir, max_age_hours=1)
+    cleanup_old_files(os.path.join(upload_dir, "masters"), max_age_hours=25)
 
     async def periodic_cleanup():
         while True:
             await asyncio.sleep(3600)
-            cleanup_old_files(upload_dir)
-            cleanup_old_files(os.path.join(upload_dir, "masters"))
+            cleanup_old_files(upload_dir, max_age_hours=1)
+            cleanup_old_files(os.path.join(upload_dir, "masters"), max_age_hours=25)
 
     cleanup_task = asyncio.create_task(periodic_cleanup())
     try:
@@ -83,6 +88,28 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
+SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
+PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master"}
+MAX_CONCURRENT_DSP_JOBS = max(1, int(os.environ.get("MAX_CONCURRENT_DSP_JOBS", "2")))
+DSP_SLOTS = asyncio.Semaphore(MAX_CONCURRENT_DSP_JOBS)
+
+
+@app.middleware("http")
+async def authenticate_internal_service(request: Request, call_next):
+    """Protect CPU-intensive DSP endpoints from direct external invocation."""
+    if request.url.path in PROTECTED_PATHS and SERVICE_SECRET:
+        supplied = request.headers.get("X-Beatzucker-Service-Token", "")
+        if not supplied or not hmac.compare_digest(supplied, SERVICE_SECRET):
+            return JSONResponse({"detail": "Unauthorized service request"}, status_code=401)
+    return await call_next(request)
+
+
+async def acquire_dsp_slot():
+    try:
+        await asyncio.wait_for(DSP_SLOTS.acquire(), timeout=0.1)
+    except asyncio.TimeoutError:
+        raise HTTPException(503, "DSP service is busy", headers={"Retry-After": "15"})
+
 
 # ─── Models ────────────────────────────────────────────────────────────────────
 
@@ -92,6 +119,11 @@ class FilePathRequest(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     file_path: str
+
+
+class WaveformRequest(BaseModel):
+    file_path: str
+    bins: int = 240
 
 
 class MasterRequest(BaseModel):
@@ -149,8 +181,11 @@ async def get_info(req: FilePathRequest):
 
         info = sf.info(req.file_path)
         max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
+        max_sample_rate = int(os.environ.get("MAX_AUDIO_SAMPLE_RATE", "192000"))
         if info.channels not in (1, 2):
             raise HTTPException(415, "Only mono and stereo audio are supported")
+        if info.samplerate <= 0 or info.samplerate > max_sample_rate:
+            raise HTTPException(415, f"Sample rate may not exceed {max_sample_rate} Hz")
         if info.duration <= 0 or info.duration > max_duration:
             raise HTTPException(413, f"Audio may not exceed {max_duration:g} seconds")
         return {
@@ -172,13 +207,44 @@ async def analyze(req: AnalyzeRequest):
     try:
         req.file_path = validate_file_path(req.file_path)
 
-        analysis = analyze_audio(req.file_path)
-        return analysis_to_dict(analysis)
+        await acquire_dsp_slot()
+        try:
+            analysis = await asyncio.to_thread(analyze_audio, req.file_path)
+            return analysis_to_dict(analysis)
+        finally:
+            DSP_SLOTS.release()
     except HTTPException:
         raise
     except Exception as e:
         logger.exception("Error in /analyze")
         raise HTTPException(500, "Analysis failed")
+
+
+@app.post("/waveform")
+async def waveform(req: WaveformRequest):
+    """Return a compact overview without sending or decoding the source in the browser."""
+    try:
+        req.file_path = validate_file_path(req.file_path)
+        if not 32 <= req.bins <= 512:
+            raise HTTPException(400, "Waveform bin count out of range")
+
+        await acquire_dsp_slot()
+        try:
+            max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
+            peaks = await asyncio.to_thread(
+                extract_waveform_peaks, req.file_path, req.bins, 800, max_duration
+            )
+            return {"peaks": peaks}
+        finally:
+            DSP_SLOTS.release()
+    except HTTPException:
+        raise
+    except (subprocess.SubprocessError, ValueError):
+        logger.exception("Error extracting waveform")
+        raise HTTPException(422, "Waveform extraction failed")
+    except Exception:
+        logger.exception("Error in /waveform")
+        raise HTTPException(500, "Waveform extraction failed")
 
 
 @app.post("/master")
@@ -196,6 +262,7 @@ async def master(req: MasterRequest):
         raise HTTPException(400, "Intensity out of range")
     if req.master_id and not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", req.master_id):
         raise HTTPException(400, "Invalid master id")
+    await acquire_dsp_slot()
 
     # Real progress labels, keyed by the step names master_audio() actually emits
     # (see the emit() calls throughout mastering.py's master_audio()).
@@ -307,6 +374,7 @@ async def master(req: MasterRequest):
                 "progress": 100,
                 "master_id": result.master_id,
                 "formats": formats,
+                "selected_format": req.format,
                 "post_analysis": post,
                 "notes": result.notes,
                 "params": _asdict(params),
@@ -316,6 +384,8 @@ async def master(req: MasterRequest):
         except Exception as e:
             logger.exception("Error in /master")
             yield encode({"step": "error", "progress": 0, "error": "Mastering failed"})
+        finally:
+            DSP_SLOTS.release()
 
     return StreamingResponse(
         generate(),

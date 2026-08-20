@@ -25,6 +25,7 @@ const STEP_LABELS_EN: Record<string, string> = {
 
 export interface RunMasteringArgs {
   fileId: string;
+  uploadToken: string;
   originalName?: string;
   platform: Platform;
   targetLufs?: number;
@@ -38,7 +39,7 @@ export interface RunMasteringArgs {
   signal?: AbortSignal;
   onProgress: (step: ProgressStep) => void;
   onComplete: (data: MasterData) => void;
-  onError: () => void;
+  onError: (message: string) => void;
 }
 
 /**
@@ -51,16 +52,21 @@ export interface RunMasteringArgs {
  * würden den Tastatur-Shortcut doppelt registrieren.
  */
 export async function runMastering({
-  fileId, originalName, platform, targetLufs, preset, intensity, selectedFormat,
+  fileId, uploadToken, originalName, platform, targetLufs, preset, intensity, selectedFormat,
   analysis, referenceAnalysis, overrides, lang = "de", signal,
   onProgress, onComplete, onError,
 }: RunMasteringArgs): Promise<void> {
+  const fallbackError = lang === "de"
+    ? "Das Mastering konnte nicht abgeschlossen werden. Deine Einstellungen bleiben erhalten – bitte versuche es erneut."
+    : "Mastering could not be completed. Your settings are still available—please try again.";
+
   try {
     const response = await fetch("/api/master", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         file_id: fileId,
+        upload_token: uploadToken,
         original_name: originalName,
         platform, preset, intensity,
         ...(platform === "custom" && Number.isFinite(targetLufs) ? { target_lufs: targetLufs } : {}),
@@ -71,7 +77,26 @@ export async function runMastering({
       }),
       signal,
     });
-    if (!response.ok || !response.body) { onError(); return; }
+    if (!response.ok) {
+      let serverMessage = "";
+      try {
+        const body = await response.json() as { error?: unknown };
+        if (typeof body.error === "string" && body.error.length <= 300) serverMessage = body.error;
+      } catch { /* response was not JSON */ }
+      const statusMessage = response.status === 401
+        ? (lang === "de" ? "Deine Anmeldung ist abgelaufen. Bitte melde dich erneut an." : "Your session has expired. Please sign in again.")
+        : response.status === 403
+          ? (lang === "de" ? "Dieser Upload gehört nicht zu deiner aktuellen Sitzung. Bitte lade den Track erneut hoch." : "This upload does not belong to your current session. Please upload the track again.")
+          : response.status === 429
+            ? (lang === "de" ? (serverMessage || "Das Nutzungslimit ist erreicht. Bitte versuche es später erneut.") : "The usage limit has been reached. Please try again later.")
+            : (lang === "de" ? serverMessage : "");
+      onError(statusMessage || fallbackError);
+      return;
+    }
+    if (!response.body) {
+      onError(fallbackError);
+      return;
+    }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -84,7 +109,12 @@ export async function runMastering({
       try {
         const data = JSON.parse(line.slice(6));
         if (data.step === "complete") { onComplete(data as MasterData); return true; }
-        if (data.error) { onError(); return true; }
+        if (data.error) {
+          const message = lang === "de" && typeof data.error === "string" && data.error.length <= 300
+            ? data.error : fallbackError;
+          onError(message);
+          return true;
+        }
         onProgress({
           step: data.step,
           label: labels[data.step] || data.label || data.step,
@@ -110,9 +140,13 @@ export async function runMastering({
       buffer = chunks.pop() || "";
       for (const chunk of chunks) if (processChunk(chunk)) return;
     }
-    onError();
+    onError(lang === "de"
+      ? "Die Verbindung zum Mastering-Service wurde unerwartet beendet."
+      : "The connection to the mastering service ended unexpectedly.");
   } catch (err: unknown) {
     if (err instanceof Error && err.name === "AbortError") return;
-    onError();
+    onError(lang === "de"
+      ? "Der Mastering-Service ist momentan nicht erreichbar. Bitte prüfe deine Verbindung und versuche es erneut."
+      : "The mastering service is currently unavailable. Please check your connection and try again.");
   }
 }

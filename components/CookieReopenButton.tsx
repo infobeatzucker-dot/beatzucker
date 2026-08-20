@@ -1,6 +1,8 @@
 "use client";
 
-export default function CookieReopenButton() {
+import type { Lang } from "@/lib/types/mastering";
+
+export default function CookieReopenButton({ lang = "de" }: { lang?: Lang }) {
   function reopen() {
     window.dispatchEvent(new Event("open-cookie-banner"));
   }
@@ -19,7 +21,7 @@ export default function CookieReopenButton() {
       }}
       className="hover:text-white transition-colors"
     >
-      Cookie-Einstellungen
+      {lang === "de" ? "Cookie-Einstellungen" : "Cookie settings"}
     </button>
   );
 }

@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
-import { existsSync, statSync } from "fs";
-import { open, readdir, readFile } from "fs/promises";
+import { createReadStream, existsSync, statSync } from "fs";
+import { readdir } from "fs/promises";
 import path from "path";
+import { Readable } from "stream";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
+import { verifyUpload } from "@/lib/uploadAuthorization";
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 
@@ -25,6 +27,10 @@ export async function GET(req: NextRequest) {
 
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return new Response("Unauthorized", { status: 401 });
+  const uploadToken = req.nextUrl.searchParams.get("upload_token");
+  if (!verifyUpload(fileId, session.user.id, uploadToken)) {
+    return new Response("Forbidden", { status: 403 });
+  }
 
   // Path traversal protection
   if (fileId.includes("..") || fileId.includes("/") || fileId.includes("\\")) {
@@ -60,13 +66,7 @@ export async function GET(req: NextRequest) {
     }
     const chunkSize = end - start + 1;
 
-    const handle = await open(filePath, "r");
-    const chunk = Buffer.allocUnsafe(chunkSize);
-    try {
-      await handle.read(chunk, 0, chunkSize, start);
-    } finally {
-      await handle.close();
-    }
+    const chunk = Readable.toWeb(createReadStream(filePath, { start, end })) as ReadableStream<Uint8Array>;
 
     return new Response(chunk, {
       status: 206,
@@ -79,8 +79,8 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const buffer = await readFile(filePath);
-  return new Response(buffer, {
+  const stream = Readable.toWeb(createReadStream(filePath)) as ReadableStream<Uint8Array>;
+  return new Response(stream, {
     headers: {
       "Content-Type": contentType,
       "Content-Length": fileSize.toString(),

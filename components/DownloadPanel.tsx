@@ -191,7 +191,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
         </p>
       </div>
 
-      <DonateButton variant="panel" />
+      <DonateButton variant="panel" lang={lang} />
 
       {/* Manuelle Nachjustierung – Regler-Panel für Feinschliff am fertigen Master */}
       {onManualAdjust && (

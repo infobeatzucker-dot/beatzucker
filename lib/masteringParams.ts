@@ -73,6 +73,24 @@ export const TABS: { id: TabId; label: { de: string; en: string } }[] = [
 
 export type ParamValues = Partial<Record<ParamKey, number>>;
 
+/** Validate the browser's manual adjustments before they enter the DSP service. */
+export function normalizeParamOverrides(value: unknown): ParamValues | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const input = value as Record<string, unknown>;
+  const definitions = new Map(PARAM_DEFS.map((definition) => [definition.key, definition]));
+  const entries = Object.entries(input);
+  if (entries.length > PARAM_DEFS.length) return null;
+
+  const output: ParamValues = {};
+  for (const [key, raw] of entries) {
+    const definition = definitions.get(key as ParamKey);
+    if (!definition || typeof raw !== "number" || !Number.isFinite(raw)) return null;
+    if (raw < definition.min || raw > definition.max) return null;
+    output[definition.key] = raw;
+  }
+  return output;
+}
+
 /** Fallbacks, falls der Server (noch) keine Parameter mitgeliefert hat. */
 const FALLBACKS: Record<ParamKey, number> = {
   highpass_freq: 30,

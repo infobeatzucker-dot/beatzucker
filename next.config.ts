@@ -4,6 +4,13 @@ const nextConfig: NextConfig = {
   // Produce a self-contained server bundle (required for Docker / Railway)
   output: "standalone",
 
+  // Runtime audio and local reference renders are data, never deployment
+  // dependencies. Excluding them keeps standalone tracing from packaging large
+  // user files into the server artifact.
+  outputFileTracingExcludes: {
+    "/*": ["./uploads/**/*", "./validation-output/**/*"],
+  },
+
   // Allow large audio file uploads
   experimental: {
     serverActions: {

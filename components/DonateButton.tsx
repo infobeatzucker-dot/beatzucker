@@ -2,12 +2,15 @@
 
 import { DONATE_URL } from "@/lib/constants";
 import { Coffee } from "lucide-react";
+import type { Lang } from "@/lib/types/mastering";
 
 interface Props {
   variant?: "nav" | "footer" | "panel";
+  lang?: Lang;
 }
 
-export default function DonateButton({ variant = "nav" }: Props) {
+export default function DonateButton({ variant = "nav", lang = "de" }: Props) {
+  const donate = lang === "de" ? "Spenden" : "Donate";
   if (variant === "footer") {
     return (
       <a
@@ -17,7 +20,7 @@ export default function DonateButton({ variant = "nav" }: Props) {
         className="hover:opacity-80 transition-opacity inline-flex items-center gap-1"
         style={{ color: "inherit", textDecoration: "none" }}
       >
-        <Coffee size={13} strokeWidth={2} /> Spenden
+        <Coffee size={13} strokeWidth={2} /> {donate}
       </a>
     );
   }
@@ -33,10 +36,12 @@ export default function DonateButton({ variant = "nav" }: Props) {
       >
         <div>
           <div className="text-sm font-semibold" style={{ color: "var(--accent-gold)" }}>
-            Gefällt dir Beatzucker?
+            {lang === "de" ? "Gefällt dir Beatzucker?" : "Enjoying Beatzucker?"}
           </div>
           <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
-            Beatzucker ist komplett kostenlos. Wenn's dir geholfen hat, freuen wir uns über einen Kaffee ☕
+            {lang === "de"
+              ? "Beatzucker ist komplett kostenlos. Wenn's dir geholfen hat, freuen wir uns über einen Kaffee ☕"
+              : "Beatzucker is completely free. If it helped you, you can buy us a coffee ☕"}
           </div>
         </div>
         <a
@@ -50,7 +55,7 @@ export default function DonateButton({ variant = "nav" }: Props) {
             textDecoration: "none",
           }}
         >
-          <Coffee size={14} strokeWidth={2} style={{ marginRight: "0.35rem", verticalAlign: "-2px" }} />Spenden
+          <Coffee size={14} strokeWidth={2} style={{ marginRight: "0.35rem", verticalAlign: "-2px" }} />{donate}
         </a>
       </div>
     );
@@ -62,7 +67,7 @@ export default function DonateButton({ variant = "nav" }: Props) {
       href={DONATE_URL}
       target="_blank"
       rel="noopener noreferrer"
-      title="Beatzucker unterstützen"
+      title={lang === "de" ? "Beatzucker unterstützen" : "Support Beatzucker"}
       className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:opacity-90"
       style={{
         background: "rgba(196,181,253,0.1)",
@@ -71,7 +76,7 @@ export default function DonateButton({ variant = "nav" }: Props) {
         textDecoration: "none",
       }}
     >
-      <Coffee size={14} strokeWidth={2} /> Spenden
+      <Coffee size={14} strokeWidth={2} /> {donate}
     </a>
   );
 }

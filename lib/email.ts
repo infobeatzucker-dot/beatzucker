@@ -12,6 +12,12 @@ const FROM = process.env.EMAIL_FROM ?? "noreply@beatzucker.de";
 const BASE = process.env.NEXTAUTH_URL ?? "https://beatzucker.de";
 const YEAR = new Date().getFullYear();
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character] ?? character);
+}
+
 // Shared header/footer snippets
 const emailHeader = `
   <div style="padding:28px 32px 0;text-align:center;">
@@ -46,13 +52,14 @@ const emailWrap = (content: string) => `
 // ── Emails ───────────────────────────────────────────────────────────────────
 
 export async function sendPasswordResetEmail(email: string, resetUrl: string) {
+  const safeResetUrl = escapeHtml(resetUrl);
   const html = emailWrap(`
     <h1 style="color:#fff;font-size:1.25rem;font-weight:700;margin:0 0 12px;">Passwort zurücksetzen</h1>
     <p style="color:#9ca3af;font-size:0.92rem;line-height:1.6;margin:0 0 24px;">
       Du hast eine Anfrage zum Zurücksetzen deines Passworts gestellt.
       Klicke auf den Button unten — der Link ist <strong style="color:#fff">15 Minuten</strong> gültig.
     </p>
-    <a href="${resetUrl}"
+    <a href="${safeResetUrl}"
        style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#8b5cf6,#38bdf8);
               color:#fff;font-weight:700;font-size:0.95rem;border-radius:8px;text-decoration:none;">
       Passwort zurücksetzen →
@@ -60,7 +67,7 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
     <p style="color:#6b7280;font-size:0.78rem;margin:20px 0 0;line-height:1.5;">
       Falls du kein Zurücksetzen angefordert hast, kannst du diese E-Mail ignorieren.
       Dein Passwort bleibt unverändert.<br><br>
-      Link: <a href="${resetUrl}" style="color:#38bdf8;word-break:break-all;">${resetUrl}</a>
+      Link: <a href="${safeResetUrl}" style="color:#38bdf8;word-break:break-all;">${safeResetUrl}</a>
     </p>`);
 
   await getResend().emails.send({
@@ -99,6 +106,8 @@ export async function sendMasteringCompleteEmail(
   platform: string,
   lufsOut: number | null,
 ) {
+  const safeOriginalName = escapeHtml(originalName);
+  const safePlatform = escapeHtml(platform);
   const lufsStr = lufsOut != null ? `${lufsOut.toFixed(1)} LUFS` : "—";
   const deadline = new Date(Date.now() + DOWNLOAD_WINDOW_MS);
   const deadlineStr = deadline.toLocaleString("de-DE", {
@@ -118,12 +127,12 @@ export async function sendMasteringCompleteEmail(
     <div style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.2);border-radius:10px;padding:16px 20px;margin-bottom:16px;">
       <div style="margin-bottom:8px;">
         <span style="color:#6b7280;font-size:0.78rem;display:block;margin-bottom:2px;">Track</span>
-        <span style="color:#fff;font-size:0.92rem;font-weight:600;">${originalName}</span>
+        <span style="color:#fff;font-size:0.92rem;font-weight:600;">${safeOriginalName}</span>
       </div>
       <div style="display:flex;gap:24px;flex-wrap:wrap;">
         <div>
           <span style="color:#6b7280;font-size:0.78rem;display:block;margin-bottom:2px;">Plattform</span>
-          <span style="color:#e5e7eb;font-size:0.88rem;">${platform}</span>
+          <span style="color:#e5e7eb;font-size:0.88rem;">${safePlatform}</span>
         </div>
         <div>
           <span style="color:#6b7280;font-size:0.78rem;display:block;margin-bottom:2px;">Output LUFS</span>
@@ -149,6 +158,7 @@ export async function sendMasteringCompleteEmail(
 }
 
 export async function sendLoginOtpEmail(email: string, otp: string) {
+  const safeOtp = escapeHtml(otp);
   const html = emailWrap(`
     <h1 style="color:#fff;font-size:1.25rem;font-weight:700;margin:0 0 8px;text-align:center;">
       Dein Login-Code
@@ -160,7 +170,7 @@ export async function sendLoginOtpEmail(email: string, otp: string) {
       <span style="font-size:2.5rem;font-weight:800;letter-spacing:0.25em;color:#8b5cf6;
                    background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);
                    border-radius:12px;padding:0.5rem 1.5rem;display:inline-block;">
-        ${otp}
+        ${safeOtp}
       </span>
     </div>
     <p style="color:#6b7280;font-size:0.78rem;text-align:center;margin:0;">
@@ -177,6 +187,7 @@ export async function sendLoginOtpEmail(email: string, otp: string) {
 }
 
 export async function sendMasteringErrorEmail(email: string, originalName: string) {
+  const safeOriginalName = escapeHtml(originalName);
   const html = emailWrap(`
     <h1 style="color:#fff;font-size:1.25rem;font-weight:700;margin:0 0 12px;">
       Mastering fehlgeschlagen
@@ -186,7 +197,7 @@ export async function sendMasteringErrorEmail(email: string, originalName: strin
     </p>
     <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px 18px;margin-bottom:24px;">
       <span style="color:#6b7280;font-size:0.78rem;display:block;margin-bottom:2px;">Track</span>
-      <span style="color:#fff;font-size:0.92rem;font-weight:600;">${originalName}</span>
+      <span style="color:#fff;font-size:0.92rem;font-weight:600;">${safeOriginalName}</span>
     </div>
     <p style="color:#9ca3af;font-size:0.85rem;line-height:1.6;margin:0 0 20px;">
       Bitte versuche es erneut. Falls der Fehler weiterhin auftritt, melde dich bei uns —

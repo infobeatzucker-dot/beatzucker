@@ -279,7 +279,7 @@ export default function ReferenceTrack({
     try {
       const form = new FormData();
       form.append("file", file);
-      const { file_id } = await new Promise<{ file_id: string }>((resolve, reject) => {
+      const { file_id, upload_token } = await new Promise<{ file_id: string; upload_token: string }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) setUploadPct(Math.round((e.loaded / e.total) * 100));
@@ -302,7 +302,7 @@ export default function ReferenceTrack({
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file_id }),
+        body: JSON.stringify({ file_id, upload_token }),
       });
       clearInterval(analyzeTimer);
       if (!analyzeRes.ok) throw new Error(lang === "de" ? "Analyse fehlgeschlagen" : "Analysis failed");

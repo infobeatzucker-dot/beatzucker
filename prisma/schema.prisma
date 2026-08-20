@@ -107,7 +107,7 @@ model Master {
   postAnalysis String?
   aiParams     String?
 
-  // Output file paths (valid for 2h after processing)
+  // Output file paths (valid for the configured 24h download window)
   pathWav32    String?
   pathWav24    String?
   pathWav16    String?
@@ -118,6 +118,7 @@ model Master {
 
   notes     String?
   createdAt DateTime @default(now())
+  completedAt DateTime?
   updatedAt DateTime @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)

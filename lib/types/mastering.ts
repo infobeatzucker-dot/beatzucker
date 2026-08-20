@@ -34,6 +34,7 @@ export interface AnalysisData {
 
 export interface MasterData {
   master_id: string;
+  selected_format?: string;
   formats: {
     wav32?:  string;
     wav24?:  string;
@@ -55,6 +56,7 @@ export interface MasterData {
 
 export interface UploadedFile {
   file_id:  string;
+  upload_token: string;
   filename: string;
   duration: number;
   format:   string;

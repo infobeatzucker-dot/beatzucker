@@ -2,8 +2,20 @@ import Link from "next/link";
 import { Lock } from "lucide-react";
 import CookieReopenButton from "./CookieReopenButton";
 import DonateButton from "./DonateButton";
+import type { Lang } from "@/lib/types/mastering";
 
-export default function Footer() {
+export default function Footer({ lang = "de" }: { lang?: Lang }) {
+  const navigation = lang === "de"
+    ? [
+        ["/features", "Funktionen"], ["/help", "Hilfe"], ["/ressourcen", "Wissen"],
+        ["/impressum", "Impressum"], ["/datenschutz", "Datenschutz"], ["/agb", "AGB"],
+        ["/widerruf", "Widerruf"],
+      ]
+    : [
+        ["/features", "Features"], ["/help", "Help"], ["/ressourcen", "Knowledge"],
+        ["/impressum", "Legal notice"], ["/privacy", "Privacy"], ["/terms", "Terms"],
+        ["/widerruf", "Cancellation policy"],
+      ];
   return (
     <footer
       className="border-t py-8 px-4"
@@ -23,27 +35,21 @@ export default function Footer() {
 
         {/* Legal links */}
         <div className="flex gap-5 text-xs flex-wrap justify-center" style={{ color: "var(--text-muted)" }}>
-          <span style={{ color: "var(--accent-gold)" }}><DonateButton variant="footer" /></span>
-          <Link href="/features" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Funktionen</Link>
-          <Link href="/help" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Hilfe</Link>
-          <Link href="/ressourcen" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Wissen</Link>
-          <Link href="/impressum" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Impressum</Link>
-          <Link href="/datenschutz" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Datenschutz</Link>
-          <Link href="/agb" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>AGB</Link>
-          <Link href="/widerruf" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Widerruf</Link>
-          <Link href="/terms" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Terms</Link>
-          <Link href="/privacy" className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>Privacy</Link>
-          <span style={{ color: "inherit" }}><CookieReopenButton /></span>
+          <span style={{ color: "var(--accent-gold)" }}><DonateButton variant="footer" lang={lang} /></span>
+          {navigation.map(([href, label]) => (
+            <Link key={href} href={href} className="hover:text-white transition-colors" style={{ color: "inherit", textDecoration: "none" }}>{label}</Link>
+          ))}
+          <span style={{ color: "inherit" }}><CookieReopenButton lang={lang} /></span>
         </div>
 
         {/* Privacy badge */}
         <div className="flex flex-col items-end gap-1">
           <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-            Adaptives Mastering · Professionelle Audiobearbeitung
+            {lang === "de" ? "Adaptives Mastering · Professionelle Audiobearbeitung" : "Adaptive mastering · Professional audio processing"}
           </div>
           <div className="text-[10px] flex items-center gap-1" style={{ color: "#22c55e" }}>
             <Lock size={11} strokeWidth={2} />
-            <span>No Tracking · No Cookies · EU-Server</span>
+            <span>{lang === "de" ? "Kein Tracking · Keine Cookies · EU-Server" : "No tracking · No cookies · EU servers"}</span>
           </div>
         </div>
       </div>

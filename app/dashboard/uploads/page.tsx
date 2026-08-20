@@ -7,6 +7,7 @@ interface Master {
   originalName: string;
   status: string;
   createdAt: string;
+  completedAt: string | null;
   formats: string[];
 }
 
@@ -66,7 +67,7 @@ export default function UploadsPage() {
                 {masters.slice(0, 10).map((m) => (
                   <tr key={m.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-primary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.originalName}</td>
-                    <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(m.createdAt)}</td>
+                    <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(m.completedAt ?? m.createdAt)}</td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-secondary)", fontSize: "0.75rem" }}>
                       {m.formats.length > 0 ? m.formats.join(", ") : "—"}
                     </td>

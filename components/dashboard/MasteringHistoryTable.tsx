@@ -10,12 +10,17 @@ import {
   getGlobalAudioState,
 } from "@/lib/globalAudio";
 
-const DOWNLOAD_WINDOW_MS = 24 * 60 * 60 * 1000;
-
 interface Master {
   id: string; originalName: string; platform: string; preset: string;
-  status: string; lufsIn: number | null; lufsOut: number | null; createdAt: string; notes: string;
+  status: string; lufsIn: number | null; lufsOut: number | null; createdAt: string;
+  completedAt: string | null; expiresAt: string | null; downloadAvailable: boolean; notes: string;
+  formats: string[]; selectedFormat: string | null;
 }
+
+const FORMAT_LABEL: Record<string, string> = {
+  wav32: "WAV 32", wav24: "WAV 24", wav16: "WAV 16", flac: "FLAC",
+  mp3320: "MP3 320", mp3128: "MP3 128", aac256: "AAC 256",
+};
 
 function fmt(lufs: number | null) {
   if (lufs == null) return "—";
@@ -115,24 +120,24 @@ export default function MasteringHistoryTable() {
     }, { once: true });
   }
 
-  async function handleMasterDownload(masterId: string, format: string, originalName: string) {
+  async function handleMasterDownload(masterId: string, format: string) {
     setDownloadingId(masterId);
     setDownloadError(null);
     try {
-      const res = await fetch(`/api/download?master_id=${masterId}&format=${format}`);
+      const href = `/api/download?master_id=${encodeURIComponent(masterId)}&format=${encodeURIComponent(format)}`;
+      // A one-byte range request validates auth, expiry and file existence
+      // without buffering the complete (potentially 200 MB) master in JS RAM.
+      const res = await fetch(href, { headers: { Range: "bytes=0-0" } });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         setDownloadError(err.error ?? "Download nicht verfügbar");
         setTimeout(() => setDownloadError(null), 5000);
         return;
       }
-      const blob = await res.blob();
-      const ext = format.startsWith("wav") ? "wav" : format.startsWith("flac") ? "flac" : format.startsWith("mp3") ? "mp3" : "m4a";
-      const safe = originalName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_\-]/g, "_");
-      const url = URL.createObjectURL(blob);
+      await res.body?.cancel();
       const a = document.createElement("a");
-      a.href = url; a.download = `beatzucker_${safe}_${format}.${ext}`; a.click();
-      URL.revokeObjectURL(url);
+      a.href = href;
+      a.click();
     } catch {
       setDownloadError("Verbindungsfehler");
       setTimeout(() => setDownloadError(null), 5000);
@@ -189,11 +194,18 @@ export default function MasteringHistoryTable() {
             </thead>
             <tbody>
               {masters.map((m) => {
-                const ageMs = Date.now() - new Date(m.createdAt).getTime();
-                const canDownload = m.status === "done" && ageMs < DOWNLOAD_WINDOW_MS;
+                const formats = Array.isArray(m.formats) ? m.formats : [];
+                const previewFormat = formats.includes("mp3320")
+                  ? "mp3320"
+                  : formats.includes("mp3128") ? "mp3128" : null;
+                const selectedFormat = m.selectedFormat && formats.includes(m.selectedFormat)
+                  ? m.selectedFormat
+                  : formats.find((format) => format !== previewFormat) ?? previewFormat;
+                const expired = Boolean(m.expiresAt && new Date(m.expiresAt).getTime() <= Date.now());
+                const canDownload = m.downloadAvailable && !expired && Boolean(selectedFormat);
                 return (
                   <tr key={m.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(m.createdAt)}</td>
+                    <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(m.completedAt ?? m.createdAt)}</td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-primary)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.originalName}</td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", fontSize: "0.75rem" }}>
                       {editingNotes === m.id ? (
@@ -223,9 +235,9 @@ export default function MasteringHistoryTable() {
                     <td style={{ padding: "0.5rem 0.6rem", color: "#6ee7b7" }}>{fmt(m.lufsOut)}</td>
 
                     <td style={{ padding: "0.5rem 0.3rem" }}>
-                      {canDownload ? (
+                      {canDownload && previewFormat ? (
                         <button
-                          onClick={() => handlePreview(m.id, "mp3128")}
+                          onClick={() => handlePreview(m.id, previewFormat)}
                           title={playingMasterId === m.id && audioPlaying ? "Pause" : "Vorschau abspielen"}
                           style={{
                             display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -258,7 +270,7 @@ export default function MasteringHistoryTable() {
                     <td style={{ padding: "0.5rem 0.6rem" }}>
                       {canDownload ? (
                         <button
-                          onClick={() => handleMasterDownload(m.id, "wav24", m.originalName)}
+                          onClick={() => handleMasterDownload(m.id, selectedFormat!)}
                           disabled={downloadingId === m.id}
                           style={{
                             display: "inline-flex", alignItems: "center", gap: "0.3rem",
@@ -268,11 +280,11 @@ export default function MasteringHistoryTable() {
                             color: downloadingId === m.id ? "var(--text-muted)" : "var(--accent-cyan)",
                           }}
                         >
-                          {downloadingId === m.id ? "…" : "↓ WAV"}
+                          {downloadingId === m.id ? "…" : `↓ ${FORMAT_LABEL[selectedFormat!] ?? selectedFormat!.toUpperCase()}`}
                         </button>
                       ) : (
                         <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                          {m.status === "done" ? "Abgelaufen" : m.status}
+                          {m.status === "done" ? (expired ? "Abgelaufen" : "Nicht verfügbar") : m.status}
                         </span>
                       )}
                     </td>

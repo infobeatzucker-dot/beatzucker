@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth";
-import { DAILY_MASTER_LIMIT } from "@/lib/constants";
+import { DAILY_MASTER_LIMIT, DOWNLOAD_WINDOW_MS } from "@/lib/constants";
+import { findExistingMasterFormats, removeMasterFiles, removeUploadFiles } from "@/lib/storage";
 
 // ── GET /api/account ─────────────────────────────────────────────────
 // Returns user profile + usage stats + master history
@@ -20,7 +21,8 @@ export async function GET() {
         take: 30,
         select: {
           id: true, originalName: true, platform: true, preset: true,
-          status: true, preAnalysis: true, postAnalysis: true, createdAt: true, notes: true,
+          status: true, preAnalysis: true, postAnalysis: true, createdAt: true, completedAt: true, notes: true,
+          aiParams: true,
           pathWav32: true, pathWav24: true, pathWav16: true, pathFlac: true,
           pathMp3320: true, pathMp3128: true, pathAac256: true,
         },
@@ -42,22 +44,29 @@ export async function GET() {
   });
 
   // Parse LUFS from analysis JSON
+  const now = Date.now();
   const mastersWithLufs = user.masters.map((m: typeof user.masters[number]) => {
     let lufsIn = null, lufsOut = null;
     try { const pre = JSON.parse(m.preAnalysis ?? "{}"); lufsIn = pre.integrated_lufs ?? pre.integrated_loudness ?? null; } catch {}
     try { const post = JSON.parse(m.postAnalysis ?? "{}"); lufsOut = post.integrated_lufs ?? post.integrated_loudness ?? null; } catch {}
-    const formats = [
-      m.pathWav32  && "wav32",
-      m.pathWav24  && "wav24",
-      m.pathWav16  && "wav16",
-      m.pathFlac   && "flac",
-      m.pathMp3320 && "mp3320",
-      m.pathMp3128 && "mp3128",
-      m.pathAac256 && "aac256",
-    ].filter(Boolean) as string[];
+    const completionDate = m.completedAt ?? m.createdAt;
+    const expiresAt = m.status === "done"
+      ? new Date(completionDate.getTime() + DOWNLOAD_WINDOW_MS)
+      : null;
+    const withinWindow = expiresAt !== null && expiresAt.getTime() > now;
+    // Disk is the source of truth for local storage. A persisted path must not
+    // make an already-cleaned or partially-created file appear downloadable.
+    const formats = m.status === "done" && withinWindow ? findExistingMasterFormats(m.id) : [];
+    let selectedFormat: string | null = null;
+    try {
+      const saved = JSON.parse(m.aiParams ?? "{}");
+      if (typeof saved.selectedFormat === "string") selectedFormat = saved.selectedFormat;
+    } catch {}
     return { id: m.id, originalName: m.originalName, platform: m.platform,
              preset: m.preset, status: m.status, lufsIn, lufsOut,
-             createdAt: m.createdAt, notes: m.notes ?? "", formats };
+             createdAt: m.createdAt, completedAt: m.completedAt,
+             expiresAt, downloadAvailable: formats.length > 0 && withinWindow,
+             notes: m.notes ?? "", formats, selectedFormat };
   });
 
   const savedRefs = await db.savedReference.findMany({
@@ -144,10 +153,18 @@ export async function DELETE() {
   if (!session?.user?.email)
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
 
-  const user = await db.user.findUnique({ where: { email: session.user.email } });
+  const user = await db.user.findUnique({
+    where: { email: session.user.email },
+    include: { masters: { select: { id: true, fileId: true } } },
+  });
   if (!user) return NextResponse.json({ error: "Nutzer nicht gefunden" }, { status: 404 });
 
-  // Cascade deletes handle sessions, masters, saved references
+  // Cascade deletes handle database records; audio files live outside Prisma
+  // and must be removed explicitly for account deletion to be complete.
+  await Promise.all(user.masters.flatMap((master) => [
+    removeMasterFiles(master.id),
+    removeUploadFiles(master.fileId),
+  ]));
   await db.user.delete({ where: { id: user.id } });
 
   return NextResponse.json({ ok: true });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
 
 // GET /api/account/export
@@ -17,7 +17,7 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
         select: {
           id: true, originalName: true, platform: true, preset: true,
-          status: true, preAnalysis: true, postAnalysis: true, createdAt: true,
+          status: true, preAnalysis: true, postAnalysis: true, createdAt: true, completedAt: true,
         },
       },
     },

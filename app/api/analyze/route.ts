@@ -3,9 +3,11 @@ import path from "path";
 import { existsSync } from "fs";
 import { readdir } from "fs/promises";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import { rateLimit } from "@/lib/rateLimit";
 import { normalizeAnalysis, signAnalysis } from "@/lib/analysisValidation";
+import { verifyUpload } from "@/lib/uploadAuthorization";
+import { pythonServiceHeaders } from "@/lib/pythonService";
 
 // Allow up to 3 minutes – librosa analysis on long tracks can take 60–90s
 export const maxDuration = 180;
@@ -21,10 +23,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Zu viele Analysen. Bitte warte einen Moment." }, { status: 429 });
     }
 
-    const { file_id } = await req.json();
+    const parsedBody: unknown = await req.json().catch(() => null);
+    if (!parsedBody || typeof parsedBody !== "object" || Array.isArray(parsedBody)) {
+      return NextResponse.json({ error: "Ungültige Anfrage" }, { status: 400 });
+    }
+    const { file_id, upload_token } = parsedBody as Record<string, unknown>;
 
     if (typeof file_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(file_id)) {
       return NextResponse.json({ error: "Ungültige Datei-ID" }, { status: 400 });
+    }
+    if (!verifyUpload(file_id, session.user.id, upload_token)) {
+      return NextResponse.json({ error: "Kein Zugriff auf diesen Upload" }, { status: 403 });
     }
 
     // Find the uploaded file
@@ -40,7 +49,7 @@ export async function POST(req: NextRequest) {
     // Call Python analyzer
     const res = await fetch(`${PYTHON_URL}/analyze`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: pythonServiceHeaders(),
       body: JSON.stringify({ file_path: filePath }),
       signal: AbortSignal.timeout(170000),
     });

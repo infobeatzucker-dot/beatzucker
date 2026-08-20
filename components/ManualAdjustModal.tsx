@@ -13,7 +13,7 @@ import { stopGlobalAudio } from "@/lib/globalAudio";
 import type { AnalysisData, Lang, Platform, Preset } from "@/lib/types/mastering";
 
 interface Props {
-  open: boolean; onClose: () => void; lang?: Lang; fileId: string; filename: string;
+  open: boolean; onClose: () => void; lang?: Lang; fileId: string; uploadToken: string; filename: string;
   durationSec: number; platform: Platform; preset: Preset; intensity: number;
   analysis: AnalysisData | null; referenceAnalysis?: AnalysisData | null;
   serverParams?: Record<string, unknown> | null;
@@ -88,7 +88,7 @@ function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null
 
 const emptyBars = Array.from({ length: 240 }, () => .08);
 
-export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, filename, durationSec, analysis, serverParams, onApply }: Props) {
+export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, uploadToken, filename, durationSec, analysis, serverParams, onApply }: Props) {
   const base = useMemo(() => seedValues(serverParams), [serverParams]);
   const [values, setValues] = useState<ParamValues>(base), valuesRef = useRef(values); valuesRef.current = values;
   const [tab, setTab] = useState<TabId>("eq");
@@ -101,7 +101,15 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null), [playing, setPlaying] = useState(false);
   const [engineBusy, setEngineBusy] = useState(false), [previewError, setPreviewError] = useState<string | null>(null);
   const [waveBars, setWaveBars] = useState(emptyBars), [waveLoading, setWaveLoading] = useState(false);
-  const sourceUrl = useMemo(() => `/api/preview?file_id=${encodeURIComponent(fileId)}`, [fileId]);
+  const [auditionBase, setAuditionBase] = useState(false), auditionBaseRef = useRef(false);
+  const sourceUrl = useMemo(
+    () => `/api/preview?file_id=${encodeURIComponent(fileId)}&upload_token=${encodeURIComponent(uploadToken)}`,
+    [fileId, uploadToken],
+  );
+  const waveformUrl = useMemo(
+    () => `/api/waveform?file_id=${encodeURIComponent(fileId)}&upload_token=${encodeURIComponent(uploadToken)}`,
+    [fileId, uploadToken],
+  );
   const startSec = region.start, endSec = Math.min(dur, region.start + region.len);
   const dirty = useMemo(() => Object.keys(changedOnly(values, base)).length, [values, base]);
   const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
@@ -111,7 +119,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   }, []);
   useEffect(() => {
     if (open) {
-      setValues(base); setPreviewError(null); stopGlobalAudio();
+      setValues(base); setPreviewError(null); setAuditionBase(false); auditionBaseRef.current = false; stopGlobalAudio();
       const next = { start: Math.max(0, dur * .35), len: Math.min(8, dur) }; regionRef.current = next; setRegion({ ...next });
     } else destroyEngine();
   }, [open, base, dur, destroyEngine]);
@@ -121,32 +129,22 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     if (!open || !fileId) return;
     const aborter = new AbortController(); setWaveLoading(true);
     void (async () => {
-      let context: AudioContext | null = null;
       try {
-        const response = await fetch(sourceUrl, { signal: aborter.signal }); if (!response.ok) throw new Error("waveform");
-        context = new AudioContext(); const buffer = await context.decodeAudioData((await response.arrayBuffer()).slice(0));
-        const count = 240, next = Array.from({ length: count }, (_, index) => {
-          let peak = 0, sum = 0, samples = 0;
-          const from = Math.floor(index / count * buffer.length), to = Math.max(from + 1, Math.floor((index + 1) / count * buffer.length));
-          const stride = Math.max(1, Math.floor((to - from) / 180));
-          for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-            const data = buffer.getChannelData(channel);
-            for (let i = from; i < to; i += stride) { const value = Math.abs(data[i] || 0); peak = Math.max(peak, value); sum += value * value; samples++; }
-          }
-          return peak * .65 + Math.sqrt(sum / Math.max(1, samples)) * .35;
-        });
-        const sorted = [...next].sort((a, b) => a - b), ceiling = sorted[Math.floor(sorted.length * .96)] || 1;
-        if (!aborter.signal.aborted) setWaveBars(next.map((value) => Math.max(.06, Math.min(1, value / ceiling))));
+        const response = await fetch(waveformUrl, { signal: aborter.signal }); if (!response.ok) throw new Error("waveform");
+        const payload: unknown = await response.json();
+        const peaks = payload && typeof payload === "object" && !Array.isArray(payload) ? (payload as { peaks?: unknown }).peaks : null;
+        if (!Array.isArray(peaks) || peaks.length !== 240 || peaks.some((value) => typeof value !== "number" || !Number.isFinite(value))) throw new Error("waveform");
+        if (!aborter.signal.aborted) setWaveBars(peaks as number[]);
       } catch {
         if (!aborter.signal.aborted) {
           setWaveBars(emptyBars);
           setPreviewError(lang === "en" ? "The waveform could not be analyzed." : "Die Wellenform konnte nicht analysiert werden.");
         }
       }
-      finally { if (context) void context.close(); if (!aborter.signal.aborted) setWaveLoading(false); }
+      finally { if (!aborter.signal.aborted) setWaveLoading(false); }
     })();
     return () => aborter.abort();
-  }, [open, fileId, sourceUrl, lang]);
+  }, [open, fileId, waveformUrl, lang]);
 
   const ensureEngine = useCallback(() => {
     if (!engineRef.current) {
@@ -162,8 +160,13 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     return engineRef.current;
   }, [sourceUrl, analysis?.integrated_lufs, analysis?.true_peak]);
   const setParam = useCallback((key: ParamKey, value: number) => setValues((previous) => {
-    const next = { ...previous, [key]: value }; engineRef.current?.update(next); return next;
+    const next = { ...previous, [key]: value }; if (!auditionBaseRef.current) engineRef.current?.update(next); return next;
   }), []);
+  const toggleAudition = useCallback(() => {
+    const next = !auditionBaseRef.current;
+    auditionBaseRef.current = next; setAuditionBase(next);
+    engineRef.current?.update(next ? base : valuesRef.current);
+  }, [base]);
   const setRegionLive = useCallback((start: number, len: number) => {
     const safeLen = Math.max(1, Math.min(20, Math.min(len, dur)));
     const next = { start: Math.max(0, Math.min(dur - safeLen, start)), len: safeLen }; regionRef.current = next;
@@ -227,10 +230,10 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
 
   const togglePlay = useCallback(async () => {
     setEngineBusy(true); setPreviewError(null); stopGlobalAudio();
-    try { const engine = ensureEngine(); engine.update(valuesRef.current); await engine.toggle(regionRef.current.start, regionRef.current.start + regionRef.current.len); }
+    try { const engine = ensureEngine(); engine.update(auditionBaseRef.current ? base : valuesRef.current); await engine.toggle(regionRef.current.start, regionRef.current.start + regionRef.current.len); }
     catch { setPreviewError(lang === "en" ? "Live preview could not be started." : "Die Live-Vorschau konnte nicht gestartet werden."); }
     finally { setEngineBusy(false); }
-  }, [ensureEngine, lang]);
+  }, [ensureEngine, lang, base]);
 
   const tabDefs = PARAM_DEFS.filter((definition) => definition.tab === tab), wide = tab === "ms" || tab === "sat" || tab === "bus";
   return <>{open && <div className="adjust-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }} role="dialog" aria-modal="true">
@@ -242,6 +245,10 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
       <section className="adjust-wave"><div className="adjust-wave-bar"><div className="adjust-transport">
         <button className="adjust-play" onClick={() => void togglePlay()} disabled={engineBusy}>{engineBusy ? <Loader2 size={15} className="adjust-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}</button>
         <span className="adjust-range-chip"><span ref={chipTimeRef}>{fmtTime(startSec)}–{fmtTime(endSec)}</span>{playing && " · LOOP"}</span>
+        <div className="adjust-ab" aria-label={lang === "en" ? "Compare server master and manual changes" : "Server-Master und manuelle Änderungen vergleichen"}>
+          <button className={auditionBase ? "is-active" : ""} onClick={() => { if (!auditionBase) toggleAudition(); }} disabled={!dirty}>A <span>{lang === "en" ? "Master" : "Master"}</span></button>
+          <button className={!auditionBase ? "is-active" : ""} onClick={() => { if (auditionBase) toggleAudition(); }} disabled={!dirty}>B <span>{lang === "en" ? "Changes" : "Änderungen"}</span></button>
+        </div>
         <button className="adjust-loudest" onClick={locateLoudest} disabled={waveLoading}><LocateFixed size={12} />{lang === "en" ? "Loudest part" : "Lauteste Stelle"}</button>
         <div className="adjust-lenpicker">{[5, 8, 12, 20].filter((length) => length <= dur || length === 5).map((length) => <button key={length} className={Math.abs(region.len - Math.min(length, dur)) < .1 ? "is-active" : ""} onClick={() => { const current = regionRef.current; setRegionLive(current.start + current.len / 2 - length / 2, length); commitRegion(); }}>{length}s</button>)}</div>
       </div>{previewError && <span className="adjust-error">{previewError}</span>}</div>
@@ -257,7 +264,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         {tab === "sat" && <SaturationScope drive={values.saturation_amount ?? 0} lang={lang} analyser={analyser} playing={playing} />}
         {tab === "bus" && <GainReductionScope threshold={values.bus_comp_threshold ?? -24} ratio={values.bus_comp_ratio ?? 1.4} lang={lang} analyser={analyser} playing={playing} getReduction={() => engineRef.current?.busReduction ?? 0} />}
       </div>
-      <footer className="adjust-foot"><button className="adjust-ghost" disabled={!dirty} onClick={() => { setValues(base); engineRef.current?.update(base); }}><RotateCcw size={13} />{lang === "en" ? "Reset" : "Zurücksetzen"}</button>
+      <footer className="adjust-foot"><button className="adjust-ghost" disabled={!dirty} onClick={() => { setValues(base); setAuditionBase(false); auditionBaseRef.current = false; engineRef.current?.update(base); }}><RotateCcw size={13} />{lang === "en" ? "Reset" : "Zurücksetzen"}</button>
         <div className="adjust-live-note"><span />{lang === "en" ? "Instant Web Audio preview · final export uses the full mastering engine" : "Sofortige Web-Audio-Vorschau · finaler Export nutzt die vollständige Mastering-Engine"}</div>
         <button className="adjust-commit" disabled={!dirty} onClick={() => onApply(changedOnly(values, base))}>{lang === "en" ? "Create new master" : "Neuen Master erstellen"}</button></footer>
     </motion.div>

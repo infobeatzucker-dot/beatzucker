@@ -134,7 +134,10 @@ export default function UploadZone({
         const analysisRes = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ file_id: uploadResult.file_id }),
+          body: JSON.stringify({
+            file_id: uploadResult.file_id,
+            upload_token: uploadResult.upload_token,
+          }),
         });
 
         clearInterval(analyzeTimer);

@@ -101,12 +101,12 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
-            <span className="hidden xl:block"><DonateButton variant="nav" /></span>
+            <span className="hidden xl:block"><DonateButton variant="nav" lang={lang} /></span>
             {/* Global audio play/pause — visible whenever the player is loaded */}
             {audioState.available && (
               <button
                 onClick={toggleGlobalAudio}
-                title={audioState.playing ? "Pausieren" : "Abspielen"}
+                title={audioState.playing ? (lang === "de" ? "Pausieren" : "Pause") : (lang === "de" ? "Abspielen" : "Play")}
                 style={{
                   display: "flex", alignItems: "center", gap: "0.35rem",
                   padding: "0.3rem 0.7rem", borderRadius: "20px",
@@ -171,7 +171,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
               className="md:hidden p-2 rounded-lg transition-colors"
               style={{ color: "var(--text-secondary)" }}
               onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Menü"
+              aria-label={lang === "de" ? "Menü" : "Menu"}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 {menuOpen ? (
@@ -205,7 +205,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
                   { label: lang === "de" ? "Hilfe" : "Help", href: "/help" },
                   { label: lang === "de" ? "Wissen" : "Knowledge", href: "/ressourcen" },
                   { label: lang === "de" ? "Impressum" : "Legal notice", href: "/impressum" },
-                  { label: lang === "de" ? "Datenschutz" : "Privacy", href: "/datenschutz" },
+                  { label: lang === "de" ? "Datenschutz" : "Privacy", href: lang === "de" ? "/datenschutz" : "/privacy" },
                 ].map((item) => (
                   <Link
                     key={item.label}
@@ -241,7 +241,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
                   style={{ color: "var(--accent-gold)", textDecoration: "none" }}
                   onClick={() => setMenuOpen(false)}
                 >
-                  <Coffee size={14} strokeWidth={2} /> Beatzucker unterstützen
+                  <Coffee size={14} strokeWidth={2} /> {lang === "de" ? "Beatzucker unterstützen" : "Support Beatzucker"}
                 </a>
               </div>
             </motion.div>

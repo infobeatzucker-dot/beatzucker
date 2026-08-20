@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw } from "lucide-react";
+import { AlertCircle, RotateCcw, X } from "lucide-react";
 import UploadZone from "@/components/UploadZone";
 import AuthModal from "@/components/AuthModal";
 import AnalysisPanel from "@/components/AnalysisPanel";
@@ -108,6 +108,7 @@ export default function MasteringWorkspace({ lang }: Props) {
   const [savedRefs, setSavedRefs] = useState<SavedRef[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
+  const [masteringError, setMasteringError] = useState<string | null>(null);
 
   // Scroll targets
   const mainPanelRef  = useRef<HTMLDivElement>(null);
@@ -162,11 +163,16 @@ export default function MasteringWorkspace({ lang }: Props) {
     }, 50);
   }, []);
 
-  const handleUploadComplete   = useCallback((file: UploadedFile) => { setUploadedFile(file); setAppState("uploaded"); }, []);
+  const handleUploadComplete   = useCallback((file: UploadedFile) => {
+    setMasteringError(null);
+    setUploadedFile(file);
+    setAppState("uploaded");
+  }, []);
   const handleAnalysisComplete = useCallback((data: AnalysisData) => { setAnalysis(data); setAppState("analyzed"); }, []);
 
   const handleMasteringStart = useCallback(() => {
     isMasteringRef.current = true;
+    setMasteringError(null);
     setAppState("mastering");
     setCurrentProgress({ step: "analyzing", label: T.analyzing[lang], progress: 5 });
     // No scroll needed — progress is shown in a modal overlay
@@ -180,14 +186,17 @@ export default function MasteringWorkspace({ lang }: Props) {
     setMasterData(data);
     setAppState("done");
     setCurrentProgress(null);
+    setMasteringError(null);
+    setDailyUsed((used) => used === null ? null : Math.min(DAILY_MASTER_LIMIT, used + 1));
   }, []);
 
-  const handleMasteringError = useCallback(() => {
+  const handleMasteringError = useCallback((message: string) => {
     if (!isMasteringRef.current) return; // stale callback — ignore
     isMasteringRef.current = false;
-    setAppState("analyzed");
+    setAppState(masterData ? "done" : "analyzed");
     setCurrentProgress(null);
-  }, []);
+    setMasteringError(message);
+  }, [masterData]);
 
   const handleReset = useCallback(() => {
     isMasteringRef.current = false; // cancel any in-flight mastering callbacks
@@ -196,6 +205,7 @@ export default function MasteringWorkspace({ lang }: Props) {
     setAnalysis(null);
     setMasterData(null);
     setCurrentProgress(null);
+    setMasteringError(null);
     scrollToPanel();
   }, [scrollToPanel]);
 
@@ -204,6 +214,7 @@ export default function MasteringWorkspace({ lang }: Props) {
     isMasteringRef.current = false; // cancel any in-flight mastering callbacks
     setMasterData(null);
     setCurrentProgress(null);
+    setMasteringError(null);
     setAppState("analyzed");
     scrollToPanel();
   }, [scrollToPanel]);
@@ -217,10 +228,10 @@ export default function MasteringWorkspace({ lang }: Props) {
   const handleApplyAdjustments = useCallback(async (overrides: ParamValues) => {
     if (!uploadedFile) return;
     setAdjustOpen(false);
-    setMasterData(null);
     handleMasteringStart();
     await runMastering({
       fileId: uploadedFile.file_id,
+      uploadToken: uploadedFile.upload_token,
       originalName: uploadedFile.filename,
       platform, targetLufs: customLufs, preset, intensity,
       selectedFormat,
@@ -237,7 +248,9 @@ export default function MasteringWorkspace({ lang }: Props) {
       handleMasteringComplete, handleMasteringError]);
 
   // Audio engine URLs
-  const originalUrl = uploadedFile ? `/api/preview?file_id=${uploadedFile.file_id}` : "";
+  const originalUrl = uploadedFile
+    ? `/api/preview?file_id=${encodeURIComponent(uploadedFile.file_id)}&upload_token=${encodeURIComponent(uploadedFile.upload_token)}`
+    : "";
   // Prefer the high-quality browser preview. MP3 128 remains a valid selected
   // delivery format, but should not be the default source for critical A/B.
   const masteredUrl = masterData?.formats.mp3320 || masterData?.formats.mp3128 || masterData?.formats.wav16 || "";
@@ -267,6 +280,41 @@ export default function MasteringWorkspace({ lang }: Props) {
               </div>
               <span className="ready-status"><i /> {T.ready[lang]}</span>
             </div>
+
+            <AnimatePresence initial={false}>
+              {masteringError && (
+                <motion.div
+                  role="alert"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  style={{
+                    marginBottom: "1rem",
+                    padding: "0.75rem 0.85rem",
+                    borderRadius: "10px",
+                    background: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(248,113,113,0.3)",
+                    color: "#fca5a5",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "0.65rem",
+                    fontSize: "0.82rem",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <AlertCircle size={17} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
+                  <span style={{ flex: 1 }}>{masteringError}</span>
+                  <button
+                    type="button"
+                    onClick={() => setMasteringError(null)}
+                    aria-label={lang === "de" ? "Fehlermeldung schließen" : "Dismiss error"}
+                    style={{ color: "inherit", opacity: 0.8, padding: 2 }}
+                  >
+                    <X size={15} />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Daily usage counter (fair-use limit, applies to everyone) */}
             {sessionStatus === "authenticated" && dailyUsed !== null && (
@@ -469,6 +517,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                 {/* Master NOW button */}
                 <MasterButton
                   fileId={uploadedFile.file_id}
+                  uploadToken={uploadedFile.upload_token}
                   originalName={uploadedFile.filename}
                   platform={platform}
                   targetLufs={customLufs}
@@ -505,6 +554,7 @@ export default function MasteringWorkspace({ lang }: Props) {
           onClose={() => setAdjustOpen(false)}
           lang={lang}
           fileId={uploadedFile.file_id}
+          uploadToken={uploadedFile.upload_token}
           filename={uploadedFile.filename}
           durationSec={uploadedFile.duration || analysis?.duration_seconds || 0}
           platform={platform}
