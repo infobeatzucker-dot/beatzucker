@@ -275,6 +275,9 @@ export async function POST(req: NextRequest) {
 
         // Persist results
         const validatedPayload = await validateMasterResult(finalPayload, masterId, format);
+        if (overrides && Object.keys(overrides).length > 0) {
+          validatedPayload.manual_overrides = overrides;
+        }
         await finalizeMaster(dbMasterId, userId, validatedPayload);
         send(validatedPayload);
 
@@ -381,6 +384,8 @@ async function finalizeMaster(
   const savedPath = (key: string) => typeof formats[key] === "string" ? formats[key] as string : null;
   const selectedFormat = typeof payload?.selected_format === "string" ? payload.selected_format : null;
   const params = payload?.params && typeof payload.params === "object" ? payload.params : null;
+  const manualOverrides = payload?.manual_overrides && typeof payload.manual_overrides === "object"
+    ? payload.manual_overrides : null;
 
   await db.master.update({
     where: { id: dbMasterId },
@@ -388,7 +393,7 @@ async function finalizeMaster(
       status:       "done",
       completedAt:  new Date(),
       postAnalysis: postAnalysis ? JSON.stringify(postAnalysis) : null,
-      aiParams:      JSON.stringify({ selectedFormat, params }),
+      aiParams:      JSON.stringify({ selectedFormat, params, manualOverrides }),
       pathWav32:     savedPath("wav32"),
       pathWav24:     savedPath("wav24"),
       pathWav16:     savedPath("wav16"),

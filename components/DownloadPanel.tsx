@@ -74,13 +74,21 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
       platform,
       preset,
       intensity,
+      lang,
       pre:   preAnalysis,
       post:  masterData.post_analysis,
       notes: displayNotes,
+      params: masterData.params ?? {},
+      manualOverrides: masterData.manual_overrides ?? {},
+      selectedFormat: masterData.selected_format ?? "",
+      availableFormats: Object.keys(masterData.formats),
+      genre: masterData.genre ?? "",
+      referenceUsed: /Reference track used/i.test(masterData.notes),
+      codecTrim: masterData.notes.match(/Codec safety trim:\s*([\d.]+) dB/i)?.[1] ?? "",
       date:  new Date().toLocaleString(lang === "de" ? "de-DE" : "en-GB", { dateStyle: "long", timeStyle: "short" }),
     };
     const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-    window.open(`/api/report?data=${b64}`, "_blank");
+    window.open(`/api/report?data=${encodeURIComponent(b64)}`, "_blank", "noopener,noreferrer");
   };
 
   // fmtKey = "mp3128", ext = "mp3"  →  beatzucker_trackname_mp3128.mp3

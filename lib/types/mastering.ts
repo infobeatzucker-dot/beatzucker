@@ -46,6 +46,9 @@ export interface MasterData {
   };
   post_analysis: AnalysisData;
   notes: string;
+  genre?: string;
+  /** Nur die bei diesem Render bewusst manuell überschriebenen DSP-Werte. */
+  manual_overrides?: Record<string, number>;
   /**
    * Die Parameter, mit denen dieser Master tatsächlich gerendert wurde.
    * Die manuelle Nachjustierung startet ihre Regler damit, damit der Klang beim
