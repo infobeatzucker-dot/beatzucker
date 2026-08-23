@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Lock } from "lucide-react";
 import CookieReopenButton from "./CookieReopenButton";
 import DonateButton from "./DonateButton";
 import type { Lang } from "@/lib/types/mastering";
+import ToolSeoContent from "./ToolSeoContent";
 
 export default function Footer({ lang = "de" }: { lang?: Lang }) {
+  const pathname = usePathname();
   const navigation = lang === "de"
     ? [
         ["/features", "Funktionen"], ["/help", "Hilfe"], ["/tools", "Tools"], ["/mix-check", "Mix-Check"], ["/ressourcen", "Wissen"],
@@ -16,7 +21,8 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
         ["/legal-notice", "Legal notice"], ["/privacy", "Privacy"], ["/terms", "Terms"],
         ["/cancellation-policy", "Cancellation policy"],
       ];
-  return (
+  return (<>
+    <ToolSeoContent pathname={pathname} lang={lang} />
     <footer
       className="border-t py-8 px-4"
       style={{
@@ -58,6 +64,6 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
         © {new Date().getFullYear()} Beatzucker ·{" "}
         <a href="mailto:info@re-beatz.com" style={{ color: "var(--text-muted)" }}>info@re-beatz.com</a>
       </div>
-    </footer>
+    </footer></>
   );
 }
