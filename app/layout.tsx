@@ -13,6 +13,11 @@ const inter = Inter({
 
 const BASE_URL = "https://beatzucker.de";
 
+// The App Router has one shared root layout for both language trees. Set the
+// document language before the body is parsed so English routes are announced
+// correctly without waiting for React hydration.
+const documentLanguageScript = `(()=>{const p=location.pathname;const en=/^\\/en(?:\\/|$)/.test(p)||["/privacy","/terms","/legal-notice","/cancellation-policy"].includes(p);document.documentElement.lang=en?"en":"de"})()`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
 
@@ -161,8 +166,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de" className={inter.variable}>
+    <html lang="de" className={inter.variable} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: documentLanguageScript }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

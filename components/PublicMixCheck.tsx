@@ -78,10 +78,21 @@ export default function PublicMixCheck({ lang = "de" }: { lang?: Lang }) {
 
         {status !== "done" && (
           <div className={`mixcheck-drop ${dragging ? "dragging" : ""} ${status === "checking" ? "busy" : ""}`}
+            role="button"
+            tabIndex={status === "checking" ? -1 : 0}
+            aria-disabled={status === "checking"}
+            aria-busy={status === "checking"}
+            aria-label={lang === "de" ? "Audiodatei für den Mix-Check auswählen" : "Choose an audio file for the Mix Check"}
             onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={(event) => { event.preventDefault(); setDragging(false); const file = event.dataTransfer.files[0]; if (file) void run(file); }}
-            onClick={() => status !== "checking" && inputRef.current?.click()}>
+            onClick={() => status !== "checking" && inputRef.current?.click()}
+            onKeyDown={(event) => {
+              if (status !== "checking" && (event.key === "Enter" || event.key === " ")) {
+                event.preventDefault();
+                inputRef.current?.click();
+              }
+            }}>
             <div className="mixcheck-drop-icon">{status === "checking" ? <Loader2 className="mixcheck-spin" size={30} /> : <UploadCloud size={30} />}</div>
             <h2>{status === "checking" ? (lang === "de" ? "Mix wird technisch vermessen …" : "Measuring your mix …") : (lang === "de" ? "Track hier ablegen" : "Drop your track here")}</h2>
             <p>{status === "checking" ? filename : (lang === "de" ? "oder klicken und Datei auswählen" : "or click to choose a file")}</p>
@@ -91,10 +102,10 @@ export default function PublicMixCheck({ lang = "de" }: { lang?: Lang }) {
           </div>
         )}
 
-        {status === "error" && <div className="mixcheck-error"><AlertTriangle size={16} /><span>{error}</span><button onClick={reset}>{lang === "de" ? "Erneut versuchen" : "Try again"}</button></div>}
+        {status === "error" && <div className="mixcheck-error" role="alert"><AlertTriangle size={16} /><span>{error}</span><button onClick={reset}>{lang === "de" ? "Erneut versuchen" : "Try again"}</button></div>}
 
         {status === "done" && analysis && (
-          <div className="mixcheck-result">
+          <div className="mixcheck-result" aria-live="polite">
             <div className="mixcheck-score-card">
               <div className="mixcheck-score" style={{ "--score": `${score * 3.6}deg` } as React.CSSProperties}><div><strong>{score}</strong><span>/100</span></div></div>
               <div><span className="mixcheck-result-label">{lang === "de" ? "MIX-CHECK ERGEBNIS" : "MIX CHECK RESULT"}</span><h2>{score >= 80 ? (lang === "de" ? "Technisch gut vorbereitet" : "Technically well prepared") : score >= 55 ? (lang === "de" ? "Einige Punkte solltest du prüfen" : "A few points need attention") : (lang === "de" ? "Vor dem Mastering nacharbeiten" : "Revise before mastering")}</h2><p><FileAudio size={14} /> {filename}</p></div>
