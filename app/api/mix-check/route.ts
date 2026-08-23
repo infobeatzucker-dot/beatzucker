@@ -44,10 +44,6 @@ function clientKey(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const key = clientKey(req);
-  if (!rateLimit(`public-mix-check:${key}`, 3, 60 * 60 * 1000)) {
-    return NextResponse.json({ error: "Mix-Check limit reached. Please try again later." }, { status: 429 });
-  }
-
   let filePath: string | null = null;
   try {
     const declaredLength = Number(req.headers.get("content-length") || 0);
@@ -59,6 +55,12 @@ export async function POST(req: NextRequest) {
     }
 
     const form = await req.formData();
+    const requestedPurpose = form.get("purpose");
+    const purpose = typeof requestedPurpose === "string" && ["mix-check", "key-bpm", "streaming-preview", "album-consistency"].includes(requestedPurpose) ? requestedPurpose : "mix-check";
+    const limit = purpose === "album-consistency" ? 16 : 3;
+    if (!rateLimit(`public-analysis:${purpose}:${key}`, limit, 60 * 60 * 1000)) {
+      return NextResponse.json({ error: "Analysis limit reached. Please try again later." }, { status: 429 });
+    }
     const file = form.get("file");
     if (!(file instanceof File)) return NextResponse.json({ error: "No audio file provided." }, { status: 400 });
     if (file.size <= 0 || file.size > MAX_SIZE) return NextResponse.json({ error: "File too large. Maximum size is 40 MB." }, { status: 413 });

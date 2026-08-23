@@ -49,7 +49,7 @@ export default function StreamingPreviewTool({ lang }: { lang: Lang }) {
     setLoading(true); setError(""); setAnalysis(null); setFile(selected);
     if (url) URL.revokeObjectURL(url); setUrl(URL.createObjectURL(selected));
     try {
-      const body = new FormData(); body.append("file", selected);
+      const body = new FormData(); body.append("file", selected); body.append("purpose", "streaming-preview");
       const response = await fetch("/api/mix-check", { method: "POST", body }); const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.analysis) throw new Error(payload.error || (en ? "Analysis failed." : "Analyse fehlgeschlagen."));
       setAnalysis(payload.analysis);

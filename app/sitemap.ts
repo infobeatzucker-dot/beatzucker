@@ -70,6 +70,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${BASE}/en/tools/streaming-preview`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
     },
+    {
+      url: `${BASE}/tools/key-bpm`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9,
+    },
+    {
+      url: `${BASE}/en/tools/key-bpm`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
+    },
+    {
+      url: `${BASE}/tools/kick-bass-conflict`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9,
+    },
+    {
+      url: `${BASE}/en/tools/kick-bass-conflict`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
+    },
+    { url: `${BASE}/tools/audio-converter`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/en/tools/audio-converter`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/tools/album-consistency`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/en/tools/album-consistency`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
 
     /* ── Ressourcen / Wissen ──────────────────────────────────── */
     {
