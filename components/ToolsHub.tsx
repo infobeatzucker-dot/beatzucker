@@ -11,7 +11,7 @@ export default function ToolsHub({ lang }: { lang: Lang }) {
       <p>{en ? "Analyze, preview and prepare your music directly in the browser — technically transparent and without permanent audio storage." : "Analysiere, simuliere und bereite deine Musik direkt im Browser vor – technisch transparent und ohne dauerhafte Audiospeicherung."}</p>
     </section>
     <section className="tools-grid">
-      <Link className="tool-card tool-card-featured" href={en ? "/en/tools/key-bpm" : "/tools/key-bpm"}>
+      <Link className="tool-card" href={en ? "/en/tools/key-bpm" : "/tools/key-bpm"}>
         <div className="tool-card-icon"><Music2 size={28} /></div><span className="tool-status live">LIVE</span>
         <h2>{en ? "Key & BPM Detector" : "Tonart- & BPM-Detector"}</h2>
         <p>{en ? "Detect tempo, key and Camelot code, including useful half- and double-time alternatives." : "Erkenne Tempo, Tonart und Camelot-Code inklusive sinnvoller Half- und Double-Time-Alternativen."}</p>
@@ -37,7 +37,7 @@ export default function ToolsHub({ lang }: { lang: Lang }) {
         <p>{en ? "Compare loudness, dynamics and tonal balance across an EP or album before release." : "Vergleiche Lautheit, Dynamik und Klangbalance einer EP oder eines Albums vor dem Release."}</p>
         <div className="tool-tags"><span>MULTI-TRACK</span><span>LUFS</span><span>TONE</span></div><strong>{en ? "Open tool" : "Tool öffnen"} <ArrowRight size={16}/></strong>
       </Link>
-      <Link className="tool-card tool-card-featured" href={en ? "/en/tools/streaming-preview" : "/tools/streaming-preview"}>
+      <Link className="tool-card" href={en ? "/en/tools/streaming-preview" : "/tools/streaming-preview"}>
         <div className="tool-card-icon"><Radio size={28} /></div><span className="tool-status live">LIVE</span>
         <h2>{en ? "Streaming Preview" : "Streaming-Vorschau"}</h2>
         <p>{en ? "Hear platform loudness normalization and check true-peak and codec headroom before release." : "Höre die Plattform-Normalisierung und prüfe True Peak sowie Codec-Headroom vor dem Release."}</p>
