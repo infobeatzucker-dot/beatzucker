@@ -56,8 +56,8 @@ export async function POST(req: NextRequest) {
 
     const form = await req.formData();
     const requestedPurpose = form.get("purpose");
-    const purpose = typeof requestedPurpose === "string" && ["mix-check", "key-bpm", "streaming-preview", "album-consistency"].includes(requestedPurpose) ? requestedPurpose : "mix-check";
-    const limit = purpose === "album-consistency" ? 16 : 3;
+    const purpose = typeof requestedPurpose === "string" && ["mix-check", "key-bpm", "streaming-preview", "album-consistency", "reference-comparison", "silence-normalizer"].includes(requestedPurpose) ? requestedPurpose : "mix-check";
+    const limit = purpose === "album-consistency" ? 16 : purpose === "reference-comparison" ? 6 : 3;
     if (!rateLimit(`public-analysis:${purpose}:${key}`, limit, 60 * 60 * 1000)) {
       return NextResponse.json({ error: "Analysis limit reached. Please try again later." }, { status: 429 });
     }

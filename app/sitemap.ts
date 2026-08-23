@@ -86,6 +86,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/en/tools/audio-converter`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/tools/album-consistency`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/en/tools/album-consistency`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/tools/reference-comparison`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/en/tools/reference-comparison`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/tools/stereo-phase`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/en/tools/stereo-phase`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/tools/silence-normalizer`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/en/tools/silence-normalizer`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/tools/vocal-chain`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/en/tools/vocal-chain`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
 
     /* ── Ressourcen / Wissen ──────────────────────────────────── */
     {
