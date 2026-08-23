@@ -581,7 +581,7 @@ export default function MasteringWorkspace({ lang }: Props) {
       )}
 
       {/* Auth modal — opened from the "Sign In / Register" prompt inside UploadZone */}
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} lang={lang} />
     </>
   );
 }

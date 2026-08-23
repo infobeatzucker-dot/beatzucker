@@ -3,6 +3,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { Mail, ShieldCheck } from "lucide-react";
+import type { Lang } from "@/lib/types/mastering";
 
 type View = "login" | "register" | "forgot" | "reset" | "forgot-sent" | "otp";
 
@@ -11,6 +12,7 @@ interface AuthModalProps {
   onClose: () => void;
   initialView?: View;
   resetToken?: string;
+  lang?: Lang;
 }
 
 // ── Shared input style ────────────────────────────────────────────────
@@ -96,7 +98,7 @@ function GoogleIcon() {
 }
 
 // ── AuthModal ─────────────────────────────────────────────────────────
-export default function AuthModal({ open, onClose, initialView = "login", resetToken }: AuthModalProps) {
+export default function AuthModal({ open, onClose, initialView = "login", resetToken, lang = "de" }: AuthModalProps) {
   const [view, setView]           = useState<View>(initialView);
   const [email, setEmail]         = useState("");
   const [password, setPassword]   = useState("");
@@ -105,6 +107,8 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
   const [error, setError]         = useState("");
   const [success, setSuccess]     = useState("");
   const [otp, setOtp]             = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const en = lang === "en";
 
   // Switch to reset view if token is present
   useEffect(() => {
@@ -123,6 +127,10 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
 
   // ── Google login ──────────────────────────────────────────────
   async function handleGoogle() {
+    if (view === "register" && !termsAccepted) {
+      setError(en ? "Please accept the Terms of Service first." : "Bitte akzeptiere zuerst die AGB.");
+      return;
+    }
     setLoading(true);
     await signIn("google", { callbackUrl: "/" });
   }
@@ -176,6 +184,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
   async function handleRegister(e: FormEvent) {
     e.preventDefault();
     setError("");
+    if (!termsAccepted) { setError(en ? "Please accept the Terms of Service first." : "Bitte akzeptiere zuerst die AGB."); return; }
     if (password !== password2) { setError("Passwörter stimmen nicht überein."); return; }
     setLoading(true);
     const res = await fetch("/api/auth", {
@@ -311,6 +320,10 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
               Konto erstellen
             </h2>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: "0.55rem", color: "var(--text-muted)", fontSize: "0.75rem", lineHeight: 1.5, marginBottom: "0.9rem" }}>
+              <input type="checkbox" checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} style={{ marginTop: "0.18rem" }} />
+              <span>{en ? "I accept the " : "Ich akzeptiere die "}<a href={en ? "/terms" : "/agb"} style={{ color: "var(--accent-cyan)" }} target="_blank">{en ? "Terms of Service" : "AGB"}</a>. {en ? "Information about data processing is available in the " : "Informationen zur Datenverarbeitung stehen in der "}<a href={en ? "/privacy" : "/datenschutz"} style={{ color: "var(--accent-cyan)" }} target="_blank">{en ? "Privacy Policy" : "Datenschutzerklärung"}</a>.</span>
+            </label>
             <button style={btnGoogle} onClick={handleGoogle} disabled={loading}>
               <GoogleIcon /> Mit Google registrieren
             </button>
@@ -332,11 +345,6 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
               <button style={linkBtn} onClick={() => { setView("login"); setError(""); }}>Bereits ein Konto? Einloggen</button>
             </div>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.72rem", textAlign: "center", marginTop: "0.75rem", lineHeight: 1.5 }}>
-              Mit der Registrierung stimmst du unseren{" "}
-              <a href="/agb" style={{ color: "var(--accent-cyan)" }} target="_blank">AGB</a> und der{" "}
-              <a href="/datenschutz" style={{ color: "var(--accent-cyan)" }} target="_blank">Datenschutzerklärung</a> zu.
-            </p>
           </>
         )}
 

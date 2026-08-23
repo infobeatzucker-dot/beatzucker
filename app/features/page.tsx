@@ -265,7 +265,7 @@ const FEATURES = [
       de: "Wir verzichten auf Tracking, Werbe-Cookies und Analytics. Deine Audiodateien bleiben nicht dauerhaft auf dem Server, und selbst Schriftarten werden lokal ausgeliefert, damit keine externe Anfrage deine IP verrät.",
       en: "No tracking, no ad cookies, no analytics. Your audio files don't stick around on the server, and even fonts are served locally so no external request ever leaks your IP.",
     },
-    tags: ["No Tracking", "No Cookies", "DSGVO-konform", "EU-Server"],
+    tags: ["No Tracking", "Keine Werbe-Cookies", "DSGVO-konform", "EU-Server"],
     visual: "privacy",
   },
 ];

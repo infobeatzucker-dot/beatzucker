@@ -35,7 +35,7 @@ export default function LegalLayout({ title, activePage, sections, children, lan
   const NAV_ITEMS = lang === "en" ? NAV_ITEMS_EN : NAV_ITEMS_DE;
   const tocLabel  = lang === "en" ? "Table of Contents" : "Inhaltsverzeichnis";
   const badge     = lang === "en" ? "Legal" : "Rechtliches";
-  const dateLabel = lang === "en" ? "As of March 2026" : "Stand: März 2026";
+  const dateLabel = lang === "en" ? "As of August 2026" : "Stand: August 2026";
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh", color: "var(--text-primary)" }}>

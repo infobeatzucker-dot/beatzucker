@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Cookie } from "lucide-react";
 
 const STORAGE_KEY = "beatzucker_cookie_consent";
 
 export default function CookieBanner() {
+  const pathname = usePathname();
+  const en = pathname.startsWith("/en/") || ["/privacy", "/terms", "/legal-notice", "/cancellation-policy"].includes(pathname);
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -45,7 +48,7 @@ export default function CookieBanner() {
       {/* Banner */}
       <div
         role="dialog"
-        aria-label="Cookie-Hinweis"
+        aria-label={en ? "Cookie information" : "Cookie-Hinweis"}
         style={{
           position: "fixed",
           bottom: "1.5rem",
@@ -68,7 +71,7 @@ export default function CookieBanner() {
             fontSize: "0.95rem",
             color: "var(--text-primary, #fff)",
           }}>
-            Cookie-Hinweis
+            {en ? "Cookie information" : "Cookie-Hinweis"}
           </span>
         </div>
 
@@ -79,15 +82,16 @@ export default function CookieBanner() {
           color: "var(--text-secondary, #aaa)",
           marginBottom: "1.25rem",
         }}>
-          Beatzucker verwendet ausschließlich{" "}
-          <strong style={{ color: "var(--text-primary, #fff)" }}>technisch notwendige</strong>{" "}
-          Cookies und lokalen Speicher — keine Tracking-Cookies, keine Werbung, kein Analytics.
-          Deine Einstellungen (Plattform, Preset) werden nur lokal auf deinem Gerät gespeichert.{" "}
+          {en ? "Beatzucker uses only " : "Beatzucker verwendet ausschließlich "}
+          <strong style={{ color: "var(--text-primary, #fff)" }}>{en ? "strictly necessary" : "technisch notwendige"}</strong>{" "}
+          {en
+            ? "cookies and local storage — no tracking cookies, advertising or analytics. Language preference and acknowledgement of this notice remain only on your device. "
+            : "Cookies und lokalen Speicher — keine Tracking-Cookies, keine Werbung, kein Analytics. Sprachwahl und Bestätigung dieses Hinweises bleiben nur auf deinem Gerät. "}
           <Link
-            href="/datenschutz"
+            href={en ? "/privacy" : "/datenschutz"}
             style={{ color: "var(--accent-cyan, #38bdf8)", textDecoration: "none" }}
           >
-            Datenschutzerklärung →
+            {en ? "Privacy Policy →" : "Datenschutzerklärung →"}
           </Link>
         </p>
 
@@ -107,7 +111,7 @@ export default function CookieBanner() {
               letterSpacing: "0.02em",
             }}
           >
-            Verstanden
+            {en ? "Understood" : "Verstanden"}
           </button>
         </div>
       </div>

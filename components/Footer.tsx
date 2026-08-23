@@ -55,7 +55,7 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
           </div>
           <div className="text-[10px] flex items-center gap-1" style={{ color: "#22c55e" }}>
             <Lock size={11} strokeWidth={2} />
-            <span>{lang === "de" ? "Kein Tracking · Keine Cookies · EU-Server" : "No tracking · No cookies · EU servers"}</span>
+            <span>{lang === "de" ? "Kein Tracking · Keine Werbe-Cookies · EU-Server" : "No tracking · No advertising cookies · EU servers"}</span>
           </div>
         </div>
       </div>

@@ -1,41 +1,14 @@
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
+import WithdrawalForm from "@/components/WithdrawalForm";
 
-export const metadata: Metadata = {
-  title: { absolute: "Widerrufsbelehrung – Beatzucker" },
-  description: "Widerrufsbelehrung für den kostenlosen Audio-Mastering-Dienst Beatzucker — als Gratis-Angebot ist kein gesetzliches Widerrufsrecht anwendbar.",
-  alternates: {
-    canonical: "https://beatzucker.de/widerruf",
-    languages: {
-      "de-DE": "https://beatzucker.de/widerruf",
-      en: "https://beatzucker.de/cancellation-policy",
-      "x-default": "https://beatzucker.de/widerruf",
-    },
-  },
-  robots: { index: true, follow: true },
-};
+export const metadata:Metadata={title:{absolute:"Widerruf und Online-Widerrufsfunktion – Beatzucker"},description:"Information zum vorsorglich eingeräumten Widerrufsrecht und elektronische Widerrufsfunktion von Beatzucker.",robots:{index:true,follow:true},alternates:{canonical:"https://beatzucker.de/widerruf",languages:{"de-DE":"https://beatzucker.de/widerruf",en:"https://beatzucker.de/cancellation-policy","x-default":"https://beatzucker.de/widerruf"}}};
+const SECTIONS=[{id:"recht",label:"Widerrufsrecht"},{id:"folgen",label:"Folgen des Widerrufs"},{id:"funktion",label:"Online widerrufen"},{id:"muster",label:"Mustererklärung"}];
 
-const SECTIONS = [
-  { id: "kostenlos", label: "Kein Widerrufsrecht" },
-];
-
-export default function WiderrufPage() {
-  return (
-    <LegalLayout title="Widerrufsbelehrung" activePage="widerruf" sections={SECTIONS}>
-
-      <div className="legal-section" id="kostenlos">
-        <h2>Kein Widerrufsrecht anwendbar</h2>
-        <p>
-          Beatzucker ist ein vollständig kostenloser Dienst. Die Nutzung begründet kein entgeltliches
-          Vertragsverhältnis, sodass ein gesetzliches Widerrufsrecht im Sinne des § 355 BGB nicht
-          anwendbar ist. Es fallen keine Zahlungen an, die zurückerstattet werden könnten.
-        </p>
-      </div>
-
-      <div className="legal-meta">
-        Stand: {new Date().toLocaleDateString("de-DE", { month: "long", year: "numeric" })} · Beatzucker ·{" "}
-        <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
-      </div>
-    </LegalLayout>
-  );
-}
+export default function WiderrufPage(){return <LegalLayout title="Widerrufsinformation" activePage="widerruf" sections={SECTIONS}>
+  <div className="legal-section" id="recht"><h2>Vorsorglich eingeräumtes Widerrufsrecht</h2><p>Beatzucker ist derzeit unentgeltlich. Weil Verbraucherschutzvorschriften bei digitalen Diensten im Einzelfall auch bei Bereitstellung personenbezogener Daten anwendbar sein können, räumen wir Verbrauchern unabhängig von der abschließenden gesetzlichen Einordnung vorsorglich ein Widerrufsrecht ein.</p><p>Sie können Ihre Vertragserklärung innerhalb von 14 Tagen ohne Angabe von Gründen widerrufen. Die Frist beginnt mit Abschluss des Nutzungsvertrages, regelmäßig bei Registrierung. Zur Wahrung der Frist genügt die rechtzeitige Absendung einer eindeutigen Erklärung.</p><p>Adressat: Michael Clas · Beatzucker · Plaidter Str. 31 · 56648 Saffig · Deutschland · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></p></div>
+  <div className="legal-section" id="folgen"><h2>Folgen des Widerrufs</h2><p>Es wurden keine Zahlungen verlangt und deshalb sind keine Entgelte zu erstatten. Nach Eingang wird das unentgeltliche Nutzungsverhältnis beendet. Soweit die Erklärung eindeutig das zugehörige Nutzerkonto bezeichnet, wird dessen Löschung veranlasst; gesetzlich aufzubewahrende oder zur Abwehr konkreter Ansprüche erforderliche Daten bleiben nur für diesen Zweck gesperrt.</p><p>Eine Kontolöschung kann unabhängig vom Widerruf jederzeit unmittelbar in den Kontoeinstellungen ausgelöst werden.</p></div>
+  <div className="legal-section" id="funktion"><h2>Elektronische Widerrufsfunktion</h2><p>Mit dem folgenden Formular können Sie den Widerruf eindeutig erklären. Der Eingang wird unverzüglich per E-Mail mit Zeitstempel und Eingangs-ID bestätigt.</p><WithdrawalForm lang="de"/></div>
+  <div className="legal-section" id="muster"><h2>Muster für eine Erklärung per E-Mail oder Post</h2><p>Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über die Nutzung von Beatzucker. Vertragsschluss/Registrierung am: […]. Name: […]. Für das Konto verwendete E-Mail-Adresse: […]. Datum: […].</p><p>Die Verwendung dieses Musters ist nicht vorgeschrieben.</p></div>
+  <div className="legal-meta">Stand: August 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></div>
+</LegalLayout>}

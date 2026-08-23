@@ -259,6 +259,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
       {/* Auth Modal */}
       <AuthModal
         open={authOpen}
+        lang={lang}
         onClose={() => { setAuthOpen(false); setResetToken(undefined); }}
         resetToken={resetToken}
       />

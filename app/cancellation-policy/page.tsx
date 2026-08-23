@@ -1,33 +1,15 @@
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
+import WithdrawalForm from "@/components/WithdrawalForm";
 
-export const metadata: Metadata = {
-  title: { absolute: "Cancellation Policy – Beatzucker" },
-  description: "Cancellation information for Beatzucker's free online audio mastering service.",
-  robots: { index: true, follow: true },
-  alternates: {
-    canonical: "https://beatzucker.de/cancellation-policy",
-    languages: {
-      "de-DE": "https://beatzucker.de/widerruf",
-      en: "https://beatzucker.de/cancellation-policy",
-      "x-default": "https://beatzucker.de/widerruf",
-    },
-  },
-};
+export const metadata: Metadata = { title: { absolute: "Cancellation Policy and online cancellation function – Beatzucker" }, description: "Information about Beatzucker's precautionary cancellation right and electronic cancellation function.", robots: { index: true, follow: true }, alternates: { canonical: "https://beatzucker.de/cancellation-policy", languages: { "de-DE": "https://beatzucker.de/widerruf", en: "https://beatzucker.de/cancellation-policy", "x-default": "https://beatzucker.de/widerruf" } } };
+const SECTIONS = [{ id: "right", label: "Right to cancel" }, { id: "effects", label: "Effects" }, { id: "function", label: "Cancel online" }, { id: "model", label: "Model statement" }];
 
-const SECTIONS = [{ id: "free-service", label: "No cancellation right applies" }];
-
-export default function CancellationPolicyPage() {
-  return (
-    <LegalLayout title="Cancellation Policy" activePage="cancellation-policy" sections={SECTIONS} lang="en">
-      <div className="legal-section" style={{ borderLeft: "3px solid var(--accent-gold)", paddingLeft: "1rem" }}>
-        <p>This English translation is provided for convenience. The German <a href="/widerruf">Widerrufsbelehrung</a> remains the authoritative version.</p>
-      </div>
-      <div className="legal-section" id="free-service">
-        <h2>No statutory cancellation right applies</h2>
-        <p>Beatzucker is a completely free service. Its use does not establish a paid contractual relationship, so the statutory cancellation right described in Section 355 of the German Civil Code does not apply. No payments are made that could be refunded.</p>
-      </div>
-      <div className="legal-meta">As of August 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></div>
-    </LegalLayout>
-  );
-}
+export default function CancellationPolicyPage() { return <LegalLayout title="Cancellation Policy" activePage="cancellation-policy" sections={SECTIONS} lang="en">
+  <div className="legal-section" style={{ borderLeft: "3px solid var(--accent-gold)", paddingLeft: "1rem" }}><p>This English translation is provided for convenience. The German <a href="/widerruf">Widerrufsinformation</a> remains the authoritative version.</p></div>
+  <div className="legal-section" id="right"><h2>Precautionary right to cancel</h2><p>Beatzucker is currently free of charge. Because consumer-protection rules for digital services may, depending on the circumstances, also apply where personal data is provided, we grant consumers a right to cancel as a precaution, irrespective of the final legal classification.</p><p>You may cancel your contractual declaration within 14 days without giving any reason. The period begins when the usage agreement is concluded, normally upon registration. Sending an unequivocal statement before the deadline is sufficient.</p><p>Recipient: Michael Clas · Beatzucker · Plaidter Str. 31 · 56648 Saffig · Germany · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></p></div>
+  <div className="legal-section" id="effects"><h2>Effects of cancellation</h2><p>No payment was requested, so there are no fees to reimburse. Upon receipt, the free usage relationship will end. If the statement clearly identifies the associated user account, deletion of that account will be initiated; data required by law or needed to defend specific claims will be restricted and retained only for that purpose.</p><p>Account deletion can also be initiated independently of cancellation at any time in account settings.</p></div>
+  <div className="legal-section" id="function"><h2>Electronic cancellation function</h2><p>You can make an unequivocal cancellation statement using the form below. Receipt will be confirmed promptly by email with a timestamp and receipt ID.</p><WithdrawalForm lang="en" /></div>
+  <div className="legal-section" id="model"><h2>Model statement for email or post</h2><p>I hereby cancel the agreement I entered into for the use of Beatzucker. Agreement/registration date: […]. Name: […]. Email address used for the account: […]. Date: […].</p><p>Use of this model is optional.</p></div>
+  <div className="legal-meta">As of August 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></div>
+</LegalLayout> }

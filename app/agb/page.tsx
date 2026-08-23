@@ -1,175 +1,30 @@
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata: Metadata = {
-  title: { absolute: "AGB – Beatzucker" },
-  description: "AGB von Beatzucker: Nutzungsbedingungen für den kostenlosen KI-Audio-Mastering-Dienst — Leistungsumfang, faire Nutzung, Urheberrecht und Haftung.",
-  alternates: {
-    canonical: "https://beatzucker.de/agb",
-    languages: {
-      "de-DE": "https://beatzucker.de/agb",
-      en: "https://beatzucker.de/terms",
-      "x-default": "https://beatzucker.de/agb",
-    },
-  },
-};
+export const metadata:Metadata={title:{absolute:"AGB – Beatzucker"},description:"Nutzungsbedingungen für Beatzucker: Mastering, Audio-Tools, Nutzerkonto, Uploadregeln, Fair Use und Haftung.",alternates:{canonical:"https://beatzucker.de/agb",languages:{"de-DE":"https://beatzucker.de/agb",en:"https://beatzucker.de/terms","x-default":"https://beatzucker.de/agb"}}};
+const SECTIONS=[{id:"geltung",label:"§ 1 Geltung"},{id:"leistung",label:"§ 2 Leistungen"},{id:"konto",label:"§ 3 Nutzerkonto"},{id:"inhalte",label:"§ 4 Uploads und Rechte"},{id:"fairuse",label:"§ 5 Fair Use"},{id:"dateien",label:"§ 6 Dateien und Ergebnisse"},{id:"datenschutz",label:"§ 7 Datenschutz"},{id:"maengel",label:"§ 8 Verfügbarkeit und Mängel"},{id:"haftung",label:"§ 9 Haftung"},{id:"recht",label:"§ 10 Recht und Streitbeilegung"},{id:"aenderungen",label:"§ 11 Änderungen"}];
 
-const SECTIONS = [
-  { id: "geltungsbereich",   label: "§ 1 Geltungsbereich" },
-  { id: "leistung",          label: "§ 2 Leistungsbeschreibung" },
-  { id: "konto",             label: "§ 3 Nutzerkonto" },
-  { id: "fair-use",          label: "§ 4 Faire Nutzung" },
-  { id: "urheberrecht",      label: "§ 5 Urheberrecht" },
-  { id: "datenschutz",       label: "§ 6 Datenschutz" },
-  { id: "haftung",           label: "§ 7 Haftung" },
-  { id: "recht",             label: "§ 8 Geltendes Recht" },
-  { id: "schluss",           label: "§ 9 Schlussbestimmungen" },
-];
+export default function AGBPage(){return <LegalLayout title="Allgemeine Geschäftsbedingungen" activePage="agb" sections={SECTIONS}>
+  <div className="legal-section" id="geltung"><h2>§ 1 Geltungsbereich und Anbieter</h2><p>Diese Bedingungen gelten für die Nutzung von Beatzucker, einem Angebot von Michael Clas, Plaidter Str. 31, 56648 Saffig, Deutschland („Anbieter“). Sie gelten gegenüber Verbrauchern und Unternehmern. Bei der Registrierung werden die Bedingungen verlinkt und können gespeichert oder ausgedruckt werden.</p><p>Öffentliche Analysewerkzeuge können ohne Konto nutzbar sein. Das eigentliche Online-Mastering, der Verlauf und kontobezogene Funktionen erfordern eine Registrierung.</p></div>
 
-export default function AGBPage() {
-  return (
-    <LegalLayout title="Allgemeine Geschäftsbedingungen" activePage="agb" sections={SECTIONS}>
+  <div className="legal-section" id="leistung"><h2>§ 2 Leistungsumfang</h2><p>Beatzucker stellt einen automatisierten Audio-Mastering-Dienst und ergänzende Audio-Werkzeuge bereit. Dazu gehören insbesondere technische Analyse, adaptive DSP-Bearbeitung, manuelle Nachjustierung mit erneutem Rendering, Referenzvergleich sowie zeitlich befristete Export- und Downloadfunktionen. Welche Formate und Parameter verfügbar sind, ergibt sich aus der jeweiligen Benutzeroberfläche.</p><p>Der Dienst ist derzeit unentgeltlich. Freiwillige Spenden über einen externen Zahlungsanbieter sind keine Voraussetzung für die Nutzung und begründen keinen Anspruch auf zusätzliche Funktionen.</p><p>Ein bestimmter künstlerischer, kommerzieller oder plattformspezifischer Erfolg wird nicht geschuldet. Messwerte, Plattformprognosen und Empfehlungen sind technische Orientierungshilfen und ersetzen die eigene Hörkontrolle.</p></div>
 
-      <div className="legal-section" id="geltungsbereich">
-        <h2>§ 1 Geltungsbereich</h2>
-        <p>
-          Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Nutzer des kostenlosen
-          Online-Mastering-Dienstes von Michael Clas, Beatzucker, Plaidter Str. 31, 56648 Saffig
-          (nachfolgend „Anbieter") unter beatzucker.de (nachfolgend „Nutzer"). Mit der Registrierung
-          oder der Nutzung des Dienstes stimmt der Nutzer diesen AGB zu. Entgegenstehende oder
-          abweichende Bedingungen des Nutzers werden nicht anerkannt, es sei denn, der Anbieter
-          stimmt ihrer Geltung ausdrücklich schriftlich zu.
-        </p>
-      </div>
+  <div className="legal-section" id="konto"><h2>§ 3 Nutzerkonto und Sicherheit</h2><p>Nutzer müssen eine erreichbare E-Mail-Adresse angeben. Ein optionaler Name muss nicht dem bürgerlichen Namen entsprechen, darf aber keine Rechte Dritter verletzen oder irreführen. Zugangsdaten sind geheim zu halten. Ein vermuteter Missbrauch ist unverzüglich an <a href="mailto:info@re-beatz.com">info@re-beatz.com</a> zu melden.</p><p>Der Anbieter darf Konten bei erheblichen oder wiederholten Verstößen, Sicherheitsgefahren oder missbräuchlicher Nutzung vorübergehend sperren. Vor einer dauerhaften Sperre wird der Nutzer grundsätzlich über Grund und mögliche Abhilfe informiert, soweit dem keine Sicherheits-, Missbrauchs- oder gesetzlichen Gründe entgegenstehen. Eine Überprüfung kann über die Kontaktadresse verlangt werden.</p><p>Das Konto kann jederzeit in den Kontoeinstellungen gelöscht werden. Die technischen Folgen beschreibt die Datenschutzerklärung.</p></div>
 
-      <div className="legal-section" id="leistung">
-        <h2>§ 2 Leistungsbeschreibung</h2>
-        <p>
-          Beatzucker bietet einen automatisierten, kostenlosen Audio-Mastering-Dienst an. Der Dienst
-          umfasst die Verarbeitung von Audiodateien durch eine mehrstufige DSP-Signalkette (u. a.
-          EQ, Mehrband-Kompression, Stereo-Optimierung, Sättigung, LUFS-Normalisierung,
-          True-Peak-Limiting, automatische Parameterauswahl und optionales Referenz-Track-Matching)
-          sowie die zeitlich befristete Bereitstellung aller Export-Formate (WAV 32-bit Float,
-          WAV 24-bit, WAV 16-bit, FLAC, MP3 320, MP3 128, AAC 256). Der Anbieter stellt die
-          gemasterte Ausgabedatei nach Abschluss der Verarbeitung zum Download bereit. Das
-          Download-Fenster beträgt <strong style={{ color: "var(--text-primary)" }}>24 Stunden</strong>.
-          Nach Ablauf dieser Frist wird die Datei automatisch und unwiederbringlich vom Server gelöscht.
-        </p>
-        <p>
-          Sämtliche Funktionen sind für alle Nutzer kostenlos zugänglich. Es besteht kein
-          entgeltliches Vertragsverhältnis. Der Anbieter behält sich vor, den Dienst jederzeit
-          zu ändern, zu erweitern oder einzustellen, sofern dies dem Nutzer mit angemessener
-          Frist mitgeteilt wird.
-        </p>
-      </div>
+  <div className="legal-section" id="inhalte"><h2>§ 4 Hochgeladene Inhalte und Nutzungsrechte</h2><p>Der Nutzer versichert, über die erforderlichen Rechte an hochgeladenem Audio und sonstigen Inhalten zu verfügen. Unzulässig sind insbesondere rechtswidrige Inhalte, Schadsoftware, missbräuchliche automatisierte Zugriffe sowie Uploads, die Urheber-, Persönlichkeits-, Datenschutz- oder sonstige Rechte Dritter verletzen.</p><p>Der Nutzer räumt dem Anbieter ausschließlich die zeitlich und technisch erforderlichen Rechte ein, die Datei zu speichern, zu analysieren, zu bearbeiten und das Ergebnis für ihn bereitzustellen. Es findet keine Veröffentlichung statt. Der Anbieter erwirbt keine Urheberrechte am Audio oder am Mastering-Ergebnis.</p><p>Uploads werden automatisiert auf Dateityp, Größe und technische Verarbeitbarkeit geprüft. Eine inhaltliche Vorabkontrolle oder öffentliche Moderation findet nicht statt. Bei konkreten Hinweisen auf Rechtsverstöße darf der Anbieter Inhalte sperren oder entfernen und gesetzlich erforderliche Maßnahmen treffen. Meldungen können mit genauer Bezeichnung des Inhalts und einer Begründung an <a href="mailto:info@re-beatz.com">info@re-beatz.com</a> gerichtet werden.</p></div>
 
-      <div className="legal-section" id="konto">
-        <h2>§ 3 Nutzerkonto</h2>
-        <p>
-          Die Nutzung des Dienstes setzt eine kostenlose Registrierung voraus. Der Nutzer ist
-          verpflichtet, wahrheitsgemäße und vollständige Angaben zu machen und diese aktuell zu
-          halten. Die Zugangsdaten sind vertraulich zu behandeln und vor unbefugtem Zugriff zu
-          schützen. Der Nutzer haftet für alle Aktivitäten, die unter seinem Konto stattfinden,
-          sofern er den Missbrauch nicht zu vertreten hat.
-        </p>
-        <p>
-          Gemasterte Audiodateien werden nicht dauerhaft im Nutzerkonto gespeichert (→ § 6). Im
-          Nutzerkonto werden ausschließlich Metadaten des Mastering-Verlaufs gespeichert:
-          Dateiname, Erstellungsdatum, gewählte Plattform, LUFS-Messwerte und
-          Mastering-Parameter. Die Originalaudio- und Ausgabedateien selbst werden nach Ablauf
-          des Download-Fensters (24 Stunden) vom Server gelöscht.
-        </p>
-        <p>
-          Der Anbieter behält sich vor, Konten bei schwerwiegenden oder wiederholten Verstößen
-          gegen diese AGB zu sperren oder zu löschen.
-        </p>
-      </div>
+  <div className="legal-section" id="fairuse"><h2>§ 5 Fair Use</h2><p>Zum Schutz vor Missbrauch und Überlastung gelten technische Größen-, Frequenz- und Nutzungslimits, darunter derzeit ein tägliches Mastering-Limit pro Konto. Die jeweils angezeigten Grenzwerte sind Bestandteil der Leistungsbeschreibung. Umgehung von Limits, Mehrfachkonten zum selben Zweck sowie automatisierte Last- oder Angriffstests ohne vorherige Erlaubnis sind unzulässig.</p></div>
 
-      <div className="legal-section" id="fair-use">
-        <h2>§ 4 Faire Nutzung</h2>
-        <p>
-          Um eine stabile und faire Nutzung für alle sicherzustellen, gilt pro Nutzerkonto ein
-          tägliches Limit an Mastering-Vorgängen. Dieses Limit dient ausschließlich dem Schutz
-          vor Missbrauch und Serverüberlastung und stellt keine Vorstufe zu einem kostenpflichtigen
-          Angebot dar. Der Anbieter kann das Limit bei Bedarf anpassen.
-        </p>
-      </div>
+  <div className="legal-section" id="dateien"><h2>§ 6 Dateibereitstellung und eigene Sicherung</h2><p>Originale stehen serverseitig nur befristet für Analyse, Vorschau und manuelle Nachbearbeitung bereit. Master-Ausgaben sind nach Fertigstellung genau 24 Stunden abrufbar und werden anschließend gesperrt und beim nächsten technischen Cleanup gelöscht. Details stehen in der <a href="/datenschutz">Datenschutzerklärung</a>.</p><p>Der Nutzer muss das Ergebnis innerhalb des angezeigten Fensters herunterladen und selbst sichern. Beatzucker ist kein dauerhaftes Audioarchiv. Ein erneuter Anspruch auf Bereitstellung einer abgelaufenen Datei besteht nicht.</p></div>
 
-      <div className="legal-section" id="urheberrecht">
-        <h2>§ 5 Nutzungsrechte und Urheberrecht</h2>
-        <p>
-          Der Nutzer versichert, dass er über alle notwendigen Rechte an den hochgeladenen
-          Audiodateien verfügt und durch die Nutzung des Dienstes keine Rechte Dritter verletzt
-          werden. Die durch Beatzucker erstellten gemasterten Audiodateien sind für den persönlichen
-          und kommerziellen Gebrauch des Nutzers bestimmt. Beatzucker beansprucht kein Urheberrecht
-          an den verarbeiteten Dateien. Der Nutzer stellt den Anbieter von sämtlichen Ansprüchen
-          Dritter frei, die aus einer Verletzung von Rechten Dritter durch die vom Nutzer
-          hochgeladenen Inhalte entstehen.
-        </p>
-      </div>
+  <div className="legal-section" id="datenschutz"><h2>§ 7 Datenschutz und externe Dienste</h2><p>Personenbezogene Daten werden gemäß der <a href="/datenschutz">Datenschutzerklärung</a> verarbeitet. Sie erläutert insbesondere DomainFactory-Hosting, technisch notwendige Sitzungscookies, den optionalen Google-Login und den transaktionalen E-Mail-Versand über Resend einschließlich möglicher Drittlandübermittlungen.</p></div>
 
-      <div className="legal-section" id="datenschutz">
-        <h2>§ 6 Datenschutz und Datenspeicherung</h2>
-        <p>
-          Die Verarbeitung personenbezogener Daten erfolgt gemäß unserer{" "}
-          <a href="/datenschutz">Datenschutzerklärung</a>.
-        </p>
-        <p>
-          Hochgeladene Original-Audiodateien werden unmittelbar nach Abschluss der Verarbeitung
-          vom Server gelöscht (maximal 60 Minuten). Gemasterte Ausgabedateien stehen
-          <strong style={{ color: "var(--text-primary)" }}> 24 Stunden</strong> nach
-          Verarbeitungsabschluss zum Download bereit und werden anschließend automatisch gelöscht. Es wird keine
-          permanente Audio-Bibliothek oder dauerhaftes Dateiarchiv geführt. Im Nutzerkonto
-          werden ausschließlich Mastering-Metadaten (Dateiname, Datum, Parameter,
-          Analyseergebnisse) gespeichert, kein Audiomaterial.
-        </p>
-      </div>
+  <div className="legal-section" id="maengel"><h2>§ 8 Verfügbarkeit, Wartung und gesetzliche Mängelrechte</h2><p>Der Anbieter bemüht sich um einen sicheren und verfügbaren Betrieb, schuldet aber keine ununterbrochene Verfügbarkeit. Wartung, Sicherheitsmaßnahmen, höhere Gewalt und Störungen außerhalb seines Einflussbereichs können den Dienst vorübergehend einschränken.</p><p>Zwingende gesetzliche Rechte, insbesondere die gesetzlichen Vorschriften über die Vertragsmäßigkeit digitaler Produkte, bleiben unberührt, soweit sie auf das konkrete Nutzungsverhältnis anwendbar sind. Beschreibungen von Funktionen sind keine Garantie, sofern sie nicht ausdrücklich als solche bezeichnet werden.</p></div>
 
-      <div className="legal-section" id="haftung">
-        <h2>§ 7 Haftungsbeschränkung</h2>
-        <p>
-          Der Anbieter haftet nur für Schäden, die auf vorsätzlichem oder grob fahrlässigem
-          Verhalten beruhen. Bei leichter Fahrlässigkeit haftet der Anbieter nur bei Verletzung
-          einer wesentlichen Vertragspflicht (Kardinalpflicht), beschränkt auf den vorhersehbaren,
-          vertragstypischen Schaden. Eine Haftung für indirekte Schäden, entgangenen Gewinn oder
-          den Verlust von Audiodaten ist — soweit gesetzlich zulässig — ausgeschlossen.
-        </p>
-        <p>
-          Der Anbieter übernimmt keine Garantie für eine ununterbrochene Verfügbarkeit des
-          Dienstes. Für die Qualität der Bearbeitung durch den automatisierten Dienst wird keine
-          Gewähr für ein bestimmtes künstlerisches Ergebnis übernommen. Nutzer sind ausdrücklich
-          darauf hingewiesen, dass gemasterte Dateien innerhalb des Download-Fensters
-          (24 Stunden) heruntergeladen werden müssen.
-        </p>
-      </div>
+  <div className="legal-section" id="haftung"><h2>§ 9 Haftung</h2><p>Der Anbieter haftet unbeschränkt bei Vorsatz und grober Fahrlässigkeit, bei schuldhafter Verletzung von Leben, Körper oder Gesundheit, nach dem Produkthaftungsgesetz, bei arglistigem Verschweigen eines Mangels sowie im Umfang einer ausdrücklich übernommenen Garantie.</p><p>Bei leicht fahrlässiger Verletzung einer wesentlichen Vertragspflicht ist die Haftung auf den bei Vertragsschluss vorhersehbaren, vertragstypischen Schaden begrenzt. Wesentliche Vertragspflichten sind solche, deren Erfüllung die ordnungsgemäße Durchführung überhaupt ermöglicht und auf deren Einhaltung der Nutzer regelmäßig vertrauen darf. Im Übrigen ist die Haftung für leichte Fahrlässigkeit ausgeschlossen. Diese Regelungen gelten entsprechend für gesetzliche Vertreter und Erfüllungsgehilfen.</p><p>Der Nutzer bleibt für die Sicherung seiner Originale und rechtzeitige Sicherung der Ergebnisse verantwortlich. Die vorstehenden zwingenden Haftungsfälle bleiben davon unberührt.</p></div>
 
-      <div className="legal-section" id="recht">
-        <h2>§ 8 Geltendes Recht und Gerichtsstand</h2>
-        <p>
-          Es gilt ausschließlich das Recht der Bundesrepublik Deutschland unter Ausschluss des
-          UN-Kaufrechts (CISG). Als Gerichtsstand wird — soweit gesetzlich zulässig — Koblenz
-          vereinbart. Für Verbraucher gilt abweichend das Recht des Mitgliedstaates der
-          Europäischen Union, in dem der Verbraucher seinen gewöhnlichen Aufenthalt hat, sofern
-          es sich um zwingende Verbraucherschutzvorschriften handelt.
-        </p>
-      </div>
+  <div className="legal-section" id="recht"><h2>§ 10 Geltendes Recht, Widerruf und Streitbeilegung</h2><p>Es gilt deutsches Recht unter Ausschluss des UN-Kaufrechts. Bei Verbrauchern gilt diese Rechtswahl nur, soweit sie nicht den Schutz zwingender Bestimmungen des Staates ihres gewöhnlichen Aufenthalts entzieht. Ein ausschließlicher Gerichtsstand in Koblenz wird nur gegenüber Kaufleuten, juristischen Personen des öffentlichen Rechts und öffentlich-rechtlichen Sondervermögen vereinbart.</p><p>Verbrauchern wird vorsorglich ein 14-tägiges Widerrufsrecht gemäß der <a href="/widerruf">Widerrufsinformation</a> eingeräumt. Eine hervorgehobene Online-Widerrufsfunktion steht dort bereit.</p><p>Der Anbieter ist weder verpflichtet noch bereit, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen. Nach einer nicht beigelegten konkreten Verbraucherstreitigkeit erfolgen die gesetzlich vorgeschriebenen Informationen in Textform.</p></div>
 
-      <div className="legal-section" id="schluss">
-        <h2>§ 9 Schlussbestimmungen</h2>
-        <p>
-          Sollten einzelne Bestimmungen dieser AGB unwirksam sein oder werden, bleibt die
-          Wirksamkeit der übrigen Bestimmungen davon unberührt. Der Anbieter behält sich das
-          Recht vor, diese AGB mit angemessener Frist (mindestens 30 Tage) zu ändern.
-          Änderungen werden dem Nutzer per E-Mail mitgeteilt. Widerspricht der Nutzer nicht
-          innerhalb der Frist, gelten die neuen AGB als akzeptiert. Ausgenommen von dieser
-          Zustimmungsfiktion sind wesentliche Einschränkungen der Leistungen; für diese ist
-          stets die ausdrückliche gesonderte Zustimmung des Nutzers erforderlich.
-        </p>
-      </div>
-
-      <div className="legal-meta">
-        Stand: März 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
-      </div>
-    </LegalLayout>
-  );
-}
+  <div className="legal-section" id="aenderungen"><h2>§ 11 Änderungen von Dienst und Bedingungen</h2><p>Änderungen können aus triftigen Gründen erfolgen, insbesondere wegen Gesetzesänderungen, Sicherheitsanforderungen, Missbrauchsabwehr, technischer Weiterentwicklung oder der Einstellung nicht mehr wirtschaftlich oder technisch vertretbarer Funktionen. Änderungen dürfen das vertragliche Gleichgewicht nicht unangemessen zum Nachteil des Nutzers verschieben.</p><p>Über wesentliche nachteilige Änderungen wird mindestens 30 Tage vorher per E-Mail informiert. Der Nutzer kann das unentgeltliche Nutzungsverhältnis bis zum Wirksamwerden beenden und sein Konto löschen. Schweigen gilt nicht als Zustimmung zu Änderungen, die eine ausdrückliche Zustimmung erfordern. Zwingende Rechte bei Änderungen digitaler Produkte bleiben unberührt.</p><p>Sollten einzelne Bestimmungen unwirksam sein, gelten an ihrer Stelle die gesetzlichen Vorschriften; der übrige Vertrag bleibt bestehen.</p></div>
+  <div className="legal-meta">Stand: August 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></div>
+</LegalLayout>}

@@ -1,167 +1,21 @@
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata: Metadata = {
-  title: { absolute: "Terms of Service – Beatzucker" },
-  description: "Terms of Service for Beatzucker's free AI audio mastering service — usage terms, fair use limits, copyright, and liability.",
-  alternates: {
-    canonical: "https://beatzucker.de/terms",
-    languages: {
-      "de-DE": "https://beatzucker.de/agb",
-      en: "https://beatzucker.de/terms",
-      "x-default": "https://beatzucker.de/agb",
-    },
-  },
-};
+export const metadata: Metadata = { title: { absolute: "Terms of Service – Beatzucker" }, description: "Terms for Beatzucker mastering, audio tools, user accounts, uploads, fair use and liability.", alternates: { canonical: "https://beatzucker.de/terms", languages: { "de-DE": "https://beatzucker.de/agb", en: "https://beatzucker.de/terms", "x-default": "https://beatzucker.de/agb" } } };
+const SECTIONS = [{ id: "scope", label: "§ 1 Scope" }, { id: "services", label: "§ 2 Services" }, { id: "account", label: "§ 3 User account" }, { id: "content", label: "§ 4 Uploads and rights" }, { id: "fair-use", label: "§ 5 Fair use" }, { id: "files", label: "§ 6 Files and results" }, { id: "privacy", label: "§ 7 Privacy" }, { id: "conformity", label: "§ 8 Availability and defects" }, { id: "liability", label: "§ 9 Liability" }, { id: "law", label: "§ 10 Law and disputes" }, { id: "changes", label: "§ 11 Changes" }];
 
-const SECTIONS = [
-  { id: "scope",       label: "§ 1 Scope" },
-  { id: "services",    label: "§ 2 Services" },
-  { id: "account",     label: "§ 3 User Account" },
-  { id: "fair-use",    label: "§ 4 Fair Use" },
-  { id: "copyright",   label: "§ 5 Intellectual Property" },
-  { id: "privacy",     label: "§ 6 Privacy" },
-  { id: "liability",   label: "§ 7 Liability" },
-  { id: "law",         label: "§ 8 Governing Law" },
-  { id: "final",       label: "§ 9 Final Provisions" },
-];
-
-export default function TermsPage() {
-  return (
-    <LegalLayout title="Terms of Service" activePage="terms" sections={SECTIONS} lang="en">
-
-      <div className="legal-section" id="scope">
-        <h2>§ 1 Scope</h2>
-        <p>
-          These Terms of Service govern all users of the free online mastering service operated
-          by Michael Clas, Beatzucker, Plaidter Str. 31, 56648 Saffig, Germany (hereinafter
-          "Provider") at beatzucker.de (hereinafter "User"). By registering or using the service,
-          the User agrees to these Terms. Conflicting or deviating terms of the User shall not
-          be recognised unless the Provider has expressly agreed to them in writing.
-        </p>
-      </div>
-
-      <div className="legal-section" id="services">
-        <h2>§ 2 Service Description</h2>
-        <p>
-          Beatzucker provides an automated, free audio mastering service. The service includes
-          processing audio files through a multi-stage DSP signal chain (EQ, multiband
-          compression, stereo optimisation, saturation, LUFS normalisation, true-peak limiting,
-          automatic parameter selection and optional reference-track matching) and the temporary
-          provision of all export formats (WAV 32-bit Float, WAV 24-bit, WAV 16-bit, FLAC,
-          MP3 320, MP3 128, AAC 256). The Provider makes the mastered output file available for
-          download after processing is complete. The download window is
-          <strong style={{ color: "var(--text-primary)" }}> 24 hours</strong>. After this period,
-          the file is automatically and permanently deleted from the server.
-        </p>
-        <p>
-          All features are free of charge for every User. No paid contract is formed. The
-          Provider reserves the right to modify, expand or discontinue the service at any time,
-          provided adequate notice is given to the User.
-        </p>
-      </div>
-
-      <div className="legal-section" id="account">
-        <h2>§ 3 User Account</h2>
-        <p>
-          Use of the service requires free registration. The User must provide truthful and
-          complete information and keep it up to date. Login credentials must be kept confidential
-          and protected from unauthorised access. The User is liable for all activities that occur
-          under their account, unless they are not responsible for the misuse.
-        </p>
-        <p>
-          Mastered audio files are not stored permanently in the user account (→ § 6). Only
-          mastering metadata is stored: file name, creation date, selected platform, LUFS
-          measurements and mastering parameters. Original audio and output files are deleted
-          after the download window expires (24 hours).
-        </p>
-        <p>
-          The Provider reserves the right to suspend or delete accounts in the event of serious
-          or repeated violations of these Terms.
-        </p>
-      </div>
-
-      <div className="legal-section" id="fair-use">
-        <h2>§ 4 Fair Use</h2>
-        <p>
-          To keep the service stable and fair for everyone, each account is subject to a daily
-          limit on the number of mastering operations. This limit exists solely to protect
-          against abuse and server overload and does not constitute a step toward any paid
-          offering. The Provider may adjust the limit as needed.
-        </p>
-      </div>
-
-      <div className="legal-section" id="copyright">
-        <h2>§ 5 Intellectual Property</h2>
-        <p>
-          The User warrants that they hold all necessary rights to the uploaded audio files and
-          that use of the service does not infringe any third-party rights. Mastered audio files
-          created by Beatzucker are intended for the User's personal and commercial use. Beatzucker
-          claims no copyright over processed files. The User shall indemnify the Provider against
-          all third-party claims arising from infringement of third-party rights by content
-          uploaded by the User.
-        </p>
-      </div>
-
-      <div className="legal-section" id="privacy">
-        <h2>§ 6 Privacy and Data Storage</h2>
-        <p>
-          Personal data is processed in accordance with our{" "}
-          <a href="/privacy">Privacy Policy</a>.
-        </p>
-        <p>
-          Uploaded original audio files are deleted immediately after processing is complete
-          (maximum 60 minutes). Mastered output files are available for download for
-          <strong style={{ color: "var(--text-primary)" }}> 24 hours</strong> after processing
-          and are then automatically deleted. No permanent audio library or archive is maintained.
-          Only mastering metadata (file name, date, parameters, analysis results) is stored in
-          user accounts — no audio content.
-        </p>
-      </div>
-
-      <div className="legal-section" id="liability">
-        <h2>§ 7 Limitation of Liability</h2>
-        <p>
-          The Provider is only liable for damages caused by intentional or grossly negligent
-          conduct. In cases of simple negligence, the Provider is only liable for breach of a
-          material contractual obligation (cardinal obligation), limited to foreseeable,
-          contract-typical damage. Liability for indirect damages, loss of profit or loss of
-          audio data is excluded to the extent permitted by law.
-        </p>
-        <p>
-          The Provider does not guarantee uninterrupted availability of the service. No guarantee
-          is given for a specific artistic result from the automated service. Users are expressly
-          advised that mastered files must be downloaded within the download window (24 hours).
-        </p>
-      </div>
-
-      <div className="legal-section" id="law">
-        <h2>§ 8 Governing Law and Jurisdiction</h2>
-        <p>
-          These Terms are governed exclusively by the laws of the Federal Republic of Germany,
-          excluding the UN Convention on Contracts for the International Sale of Goods (CISG).
-          The place of jurisdiction is Koblenz, Germany, to the extent permitted by law.
-          For consumers in EU member states, mandatory consumer protection provisions of the
-          consumer's country of habitual residence apply.
-        </p>
-      </div>
-
-      <div className="legal-section" id="final">
-        <h2>§ 9 Final Provisions</h2>
-        <p>
-          Should any individual provision of these Terms be or become invalid, the validity of
-          the remaining provisions shall not be affected. The Provider reserves the right to
-          amend these Terms with reasonable notice (at least 30 days). Changes will be
-          communicated to the User by email. If the User does not object within the notice
-          period, the new Terms shall be deemed accepted. Material restrictions of the services
-          are excluded from this implied consent and always require the User's express separate
-          consent.
-        </p>
-      </div>
-
-      <div className="legal-meta">
-        As of March 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
-      </div>
-    </LegalLayout>
-  );
-}
+export default function TermsPage() { return <LegalLayout title="Terms of Service" activePage="terms" sections={SECTIONS} lang="en">
+  <div className="legal-section" style={{ borderLeft: "3px solid var(--accent-gold)", paddingLeft: "1rem" }}><p>This English translation is provided for convenience. The German <a href="/agb">Terms (AGB)</a> remain the authoritative version.</p></div>
+  <div className="legal-section" id="scope"><h2>§ 1 Scope and provider</h2><p>These Terms apply to the use of Beatzucker, a service provided by Michael Clas, Plaidter Str. 31, 56648 Saffig, Germany (“Provider”). They apply to consumers and businesses. During registration, the Terms are linked and can be saved or printed.</p><p>Public analysis tools may be available without an account. Online mastering, history and account-related features require registration.</p></div>
+  <div className="legal-section" id="services"><h2>§ 2 Services</h2><p>Beatzucker provides automated audio mastering and supplementary audio tools. These include technical analysis, adaptive DSP processing, manual adjustment followed by rendering, reference comparison and time-limited export and download functions. Available formats and parameters are shown in the relevant interface.</p><p>The service is currently free of charge. Voluntary donations through an external payment provider are not required for use and do not create a right to additional features.</p><p>No specific artistic, commercial or platform-specific success is promised. Measurements, platform forecasts and recommendations are technical guidance and do not replace the User&apos;s own listening checks.</p></div>
+  <div className="legal-section" id="account"><h2>§ 3 User account and security</h2><p>Users must provide a reachable email address. An optional name need not be a legal name, but must not infringe third-party rights or be misleading. Credentials must be kept confidential. Suspected misuse must be reported promptly to <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>.</p><p>The Provider may temporarily suspend accounts for material or repeated violations, security risks or abusive use. Before permanent suspension, the User will generally be informed of the reason and possible remedy, unless security, abuse-prevention or legal reasons prevent this. Review may be requested through the contact address.</p><p>The account can be deleted at any time in account settings. The Privacy Policy describes the technical consequences.</p></div>
+  <div className="legal-section" id="content"><h2>§ 4 Uploaded content and rights</h2><p>The User confirms that they hold the necessary rights to uploaded audio and other content. Prohibited content and conduct include unlawful material, malware, abusive automated access and uploads infringing copyright, personality, privacy or other third-party rights.</p><p>The User grants the Provider only the rights technically and temporally necessary to store, analyse and process the file and provide the result to them. Nothing is published. The Provider acquires no copyright in the audio or mastering result.</p><p>Uploads are automatically checked for file type, size and technical processability. There is no prior content review or public moderation. Upon specific notice of illegality, the Provider may restrict or remove content and take legally required measures. Reports identifying the content and explaining the issue may be sent to <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>.</p></div>
+  <div className="legal-section" id="fair-use"><h2>§ 5 Fair use</h2><p>Technical size, frequency and usage limits apply to protect against abuse and overload, currently including a daily mastering limit per account. Limits displayed in the interface form part of the service description. Circumventing limits, creating multiple accounts for that purpose, and automated load or attack testing without prior permission are prohibited.</p></div>
+  <div className="legal-section" id="files"><h2>§ 6 File availability and own backups</h2><p>Originals remain on the server only temporarily for analysis, preview and manual editing. Master outputs remain available for exactly 24 hours after completion, are then blocked and deleted during the next technical cleanup. Details are in the <a href="/privacy">Privacy Policy</a>.</p><p>The User must download the result within the displayed window and make their own backup. Beatzucker is not a permanent audio archive. There is no entitlement to renewed provision of an expired file.</p></div>
+  <div className="legal-section" id="privacy"><h2>§ 7 Privacy and external services</h2><p>Personal data is processed as described in the <a href="/privacy">Privacy Policy</a>. It explains, in particular, DomainFactory hosting, the strictly necessary session cookie, optional Google sign-in and transactional email delivery through Resend, including possible third-country transfers.</p></div>
+  <div className="legal-section" id="conformity"><h2>§ 8 Availability, maintenance and statutory conformity rights</h2><p>The Provider endeavours to operate the service securely and reliably but does not promise uninterrupted availability. Maintenance, security measures, force majeure and disruptions beyond the Provider&apos;s control may temporarily restrict the service.</p><p>Mandatory statutory rights, including rules on conformity of digital products where applicable to the specific relationship, remain unaffected. Feature descriptions are not guarantees unless expressly designated as such.</p></div>
+  <div className="legal-section" id="liability"><h2>§ 9 Liability</h2><p>The Provider has unlimited liability for intent and gross negligence, culpable injury to life, limb or health, under the German Product Liability Act, for fraudulent concealment of a defect, and to the extent of an expressly assumed guarantee.</p><p>For a slightly negligent breach of a material contractual obligation, liability is limited to the foreseeable damage typical for the contract at the time it was concluded. Material obligations are those whose fulfilment makes proper performance possible and on which the User may regularly rely. Liability for other slight negligence is excluded. These rules also apply to legal representatives and agents.</p><p>The User remains responsible for backing up originals and downloading results in time. The mandatory liability cases above remain unaffected.</p></div>
+  <div className="legal-section" id="law"><h2>§ 10 Governing law, cancellation and dispute resolution</h2><p>German law applies, excluding the UN Convention on Contracts for the International Sale of Goods. For consumers, this choice of law applies only insofar as it does not deprive them of mandatory protection in their country of habitual residence. Exclusive jurisdiction in Koblenz is agreed only with merchants, legal entities under public law and special funds under public law.</p><p>As a precaution, consumers are granted a 14-day right to cancel as described in the <a href="/cancellation-policy">Cancellation Policy</a>. A prominent online cancellation function is available there.</p><p>The Provider is neither obliged nor willing to participate in dispute resolution proceedings before a consumer arbitration board. Following a specific unresolved consumer dispute, any information required by law will be provided in text form.</p></div>
+  <div className="legal-section" id="changes"><h2>§ 11 Changes to the service and Terms</h2><p>Changes may be made for valid reasons, particularly changes in law, security requirements, abuse prevention, technical development, or discontinuation of functions that are no longer technically or economically reasonable. Changes must not unreasonably shift the contractual balance to the User&apos;s disadvantage.</p><p>Material adverse changes will be announced by email at least 30 days in advance. The User may terminate the free relationship and delete the account before they take effect. Silence does not constitute consent where express consent is required. Mandatory rights concerning changes to digital products remain unaffected.</p><p>If an individual provision is invalid, statutory law applies in its place; the remainder of the agreement remains effective.</p></div>
+  <div className="legal-meta">As of August 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></div>
+</LegalLayout> }

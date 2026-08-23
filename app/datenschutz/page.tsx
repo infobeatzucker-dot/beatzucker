@@ -1,200 +1,30 @@
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata: Metadata = {
-  title: { absolute: "Datenschutzerklärung – Beatzucker" },
-  description: "Wie Beatzucker mit deinen Daten umgeht: automatische Löschung von Audiodateien, keine Weitergabe an Dritte, DSGVO-konform gehostet in der EU.",
-  alternates: {
-    canonical: "https://beatzucker.de/datenschutz",
-    languages: {
-      "de-DE": "https://beatzucker.de/datenschutz",
-      en: "https://beatzucker.de/privacy",
-      "x-default": "https://beatzucker.de/datenschutz",
-    },
-  },
-};
-
-const SECTIONS = [
-  { id: "verantwortlicher",  label: "1. Verantwortlicher" },
-  { id: "audiodaten",        label: "2.1 Audio-Dateien" },
-  { id: "nutzungsdaten",     label: "2.2 Nutzungsdaten" },
-  { id: "serverlogs",        label: "2.3 Server-Logs" },
-  { id: "kontodaten",        label: "2.4 Konto-Daten" },
-  { id: "hosting",           label: "2.5 Hosting" },
-  { id: "localstorage",      label: "3. LocalStorage" },
-  { id: "rechte",            label: "4. Ihre Rechte" },
-  { id: "automatisierung",   label: "5. Keine Automatisierung" },
-  { id: "sicherheit",        label: "6. Datensicherheit" },
+export const metadata: Metadata = { title:{absolute:"Datenschutzerklärung – Beatzucker"}, description:"Datenschutzerklärung von Beatzucker zu Audioverarbeitung, Nutzerkonten, Login, E-Mail-Versand und Speicherdauer.", alternates:{canonical:"https://beatzucker.de/datenschutz",languages:{"de-DE":"https://beatzucker.de/datenschutz",en:"https://beatzucker.de/privacy","x-default":"https://beatzucker.de/datenschutz"}} };
+const SECTIONS=[
+  {id:"verantwortlicher",label:"1. Verantwortlicher"},{id:"dienst",label:"2. Dienst- und Audiodaten"},{id:"konto",label:"3. Konto und Anmeldung"},{id:"email",label:"4. E-Mail-Versand"},{id:"hosting",label:"5. Hosting und Serverlogs"},{id:"speicher",label:"6. Cookies und lokaler Speicher"},{id:"empfaenger",label:"7. Empfänger und Drittländer"},{id:"dauer",label:"8. Speicherdauer"},{id:"rechte",label:"9. Betroffenenrechte"},{id:"entscheidungen",label:"10. Automatisierte Entscheidungen"},
 ];
 
-export default function DatenschutzPage() {
-  return (
-    <LegalLayout title="Datenschutzerklärung" activePage="datenschutz" sections={SECTIONS}>
+export default function DatenschutzPage(){return <LegalLayout title="Datenschutzerklärung" activePage="datenschutz" sections={SECTIONS}>
+  <div className="legal-section" id="verantwortlicher"><h2>1. Verantwortlicher</h2><p>Michael Clas · Beatzucker<br/>Plaidter Str. 31 · 56648 Saffig · Deutschland<br/>Telefon: +49 2632 4966999<br/>E-Mail: <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></p></div>
 
-      <div className="legal-section" id="verantwortlicher">
-        <h2>1. Verantwortlicher</h2>
-        <p>
-          Verantwortlicher im Sinne der DSGVO ist:<br />
-          Michael Clas · Beatzucker<br />
-          Plaidter Str. 31 · 56648 Saffig · Deutschland<br />
-          E-Mail: <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
-        </p>
-      </div>
+  <div className="legal-section" id="dienst"><h2>2. Dienst- und Audiodaten</h2><p>Für Mastering und serverseitige Analyse verarbeiten wir die hochgeladene Audiodatei, Dateiname, Dateigröße, Format, technische Audiomesswerte, gewählte Plattform, Preset, Intensität und Bearbeitungsparameter. Zweck ist ausschließlich die angeforderte technische Audioanalyse und -bearbeitung. Audiodaten werden nicht für Werbung, Nutzerprofile oder das Training von KI-Modellen verwendet und nicht veröffentlicht.</p><p>Bei lokal gekennzeichneten Tools findet die Verarbeitung vollständig im Browser statt. Bei serverseitig gekennzeichneten Tools und beim öffentlichen Mix-Check wird die Datei an unseren Server übertragen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Ohne die jeweilige Audiodatei kann die angeforderte Analyse oder Bearbeitung nicht erbracht werden.</p><p>Beim öffentlichen Mix-Check wird die Datei nach Abschluss, Abbruch oder Fehlschlag der Analyse entfernt. Es wird dabei kein Nutzerkonto und kein dauerhafter Analyseauftrag angelegt.</p></div>
 
-      <div className="legal-section" id="audiodaten">
-        <h2>2.1 Audio-Dateien</h2>
-        <p>
-          Hochgeladene Original-Audiodateien werden ausschließlich zur Verarbeitung des
-          Mastering-Auftrags verwendet und unmittelbar nach Abschluss der Verarbeitung vom
-          Server gelöscht (spätestens nach 60 Minuten).
-        </p>
-        <p>
-          Beim öffentlichen Mix-Check wird die hochgeladene Datei unmittelbar nach Abschluss,
-          Abbruch oder Fehlschlag der Analyse gelöscht. Dabei werden weder ein Nutzerkonto noch
-          ein Mastering-Auftrag oder eine Audiodatei dauerhaft gespeichert.
-        </p>
-        <p>
-          Gemasterte Ausgabedateien werden nach Abschluss der Verarbeitung für
-          <strong style={{ color: "var(--text-primary)" }}> 24 Stunden</strong>
-          auf dem Server vorgehalten, um den Download zu ermöglichen. Nach Ablauf dieser Frist
-          werden die Dateien automatisch und dauerhaft gelöscht. Es wird keine permanente
-          Audio-Bibliothek oder dauerhaftes Dateiarchiv geführt.
-        </p>
-        <p>
-          Keine dauerhafte Speicherung, keine Weitergabe, keine Analyse der Audioinhalte.
-          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
-        </p>
-      </div>
+  <div className="legal-section" id="konto"><h2>3. Nutzerkonto, Anmeldung und Nutzungsverlauf</h2><p>Für das eigentliche Online-Mastering ist ein Konto erforderlich. Verarbeitet werden E-Mail-Adresse, optionaler Name und Profilbild, verschlüsselter Passwort-Hash, Zeitpunkte der Kontoerstellung und Änderung, Sicherheitsmerkmale wie Zwei-Faktor-Status sowie kurzlebige Login- und Reset-Daten. Passwörter werden nicht im Klartext gespeichert.</p><p>Im Mastering-Verlauf speichern wir Dateiname, Datum, Status, Plattform, Preset, Messwerte, Bearbeitungsparameter und optionale Notizen, jedoch nach Ablauf der Dateifrist kein Audiomaterial. Gespeicherte Referenzen enthalten Namen und Analysedaten, aber keine Referenz-Audiodatei. Diese Daten sind über die Nutzer-ID dem Konto zugeordnet. Der tägliche Fair-Use-Zähler wird aus diesen kontobezogenen Vorgängen berechnet und ist daher nicht anonym.</p><p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Sicherheits- und Missbrauchsschutzmaßnahmen beruhen zusätzlich auf Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse liegt im Schutz von Konten, Infrastruktur und fairer Verfügbarkeit.</p><h3>Optionale Google-Anmeldung</h3><p>Bei Auswahl von „Mit Google anmelden“ werden Sie zu Google weitergeleitet. Wir erhalten abhängig von Ihrer Google-Freigabe insbesondere eine Anbieter-ID, E-Mail-Adresse, Namen und gegebenenfalls Profilbild. Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Die Nutzung ist freiwillig; alternativ steht die Anmeldung mit E-Mail und Passwort zur Verfügung. Weitere Informationen: <a href="https://policies.google.com/privacy?hl=de" target="_blank" rel="noopener noreferrer">Google-Datenschutzerklärung</a>.</p></div>
 
-      <div className="legal-section" id="nutzungsdaten">
-        <h2>2.2 Nutzungsdaten (Fair-Use)</h2>
-        <p>
-          Zur Durchsetzung etwaiger Nutzungslimits (Masters pro Tag / Monat) werden
-          anonymisierte Zähler in der Datenbank gespeichert. Diese Zähler werden
-          ausschließlich zur Quota-Verwaltung verwendet und nicht mit personenbezogenen
-          Daten verknüpft. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO
-          (berechtigtes Interesse).
-        </p>
-      </div>
+  <div className="legal-section" id="email"><h2>4. Transaktionale E-Mails über Resend</h2><p>Für Willkommensnachrichten, Passwort-Reset, Login-Codes, Widerrufsbestätigungen sowie Erfolgs- und Fehlermeldungen zum Mastering übermitteln wir E-Mail-Adresse und den jeweils erforderlichen Nachrichteninhalt an Plus Five Five, Inc. (Resend), 2261 Market Street #5039, San Francisco, CA 94114, USA. Bei Mastering-Benachrichtigungen können Dateiname, Plattform und Messwert in der E-Mail enthalten sein. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO; Sicherheitsnachrichten zusätzlich Art. 6 Abs. 1 lit. f DSGVO.</p><p>Resend verarbeitet die Daten als Auftragsverarbeiter. Grundlage für Übermittlungen in die USA sind die Zertifizierung nach dem EU-US Data Privacy Framework und ergänzend die EU-Standardvertragsklauseln im Data Processing Addendum. Informationen: <a href="https://resend.com/legal/dpa" target="_blank" rel="noopener noreferrer">Resend DPA</a> und <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Resend Privacy Policy</a>.</p></div>
 
-      <div className="legal-section" id="serverlogs">
-        <h2>2.3 Server-Logs</h2>
-        <p>
-          Automatisch protokolliert: IP-Adresse, Datum/Uhrzeit, aufgerufene URL,
-          HTTP-Status, übertragene Datenmenge. Speicherdauer: 7 Tage, dann automatische
-          Löschung. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO
-          (berechtigtes Interesse — Betriebssicherheit).
-        </p>
-      </div>
+  <div className="legal-section" id="hosting"><h2>5. Hosting, DSP-Dienst und Serverlogs</h2><p>Die Website und ihre serverseitigen Komponenten werden bei DomainFactory GmbH, Oskar-Messter-Str. 33, 85737 Ismaning, Deutschland, innerhalb der Europäischen Union betrieben. DomainFactory ist auf Grundlage eines Vertrages nach Art. 28 DSGVO als Auftragsverarbeiter eingebunden. Informationen: <a href="https://www.df.eu/de/datenschutz/" target="_blank" rel="noopener noreferrer">Datenschutz bei DomainFactory</a>.</p><p>Beim Aufruf werden technisch notwendige Serverlogs verarbeitet, insbesondere IP-Adresse, Datum und Uhrzeit, URL, HTTP-Status, User-Agent und übertragene Datenmenge. Zweck sind Auslieferung, Fehlerdiagnose und Abwehr von Angriffen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser Interesse ist der sichere und zuverlässige Betrieb. Die reguläre Log-Aufbewahrung beträgt sieben Tage. Gesetzlich erforderliche oder sicherheitsbedingt isolierte Nachweise können im Einzelfall länger aufbewahrt werden.</p></div>
 
-      <div className="legal-section" id="kontodaten">
-        <h2>2.4 Kontodaten</h2>
-        <p>
-          Für registrierte Nutzer werden folgende Daten gespeichert:
-        </p>
-        <ul>
-          <li>E-Mail-Adresse (Pflichtangabe zur Kontoerstellung)</li>
-          <li>Name (optional)</li>
-          <li>Tägliche Nutzungszähler (Fair-Use-Limit)</li>
-          <li>
-            <strong style={{ color: "var(--text-primary)" }}>Mastering-Verlauf (Metadaten):</strong>{" "}
-            Dateiname, Datum, gewählte Plattform, Mastering-Intensität, LUFS-Messwerte vor/nach
-            der Verarbeitung, Mastering-Parameter — ausdrücklich <em>kein</em> Audiomaterial
-          </li>
-        </ul>
-        <p>
-          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
-          Speicherdauer: bis zur Löschung des Nutzerkontos.
-        </p>
-      </div>
+  <div className="legal-section" id="speicher"><h2>6. Technisch notwendige Cookies und lokaler Speicher</h2><p>Wir verwenden keine Analyse-, Werbe- oder Tracking-Cookies. Für angemeldete Nutzer setzt das Authentifizierungssystem ein HTTP-only-Sitzungscookie. Es ist für Anmeldung und Kontoschutz erforderlich und kann bei fortbestehender Sitzung bis zu 30 Tage gültig sein. Rechtsgrundlage ist § 25 Abs. 2 Nr. 2 TDDDG in Verbindung mit Art. 6 Abs. 1 lit. b DSGVO.</p><p>Im LocalStorage des Browsers speichern wir die Sprachpräferenz, den Status des Cookie-Hinweises und gegebenenfalls die ID einer ausgeblendeten Seitenmitteilung. Diese Informationen verbleiben auf dem Gerät und können über die Browserfunktionen gelöscht werden. Die Speicherung ist zur Bereitstellung der ausdrücklich gewünschten Einstellungen erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).</p></div>
 
-      <div className="legal-section" id="hosting">
-        <h2>2.5 Hosting (Auftragsverarbeiter)</h2>
-        <p>
-          Diese Website wird auf Servern der{" "}
-          <strong style={{ color: "var(--text-primary)" }}>DomainFactory GmbH</strong>{" "}
-          (df.eu), Oskar-Messter-Str. 33, 85737 Ismaning, Deutschland gehostet.
-          DomainFactory ist Auftragsverarbeiter gemäß Art. 28 DSGVO; ein entsprechender
-          Auftragsverarbeitungsvertrag (AVV) ist abgeschlossen. Die Server befinden
-          sich innerhalb der Europäischen Union. Eine Übertragung in Drittländer
-          findet durch den Hoster nicht statt.
-        </p>
-        <p>
-          Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse —
-          zuverlässiger Betrieb der Website). Datenschutzrichtlinie DomainFactory:{" "}
-          <a href="https://www.df.eu/de/datenschutz/" target="_blank" rel="noopener noreferrer">
-            df.eu/de/datenschutz
-          </a>
-        </p>
-      </div>
+  <div className="legal-section" id="empfaenger"><h2>7. Empfänger und Drittlandübermittlungen</h2><p>Empfänger sind nur die für den jeweiligen Zweck erforderlichen Stellen: DomainFactory für Hosting, Resend für transaktionale E-Mails und – nur bei freiwilliger Auswahl – Google für OAuth-Anmeldung. Innerhalb von Beatzucker erhalten ausschließlich Personen Zugriff, die ihn für Betrieb, Support oder Sicherheit benötigen. Audio wird nicht verkauft, zu Werbezwecken weitergegeben oder veröffentlicht.</p><p>Drittlandübermittlungen können bei Resend und Google stattfinden. Sie erfolgen nach Maßgabe von Kapitel V DSGVO, insbesondere auf Basis eines Angemessenheitsbeschlusses wie dem EU-US Data Privacy Framework oder geeigneter Garantien wie Standardvertragsklauseln.</p></div>
 
-      <div className="legal-section" id="localstorage">
-        <h2>3. Lokaler Speicher (LocalStorage)</h2>
-        <p>
-          Diese Website verwendet ausschließlich technisch notwendigen lokalen Speicher.
-          Keine Tracking-Cookies, keine Werbe-Cookies, kein Analytics. Gespeichert werden:
-        </p>
-        <ul>
-          <li>Benutzereinstellungen (Plattform, Preset, Intensity, Sprachpräferenz) — nur lokal, kein Upload</li>
-          <li>Hinweis-Status (Cookie-Banner-Bestätigung)</li>
-        </ul>
-        <p>
-          Die technisch notwendige Speicherung bedarf keiner Einwilligung
-          (§ 25 Abs. 2 Nr. 2 TDDDG). Alle lokalen Daten verbleiben ausschließlich
-          auf Ihrem Gerät.
-        </p>
-      </div>
+  <div className="legal-section" id="dauer"><h2>8. Speicherdauer und Löschung</h2><ul><li><strong>Mastering-Original:</strong> für Vorschau und manuelle Nachbearbeitung, höchstens etwa 60 Minuten nach Upload</li><li><strong>Öffentlicher Mix-Check:</strong> Entfernung nach Abschluss, Abbruch oder Fehler</li><li><strong>Master-Ausgabedateien:</strong> Downloadzugriff für genau 24 Stunden; physische Löschung beim nächsten Cleanup, regelmäßig innerhalb von fünf Minuten nach Fristablauf</li><li><strong>Konto, Verlauf und Referenzanalysen:</strong> bis zur Kontolöschung; bei Kontolöschung werden die zugeordneten Master-Datensätze und Dateien entfernt</li><li><strong>Reset-Token:</strong> 15 Minuten; Login-Code: 10 Minuten oder bis zur Verwendung</li><li><strong>Authentifizierungssitzung:</strong> längstens 30 Tage, soweit sie nicht vorher beendet wird</li><li><strong>Serverlogs:</strong> regulär sieben Tage</li></ul><p>Soweit gesetzliche Aufbewahrungspflichten oder die Sicherung konkreter Rechtsansprüche entgegenstehen, werden betroffene Daten für diesen eng begrenzten Zweck gesperrt und anschließend gelöscht.</p></div>
 
-      <div className="legal-section" id="rechte">
-        <h2>4. Ihre Rechte (Art. 15–22 DSGVO)</h2>
-        <ul>
-          <li><strong>Auskunft</strong> (Art. 15) — Welche Daten wir über Sie gespeichert haben</li>
-          <li><strong>Berichtigung</strong> (Art. 16) — Korrektur unrichtiger Daten</li>
-          <li><strong>Löschung</strong> (Art. 17) — „Recht auf Vergessenwerden"</li>
-          <li><strong>Einschränkung</strong> (Art. 18) — Einschränkung der Verarbeitung</li>
-          <li><strong>Datenübertragbarkeit</strong> (Art. 20) — Export Ihrer Daten in maschinenlesbarem Format</li>
-          <li><strong>Widerspruch</strong> (Art. 21) — Gegen Verarbeitung auf Basis berechtigter Interessen</li>
-        </ul>
-        <p>
-          Anfragen richten Sie bitte an:{" "}
-          <a href="mailto:info@re-beatz.com">info@re-beatz.com</a><br />
-          Beschwerden können Sie an die Aufsichtsbehörde richten:<br />
-          Landesbeauftragter für Datenschutz und Informationsfreiheit Rheinland-Pfalz,{" "}
-          <a href="https://www.datenschutz.rlp.de" target="_blank" rel="noopener noreferrer">datenschutz.rlp.de</a>
-        </p>
-      </div>
+  <div className="legal-section" id="rechte"><h2>9. Ihre Rechte</h2><p>Sie haben nach Maßgabe der gesetzlichen Voraussetzungen das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen Verarbeitungen nach Art. 6 Abs. 1 lit. f DSGVO (Art. 21). Im Konto stehen Datenexport und Kontolöschung bereit. Sicherheitsgeheimnisse wie Passwort-Hashes, Reset-, OTP- und aktive Sitzungstoken werden nicht exportiert.</p><p>Anfragen: <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>. Sie können sich außerdem beim Landesbeauftragten für den Datenschutz und die Informationsfreiheit Rheinland-Pfalz oder jeder anderen zuständigen Aufsichtsbehörde beschweren: <a href="https://www.datenschutz.rlp.de" target="_blank" rel="noopener noreferrer">datenschutz.rlp.de</a>.</p></div>
 
-      <div className="legal-section" id="automatisierung">
-        <h2>5. Keine automatisierte Entscheidungsfindung</h2>
-        <p>
-          Eine automatisierte Entscheidungsfindung oder Profiling im Sinne des Art. 22 DSGVO
-          findet nicht statt. Der Mastering-Dienst verarbeitet Audiodateien rein technisch
-          (Signalverarbeitung und messwertbasierte adaptive Parameterauswahl) und trifft keine Entscheidungen
-          mit rechtlicher oder ähnlich bedeutsamer Wirkung auf betroffene Personen.
-        </p>
-      </div>
-
-      <div className="legal-section" id="sicherheit">
-        <h2>6. Datensicherheit & Speicherdauer</h2>
-        <p>
-          Alle Datenübertragungen sind durch TLS/HTTPS verschlüsselt. Speicherdauer im Überblick:
-        </p>
-        <ul>
-          <li><strong>Upload-Audiodatei:</strong> sofortige Löschung nach Verarbeitung (max. 60 Min.)</li>
-          <li><strong>Öffentlicher Mix-Check:</strong> sofortige Löschung nach Abschluss oder Abbruch der Analyse</li>
-          <li><strong>Gemasterte Ausgabedatei:</strong> 24 Stunden nach Verarbeitungsabschluss</li>
-          <li><strong>Server-Logs:</strong> 7 Tage</li>
-          <li><strong>Konto- und Mastering-Metadaten:</strong> bis zur Konto-Löschung</li>
-        </ul>
-        <p>
-          Wir sind weder verpflichtet noch bereit, an Streitbeilegungsverfahren vor einer
-          Verbraucherschlichtungsstelle teilzunehmen.
-        </p>
-      </div>
-
-      <div className="legal-meta">
-        Stand: März 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
-      </div>
-    </LegalLayout>
-  );
-}
+  <div className="legal-section" id="entscheidungen"><h2>10. Keine rechtlich bedeutsame automatisierte Entscheidung</h2><p>Es findet keine ausschließlich automatisierte Entscheidungsfindung mit rechtlicher oder ähnlich erheblicher Wirkung im Sinne des Art. 22 DSGVO statt. Die adaptive DSP-Parameterauswahl ist eine technische Funktion zur Bearbeitung der vom Nutzer ausgewählten Audiodatei.</p></div>
+  <div className="legal-meta">Stand: August 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></div>
+</LegalLayout>}

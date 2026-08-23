@@ -30,6 +30,10 @@ export default function LegalNoticePage() {
         <p>Phone: +49 2632 4966999<br />Email: <a href="mailto:info@re-beatz.com">info@re-beatz.com</a></p>
       </div>
       <div className="legal-section">
+        <h2>Digital Services Act contact points</h2>
+        <p>The central contact point for authorities, the European Commission, the European Board for Digital Services and service recipients under Articles 11 and 12 of Regulation (EU) 2022/2065 is <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>. Communication is possible in German and English. Authorities should use the subject “DSA authority request”; notices concerning potentially unlawful content should use “Content report”.</p>
+      </div>
+      <div className="legal-section">
         <h2>VAT Identification Number</h2>
         <p>VAT ID pursuant to Section 27a of the German VAT Act: <strong style={{ color: "var(--text-primary)" }}>DE353324466</strong></p>
       </div>
@@ -43,7 +47,7 @@ export default function LegalNoticePage() {
       </div>
       <div className="legal-section">
         <h2>Liability for Content</h2>
-        <p>As a service provider, we are responsible for our own content on these pages under general law. However, we are not obliged to monitor transmitted or stored third-party information or investigate circumstances indicating unlawful activity.</p>
+        <p>We are responsible for our own content under general law. For transmitted or temporarily stored third-party information, the liability privileges in Articles 4 to 8 of Regulation (EU) 2022/2065 and the provisions of the German Digital Services Act apply. There is no general obligation to monitor. Duties to act upon specific knowledge or official orders remain unaffected.</p>
       </div>
       <div className="legal-section">
         <h2>Liability for Links</h2>

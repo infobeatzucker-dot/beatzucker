@@ -3,7 +3,7 @@ import LegalLayout from "@/app/components/LegalLayout";
 
 export const metadata: Metadata = {
   title: { absolute: "Impressum – Beatzucker" },
-  description: "Impressum und Anbieterkennzeichnung von Beatzucker gemäß §5 TMG — Anbieter, Kontakt und rechtliche Hinweise zum kostenlosen Mastering-Dienst.",
+  description: "Impressum und Anbieterkennzeichnung von Beatzucker gemäß § 5 DDG mit Anbieter, Kontakt und rechtlichen Hinweisen.",
   robots: { index: true, follow: true },
   alternates: {
     canonical: "https://beatzucker.de/impressum",
@@ -60,13 +60,23 @@ export default function ImpressumPage() {
       </div>
 
       <div className="legal-section">
+        <h2>Kontaktstellen nach dem Digital Services Act</h2>
+        <p>
+          Kontaktstelle für Nutzer gemäß Art. 12 DSA und für Behörden gemäß Art. 11 DSA: {" "}
+          <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>. Die Kommunikation ist auf
+          Deutsch und Englisch möglich. Bitte kennzeichnen Sie Behördenanfragen im Betreff als
+          „DSA-Behördenkontakt“ und Meldungen zu einem konkreten Upload als „Inhaltsmeldung“.
+        </p>
+      </div>
+
+      <div className="legal-section">
         <h2>Haftung für Inhalte</h2>
         <p>
-          Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene Inhalte auf diesen Seiten
-          nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG sind wir als
-          Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde
-          Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige
-          Tätigkeit hinweisen.
+          Für eigene Inhalte gelten die allgemeinen Gesetze. Soweit Beatzucker vorübergehend
+          Informationen im Auftrag eines Nutzers speichert, richten sich mögliche
+          Haftungsprivilegien nach den Art. 4 bis 8 der Verordnung (EU) 2022/2065 (Digital
+          Services Act) in Verbindung mit § 7 DDG. Verpflichtungen aufgrund gerichtlicher oder
+          behördlicher Anordnungen bleiben unberührt.
         </p>
       </div>
 
@@ -91,7 +101,7 @@ export default function ImpressumPage() {
       </div>
 
       <div className="legal-meta">
-        Stand: März 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
+        Stand: August 2026 · Beatzucker · <a href="mailto:info@re-beatz.com">info@re-beatz.com</a>
       </div>
     </LegalLayout>
   );

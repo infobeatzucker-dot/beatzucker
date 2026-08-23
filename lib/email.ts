@@ -217,3 +217,39 @@ export async function sendMasteringErrorEmail(email: string, originalName: strin
     html,
   });
 }
+
+export async function sendWithdrawalEmails(input: {
+  name: string;
+  email: string;
+  contractReference: string;
+  receivedAt: Date;
+  receiptId: string;
+  lang: "de" | "en";
+}) {
+  const name = escapeHtml(input.name);
+  const email = escapeHtml(input.email);
+  const reference = escapeHtml(input.contractReference || "Beatzucker-Nutzerkonto / Online-Dienst");
+  const receiptId = escapeHtml(input.receiptId);
+  const received = input.receivedAt.toLocaleString("de-DE", {
+    timeZone: "Europe/Berlin", dateStyle: "long", timeStyle: "short",
+  });
+  const adminEmail = process.env.ADMIN_EMAIL ?? "info@re-beatz.com";
+  const english = input.lang === "en";
+
+  const confirmation = emailWrap(`
+    <h1 style="color:#fff;font-size:1.2rem;margin:0 0 12px;">${english ? "Cancellation received" : "Widerruf eingegangen"}</h1>
+    <p style="color:#9ca3af;line-height:1.6;">${english ? "We confirm receipt of your cancellation statement on" : "Wir bestätigen den Eingang deiner Widerrufserklärung am"} <strong style="color:#fff">${received}${english ? " (Europe/Berlin)" : " Uhr"}</strong>.</p>
+    <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:10px;padding:14px 18px;color:#d1d5db;line-height:1.7;">
+      Name: ${name}<br>${english ? "Email" : "E-Mail"}: ${email}<br>${english ? "Agreement/reference" : "Vertrag/Referenz"}: ${reference}<br>${english ? "Receipt ID" : "Eingangs-ID"}: ${receiptId}
+    </div>
+    <p style="color:#9ca3af;line-height:1.6;">${english ? "Your cancellation will be processed. If you also want your account and stored data deleted, you can initiate this separately in your account or reply to us." : "Der Widerruf wird bearbeitet. Falls damit zugleich dein Konto und deine gespeicherten Daten gelöscht werden sollen, kannst du dies zusätzlich im Konto auslösen oder uns antworten."}</p>`);
+
+  const notification = emailWrap(`
+    <h1 style="color:#fff;font-size:1.2rem;margin:0 0 12px;">Neue Widerrufserklärung</h1>
+    <p style="color:#d1d5db;line-height:1.7;">Name: ${name}<br>E-Mail: ${email}<br>Vertrag/Referenz: ${reference}<br>Eingang: ${received} Uhr<br>Eingangs-ID: ${receiptId}</p>`);
+
+  await Promise.all([
+    getResend().emails.send({ from: FROM, to: input.email, subject: `${english ? "Cancellation receipt" : "Eingangsbestätigung Widerruf"} ${input.receiptId}`, html: confirmation }),
+    getResend().emails.send({ from: FROM, to: adminEmail, replyTo: input.email, subject: `Widerruf ${input.receiptId} – ${input.name}`, html: notification }),
+  ]);
+}

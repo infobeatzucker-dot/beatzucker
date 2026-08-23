@@ -159,13 +159,17 @@ export async function DELETE() {
   });
   if (!user) return NextResponse.json({ error: "Nutzer nicht gefunden" }, { status: 404 });
 
-  // Cascade deletes handle database records; audio files live outside Prisma
-  // and must be removed explicitly for account deletion to be complete.
+  // Audio files live outside Prisma and must be removed explicitly. Master.user
+  // uses SetNull so that operational cleanup never deletes history by accident;
+  // for an explicit account erasure request we deliberately delete those rows.
   await Promise.all(user.masters.flatMap((master) => [
     removeMasterFiles(master.id),
     removeUploadFiles(master.fileId),
   ]));
-  await db.user.delete({ where: { id: user.id } });
+  await db.$transaction([
+    db.master.deleteMany({ where: { userId: user.id } }),
+    db.user.delete({ where: { id: user.id } }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

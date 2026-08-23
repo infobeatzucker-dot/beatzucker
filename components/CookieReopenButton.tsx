@@ -21,7 +21,7 @@ export default function CookieReopenButton({ lang = "de" }: { lang?: Lang }) {
       }}
       className="hover:text-white transition-colors"
     >
-      {lang === "de" ? "Cookie-Einstellungen" : "Cookie settings"}
+      {lang === "de" ? "Cookie-Hinweis" : "Cookie information"}
     </button>
   );
 }

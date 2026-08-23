@@ -10,9 +10,12 @@ import { DOWNLOAD_WINDOW_MS } from "@/lib/constants";
 
 const UPLOAD_DIR = path.resolve(process.env.TEMP_UPLOAD_DIR || "./uploads");
 const MASTER_DIR = path.join(UPLOAD_DIR, "masters");
-const ORIGINAL_WINDOW_MS = 60 * 60 * 1000;
-const MASTER_CLEANUP_GRACE_MS = 15 * 60 * 1000;
-const CLEANUP_INTERVAL_MS = 15 * 60 * 1000;
+// The cleanup interval is part of the externally stated retention ceiling.
+// At 55 minutes plus a five-minute sweep interval, abandoned originals are
+// removed no later than about 60 minutes after their last write.
+const ORIGINAL_WINDOW_MS = 55 * 60 * 1000;
+const MASTER_CLEANUP_GRACE_MS = 0;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
 const MASTER_FILES: Record<string, string> = {
   wav32: "wav", wav24: "wav", wav16: "wav", flac: "flac",
