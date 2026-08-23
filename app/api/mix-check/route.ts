@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     const form = await req.formData();
     const requestedPurpose = form.get("purpose");
     const purpose = typeof requestedPurpose === "string" && ["mix-check", "key-bpm", "streaming-preview", "album-consistency", "reference-comparison", "silence-normalizer"].includes(requestedPurpose) ? requestedPurpose : "mix-check";
-    const limit = purpose === "album-consistency" ? 16 : purpose === "reference-comparison" ? 6 : 3;
+    const limit = purpose === "album-consistency" ? 16 : purpose === "reference-comparison" ? 10 : 3;
     if (!rateLimit(`public-analysis:${purpose}:${key}`, limit, 60 * 60 * 1000)) {
       return NextResponse.json({ error: "Analysis limit reached. Please try again later." }, { status: 429 });
     }
@@ -87,9 +87,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "The public Mix Check supports tracks up to 10 minutes." }, { status: 413 });
     }
 
-    const analysisResponse = await fetch(`${PYTHON_URL}/analyze`, {
+    const requestAnalysis = () => fetch(`${PYTHON_URL}/analyze`, {
       method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: filePath }), signal: AbortSignal.timeout(160000),
     });
+    let analysisResponse = await requestAnalysis();
+    if (analysisResponse.status === 503) {
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      analysisResponse = await requestAnalysis();
+    }
     if (!analysisResponse.ok) return NextResponse.json({ error: "Audio analysis failed." }, { status: analysisResponse.status });
     const analysis = normalizeAnalysis(await analysisResponse.json());
     if (!analysis) return NextResponse.json({ error: "The analyzer returned invalid measurements." }, { status: 502 });
