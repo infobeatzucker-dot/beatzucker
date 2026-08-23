@@ -1,0 +1,4 @@
+import type { Metadata } from "next";
+import Header from "@/components/Header"; import Footer from "@/components/Footer"; import ScrollToTop from "@/components/ScrollToTop"; import ToolsHub from "@/components/ToolsHub"; import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+export const metadata: Metadata = { title:{absolute:"Kostenlose Audio-Tools für Musiker | Beatzucker"}, description:"Kostenlose Online-Audio-Tools: Streaming-Lautheit simulieren, Mixe prüfen und Releases technisch vorbereiten.", alternates:{canonical:"https://beatzucker.de/tools",languages:{"de-DE":"https://beatzucker.de/tools",en:"https://beatzucker.de/en/tools","x-default":"https://beatzucker.de/tools"}} };
+export default function ToolsPage(){return <div className="tools-page"><BreadcrumbJsonLd name="Audio-Tools" url="https://beatzucker.de/tools"/><Header lang="de"/><main><ToolsHub lang="de"/></main><Footer lang="de"/><ScrollToTop lang="de"/></div>}

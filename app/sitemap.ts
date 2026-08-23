@@ -58,6 +58,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    {
+      url: `${BASE}/tools`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9,
+    },
+    {
+      url: `${BASE}/en/tools`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
+    },
+    {
+      url: `${BASE}/tools/streaming-preview`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9,
+    },
+    {
+      url: `${BASE}/en/tools/streaming-preview`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
+    },
 
     /* ── Ressourcen / Wissen ──────────────────────────────────── */
     {

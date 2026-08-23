@@ -24,7 +24,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
   const knowledgeHref = lang === "en" ? "/en/knowledge" : "/ressourcen";
   const featuresHref = lang === "en" ? "/en/features" : "/features";
   const helpHref = lang === "en" ? "/en/help" : "/help";
-  const mixCheckHref = lang === "en" ? "/en/mix-check" : "/mix-check";
+  const toolsHref = lang === "en" ? "/en/tools" : "/tools";
 
   // Subscribe to global audio state
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
               { label: lang === "de" ? "Funktionen" : "Features", href: featuresHref },
               { label: lang === "de" ? "So funktioniert's" : "How it works", href: `${homeHref}#features` },
               { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
-              { label: "Mix-Check", href: mixCheckHref },
+              { label: lang === "de" ? "Tools" : "Tools", href: toolsHref },
               { label: "FAQ", href: helpHref },
               ...(session ? [{ label: "Dashboard", href: "/dashboard" }] : []),
             ].map((item) => (
@@ -210,7 +210,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
                   { label: lang === "de" ? "Funktionen" : "Features", href: featuresHref },
                   { label: lang === "de" ? "Hilfe" : "Help", href: helpHref },
                   { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
-                  { label: "Mix-Check", href: mixCheckHref },
+                  { label: lang === "de" ? "Tools" : "Tools", href: toolsHref },
                   { label: lang === "de" ? "Impressum" : "Legal notice", href: lang === "en" ? "/legal-notice" : "/impressum" },
                   { label: lang === "de" ? "Datenschutz" : "Privacy", href: lang === "de" ? "/datenschutz" : "/privacy" },
                 ].map((item) => (

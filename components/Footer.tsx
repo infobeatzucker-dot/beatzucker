@@ -7,12 +7,12 @@ import type { Lang } from "@/lib/types/mastering";
 export default function Footer({ lang = "de" }: { lang?: Lang }) {
   const navigation = lang === "de"
     ? [
-        ["/features", "Funktionen"], ["/help", "Hilfe"], ["/mix-check", "Mix-Check"], ["/ressourcen", "Wissen"],
+        ["/features", "Funktionen"], ["/help", "Hilfe"], ["/tools", "Tools"], ["/mix-check", "Mix-Check"], ["/ressourcen", "Wissen"],
         ["/impressum", "Impressum"], ["/datenschutz", "Datenschutz"], ["/agb", "AGB"],
         ["/widerruf", "Widerruf"],
       ]
     : [
-        ["/en/features", "Features"], ["/en/help", "Help"], ["/en/mix-check", "Mix Check"], ["/en/knowledge", "Knowledge"],
+        ["/en/features", "Features"], ["/en/help", "Help"], ["/en/tools", "Tools"], ["/en/mix-check", "Mix Check"], ["/en/knowledge", "Knowledge"],
         ["/legal-notice", "Legal notice"], ["/privacy", "Privacy"], ["/terms", "Terms"],
         ["/cancellation-policy", "Cancellation policy"],
       ];
