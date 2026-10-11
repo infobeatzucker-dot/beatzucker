@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
           });
           if (consumed.count !== 1) return null;
         }
-        return { id: user.id, email: user.email, name: user.name, image: user.image };
+        return { id: user.id, email: user.email, name: user.name, image: user.image, passwordVersion: user.passwordChangedAt?.getTime() ?? 0 };
       },
     }),
   ],
@@ -59,14 +59,20 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+        token.authenticatedAt = Date.now();
+        token.authProvider = account?.provider;
+        token.lastPwCheck = 0;
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
           select: { passwordChangedAt: true },
         });
-        token.pwChangedAt = dbUser?.passwordChangedAt?.getTime() ?? 0;
+        // Keep the version from password verification: a concurrent reset must
+        // not turn an old-password login into a newly valid session.
+        token.pwChangedAt = account?.provider === "credentials"
+          ? (user.passwordVersion ?? 0) : (dbUser?.passwordChangedAt?.getTime() ?? 0);
       }
       const lastCheck = (token.lastPwCheck as number) || 0;
       if (token.id && Date.now() - lastCheck > 60 * 1000) {
@@ -81,6 +87,9 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      session.passwordVersion = typeof token.pwChangedAt === "number" ? token.pwChangedAt : 0;
+      session.authenticatedAt = typeof token.authenticatedAt === "number" ? token.authenticatedAt : undefined;
+      session.authProvider = typeof token.authProvider === "string" ? token.authProvider : undefined;
       if (session.user && token.id) session.user.id = token.id as string;
       if (!token.id) session.user = { id: "", email: null, name: null, image: null };
       return session;

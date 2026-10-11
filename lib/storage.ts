@@ -38,18 +38,20 @@ export async function findFileById(fileId: string): Promise<string | null> {
   return match ? path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, match) : null;
 }
 
-export async function cleanupFile(filePath: string) {
+export async function cleanupFile(filePath: string, strict = false) {
   try {
     if (existsSync(/*turbopackIgnore: true*/ filePath)) await unlink(/*turbopackIgnore: true*/ filePath);
-  } catch {
-    // ignore
+  } catch (error) {
+    // Missing files are already erased. Explicit account erasure must surface
+    // other failures instead of falsely reporting complete file cleanup.
+    if (strict && (error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
 }
 
-export async function removeMasterFiles(masterId: string) {
+export async function removeMasterFiles(masterId: string, strict = false) {
   if (!/^[a-zA-Z0-9_-]+$/.test(masterId)) return;
   await Promise.all(Object.entries(MASTER_FILES).map(([format, ext]) =>
-    cleanupFile(path.join(/*turbopackIgnore: true*/ MASTER_DIR, `${masterId}_${format}.${ext}`))
+    cleanupFile(path.join(/*turbopackIgnore: true*/ MASTER_DIR, `${masterId}_${format}.${ext}`), strict)
   ));
 }
 
@@ -60,12 +62,12 @@ export function findExistingMasterFormats(masterId: string): string[] {
     .map(([format]) => format);
 }
 
-export async function removeUploadFiles(fileId: string) {
+export async function removeUploadFiles(fileId: string, strict = false) {
   if (!/^[0-9a-f-]+$/i.test(fileId) || !existsSync(/*turbopackIgnore: true*/ UPLOAD_DIR)) return;
   const files = await readdir(/*turbopackIgnore: true*/ UPLOAD_DIR, { withFileTypes: true });
   await Promise.all(files
     .filter((file) => file.isFile() && file.name.startsWith(`${fileId}.`))
-    .map((file) => cleanupFile(path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, file.name))));
+    .map((file) => cleanupFile(path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, file.name), strict)));
 }
 
 async function cleanupDirectory(directory: string, maxAgeMs: number, preserve: (name: string) => boolean = () => false, deadline?: (name: string) => number | undefined) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
-import { signOut } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 
 interface AccountData {
   user: { id: string; email: string; name: string | null; image: string | null; hasPassword: boolean; createdAt: string };
@@ -51,8 +51,55 @@ export default function ProfileSettings() {
 
   const [twoFactorMsg, setTwoFactorMsg] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [securityMsg, setSecurityMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function accountAction(method: "PATCH" | "DELETE", body: object) {
+    if (busy) return null;
+    setBusy(true); setSecurityMsg("");
+    try {
+      const response = await fetch("/api/account", {
+        method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      const result = await response.json();
+      if (!response.ok) { setSecurityMsg(result.error ?? "Aktion fehlgeschlagen."); return null; }
+      setCurPw(""); setOtp("");
+      return result;
+    } catch { setSecurityMsg("Verbindung fehlgeschlagen. Bitte erneut versuchen."); return null; }
+    finally { setBusy(false); }
+  }
+
+  async function sendCode() {
+    if (busy || !curPw) return;
+    setBusy(true);
+    try {
+      const response = await fetch("/api/auth/otp", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data?.user.email, password: curPw }),
+      });
+      const result = await response.json();
+      setSecurityMsg(response.ok ? "✓ Code versendet. Bitte Postfach prüfen (10 Minuten gültig)." : result.error ?? "Versand fehlgeschlagen.");
+    } catch { setSecurityMsg("Verbindung fehlgeschlagen. Bitte erneut versuchen."); }
+    finally { setBusy(false); }
+  }
+
+  function confirmationFields(includePassword = true) {
+    return <div style={{ display: "grid", gap: "0.65rem", margin: "0.75rem 0" }}>
+      {includePassword && <label>Aktuelles Passwort
+        <input style={inputSty} aria-label="Passwort zur Bestätigung" type="password" autoComplete="current-password" maxLength={128} value={curPw} onChange={e => setCurPw(e.target.value)} />
+      </label>}
+      {data?.twoFactor && <>
+        <button type="button" disabled={busy || !curPw} onClick={sendCode} className="btn-secondary">E-Mail-Code senden</button>
+        <label>E-Mail-Code
+          <input style={inputSty} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ""))} />
+        </label>
+      </>}
+    </div>;
+  }
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("confirmDelete") === "1") setDeleteConfirm(true);
     fetch("/api/account")
       .then((r) => r.json())
       .then((d) => { setData(d); setEditName(d.user?.name ?? ""); })
@@ -61,16 +108,10 @@ export default function ProfileSettings() {
 
   async function toggleTwoFactor() {
     const current = data?.twoFactor ?? false;
-    const res = await fetch("/api/account", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ twoFactor: !current }),
-    });
-    if (res.ok) {
+    const result = await accountAction("PATCH", { twoFactor: !current, currentPassword: curPw, otp });
+    if (result) {
       setData((d) => d ? { ...d, twoFactor: !current } : d);
       setTwoFactorMsg(!current ? "✓ 2FA aktiviert" : "✓ 2FA deaktiviert");
-    } else {
-      setTwoFactorMsg("Fehler beim Speichern");
     }
     setTimeout(() => setTwoFactorMsg(""), 3000);
   }
@@ -89,14 +130,11 @@ export default function ProfileSettings() {
   async function changePassword(e: FormEvent) {
     e.preventDefault();
     if (newPw !== newPw2) { setPwMsg("Passwörter stimmen nicht überein."); return; }
-    const res = await fetch("/api/account", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword: curPw, newPassword: newPw }),
-    });
-    const d = await res.json();
-    setPwMsg(res.ok ? "✓ Passwort geändert" : (d.error ?? "Fehler"));
-    if (res.ok) { setCurPw(""); setNewPw(""); setNewPw2(""); }
+    const result = await accountAction("PATCH", { currentPassword: curPw, newPassword: newPw, otp });
+    if (result) {
+      setNewPw(""); setNewPw2("");
+      await signOut({ callbackUrl: "/?passwordChanged=1" });
+    }
     setTimeout(() => setPwMsg(""), 4000);
   }
 
@@ -113,8 +151,8 @@ export default function ProfileSettings() {
   }
 
   async function deleteAccount() {
-    const res = await fetch("/api/account", { method: "DELETE" });
-    if (res.ok) await signOut({ callbackUrl: "/" });
+    const result = await accountAction("DELETE", { currentPassword: curPw, otp });
+    if (result) await signOut({ callbackUrl: "/" });
   }
 
   if (!data) {
@@ -125,6 +163,7 @@ export default function ProfileSettings() {
 
   return (
     <div>
+      {securityMsg && <p role="status" style={{ ...msgStyle(securityMsg), position: "sticky", top: "1rem", zIndex: 10, background: "var(--bg-elevated, #1a1a2e)", padding: "0.8rem", borderRadius: 8 }}>{securityMsg}</p>}
       <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "1.5rem" }}>{data.user.email}</p>
 
       {section("Nutzung", (
@@ -161,13 +200,16 @@ export default function ProfileSettings() {
           <input style={inputSty} type="password" placeholder="Aktuelles Passwort" value={curPw} onChange={(e) => setCurPw(e.target.value)} required />
           <input style={inputSty} type="password" placeholder="Neues Passwort (min. 8 Zeichen)" value={newPw} onChange={(e) => setNewPw(e.target.value)} required />
           <input style={inputSty} type="password" placeholder="Neues Passwort wiederholen" value={newPw2} onChange={(e) => setNewPw2(e.target.value)} required />
-          <button type="submit" style={{ padding: "0.55rem 1.25rem", borderRadius: "7px", border: "none", width: "fit-content", background: "rgba(139,92,246,0.2)", color: "var(--accent-purple)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}>Passwort ändern</button>
+          {confirmationFields(false)}
+          <button type="submit" disabled={busy || (data.twoFactor && otp.length !== 6)} style={{ padding: "0.55rem 1.25rem", borderRadius: "7px", border: "none", width: "fit-content", background: "rgba(139,92,246,0.2)", color: "var(--accent-purple)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}>Passwort ändern</button>
           {pwMsg && <div style={msgStyle(pwMsg)}>{pwMsg}</div>}
         </form>
       ))}
 
       {data.user.hasPassword && section("Sicherheit", (
         <div>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>Bitte die Änderung mit deinem Passwort bestätigen. Bei aktiver 2FA ist zusätzlich ein E-Mail-Code erforderlich.</p>
+          {confirmationFields()}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
             <div>
               <p style={{ fontSize: "0.85rem", color: "var(--text-primary)", margin: "0 0 0.25rem", fontWeight: 600 }}>2-Faktor-Authentifizierung</p>
@@ -177,6 +219,7 @@ export default function ProfileSettings() {
             </div>
             <button
               onClick={toggleTwoFactor}
+              disabled={busy || !curPw || (data.twoFactor && otp.length !== 6)}
               style={{
                 padding: "0.45rem 1rem", borderRadius: "7px", border: "none",
                 background: data.twoFactor ? "rgba(239,68,68,0.15)" : "rgba(16,185,129,0.15)",
@@ -217,10 +260,14 @@ export default function ProfileSettings() {
           ) : (
             <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "8px", padding: "1rem" }}>
               <p style={{ fontSize: "0.85rem", color: "#fca5a5", marginBottom: "0.75rem" }}>
-                <strong>Wirklich löschen?</strong> Alle Daten werden unwiderruflich entfernt.
+                <strong>Wirklich löschen?</strong> Dein Konto und deine Mastering-Daten werden entfernt. Gesetzlich aufzubewahrende Nachweise bleiben erhalten. Ein laufendes Mastering muss zuerst beendet sein.
               </p>
+              {data.user.hasPassword ? confirmationFields() : <>
+                <p>Bitte vor dem Löschen erneut mit Google bestätigen (5 Minuten gültig).</p>
+                <button type="button" className="btn-secondary" onClick={() => signIn("google", { callbackUrl: `${window.location.origin}/dashboard/profile?confirmDelete=1` }, { prompt: "select_account" })}>Mit Google erneut bestätigen</button>
+              </>}
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button onClick={deleteAccount} style={{ background: "#ef4444", border: "none", color: "#fff", borderRadius: "6px", padding: "0.45rem 0.9rem", fontSize: "0.82rem", cursor: "pointer", fontWeight: 700 }}>Ja, Konto löschen</button>
+                <button onClick={deleteAccount} disabled={busy || (data.user.hasPassword && (!curPw || (data.twoFactor && otp.length !== 6)))} style={{ background: "#ef4444", border: "none", color: "#fff", borderRadius: "6px", padding: "0.45rem 0.9rem", fontSize: "0.82rem", cursor: "pointer", fontWeight: 700 }}>Ja, Konto löschen</button>
                 <button onClick={() => setDeleteConfirm(false)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-secondary)", borderRadius: "6px", padding: "0.45rem 0.9rem", fontSize: "0.82rem", cursor: "pointer" }}>Abbrechen</button>
               </div>
             </div>

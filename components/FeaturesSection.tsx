@@ -1,6 +1,7 @@
 "use client";
 
 import { Brain, Settings2, Package, type LucideIcon } from "lucide-react";
+import ManualMasteringExplainer from "@/components/ManualMasteringExplainer";
 
 type Lang = "de" | "en";
 
@@ -141,6 +142,7 @@ export default function FeaturesSection({ lang = "de" }: Props) {
       </div>
 
       {/* Processing Steps */}
+      <ManualMasteringExplainer lang={lang} />
       <div className="mt-12 glass-panel p-6">
         <div className="label mb-4 text-center">{T.mastering_chain[lang]}</div>
         <div className="flex flex-wrap gap-2 justify-center">

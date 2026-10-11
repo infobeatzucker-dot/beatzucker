@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
-import { hashPassword, verifyPassword } from "@/lib/auth";
+import { hashPassword } from "@/lib/auth";
+import type { Prisma } from "@prisma/client";
+import { assertCurrentSession, confirmAccountAction } from "@/lib/accountSecurity";
+import { readAuthRequest, authRequestFailure, AuthRequestError } from "@/lib/authRequest";
+import { activeDspMasterIds } from "@/lib/dspJobs";
 import { DAILY_MASTER_LIMIT, DOWNLOAD_WINDOW_MS } from "@/lib/constants";
 import { findExistingMasterFormats, removeMasterFiles, removeUploadFiles } from "@/lib/storage";
 
@@ -94,82 +98,88 @@ export async function GET() {
 }
 
 // ── PATCH /api/account ───────────────────────────────────────────────
-// Update name or change password
 export async function PATCH(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
-    return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
-
-  const body = await req.json();
-  const user = await db.user.findUnique({ where: { email: session.user.email } });
-  if (!user) return NextResponse.json({ error: "Nutzer nicht gefunden" }, { status: 404 });
-
-  const updates: Record<string, string | boolean> = {};
-
-  // Update name
-  if (typeof body.name === "string") {
-    updates.name = body.name.trim().slice(0, 80);
-  }
-
-  // Toggle 2FA — requires current password confirmation to enable
-  if (typeof body.twoFactor === "boolean") {
-    if (!user.password)
-      return NextResponse.json({ error: "2FA nur für Passwort-Konten verfügbar" }, { status: 400 });
-    if (body.twoFactor && !body.currentPassword)
-      return NextResponse.json({ error: "Aktuelles Passwort erforderlich um 2FA zu aktivieren" }, { status: 400 });
-    if (body.twoFactor) {
-      const valid = await verifyPassword(body.currentPassword, user.password);
-      if (!valid)
-        return NextResponse.json({ error: "Aktuelles Passwort falsch" }, { status: 400 });
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) throw new AuthRequestError("Bitte erneut anmelden. / Please sign in again.", 401);
+    const body = await readAuthRequest(req);
+    const updates: Prisma.UserUpdateManyMutationInput = {};
+    if ("name" in body) {
+      if (typeof body.name !== "string") throw new AuthRequestError("Invalid name", 400);
+      updates.name = body.name.trim().slice(0, 80);
     }
-    console.log(`[2fa] ${user.email} toggled twoFactorEnabled: ${user.twoFactorEnabled} → ${body.twoFactor}`);
-    updates.twoFactorEnabled = body.twoFactor;
+    if ("twoFactor" in body) {
+      if (typeof body.twoFactor !== "boolean") throw new AuthRequestError("Invalid 2FA setting", 400);
+      updates.twoFactorEnabled = body.twoFactor;
+    }
+    if ("newPassword" in body) {
+      const password = body.newPassword;
+      if (typeof password !== "string" || password.length < 8 || password.length > 128 ||
+          !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+        throw new AuthRequestError("Password needs 8–128 characters, upper/lowercase and a number. / Passwort: 8–128 Zeichen, Groß-/Kleinbuchstaben und eine Zahl.", 400);
+      }
+      updates.password = await hashPassword(password);
+      updates.passwordChangedAt = new Date();
+      updates.passwordResetToken = null;
+      updates.passwordResetExpires = null;
+      updates.loginOtp = null;
+      updates.loginOtpExpires = null;
+    }
+    if (!Object.keys(updates).length) throw new AuthRequestError("Keine Änderungen / No changes", 400);
+    await db.$transaction(async tx => {
+      const user = await tx.user.findUnique({ where: { id: session.user.id } });
+      if (!user) throw new AuthRequestError("Bitte erneut anmelden. / Please sign in again.", 401);
+      assertCurrentSession(session, user);
+      if ("twoFactor" in body || "newPassword" in body) {
+        if (!user.password) throw new AuthRequestError("Only available for password accounts. / Nur für Passwort-Konten verfügbar.", 400);
+        await confirmAccountAction(tx, session, user, body);
+      }
+      await tx.user.update({ where: { id: user.id }, data: updates });
+    });
+    return NextResponse.json({ ok: true, signInAgain: "newPassword" in body });
+  } catch (error) {
+    const failure = authRequestFailure(error);
+    if (failure) return failure;
+    console.error("[account] update failed", error);
+    return NextResponse.json({ error: "Speichern fehlgeschlagen. / Saving failed." }, { status: 500 });
   }
-
-  // Change password
-  if (body.currentPassword && body.newPassword) {
-    if (!user.password)
-      return NextResponse.json({ error: "Kein Passwort-Login (Google-Konto)" }, { status: 400 });
-    const valid = await verifyPassword(body.currentPassword, user.password);
-    if (!valid)
-      return NextResponse.json({ error: "Aktuelles Passwort falsch" }, { status: 400 });
-    if (body.newPassword.length < 8 || !/[A-Z]/.test(body.newPassword) || !/[a-z]/.test(body.newPassword) || !/[0-9]/.test(body.newPassword))
-      return NextResponse.json({ error: "Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten" }, { status: 400 });
-    updates.password = await hashPassword(body.newPassword);
-    updates.passwordChangedAt = new Date().toISOString();
-  }
-
-  if (Object.keys(updates).length === 0)
-    return NextResponse.json({ error: "Keine Änderungen" }, { status: 400 });
-
-  await db.user.update({ where: { id: user.id }, data: updates });
-  return NextResponse.json({ ok: true });
 }
 
 // ── DELETE /api/account ──────────────────────────────────────────────
-// Delete account + all data (DSGVO Art. 17)
-export async function DELETE() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
-    return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
-
-  const user = await db.user.findUnique({
-    where: { email: session.user.email },
-    include: { masters: { select: { id: true, fileId: true } } },
-  });
-  if (!user) return NextResponse.json({ error: "Nutzer nicht gefunden" }, { status: 404 });
-
-  // Audio files live outside Prisma and must be removed explicitly. Master.user
-  // uses SetNull so that operational cleanup never deletes history by accident;
-  // for an explicit account erasure request we deliberately delete those rows.
-  await Promise.all(user.masters.flatMap((master) => [
-    removeMasterFiles(master.id),
-    removeUploadFiles(master.fileId),
-  ]));
-  await db.$transaction([
-    db.master.deleteMany({ where: { userId: user.id } }),
-    db.user.delete({ where: { id: user.id } }),
-  ]);
-
-  return NextResponse.json({ ok: true });
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) throw new AuthRequestError("Bitte erneut anmelden. / Please sign in again.", 401);
+    const body = await readAuthRequest(req);
+    // Worker state may outlive a finished/failed database status.
+    let active: Set<string>;
+    try { active = await activeDspMasterIds(); }
+    catch { throw new AuthRequestError("Please try again later: worker state unavailable. / Bitte später erneut versuchen: Bearbeitungsstatus nicht verfügbar.", 503); }
+    const masters = await db.$transaction(async tx => {
+      const user = await tx.user.findUnique({
+        where: { id: session.user.id },
+        include: { masters: { select: { id: true, fileId: true, status: true } } },
+      });
+      if (!user) throw new AuthRequestError("Bitte erneut anmelden. / Please sign in again.", 401);
+      await confirmAccountAction(tx, session, user, body);
+      if (user.masters.some(m => ["pending", "processing"].includes(m.status) || active.has(m.id))) {
+        throw new AuthRequestError("Please wait until mastering has finished. / Bitte warten, bis das Mastering beendet ist.", 409);
+      }
+      await tx.master.deleteMany({ where: { userId: user.id } });
+      await tx.user.delete({ where: { id: user.id } });
+      return user.masters;
+    });
+    // Delete files only after the database transaction succeeds.
+    const cleanup = await Promise.allSettled(masters.flatMap(master => [
+      removeMasterFiles(master.id, true), removeUploadFiles(master.fileId, true),
+    ]));
+    const cleanupPending = cleanup.some(result => result.status === "rejected");
+    if (cleanupPending) console.error("[account] orphan audio cleanup pending");
+    return NextResponse.json({ ok: true, cleanupPending });
+  } catch (error) {
+    const failure = authRequestFailure(error);
+    if (failure) return failure;
+    console.error("[account] deletion failed", error);
+    return NextResponse.json({ error: "Löschen fehlgeschlagen. / Deletion failed." }, { status: 500 });
+  }
 }

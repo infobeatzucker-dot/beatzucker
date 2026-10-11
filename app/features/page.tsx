@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import ManualMasteringExplainer from "@/components/ManualMasteringExplainer";
 import {
   Zap, Sliders, Wrench, Sparkles, Mic2, SlidersHorizontal, Flame, Target, Octagon, BarChart3,
   Music, Disc, Play, Waves, ShoppingBag, Disc3, Smartphone, Cloud, Disc2, Radio, Settings2,
@@ -715,6 +716,10 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
             </div>
           ))}
         </div>
+      </section>
+
+      <section style={{ maxWidth: "900px", margin: "0 auto", padding: "0 2rem 4rem" }}>
+        <ManualMasteringExplainer lang={lang} />
       </section>
 
       {/* ── DSP Pipeline ── */}

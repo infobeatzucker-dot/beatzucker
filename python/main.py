@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import soundfile as sf
@@ -26,6 +26,7 @@ from ai_params import get_mastering_params
 from mastering import master_audio
 from waveform import extract_waveform_peaks
 from dsp_lease import DspLease
+from silence_normalizer import normalize_section
 
 
 # ─── Cleanup job on startup ────────────────────────────────────────────────────
@@ -73,7 +74,7 @@ app.add_middleware(
 )
 
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
-PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs"}
+PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize"}
 MAX_CONCURRENT_DSP_JOBS = max(1, int(os.environ.get("MAX_CONCURRENT_DSP_JOBS", "2")))
 DSP_SLOTS = asyncio.Semaphore(MAX_CONCURRENT_DSP_JOBS)
 ACTIVE_MASTER_IDS = set()
@@ -104,6 +105,13 @@ class FilePathRequest(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     file_path: str
+
+
+class TrimNormalizeRequest(BaseModel):
+    file_path: str
+    start: float
+    end: float
+    target: float
 
 
 class WaveformRequest(BaseModel):
@@ -209,6 +217,26 @@ async def analyze(req: AnalyzeRequest):
     except Exception as e:
         logger.exception("Error in /analyze")
         raise HTTPException(500, "Analysis failed")
+
+
+@app.post("/trim-normalize")
+async def trim_normalize(req: TrimNormalizeRequest):
+    req.file_path = validate_file_path(req.file_path)
+    await acquire_dsp_slot()
+    lease = DspLease(DSP_SLOTS)
+    try:
+        audio, stats = await lease.run(normalize_section, req.file_path, req.start, req.end, req.target)
+        return Response(audio, media_type="audio/wav", headers={
+            "X-Normalization-Stats": json.dumps(stats, allow_nan=False),
+            "Cache-Control": "no-store",
+        })
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+    except Exception:
+        logger.exception("Error in /trim-normalize")
+        raise HTTPException(500, "Normalization failed")
+    finally:
+        lease.release_when_done()
 
 
 @app.post("/waveform")

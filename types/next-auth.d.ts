@@ -2,6 +2,9 @@ import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
+    passwordVersion?: number;
+    authenticatedAt?: number;
+    authProvider?: string;
     user: {
       id: string;
     } & DefaultSession["user"];
@@ -9,6 +12,7 @@ declare module "next-auth" {
 
   interface User {
     id: string;
+    passwordVersion?: number;
   }
 }
 

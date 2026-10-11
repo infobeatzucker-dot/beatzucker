@@ -10,6 +10,32 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.9.1",
+  date: "2026-10-11",
+  title: { de: "Mehr Kontoschutz. Genauere Audio-Ergebnisse.", en: "Safer accounts. More accurate audio results." },
+  summary: {
+    de: "Wichtige Kontoänderungen werden besser geschützt. Beim Kürzen und Normalisieren zeigen wir dir die gemessenen Werte des fertigen Ergebnisses.",
+    en: "Important account changes are better protected. Trimming and normalization now show the measured values of the finished result.",
+  },
+  improvements: {
+    de: [
+      "Der Silence Normalizer misst den tatsächlich gewählten Ausschnitt nach Schnitt und Randfades. Die fertige WAV wird erneut geprüft; erreichte Lautheit und Spitzenpegel werden angezeigt.",
+      "Unter „So funktioniert’s“ erklären wir, wie du nach dem Auto-Mastering manuell nachjustierst, Änderungen in der Live-Vorschau hörst und einen neuen Master erstellst.",
+      "Zum Ändern des Passworts, Aktivieren oder Abschalten von 2FA und Löschen eines Passwort-Kontos wird das aktuelle Passwort geprüft. Bei bereits aktiver 2FA ist zusätzlich ein gültiger E-Mail-Code nötig.",
+      "Google-Konten bestätigen sich vor der Kontolöschung erneut über Google, wenn die letzte Anmeldung länger als fünf Minuten zurückliegt.",
+      "Eine Kontolöschung wartet auf laufende Masters. Audiodateien werden erst entfernt, nachdem die Kontolöschung erfolgreich gespeichert wurde.",
+      "Nach einer Passwortänderung meldest du dich neu an. Alte Sitzungen dürfen die Kontoeinstellungen nicht mehr verändern.",
+    ],
+    en: [
+      "Silence Normalizer measures the selected section after trimming and edge fades. The finished WAV is checked again, with its achieved loudness and peak displayed.",
+      "How it works now explains how to fine-tune after auto-mastering, listen to your changes in the live preview and create a new master.",
+      "Changing your password, enabling or disabling 2FA, and deleting a password account requires your current password. If 2FA is already enabled, a valid email code is also required.",
+      "Google accounts confirm through Google again before account deletion if their last sign-in was more than five minutes ago.",
+      "Account deletion waits for running masters. Audio files are removed only after the account deletion has been saved successfully.",
+      "After a password change, you sign in again. Old sessions can no longer change account settings.",
+    ],
+  },
+}, {
   version: "0.9.0",
   date: "2026-10-11",
   title: { de: "Zuverlässiger arbeiten. Entspannter hören.", en: "More reliable tools. Smoother listening." },
