@@ -47,12 +47,18 @@ cleanup_old_images() {
 
 echo "=== 1. Checking working tree ==="
 if [ -n "$(git status --porcelain)" ]; then
-  echo "WARNING: working tree has uncommitted changes — resetting to origin/main."
+  echo "FATAL: working tree has local changes; deployment stopped without changing files."
+  git status --short
+  exit 1
+fi
+if [ "$(git branch --show-current)" != "main" ]; then
+  echo "FATAL: expected branch main; deployment stopped without changing files."
+  exit 1
 fi
 
-echo "=== 2. Fetching + resetting to origin/main ==="
+echo "=== 2. Fetching + fast-forwarding to origin/main ==="
 git fetch origin || { echo "FATAL: git fetch failed; running deployment remains unchanged."; exit 1; }
-git reset --hard origin/main
+git merge --ff-only origin/main || { echo "FATAL: fast-forward failed; running deployment remains unchanged."; exit 1; }
 NEW_SHA=$(git rev-parse --short HEAD)
 echo "Now at commit $NEW_SHA"
 

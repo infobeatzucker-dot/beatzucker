@@ -43,6 +43,8 @@ next-env.d.ts
 
 # uploads (runtime data, not source code)
 /uploads/
+/data/
+/backups/
 /validation-output/
 
 # Python virtualenv
