@@ -53,10 +53,12 @@ async function main() {
     assert.equal(metadata.channels, 1);
     assert.equal(metadata.frames, 3);
   });
-  await test("PCM WAV clips only at integer encoding", async () => {
-    const view = new DataView(await audio.encodeWav(buffer, "16", false).arrayBuffer());
-    assert.equal(view.getInt16(44, true), 32767);
-    assert.equal(view.getInt16(46, true), -32767);
+  await test("PCM WAV refuses overload instead of silently clipping", async () => {
+    assert.throws(() => audio.encodeWav(buffer, "16", false), /OVERLOAD/);
+    const safe = {...buffer,getChannelData:()=>new Float32Array([.5,-.5,0])};
+    const view = new DataView(await audio.encodeWav(safe, "16", false).arrayBuffer());
+    assert.equal(view.getInt16(44, true), 16384);
+    assert.equal(view.getInt16(46, true), -16383);
   });
   await test("multichannel export is rejected instead of silently dropping channels", () => {
     assert.throws(() => audio.encodeWav({ ...buffer, numberOfChannels: 6 }), /mono and stereo/);

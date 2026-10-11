@@ -798,7 +798,7 @@ def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
         mid_s  = (left + right) / 2
         side_s = (left - right) / 2
         stereo_width = safe(
-            float(np.sqrt(np.mean(side_s ** 2)) / max(np.sqrt(np.mean(mid_s ** 2)), 1e-10)), 0.0
+            float(min(20.0, np.sqrt(np.mean(side_s ** 2)) / max(np.sqrt(np.mean(mid_s ** 2)), 1e-10))), 0.0
         )
         mono_compat = safe(
             float(np.corrcoef(left, right)[0, 1]) if np.std(left) > 0 and np.std(right) > 0 else 1.0,

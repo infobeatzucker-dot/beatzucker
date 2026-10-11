@@ -10,6 +10,36 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.11.0",
+  date: "2026-10-11",
+  title: { de: "Audio-Tools mit verlässlicheren Ergebnissen.", en: "Audio tools with more reliable results." },
+  summary: {
+    de: "Unsere Audio-Tools zeigen Grenzen und fehlende Messungen klarer. Vergleiche, Live-Bearbeitung und Exporte wurden überarbeitet; Deutsch und Englisch lassen sich direkt im Tool wechseln.",
+    en: "Our audio tools explain limitations and missing measurements more clearly. Comparisons, live processing and exports have been improved, with a direct German/English switch in each tool.",
+  },
+  improvements: {
+    de: [
+      "Die Vocal Chain verwendet für Vorschau und Export dieselbe Bearbeitung. Bei 0 % sind De-Esser und Kompressor wirklich aus. Ein wählbarer Exportschutz verhindert das Abschneiden übersteuerter Samples.",
+      "Der Kick-/Bass-Vergleich berücksichtigt auch kurze Ereignisse und gegenphasige Spuren. Stille erzeugt keinen scheinbaren Konflikt mehr.",
+      "Beim Referenzvergleich kannst du beide Tracks pegelangepasst anhören und Klangfarbe unabhängig vom Gesamtpegel vergleichen.",
+      "Der Album-Check kennzeichnet unvollständige Analysen und kann fehlende Tracks erneut prüfen, ohne erfolgreiche Ergebnisse zu verlieren.",
+      "Streaming-Vorschauen unterscheiden Prognosen von tatsächlich gemessenen Codec-Werten. Der codierte Vergleich wird genauer im Pegel angepasst.",
+      "Im Trimmer lassen sich Schnittpunkte direkt an der Wellenform verschieben und der ausgewählte Bereich vorhören.",
+      "Der WAV-Konverter prüft den Speicherbedarf vor der Verarbeitung und warnt vor übersteuerten Integer-Exporten. Eine Pegelabsenkung bleibt deine Entscheidung.",
+      "Stereo- und Tonart-Checks zeigen bei Stille oder fehlenden brauchbaren Werten keine scheinbar sicheren Ergebnisse. Fehlermeldungen und Sprachwechsel wurden vereinheitlicht.",
+    ],
+    en: [
+      "The Vocal Chain uses the same processing for preview and export. At 0%, de-esser and compressor are truly bypassed. Optional export protection prevents overloaded samples from being clipped.",
+      "Kick/bass comparison includes short events and opposing-phase tracks. Silence no longer produces a misleading conflict score.",
+      "Reference comparison lets you audition both tracks with level matching and compare tonal balance separately from overall loudness.",
+      "Album checks flag incomplete analyses and retry missing tracks without losing successful results.",
+      "Streaming previews distinguish predictions from measured codec values. The encoded comparison has more accurate level matching.",
+      "Trim points can be dragged directly on the waveform, and the selected section can be auditioned before export.",
+      "The WAV converter checks memory requirements before processing and warns about overloaded integer exports. Gain reduction remains your choice.",
+      "Stereo and key checks no longer present silence or missing usable measurements as reliable results. Error messages and language switching are more consistent.",
+    ],
+  },
+}, {
   version: "0.10.0",
   date: "2026-10-11",
   title: { de: "Flüssigere Tools. Zuverlässigere Verarbeitung.", en: "Smoother tools. More reliable processing." },

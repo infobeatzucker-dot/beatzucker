@@ -7,6 +7,7 @@ import CookieReopenButton from "./CookieReopenButton";
 import DonateButton from "./DonateButton";
 import type { Lang } from "@/lib/types/mastering";
 import ToolSeoContent from "./ToolSeoContent";
+import ToolLanguageNav from "./ToolLanguageNav";
 
 export default function Footer({ lang = "de" }: { lang?: Lang }) {
   const pathname = usePathname();
@@ -26,6 +27,7 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
         ["/en/support", "A note from us"],
       ];
   return (<>
+    <ToolLanguageNav lang={lang}/>
     <ToolSeoContent pathname={pathname} lang={lang} />
     <footer
       className="border-t py-8 px-4"

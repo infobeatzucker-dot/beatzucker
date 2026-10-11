@@ -129,8 +129,12 @@ def compute_dr(audio: np.ndarray, block_size: int = 4096) -> float:
 
 def detect_key(y: np.ndarray, sr: int) -> str:
     """Detect musical key using chroma features."""
+    if not len(y) or not np.all(np.isfinite(y)) or np.sqrt(np.mean(y ** 2)) < 1e-6:
+        return "Unknown"
     chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
     mean_chroma = np.mean(chroma, axis=1)
+    if not np.all(np.isfinite(mean_chroma)) or np.std(mean_chroma) < 1e-6:
+        return "Unknown"
     note_idx = int(np.argmax(mean_chroma))
 
     notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
@@ -159,6 +163,8 @@ def detect_key(y: np.ndarray, sr: int) -> str:
             best_key = root
             is_minor = True
 
+    if not np.isfinite(best_score) or best_score < 0.45:
+        return "Unknown"
     return f"{notes[best_key]} {'minor' if is_minor else 'major'}"
 
 
@@ -284,6 +290,14 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
 
     duration = len(mono) / sr
 
+    # Keep the real mono sum for phase diagnostics, but do not let cancellation
+    # erase all musical/spectral information. Use the stronger channel only
+    # when the mono sum is almost cancelled; loudness/peaks remain channel-aware.
+    if is_stereo:
+        channel_rms = np.sqrt(np.mean(y ** 2, axis=1))
+        if np.sqrt(np.mean(mono ** 2)) < 0.1 * max(float(np.max(channel_rms)), 1e-10):
+            mono = y[int(np.argmax(channel_rms))]
+
     # Integrated LUFS (ITU-R BS.1770-4)
     meter = pyln.Meter(sr)
     if is_stereo:
@@ -304,7 +318,7 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
     # Crest factor
     rms_total = np.sqrt(np.mean(mono ** 2))
     peak_total = np.max(np.abs(mono))
-    crest_factor = float(20 * np.log10(peak_total / max(rms_total, 1e-10)))
+    crest_factor = float(max(0.0, 20 * np.log10(max(peak_total, 1e-10) / max(rms_total, 1e-10))))
 
     # Per-band RMS
     rms_sub  = rms_band(mono, sr,    20,    80)
@@ -316,7 +330,7 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
     # Spectral features
     spectral_centroid = float(np.mean(librosa.feature.spectral_centroid(y=mono, sr=sr)))
     spectral_rolloff  = float(np.mean(librosa.feature.spectral_rolloff(y=mono, sr=sr, roll_percent=0.85)))
-    spectral_flatness = float(np.mean(librosa.feature.spectral_flatness(y=mono)))
+    spectral_flatness = float(np.clip(np.mean(librosa.feature.spectral_flatness(y=mono)), 0.0, 1.0)) if rms_total > 1e-10 else 0.0
 
     # Stereo analysis
     if is_stereo:
@@ -324,7 +338,9 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
         side = (left - right) / 2
         mid_rms  = np.sqrt(np.mean(mid  ** 2))
         side_rms = np.sqrt(np.mean(side ** 2))
-        stereo_width = float(side_rms / max(mid_rms, 1e-10))
+        # 20 is a saturated diagnostic value, not an unbounded physical ratio.
+        # Near-total mono cancellation remains explicit through correlation.
+        stereo_width = float(min(20.0, side_rms / max(mid_rms, 1e-10)))
 
         # Mono compatibility: correlation between L and R
         if np.std(left) > 0 and np.std(right) > 0:
@@ -357,10 +373,12 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
         transient_density = 0.0
 
     # Clipping detection
-    clipping_detected = bool(np.any(np.abs(mono) > 0.99))
+    # Sample overs/full-scale peaks, not an assertion about historical clipping.
+    clipping_detected = bool(np.any(np.abs(y) >= 1.0 - 1e-7))
 
     # DC offset
-    dc_offset = float(np.mean(mono))
+    channel_dc = np.atleast_1d(np.mean(y, axis=-1))
+    dc_offset = float(channel_dc[int(np.argmax(np.abs(channel_dc)))])
 
     return AudioAnalysis(
         integrated_lufs=integrated_lufs,

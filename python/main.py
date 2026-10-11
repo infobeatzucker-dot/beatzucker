@@ -214,7 +214,7 @@ async def get_info(req: FilePathRequest):
 
 
 @app.post("/analyze")
-async def analyze(req: AnalyzeRequest):
+async def analyze(req: AnalyzeRequest, request: Request = None):
     """Full audio analysis."""
     try:
         req.file_path = validate_file_path(req.file_path)
@@ -222,6 +222,8 @@ async def analyze(req: AnalyzeRequest):
         permit = await acquire_dsp_slot()
         lease = DspLease(permit)
         try:
+            if request is not None and await request.is_disconnected():
+                raise HTTPException(499, "Client disconnected before processing")
             analysis = await lease.run(analyze_audio, req.file_path)
             return analysis_to_dict(analysis)
         finally:

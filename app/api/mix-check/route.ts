@@ -10,6 +10,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { sanitizeOriginalFilename } from "@/lib/filename";
 import { readBoundedMultipart, uploadRequestFailure } from "@/lib/boundedMultipart";
+import { toolError } from "@/lib/toolClient";
 
 export const maxDuration = 180;
 
@@ -44,63 +45,66 @@ function clientKey(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  let lang: "de" | "en" = req.headers.get("accept-language")?.startsWith("de") ? "de" : "en";
+  const failureResponse = (code:string,status:number) => NextResponse.json({code,error:toolError(Error(code),lang)}, {status, ...(status===429||status===503?{headers:{"Retry-After":status===429?"3600":"15"}}:{})});
   const key = clientKey(req);
   let filePath: string | null = null;
   let release: (() => void) | undefined;
   if (!rateLimit("public-analysis:global", 90, 60 * 60 * 1000))
-    return NextResponse.json({ error: "Analysis limit reached. Please try again later." }, { status: 429 });
+    return failureResponse("LIMIT",429);
   try {
     const declaredLength = Number(req.headers.get("content-length") || 0);
     if (Number.isFinite(declaredLength) && declaredLength > MAX_SIZE + 1024 * 1024) {
-      return NextResponse.json({ error: "File too large. Maximum size is 40 MB." }, { status: 413 });
+      return failureResponse("SIZE",413);
     }
     if (!req.headers.get("content-type")?.includes("multipart/form-data")) {
-      return NextResponse.json({ error: "Expected an audio upload." }, { status: 400 });
+      return failureResponse("FORMAT",400);
     }
 
     const upload = await readBoundedMultipart(req, MAX_SIZE);
     release = upload.release;
     const form = upload.form;
+    lang = form.get("lang") === "de" ? "de" : form.get("lang") === "en" ? "en" : lang;
     const requestedPurpose = form.get("purpose");
     const purpose = typeof requestedPurpose === "string" && ["mix-check", "key-bpm", "streaming-preview", "album-consistency", "reference-comparison", "silence-normalizer"].includes(requestedPurpose) ? requestedPurpose : "mix-check";
     const limit = purpose === "album-consistency" ? 16 : purpose === "reference-comparison" ? 10 : 3;
     if (!rateLimit(`public-analysis:${purpose}:${key}`, limit, 60 * 60 * 1000)) {
-      return NextResponse.json({ error: "Analysis limit reached. Please try again later." }, { status: 429 });
+      return failureResponse("LIMIT",429);
     }
     const file = form.get("file");
-    if (!(file instanceof File)) return NextResponse.json({ error: "No audio file provided." }, { status: 400 });
-    if (file.size <= 0 || file.size > MAX_SIZE) return NextResponse.json({ error: "File too large. Maximum size is 40 MB." }, { status: 413 });
-    if (!ACCEPTED_MIMES.has(file.type)) return NextResponse.json({ error: "Use WAV, FLAC, MP3 or AIFF." }, { status: 415 });
+    if (!(file instanceof File)) return failureResponse("FORMAT",400);
+    if (file.size <= 0 || file.size > MAX_SIZE) return failureResponse("SIZE",413);
+    const unknownMime = !file.type || file.type === "application/octet-stream";
+    if (!ACCEPTED_MIMES.has(file.type) && !(unknownMime && /\.(wav|flac|mp3|aiff|aif)$/i.test(file.name))) return failureResponse("FORMAT",415);
     if (!validMagic(Buffer.from(await file.slice(0, 32).arrayBuffer()))) {
-      return NextResponse.json({ error: "The file does not contain supported audio data." }, { status: 415 });
+      return failureResponse("DECODE",415);
     }
 
     await mkdir(/*turbopackIgnore: true*/ UPLOAD_DIR, { recursive: true });
-    const ext = MIME_TO_EXT[file.type] || "wav";
+    const ext = MIME_TO_EXT[file.type] || file.name.split(".").pop()!.toLowerCase();
     filePath = path.resolve(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, `mixcheck-${randomUUID()}.${ext}`));
     const uploadRoot = path.resolve(/*turbopackIgnore: true*/ UPLOAD_DIR);
     if (path.relative(uploadRoot, filePath).startsWith("..")) {
-      return NextResponse.json({ error: "Invalid upload path." }, { status: 400 });
+      return failureResponse("FORMAT",400);
     }
     await pipeline(Readable.fromWeb(file.stream() as Parameters<typeof Readable.fromWeb>[0]), createWriteStream(/*turbopackIgnore: true*/ filePath, { flags: "wx" }));
 
     const infoResponse = await fetch(`${PYTHON_URL}/info`, {
       method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: filePath }), signal: AbortSignal.timeout(15000),
     });
-    if (!infoResponse.ok) return NextResponse.json({ error: "The audio file could not be decoded." }, { status: 415 });
+    if (!infoResponse.ok) return failureResponse(infoResponse.status>=500?"BUSY":infoResponse.status===413?"MEMORY":"DECODE", infoResponse.status>=500?503:infoResponse.status===413?413:415);
     const info = await infoResponse.json();
     if (!Number.isFinite(info.duration) || info.duration <= 0 || info.duration > MAX_DURATION_SECONDS) {
-      return NextResponse.json({ error: "The public Mix Check supports tracks up to 10 minutes." }, { status: 413 });
+      return failureResponse("DURATION",413);
     }
 
     const requestAnalysis = () => fetch(`${PYTHON_URL}/analyze`, {
       method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: filePath }), signal: AbortSignal.timeout(160000),
     });
     const analysisResponse = await requestAnalysis();
-    if (!analysisResponse.ok) return NextResponse.json({ error: analysisResponse.status === 503 ? "Audio service busy. Please try again shortly." : "Audio analysis failed." }, { status: analysisResponse.status,
-      ...(analysisResponse.status === 503 ? { headers: { "Retry-After": "15" } } : {}) });
+    if (!analysisResponse.ok) return failureResponse(analysisResponse.status===503?"BUSY":"ANALYSIS",[413,415,422,503].includes(analysisResponse.status)?analysisResponse.status:502);
     const analysis = normalizeAnalysis(await analysisResponse.json());
-    if (!analysis) return NextResponse.json({ error: "The analyzer returned invalid measurements." }, { status: 502 });
+    if (!analysis) return failureResponse("ANALYSIS",502);
 
     return NextResponse.json(
       { analysis, filename: sanitizeOriginalFilename(file.name, `track.${ext}`) },
@@ -111,7 +115,7 @@ export async function POST(req: NextRequest) {
     if (failure) return failure;
     const timeout = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
     console.error("Public mix check error:", error);
-    return NextResponse.json({ error: timeout ? "Analysis timed out." : "Mix Check is temporarily unavailable." }, { status: timeout ? 504 : 503 });
+    return failureResponse(timeout ? "TIMEOUT" : "BUSY", timeout ? 504 : 503);
   } finally {
     if (filePath && existsSync(/*turbopackIgnore: true*/ filePath)) await unlink(/*turbopackIgnore: true*/ filePath).catch(() => {});
     release?.();

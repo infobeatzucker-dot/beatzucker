@@ -2,8 +2,12 @@
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import { findActiveRangeAsync, waveformPeaksAsync } from "@/lib/audioWorker";
 import{useEffect,useRef,useState}from"react";import Link from"next/link";import{ArrowLeft,CheckCircle2,Download,Loader2,Scissors,UploadCloud}from"lucide-react";import type{Lang}from"@/lib/types/mastering";import{decodeAudio}from"@/lib/clientAudio";
-function Wave({buffer,start,end}:{buffer:AudioBuffer;start:number;end:number}) {
+import { useToolJob } from "@/lib/useToolJob";
+import { toolError, validateToolFile } from "@/lib/toolClient";
+import ToolLanguageNav from "./ToolLanguageNav";
+function Wave({buffer,start,end,disabled,onChange,lang}:{buffer:AudioBuffer;start:number;end:number;disabled:boolean;onChange:(start:number,end:number)=>void;lang:Lang}) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const edge = useRef<"start"|"end"|null>(null);
   const [peaks, setPeaks] = useState<Float32Array | null>(null);
   useEffect(() => {
     let active = true; setPeaks(null);
@@ -26,13 +30,22 @@ function Wave({buffer,start,end}:{buffer:AudioBuffer;start:number;end:number}) {
     const animation = startVisibleAnimation(canvas, draw, { continuous: false });
     return () => animation.stop();
   }, [buffer,start,end,peaks]);
-  return <canvas className="trim-waveform" ref={ref}/>;
+  function move(clientX:number) {
+    if(disabled||!edge.current||!ref.current)return;
+    const box=ref.current.getBoundingClientRect(),time=Math.max(0,Math.min(buffer.duration,(clientX-box.left)/Math.max(1,box.width)*buffer.duration));
+    onChange(edge.current==="start"?Math.min(time,end-.4):start,edge.current==="end"?Math.max(time,start+.4):end);
+  }
+  return <canvas className="trim-waveform" ref={ref} role="img" aria-label={lang==="en"?"Selected waveform. Drag the nearest edge; start/end sliders are available below.":"Ausgewählter Wellenformbereich. Nächste Grenze ziehen; Start-/Endregler stehen darunter."}
+    onPointerDown={e=>{if(disabled)return;const box=e.currentTarget.getBoundingClientRect(),time=(e.clientX-box.left)/Math.max(1,box.width)*buffer.duration;edge.current=Math.abs(time-start)<Math.abs(time-end)?"start":"end";e.currentTarget.setPointerCapture(e.pointerId);move(e.clientX);}}
+    onPointerMove={e=>move(e.clientX)} onPointerUp={()=>{edge.current=null;}} onPointerCancel={()=>{edge.current=null;}}/>;
 }
 
 import { parseNormalizationResult, type NormalizationResult } from "@/lib/types/normalization";
 
 export default function SilenceNormalizerTool({ lang }: { lang: Lang }) {
   const en = lang === "en";
+  const job=useToolJob(),context=useRef<AudioContext|null>(null),source=useRef<AudioBufferSourceNode|null>(null),previewing=useRef(false);
+  const [playing,setPlaying]=useState(false);
   const input = useRef<HTMLInputElement>(null), inFlight = useRef(false);
   const [file, setFile] = useState<File | null>(null);
   const [buffer, setBuffer] = useState<AudioBuffer | null>(null);
@@ -42,54 +55,65 @@ export default function SilenceNormalizerTool({ lang }: { lang: Lang }) {
   const [download, setDownload] = useState("");
   const [result, setResult] = useState<NormalizationResult | null>(null);
   useEffect(() => () => { if (download) URL.revokeObjectURL(download); }, [download]);
+  useEffect(()=>()=>{previewing.current=false;if(source.current){source.current.onended=null;try{source.current.stop();}catch{}}void context.current?.close();},[]);
 
-  function invalidate() { setDownload(""); setResult(null); setError(""); }
+  function stopPreview(){previewing.current=false;if(source.current){source.current.onended=null;try{source.current.stop();}catch{}source.current.disconnect();source.current=null;}setPlaying(false);}
+  async function preview(){if(!buffer||busy)return;if(playing){stopPreview();return;}if(previewing.current)return;previewing.current=true;try{context.current??=new AudioContext();const ctx=context.current;await ctx.resume();if(!previewing.current)return;const s=ctx.createBufferSource();s.buffer=buffer;s.connect(ctx.destination);source.current=s;s.onended=()=>{s.disconnect();if(source.current===s){source.current=null;previewing.current=false;setPlaying(false);}};s.start(0,start,end-start);setPlaying(true);}catch(reason){previewing.current=false;setError(toolError(reason,lang));}}
+
+  function invalidate() { stopPreview();setDownload(""); setResult(null); setError(""); }
   async function load(f: File) {
     if (inFlight.current) return;
+    const task=job.start();
     inFlight.current = true; setBusy(true); invalidate(); setFile(null); setBuffer(null);
     try {
-      const decoded = await decodeAudio(f, 40 * 1024 * 1024);
+      validateToolFile(f);const decoded = await decodeAudio(f, 40 * 1024 * 1024);
       if (decoded.duration < .4 || decoded.duration > 600) throw new Error(en ? "Use audio between 0.4 seconds and 10 minutes." : "Bitte Audio zwischen 0,4 Sekunden und 10 Minuten verwenden.");
-      const range = await findActiveRangeAsync(decoded, threshold);
+      const range = await findActiveRangeAsync(decoded, threshold,task.signal);
+      if(!job.active(task))return;if(!range.active)throw Error("NO_SIGNAL");
       setFile(f); setBuffer(decoded);
       setStart(Math.min(range.start, Math.max(0, range.end - .4)));
       setEnd(Math.max(range.end, .4));
     } catch (reason) {
-      setError(reason instanceof Error ? (reason.message === "SIZE" ? (en ? "Maximum file size: 40 MB." : "Maximale Dateigröße: 40 MB.") : reason.message) : (en ? "Decoding failed." : "Dekodieren fehlgeschlagen."));
-    } finally { inFlight.current = false; setBusy(false); }
+      if(job.active(task))setError(toolError(reason,lang));
+    } finally { if(job.active(task)){inFlight.current = false; setBusy(false);} }
   }
   async function detect() {
     if (!buffer || inFlight.current) return;
+    const task=job.start();
     inFlight.current = true; setBusy(true); invalidate();
     try {
-    const range = await findActiveRangeAsync(buffer, threshold);
+    const range = await findActiveRangeAsync(buffer, threshold,task.signal);
+    if(!job.active(task))return;if(!range.active)throw Error("NO_SIGNAL");
     setStart(Math.min(range.start, Math.max(0, range.end - .4)));
     setEnd(Math.max(range.end, .4)); invalidate();
-    } catch { setError(en ? "Silence detection failed. Please try again." : "Stillesuche fehlgeschlagen. Bitte erneut versuchen."); }
-    finally { inFlight.current = false; setBusy(false); }
+    } catch(reason) { if(job.active(task))setError(toolError(reason,lang)); }
+    finally { if(job.active(task)){inFlight.current = false; setBusy(false);} }
   }
   async function render() {
     if (!file || !buffer || inFlight.current) return;
+    const task=job.start();
     inFlight.current = true; setBusy(true); invalidate();
     try {
       const body = new FormData();
       body.append("file", file); body.append("start", String(start));
       body.append("end", String(end)); body.append("target", String(target)); body.append("lang", lang);
-      const response = await fetch("/api/silence-normalize", { method: "POST", body, signal: AbortSignal.timeout(175000) });
+      const response = await fetch("/api/silence-normalize", { method: "POST", body, signal: AbortSignal.any([task.signal,AbortSignal.timeout(175000)]) });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         throw new Error(payload.error || (en ? "Normalization failed." : "Normalisierung fehlgeschlagen."));
       }
       const measured = parseNormalizationResult(response.headers.get("X-Normalization-Stats"));
       const wav = await response.blob();
+      if(!job.active(task))return;
       if (wav.size < 44) throw new Error(en ? "Empty audio result." : "Leeres Audioergebnis.");
       setResult(measured); setDownload(URL.createObjectURL(wav));
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : (en ? "Normalization failed." : "Normalisierung fehlgeschlagen."));
-    } finally { inFlight.current = false; setBusy(false); }
+      if(job.active(task))setError(reason instanceof Error ? reason.message : toolError(reason,lang));
+    } finally { if(job.active(task)){inFlight.current = false; setBusy(false);} }
   }
   const removed = buffer ? Math.max(0, buffer.duration - (end - start)) : 0;
   return <section className="stream-tool">
+    <ToolLanguageNav lang={lang}/>
     <Link href={en ? "/en/tools" : "/tools"} className="tool-back"><ArrowLeft size={15}/>{en ? "All tools" : "Alle Tools"}</Link>
     <div className="stream-hero">
       <span><Scissors size={14}/> CLEAN START</span>
@@ -103,8 +127,12 @@ export default function SilenceNormalizerTool({ lang }: { lang: Lang }) {
       <p>{en ? "WAV, FLAC, MP3 or AIFF · up to 40 MB" : "WAV, FLAC, MP3 oder AIFF · bis 40 MB"}</p>
     </button>}
     {error && <div role="alert" className="mixcheck-error">{error}</div>}
+    {busy&&<button className="tool-back" onClick={()=>{job.cancel();inFlight.current=false;setBusy(false);}}>{en?"Cancel":"Abbrechen"}</button>}
     {buffer && <div className="stream-console trim-console" aria-busy={busy}>
-      <Wave buffer={buffer} start={start} end={end}/>
+      <Wave buffer={buffer} start={start} end={end} disabled={busy} lang={lang} onChange={(a,b)=>{setStart(Math.max(0,a));setEnd(Math.min(buffer.duration,b));invalidate();}}/>
+      <p>{en?"Click or drag an edge in the waveform, or use the precise sliders below.":"Eine Grenze in der Wellenform anklicken oder ziehen – oder die genauen Regler darunter nutzen."}</p>
+      <button className="tool-back" disabled={busy} onClick={()=>void preview()}>{playing?(en?"Stop preview":"Vorhören stoppen"):(en?"Preview selected section":"Gewählten Ausschnitt vorhören")}</button>
+      {download&&<audio controls src={download} aria-label={en?"Verified normalized output":"Geprüftes normalisiertes Ergebnis"}/>}
       <div className="trim-stats">
         <article><span>{en ? "Selected start" : "Gewählter Start"}</span><strong>{start.toFixed(2)} s</strong></article>
         <article><span>{en ? "Selected end" : "Gewähltes Ende"}</span><strong>{end.toFixed(2)} s</strong></article>

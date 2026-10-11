@@ -6,14 +6,18 @@ import { AlertTriangle, ArrowRight, CheckCircle2, FileAudio, Loader2, RotateCcw,
 import AnalysisPanel from "@/components/AnalysisPanel";
 import type { AnalysisData, Lang } from "@/lib/types/mastering";
 
+import { requestToolAnalysis, toolError } from "@/lib/toolClient";
+import { useToolJob } from "@/lib/useToolJob";
+import ToolLanguageNav from "./ToolLanguageNav";
+
 type Status = "idle" | "checking" | "done" | "error";
 type Check = { label: string; detail: string; state: "good" | "warn" | "bad" };
 
 function buildChecks(a: AnalysisData, lang: Lang): Check[] {
   return [
     a.clipping_detected
-      ? { label: lang === "de" ? "Clipping erkannt" : "Clipping detected", detail: lang === "de" ? "Spitzen überschreiten den sicheren digitalen Bereich." : "Peaks exceed the safe digital range.", state: "bad" }
-      : { label: lang === "de" ? "Keine Clipping-Spitzen" : "No clipped peaks", detail: lang === "de" ? "Die Analyse hat keine harten Übersteuerungen gefunden." : "The analysis found no hard digital clipping.", state: "good" },
+      ? { label: lang === "de" ? "Vollaussteuerung oder Übersteuerung erkannt" : "Full-scale peaks or sample overs detected", detail: lang === "de" ? "Spitzen überschreiten den sicheren digitalen Bereich." : "Peaks exceed the safe digital range.", state: "bad" }
+      : { label: lang === "de" ? "Keine Sample-Übersteuerung gemessen" : "No sample overs measured", detail: lang === "de" ? "Alle Kanäle wurden geprüft. Früheres Clipping lässt sich damit nicht ausschließen." : "All channels were checked. This cannot rule out earlier clipping.", state: "good" },
     a.true_peak <= -3
       ? { label: lang === "de" ? "Guter Headroom" : "Healthy headroom", detail: `${a.true_peak.toFixed(1)} dBTP`, state: "good" }
       : a.true_peak <= -1
@@ -36,6 +40,7 @@ function buildChecks(a: AnalysisData, lang: Lang): Check[] {
 }
 
 export default function PublicMixCheck({ lang = "de" }: { lang?: Lang }) {
+  const job=useToolJob();
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
@@ -50,26 +55,23 @@ export default function PublicMixCheck({ lang = "de" }: { lang?: Lang }) {
   }, [checks]);
 
   async function run(file: File) {
-    setError("");
+    if(status==="checking")return;const task=job.start();setAnalysis(null);setError("");
     if (file.size > 40 * 1024 * 1024) { setError(lang === "de" ? "Die Datei ist größer als 40 MB." : "The file is larger than 40 MB."); setStatus("error"); return; }
     setStatus("checking"); setFilename(file.name);
     try {
-      const body = new FormData(); body.append("file", file);
-      const response = await fetch("/api/mix-check", { method: "POST", body });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload.analysis) throw new Error(payload.error || "Analysis failed");
-      setAnalysis(payload.analysis); setFilename(payload.filename || file.name); setStatus("done");
+      const measured=await requestToolAnalysis(file,"mix-check",lang,task.signal);
+      if(!job.active(task))return;setAnalysis(measured);setFilename(file.name);setStatus("done");
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : (lang === "de" ? "Analyse fehlgeschlagen." : "Analysis failed."));
+      if(!job.active(task))return;setError(toolError(reason,lang));
       setStatus("error");
     }
   }
 
-  function reset() { setStatus("idle"); setAnalysis(null); setFilename(""); setError(""); if (inputRef.current) inputRef.current.value = ""; }
+  function reset() { job.cancel();setStatus("idle"); setAnalysis(null); setFilename(""); setError(""); if (inputRef.current) inputRef.current.value = ""; }
 
   return (
     <>
-      <section className="mixcheck-shell">
+      <section className="mixcheck-shell"><ToolLanguageNav lang={lang}/>
         <div className="mixcheck-intro">
           <span className="mixcheck-badge"><ShieldCheck size={14} /> {lang === "de" ? "ÖFFENTLICH · OHNE KONTO" : "PUBLIC · NO ACCOUNT"}</span>
           <h1>{lang === "de" ? <>Ist dein Mix <em>bereit fürs Mastering?</em></> : <>Is your mix <em>ready for mastering?</em></>}</h1>
@@ -102,6 +104,7 @@ export default function PublicMixCheck({ lang = "de" }: { lang?: Lang }) {
           </div>
         )}
 
+        {status==="checking"&&<button className="tool-back" onClick={reset}>{lang==="en"?"Cancel":"Abbrechen"}</button>}
         {status === "error" && <div className="mixcheck-error" role="alert"><AlertTriangle size={16} /><span>{error}</span><button onClick={reset}>{lang === "de" ? "Erneut versuchen" : "Try again"}</button></div>}
 
         {status === "done" && analysis && (

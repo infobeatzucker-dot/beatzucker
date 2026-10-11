@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Activity, ArrowRight, Disc3, FileOutput, Gauge, GitCompareArrows, Mic2, Music2, Radio, Scissors, Sparkles, Waves } from "lucide-react";
 import type { Lang } from "@/lib/types/mastering";
+import ToolLanguageNav from "./ToolLanguageNav";
 
 export default function ToolsHub({ lang }: { lang: Lang }) {
   const en = lang === "en";
   return <>
     <section className="tools-hero">
+      <ToolLanguageNav lang={lang}/>
       <span className="tools-kicker"><Sparkles size={14} /> BEATZUCKER AUDIO LAB</span>
       <h1>{en ? <>Useful tools for <em>better releases.</em></> : <>Nützliche Tools für <em>bessere Releases.</em></>}</h1>
       <p>{en ? "Analyze, preview and prepare your music directly in the browser — technically transparent and without permanent audio storage." : "Analysiere, simuliere und bereite deine Musik direkt im Browser vor – technisch transparent und ohne dauerhafte Audiospeicherung."}</p>
