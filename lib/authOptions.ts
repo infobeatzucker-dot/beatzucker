@@ -32,10 +32,11 @@ export const authOptions: NextAuthOptions = {
         if (user.twoFactorEnabled) {
           const otp = (credentials as Record<string, string>).otp;
           if (!otp || user.loginOtp !== otp || !user.loginOtpExpires || user.loginOtpExpires < new Date()) return null;
-          await db.user.update({
-            where: { id: user.id },
+          const consumed = await db.user.updateMany({
+            where: { id: user.id, loginOtp: otp, loginOtpExpires: { gt: new Date() } },
             data: { loginOtp: null, loginOtpExpires: null },
           });
+          if (consumed.count !== 1) return null;
         }
         return { id: user.id, email: user.email, name: user.name, image: user.image };
       },
@@ -68,19 +69,20 @@ export const authOptions: NextAuthOptions = {
         token.pwChangedAt = dbUser?.passwordChangedAt?.getTime() ?? 0;
       }
       const lastCheck = (token.lastPwCheck as number) || 0;
-      if (token.id && Date.now() - lastCheck > 15 * 60 * 1000) {
+      if (token.id && Date.now() - lastCheck > 60 * 1000) {
         const dbUser = await db.user.findUnique({
           where: { id: token.id as string },
           select: { passwordChangedAt: true },
         });
         const currentPwChanged = dbUser?.passwordChangedAt?.getTime() ?? 0;
-        if (currentPwChanged > ((token.pwChangedAt as number) || 0)) return {} as typeof token;
+        if (!dbUser || currentPwChanged > ((token.pwChangedAt as number) || 0)) return {} as typeof token;
         token.lastPwCheck = Date.now();
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.id) session.user.id = token.id as string;
+      if (!token.id) session.user = { id: "", email: null, name: null, image: null };
       return session;
     },
   },

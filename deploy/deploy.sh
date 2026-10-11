@@ -51,7 +51,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 echo "=== 2. Fetching + resetting to origin/main ==="
-git fetch origin
+git fetch origin || { echo "FATAL: git fetch failed; running deployment remains unchanged."; exit 1; }
 git reset --hard origin/main
 NEW_SHA=$(git rev-parse --short HEAD)
 echo "Now at commit $NEW_SHA"
@@ -84,7 +84,13 @@ sudo docker run -d \
   "$IMAGE"
 
 echo "=== 6. Waiting for startup ==="
-sleep 15
+for attempt in $(seq 1 45); do
+  if curl -fsS --max-time 3 "http://localhost:3001/api/health" > /dev/null 2>&1; then
+    echo "Database and Python service ready."
+    break
+  fi
+  sleep 2
+done
 
 echo "=== 7. Smoke test ==="
 if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
@@ -106,7 +112,8 @@ if [ -n "$ROLLBACK_TAG" ]; then
     -v "$APP_DIR/data:/app/data" \
     "$ROLLBACK_TAG"
   sleep 10
-  if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
+  # The prior image predates /api/health. Verify its original smoke contract.
+  if REQUIRE_READINESS=0 bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
     echo "Rollback to previous image succeeded. Deploy of $NEW_SHA was aborted."
   else
     echo "FATAL: rollback also failed smoke test — manual intervention required!"

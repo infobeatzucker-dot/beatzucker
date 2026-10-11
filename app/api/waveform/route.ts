@@ -31,12 +31,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Kein Zugriff auf diesen Upload" }, { status: 403 });
     }
 
-    const files = existsSync(UPLOAD_DIR) ? await readdir(UPLOAD_DIR) : [];
+    const files = existsSync(/*turbopackIgnore: true*/ UPLOAD_DIR) ? await readdir(/*turbopackIgnore: true*/ UPLOAD_DIR) : [];
     const filename = files.find((file) => file.startsWith(`${fileId}.`));
     if (!filename) return NextResponse.json({ error: "Datei nicht gefunden" }, { status: 404 });
 
-    const uploadRoot = path.resolve(UPLOAD_DIR);
-    const filePath = path.resolve(path.join(uploadRoot, filename));
+    const uploadRoot = path.resolve(/*turbopackIgnore: true*/ UPLOAD_DIR);
+    const filePath = path.resolve(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ uploadRoot, filename));
     const relative = path.relative(uploadRoot, filePath);
     if (relative.startsWith("..") || path.isAbsolute(relative)) {
       return NextResponse.json({ error: "Ungültiger Dateipfad" }, { status: 400 });

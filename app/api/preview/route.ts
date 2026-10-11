@@ -37,18 +37,18 @@ export async function GET(req: NextRequest) {
     return new Response("Invalid file_id", { status: 400 });
   }
 
-  const files = existsSync(UPLOAD_DIR) ? await readdir(UPLOAD_DIR) : [];
+  const files = existsSync(/*turbopackIgnore: true*/ UPLOAD_DIR) ? await readdir(/*turbopackIgnore: true*/ UPLOAD_DIR) : [];
   const filename = files.find((f) => f.startsWith(`${fileId}.`));
   if (!filename) return new Response("Not found", { status: 404 });
 
-  const filePath = path.resolve(path.join(UPLOAD_DIR, filename));
+  const filePath = path.resolve(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, filename));
   // Ensure resolved path stays within upload directory
-  const resolvedUpload = path.resolve(UPLOAD_DIR);
+  const resolvedUpload = path.resolve(/*turbopackIgnore: true*/ UPLOAD_DIR);
   const relative = path.relative(resolvedUpload, filePath);
   if (relative.startsWith("..") || path.isAbsolute(relative)) {
     return new Response("Invalid path", { status: 400 });
   }
-  if (!existsSync(filePath)) return new Response("Not found", { status: 404 });
+  if (!existsSync(/*turbopackIgnore: true*/ filePath)) return new Response("Not found", { status: 404 });
 
   const ext = filename.split(".").pop()?.toLowerCase() ?? "wav";
   const contentType = CONTENT_TYPES[ext] ?? "audio/wav";
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
     }
     const chunkSize = end - start + 1;
 
-    const chunk = Readable.toWeb(createReadStream(filePath, { start, end })) as ReadableStream<Uint8Array>;
+    const chunk = Readable.toWeb(createReadStream(/*turbopackIgnore: true*/ filePath, { start, end })) as ReadableStream<Uint8Array>;
 
     return new Response(chunk, {
       status: 206,
@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const stream = Readable.toWeb(createReadStream(filePath)) as ReadableStream<Uint8Array>;
+  const stream = Readable.toWeb(createReadStream(/*turbopackIgnore: true*/ filePath)) as ReadableStream<Uint8Array>;
   return new Response(stream, {
     headers: {
       "Content-Type": contentType,

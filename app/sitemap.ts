@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { ARTICLES } from "@/app/data/ressourcen";
+import { RELEASE_DATE } from "@/lib/releases";
 
 const BASE = "https://beatzucker.de";
 
@@ -10,6 +11,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     /* ── Core pages ──────────────────────────────────────────── */
+    { url: `${BASE}/in-eigener-sache`, lastModified: new Date(RELEASE_DATE), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE}/en/support`, lastModified: new Date(RELEASE_DATE), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE}/versionen`, lastModified: new Date(RELEASE_DATE), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE}/en/updates`, lastModified: new Date(RELEASE_DATE), changeFrequency: "monthly", priority: 0.5 },
     {
       url: BASE,
       lastModified: coreUpdated,

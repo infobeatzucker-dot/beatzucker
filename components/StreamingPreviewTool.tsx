@@ -34,7 +34,9 @@ export default function StreamingPreviewTool({ lang }: { lang: Lang }) {
   }, [analysis, platform, codec]);
 
   useEffect(() => { if (gainRef.current && values) gainRef.current.gain.setTargetAtTime(mode === "original" ? 1 : Math.pow(10, values.gain / 20), contextRef.current?.currentTime ?? 0, .015); }, [mode, values]);
-  useEffect(() => () => { if (url) URL.revokeObjectURL(url); if(codecUrl)URL.revokeObjectURL(codecUrl); void contextRef.current?.close(); }, [url,codecUrl]);
+  useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
+  useEffect(() => () => { if (codecUrl) URL.revokeObjectURL(codecUrl); }, [codecUrl]);
+  useEffect(() => () => { void contextRef.current?.close(); }, []);
 
   async function ensureAudio() {
     if (!audioRef.current) return;
@@ -48,6 +50,7 @@ export default function StreamingPreviewTool({ lang }: { lang: Lang }) {
 
   async function analyze(selected: File) {
     setLoading(true); setError(""); setAnalysis(null); setFile(selected);
+    setCodecUrl(""); setCodecPeak(null); setMode("preview");
     if (url) URL.revokeObjectURL(url); setUrl(URL.createObjectURL(selected));
     try {
       const body = new FormData(); body.append("file", selected); body.append("purpose", "streaming-preview");
@@ -57,8 +60,8 @@ export default function StreamingPreviewTool({ lang }: { lang: Lang }) {
     } catch (reason) { setError(reason instanceof Error ? reason.message : (en ? "Analysis failed." : "Analyse fehlgeschlagen.")); }
     finally { setLoading(false); }
   }
-  async function renderCodec(){if(!file)return;setCodecBusy(true);setError("");try{const body=new FormData();body.append("file",file);body.append("codec",codec);const response=await fetch("/api/codec-preview",{method:"POST",body});if(!response.ok){const payload=await response.json().catch(()=>({}));throw new Error(payload.error||(en?"Codec rendering failed.":"Codec-Rendering fehlgeschlagen."))}const blob=await response.blob();if(codecUrl)URL.revokeObjectURL(codecUrl);setCodecUrl(URL.createObjectURL(blob));const peak=Number(response.headers.get("X-Encoded-True-Peak"));setCodecPeak(Number.isFinite(peak)?peak:null);setMode("codec");}catch(reason){setError(reason instanceof Error?reason.message:"Codec rendering failed.")}finally{setCodecBusy(false)}}
-  function reset() { setAnalysis(null); setFile(null); setError(""); setMode("preview"); if (url) URL.revokeObjectURL(url);if(codecUrl)URL.revokeObjectURL(codecUrl);setCodecUrl("");setCodecPeak(null);setUrl(""); }
+  async function renderCodec(){if(!file)return;setCodecBusy(true);setError("");try{const body=new FormData();body.append("file",file);body.append("codec",codec);const response=await fetch("/api/codec-preview",{method:"POST",body});if(!response.ok){const payload=await response.json().catch(()=>({}));throw new Error(payload.error||(en?"Codec rendering failed.":"Codec-Rendering fehlgeschlagen."))}const blob=await response.blob();if(codecUrl)URL.revokeObjectURL(codecUrl);setCodecUrl(URL.createObjectURL(blob));const header=response.headers.get("X-Encoded-True-Peak");const peak=header===null||header.trim()===""?null:Number(header);setCodecPeak(peak!==null&&Number.isFinite(peak)?peak:null);setMode("codec");}catch(reason){setError(reason instanceof Error?reason.message:"Codec rendering failed.")}finally{setCodecBusy(false)}}
+  function reset() { audioRef.current?.pause();void contextRef.current?.close();contextRef.current=null;gainRef.current=null;setAnalysis(null); setFile(null); setError(""); setMode("preview"); if (url) URL.revokeObjectURL(url);if(codecUrl)URL.revokeObjectURL(codecUrl);setCodecUrl("");setCodecPeak(null);setUrl(""); }
 
   return <section className="stream-tool">
     <Link href={en ? "/en/tools" : "/tools"} className="tool-back"><ArrowLeft size={15} /> {en ? "All tools" : "Alle Tools"}</Link>
@@ -69,7 +72,7 @@ export default function StreamingPreviewTool({ lang }: { lang: Lang }) {
     </div>}
     {error && <div className="mixcheck-error" role="alert"><AlertTriangle size={16}/><span>{error}</span><button onClick={reset}>{en ? "Try again" : "Erneut versuchen"}</button></div>}
     {analysis && values && <div className="stream-console">
-      <div className="stream-file"><div><strong>{file?.name}</strong><span>{analysis.integrated_lufs.toFixed(1)} LUFS · {analysis.true_peak.toFixed(1)} dBTP</span></div><button onClick={reset}><RotateCcw size={14}/> {en ? "Change" : "Wechseln"}</button></div>
+      <div className="stream-file"><div><strong>{file?.name}</strong><span>{analysis.integrated_lufs.toFixed(1)} LUFS · {analysis.true_peak.toFixed(1)} dBTP</span></div><button disabled={codecBusy} onClick={reset}><RotateCcw size={14}/> {en ? "Change" : "Wechseln"}</button></div>
       <div className="stream-platforms">{PLATFORMS.map(p => <button key={p.id} className={p.id===platform.id?"active":""} style={{"--platform":p.color} as React.CSSProperties} onClick={()=>setPlatformId(p.id)}><i/><strong>{p.name}</strong><span>{p.target} LUFS</span></button>)}</div>
       <div className="stream-meters">
         <article><span>{en ? "Platform gain" : "Plattform-Gain"}</span><strong className={values.gain > 0 ? "positive" : ""}>{values.gain > 0 ? "+" : ""}{values.gain.toFixed(1)} dB</strong><small>{values.gain < -.05 ? (en ? "Playback turns down" : "Wiedergabe wird leiser") : values.gain > .05 ? (en ? "Playback turns up" : "Wiedergabe wird lauter") : (en ? "Almost unchanged" : "Nahezu unverändert")}</small></article>
@@ -78,7 +81,7 @@ export default function StreamingPreviewTool({ lang }: { lang: Lang }) {
       </div>
       {values.limited && <div className="stream-note"><ShieldCheck size={16}/>{en ? "The boost is limited by the platform headroom instead of forcing the target loudness." : "Die Anhebung wird durch den Plattform-Headroom begrenzt, statt den Zielwert zu erzwingen."}</div>}
       <div className="stream-player"><audio ref={audioRef} src={mode==="codec"&&codecUrl?codecUrl:url} controls onPlay={()=>void ensureAudio()} /><div className="stream-ab"><button className={mode==="original"?"active":""} onClick={()=>setMode("original")}><span>A</span>Original</button><button className={mode==="preview"?"active":""} onClick={()=>setMode("preview")}><span>B</span>{en?"Normalized":"Normalisiert"}</button>{codecUrl&&<button className={mode==="codec"?"active":""} onClick={()=>setMode("codec")}><span>C</span>{codec.toUpperCase()}</button>}</div></div>
-      <div className="codec-forecast"><div><Gauge size={18}/><span><strong>{en ? "Codec risk forecast" : "Codec-Risikoprognose"}</strong><small>{en ? "Select the intended delivery codec." : "Wähle den geplanten Auslieferungs-Codec."}</small></span></div><select value={codec} onChange={e=>setCodec(e.target.value)}><option value="aac256">AAC 256</option><option value="mp3320">MP3 320</option><option value="mp3128">MP3 128</option></select></div>
+      <div className="codec-forecast"><div><Gauge size={18}/><span><strong>{en ? "Codec risk forecast" : "Codec-Risikoprognose"}</strong><small>{en ? "Select the intended delivery codec." : "Wähle den geplanten Auslieferungs-Codec."}</small></span></div><select value={codec} disabled={codecBusy} onChange={e=>{setCodec(e.target.value);setCodecUrl("");setCodecPeak(null);if(mode==="codec")setMode("preview")}}><option value="aac256">AAC 256</option><option value="mp3320">MP3 320</option><option value="mp3128">MP3 128</option></select></div>
       <button className="codec-render" disabled={codecBusy} onClick={()=>void renderCodec()}>{codecBusy?<Loader2 className="mixcheck-spin" size={16}/>:<WandSparkles size={16}/>} {codecBusy?(en?"Encoding real preview …":"Echte Vorschau wird codiert …"):(en?"Generate real codec A/B":"Echten Codec-A/B-Vergleich erzeugen")}</button>{codecPeak!==null&&<div className="stream-note"><CheckCircle2 size={16}/>{en?`Encoded file measured at ${codecPeak.toFixed(1)} dBTP.`:`Codierte Datei gemessen: ${codecPeak.toFixed(1)} dBTP.`}</div>}
       <p className="stream-honesty"><CheckCircle2 size={14}/>{codecUrl?(en?"Mode C plays the actual server-encoded file. Platform gain remains level-matched for a fair comparison.":"Modus C spielt die tatsächlich serverseitig codierte Datei. Der Plattform-Gain bleibt für einen fairen Vergleich pegelangepasst."):(en?"A/B applies measured platform gain in real time. Generate mode C to hear an actually encoded file.":"A/B wendet den gemessenen Plattform-Gain in Echtzeit an. Erzeuge Modus C, um eine tatsächlich codierte Datei zu hören.")}</p>
     </div>}

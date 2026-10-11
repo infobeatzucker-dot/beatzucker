@@ -91,8 +91,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Ensure upload directory exists
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true });
+    if (!existsSync(/*turbopackIgnore: true*/ UPLOAD_DIR)) {
+      await mkdir(/*turbopackIgnore: true*/ UPLOAD_DIR, { recursive: true });
     }
 
     const signature = Buffer.from(await file.slice(0, 32).arrayBuffer());
@@ -120,12 +120,12 @@ export async function POST(req: NextRequest) {
     };
     const ext = MIME_TO_EXT[file.type] ?? "wav";
     const filename = `${fileId}.${ext}`;
-    const filePath = path.join(UPLOAD_DIR, filename);
+    const filePath = path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, filename);
     try {
       const webStream = file.stream() as Parameters<typeof Readable.fromWeb>[0];
-      await pipeline(Readable.fromWeb(webStream), createWriteStream(filePath, { flags: "wx" }));
+      await pipeline(Readable.fromWeb(webStream), createWriteStream(/*turbopackIgnore: true*/ filePath, { flags: "wx" }));
     } catch {
-      await unlink(filePath).catch(() => {});
+      await unlink(/*turbopackIgnore: true*/ filePath).catch(() => {});
       return NextResponse.json({ error: "Upload could not be stored." }, { status: 500 });
     }
 
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
       });
       if (!infoRes.ok) {
         const detail = await infoRes.text().catch(() => "");
-        await unlink(filePath).catch(() => {});
+        await unlink(/*turbopackIgnore: true*/ filePath).catch(() => {});
         return NextResponse.json({
           error: detail || "Audio file is not a supported mono/stereo track.",
         }, { status: infoRes.status });
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
       const info = await infoRes.json();
       duration = info.duration || 0;
     } catch {
-      await unlink(filePath).catch(() => {});
+      await unlink(/*turbopackIgnore: true*/ filePath).catch(() => {});
       return NextResponse.json({
         error: "Audio validation service is temporarily unavailable.",
       }, { status: 503 });

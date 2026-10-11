@@ -179,14 +179,14 @@ export async function POST(req: NextRequest) {
 
       try {
         // Find uploaded file
-        const files = existsSync(UPLOAD_DIR) ? await readdir(UPLOAD_DIR) : [];
+        const files = existsSync(/*turbopackIgnore: true*/ UPLOAD_DIR) ? await readdir(/*turbopackIgnore: true*/ UPLOAD_DIR) : [];
         const filename = files.find((f) => f.startsWith(`${fileId}.`));
 
         if (!filename) {
           throw new Error("Upload wurde nicht gefunden oder ist bereits abgelaufen");
         }
 
-        const filePath = path.resolve(path.join(UPLOAD_DIR, filename));
+        const filePath = path.resolve(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, filename));
         send({ step: "analyzing", label: "Analyzing track…", progress: 5 });
 
         // Call Python mastering service
@@ -201,7 +201,7 @@ export async function POST(req: NextRequest) {
             intensity,
             format,
             master_id: masterId,
-            output_dir: path.resolve(path.join(UPLOAD_DIR, "masters")),
+            output_dir: path.resolve(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, "masters")),
             ...(analysis          ? { analysis }                               : {}),
             ...(referenceAnalysis ? { reference_analysis: referenceAnalysis } : {}),
             ...(overrides         ? { overrides }                              : {}),
@@ -344,8 +344,8 @@ async function validateMasterResult(
     throw new Error(`Die angeforderte ${selectedFormat.toUpperCase()}-Datei wurde nicht erzeugt`);
   }
   const selectedExtension = FORMAT_EXTENSIONS[selectedFormat];
-  const selectedPath = path.join(UPLOAD_DIR, "masters", `${masterId}_${selectedFormat}.${selectedExtension}`);
-  const selectedStat = await stat(selectedPath);
+  const selectedPath = path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, "masters", `${masterId}_${selectedFormat}.${selectedExtension}`);
+  const selectedStat = await stat(/*turbopackIgnore: true*/ selectedPath);
   if (!selectedStat.isFile() || selectedStat.size === 0) {
     throw new Error("Die erzeugte Master-Datei ist leer oder ungültig");
   }

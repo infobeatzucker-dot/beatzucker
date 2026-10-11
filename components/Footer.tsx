@@ -15,11 +15,15 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
         ["/features", "Funktionen"], ["/help", "Hilfe"], ["/tools", "Tools"], ["/mix-check", "Mix-Check"], ["/ressourcen", "Wissen"],
         ["/impressum", "Impressum"], ["/datenschutz", "Datenschutz"], ["/agb", "AGB"],
         ["/widerruf", "Widerruf"],
+        ["/versionen", "Versionshistorie"],
+        ["/in-eigener-sache", "In eigener Sache"],
       ]
     : [
         ["/en/features", "Features"], ["/en/help", "Help"], ["/en/tools", "Tools"], ["/en/mix-check", "Mix Check"], ["/en/knowledge", "Knowledge"],
         ["/legal-notice", "Legal notice"], ["/privacy", "Privacy"], ["/terms", "Terms"],
         ["/cancellation-policy", "Cancellation policy"],
+        ["/en/updates", "What's new"],
+        ["/en/support", "A note from us"],
       ];
   return (<>
     <ToolSeoContent pathname={pathname} lang={lang} />

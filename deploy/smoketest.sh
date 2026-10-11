@@ -27,6 +27,9 @@ echo "Smoke testing $BASE ..."
 check "Homepage"                       "$BASE/"              200
 check "Pricing page removed (404)"     "$BASE/pricing"       404
 check "Account API requires auth"      "$BASE/api/account"   401
+if [ "${REQUIRE_READINESS:-1}" = "1" ]; then
+  check "Database and DSP readiness"   "$BASE/api/health"    200
+fi
 
 # Python service health (only meaningful when run inside/near the container network)
 if [ -n "${PYTHON_HEALTH_URL:-}" ]; then

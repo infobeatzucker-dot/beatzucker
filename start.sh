@@ -16,8 +16,9 @@ node node_modules/prisma/build/index.js db push --skip-generate 2>&1 || {
   echo "prisma db push failed — restoring backup"
   if [ -f "$DB_BACKUP" ]; then
     cp "$DB_BACKUP" "$DB_PATH"
-    echo "Backup restored. Starting without schema changes."
+    echo "Backup restored. Startup aborted to prevent a code/schema mismatch."
   fi
+  exit 1
 }
 
 # Verify DB has data — if User table is empty but backup has data, restore
@@ -29,6 +30,7 @@ if [ -f "$DB_BACKUP" ]; then
     echo "WARNING: DB shrank from ${BACKUP_SIZE} to ${CURRENT_SIZE} bytes — restoring backup!"
     cp "$DB_BACKUP" "$DB_PATH"
     echo "Backup restored."
+    exit 1
   fi
 fi
 

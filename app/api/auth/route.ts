@@ -8,6 +8,8 @@ import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { sendPasswordResetEmail, sendWelcomeEmail } from "@/lib/email";
+import { readAuthRequest, authRequestFailure } from "@/lib/authRequest";
+import { rateLimit } from "@/lib/rateLimit";
 
 // ── Validation helpers ───────────────────────────────────────────────
 function isValidEmail(email: string) {
@@ -42,13 +44,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {
-    const body = await req.json();
+    const body = await readAuthRequest(req);
     const { action } = body;
+    const emailValue = typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
+    if (isValidEmail(emailValue) && !rateLimit(`auth:${action}:${emailValue}`, 5, 15 * 60_000)) {
+      // Forgot-password remains uniform, including for unknown addresses.
+      if (action === "forgot-password") return NextResponse.json({ ok: true });
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429, headers: { "Retry-After": "900" } });
+    }
 
     // ── Register ──────────────────────────────────────────
     if (action === "register") {
-      const email    = (body.email ?? "").toLowerCase().trim();
-      const password = body.password ?? "";
+      const email    = emailValue;
+      const password = typeof body.password === "string" ? body.password : "";
 
       if (!isValidEmail(email))
         return NextResponse.json({ error: "Ungültige E-Mail-Adresse" }, { status: 400 });
@@ -72,7 +80,7 @@ export async function POST(req: NextRequest) {
 
     // ── Forgot password ───────────────────────────────────
     if (action === "forgot-password") {
-      const email = (body.email ?? "").toLowerCase().trim();
+      const email = emailValue;
       if (!isValidEmail(email))
         return NextResponse.json({ error: "Ungültige E-Mail-Adresse" }, { status: 400 });
 
@@ -99,10 +107,10 @@ export async function POST(req: NextRequest) {
 
     // ── Reset password ────────────────────────────────────
     if (action === "reset-password") {
-      const token       = body.token ?? "";
-      const newPassword = body.password ?? "";
+      const token       = typeof body.token === "string" ? body.token : "";
+      const newPassword = typeof body.password === "string" ? body.password : "";
 
-      if (!token)
+      if (!/^[a-f0-9]{64}$/.test(token))
         return NextResponse.json({ error: "Ungültiger Token" }, { status: 400 });
       if (!isValidPassword(newPassword))
         return NextResponse.json({ error: "Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten" }, { status: 400 });
@@ -118,14 +126,19 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Token abgelaufen — bitte erneut anfordern" }, { status: 400 });
 
       const hashed = await hashPassword(newPassword);
-      await db.user.update({
-        where: { id: user.id },
+      const updated = await db.user.updateMany({
+        where: { id: user.id, passwordResetToken: token, passwordResetExpires: { gt: new Date() } },
         data: {
           password:            hashed,
+          passwordChangedAt:   new Date(),
+          loginOtp:            null,
+          loginOtpExpires:     null,
           passwordResetToken:  null,
           passwordResetExpires: null,
         },
       });
+
+      if (updated.count !== 1) return NextResponse.json({ error: "Ungültiger oder abgelaufener Token" }, { status: 400 });
 
       return NextResponse.json({ ok: true });
     }
@@ -133,6 +146,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unbekannte Aktion" }, { status: 400 });
 
   } catch (err) {
+    const failure = authRequestFailure(err);
+    if (failure) return failure;
     console.error("[auth] POST error:", err);
     return NextResponse.json({ error: "Server-Fehler" }, { status: 500 });
   }

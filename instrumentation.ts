@@ -2,12 +2,10 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { startStorageCleanup } = await import("@/lib/storage");
     startStorageCleanup();
-    const { recoverInterruptedMasters } = await import("@/lib/masterRecovery");
-    recoverInterruptedMasters()
-      .then((count) => {
-        if (count > 0) console.warn(`[startup] Recovered ${count} interrupted mastering job(s)`);
-      })
-      .catch((error) => console.error("[startup] Mastering recovery failed:", error));
+    const { startMasterRecovery } = await import("@/lib/masterRecovery");
+    startMasterRecovery();
+    const { startWithdrawalQueue } = await import("@/lib/withdrawalQueue");
+    startWithdrawalQueue();
   }
 
   // Validate required environment variables at startup

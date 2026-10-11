@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1: Build Next.js (standalone output)
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:20-slim AS node-builder
+FROM node:24-slim AS node-builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -22,14 +22,14 @@ RUN npm run build
 FROM python:3.11-slim AS runner
 WORKDIR /app
 
-# System deps: Node.js 20, supervisord, ffmpeg (audio encoding), libsndfile
+# System deps: Node.js 24 LTS, supervisord, ffmpeg (audio encoding), libsndfile
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     supervisor \
     ffmpeg \
     libsndfile1 \
     libgomp1 \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
@@ -73,7 +73,7 @@ RUN mkdir -p /app/uploads/masters /app/data && \
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:3000/ || exit 1
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
 USER appuser
 

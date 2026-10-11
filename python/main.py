@@ -25,6 +25,7 @@ from analyzer import analyze_audio, analysis_to_dict
 from ai_params import get_mastering_params
 from mastering import master_audio
 from waveform import extract_waveform_peaks
+from dsp_lease import DspLease
 
 
 # ─── Cleanup job on startup ────────────────────────────────────────────────────
@@ -48,25 +49,8 @@ def cleanup_old_files(upload_dir: str, max_age_hours: int = 24):
 async def lifespan(app: FastAPI):
     if os.environ.get("NODE_ENV") == "production" and len(os.environ.get("PYTHON_SERVICE_SECRET", "")) < 32:
         raise RuntimeError("PYTHON_SERVICE_SECRET must contain at least 32 characters in production")
-    upload_dir = os.environ.get("TEMP_UPLOAD_DIR", "./uploads")
-    cleanup_old_files(upload_dir, max_age_hours=1)
-    cleanup_old_files(os.path.join(upload_dir, "masters"), max_age_hours=25)
-
-    async def periodic_cleanup():
-        while True:
-            await asyncio.sleep(3600)
-            cleanup_old_files(upload_dir, max_age_hours=1)
-            cleanup_old_files(os.path.join(upload_dir, "masters"), max_age_hours=25)
-
-    cleanup_task = asyncio.create_task(periodic_cleanup())
-    try:
-        yield
-    finally:
-        cleanup_task.cancel()
-        try:
-            await cleanup_task
-        except asyncio.CancelledError:
-            pass
+    # Next.js owns retention using DB completion times and active-worker state.
+    yield
 
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
@@ -89,9 +73,10 @@ app.add_middleware(
 )
 
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
-PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master"}
+PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs"}
 MAX_CONCURRENT_DSP_JOBS = max(1, int(os.environ.get("MAX_CONCURRENT_DSP_JOBS", "2")))
 DSP_SLOTS = asyncio.Semaphore(MAX_CONCURRENT_DSP_JOBS)
+ACTIVE_MASTER_IDS = set()
 
 
 @app.middleware("http")
@@ -173,6 +158,11 @@ async def health():
     return {"status": "ok", "service": "Beatzucker Python"}
 
 
+@app.get("/jobs")
+async def active_jobs():
+    return {"active_master_ids": sorted(ACTIVE_MASTER_IDS)}
+
+
 @app.post("/info")
 async def get_info(req: FilePathRequest):
     """Get basic file info (duration, sample rate, etc.)."""
@@ -208,11 +198,12 @@ async def analyze(req: AnalyzeRequest):
         req.file_path = validate_file_path(req.file_path)
 
         await acquire_dsp_slot()
+        lease = DspLease(DSP_SLOTS)
         try:
-            analysis = await asyncio.to_thread(analyze_audio, req.file_path)
+            analysis = await lease.run(analyze_audio, req.file_path)
             return analysis_to_dict(analysis)
         finally:
-            DSP_SLOTS.release()
+            lease.release_when_done()
     except HTTPException:
         raise
     except Exception as e:
@@ -229,14 +220,15 @@ async def waveform(req: WaveformRequest):
             raise HTTPException(400, "Waveform bin count out of range")
 
         await acquire_dsp_slot()
+        lease = DspLease(DSP_SLOTS)
         try:
             max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
-            peaks = await asyncio.to_thread(
+            peaks = await lease.run(
                 extract_waveform_peaks, req.file_path, req.bins, 800, max_duration
             )
             return {"peaks": peaks}
         finally:
-            DSP_SLOTS.release()
+            lease.release_when_done()
     except HTTPException:
         raise
     except (subprocess.SubprocessError, ValueError):
@@ -263,6 +255,9 @@ async def master(req: MasterRequest):
     if req.master_id and not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", req.master_id):
         raise HTTPException(400, "Invalid master id")
     await acquire_dsp_slot()
+    if req.master_id:
+        ACTIVE_MASTER_IDS.add(req.master_id)
+    lease = DspLease(DSP_SLOTS, lambda: ACTIVE_MASTER_IDS.discard(req.master_id))
 
     # Real progress labels, keyed by the step names master_audio() actually emits
     # (see the emit() calls throughout mastering.py's master_audio()).
@@ -292,16 +287,13 @@ async def master(req: MasterRequest):
                 analysis_dict = req.analysis
             else:
                 # No pre-analysis — run full analysis (30–90s)
-                analysis_obj = await loop.run_in_executor(
-                    None, analyze_audio, req.file_path
-                )
+                analysis_obj = await lease.run(analyze_audio, req.file_path)
                 analysis_dict = analysis_to_dict(analysis_obj)
 
             yield encode({"step": "eq", "progress": 18, "label": "Getting mastering parameters…"})
 
             # Rule-based mastering params — pure in-process computation, no external API.
-            params = await loop.run_in_executor(
-                None,
+            params = await lease.run(
                 lambda: get_mastering_params(
                     analysis_dict, req.platform, req.preset, req.intensity,
                     target_lufs=req.target_lufs,
@@ -318,8 +310,8 @@ async def master(req: MasterRequest):
             def progress_cb(step: str, progress: int):
                 loop.call_soon_threadsafe(progress_queue.put_nowait, (step, progress))
 
-            mastering_task = loop.run_in_executor(
-                None, master_audio, req.file_path, params, req.output_dir, progress_cb, req.format, analysis_dict, req.master_id
+            mastering_task = lease.submit(
+                master_audio, req.file_path, params, req.output_dir, progress_cb, req.format, analysis_dict, req.master_id
             )
 
             # Drain real progress events as they arrive; fall back to a heartbeat
@@ -345,7 +337,7 @@ async def master(req: MasterRequest):
                 if step != "complete":
                     yield encode({"step": step, "progress": progress, "label": STEP_LABELS.get(step, step)})
 
-            result = await mastering_task
+            result = await asyncio.shield(mastering_task)
 
             # Build download URLs
             base_url = "/api/download"
@@ -385,7 +377,7 @@ async def master(req: MasterRequest):
             logger.exception("Error in /master")
             yield encode({"step": "error", "progress": 0, "error": "Mastering failed"})
         finally:
-            DSP_SLOTS.release()
+            lease.release_when_done()
 
     return StreamingResponse(
         generate(),

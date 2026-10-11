@@ -29,6 +29,28 @@ model User {
   savedReferences  SavedReference[]
 }
 
+// Independent evidence of receipt: survives account erasure and mail outages.
+model WithdrawalReceipt {
+  id                String    @id
+  submissionKey     String    @unique
+  requestHash       String
+  name              String
+  email             String
+  contractReference String
+  lang              String
+  receivedAt        DateTime  @default(now())
+  userEmailSentAt   DateTime?
+  adminEmailSentAt  DateTime?
+  attempts          Int       @default(0)
+  nextAttemptAt     DateTime  @default(now())
+  lockedUntil       DateTime?
+  retainUntil       DateTime
+  legalHold         Boolean   @default(false)
+
+  @@index([nextAttemptAt])
+  @@index([retainUntil])
+}
+
 // NextAuth OAuth account linking (Google etc.)
 model Account {
   id                String  @id @default(cuid())

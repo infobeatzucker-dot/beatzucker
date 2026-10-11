@@ -73,9 +73,9 @@ export async function GET(req: NextRequest) {
 
   // ── Serve file ────────────────────────────────────────────────────────────
   const actualFormat = format;
-  const filePath = path.join(UPLOAD_DIR, "masters", `${masterId}_${format}.${FORMAT_EXT[format]}`);
+  const filePath = path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, "masters", `${masterId}_${format}.${FORMAT_EXT[format]}`);
 
-  if (!existsSync(filePath)) {
+  if (!existsSync(/*turbopackIgnore: true*/ filePath)) {
     return NextResponse.json({
       error: "Dieses Format wurde nicht erzeugt oder ist abgelaufen.",
     }, { status: 404 });
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
 
   const ext      = FORMAT_EXT[actualFormat] || "mp3";
   const mime     = FORMAT_MIME[actualFormat] || "audio/mpeg";
-  const fileStat = await stat(filePath).catch(() => null);
+  const fileStat = await stat(/*turbopackIgnore: true*/ filePath).catch(() => null);
   if (!fileStat?.isFile() || fileStat.size === 0) {
     return NextResponse.json({ error: "Die Master-Datei ist nicht mehr verfügbar." }, { status: 404 });
   }
@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
     }
     end = Math.min(end, fileSize - 1);
     const length = end - start + 1;
-    const stream = Readable.toWeb(createReadStream(filePath, { start, end })) as ReadableStream<Uint8Array>;
+    const stream = Readable.toWeb(createReadStream(/*turbopackIgnore: true*/ filePath, { start, end })) as ReadableStream<Uint8Array>;
     return new Response(stream, {
       status: 206,
       headers: {
@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const stream = Readable.toWeb(createReadStream(filePath)) as ReadableStream<Uint8Array>;
+  const stream = Readable.toWeb(createReadStream(/*turbopackIgnore: true*/ filePath)) as ReadableStream<Uint8Array>;
   return new Response(stream, {
     headers: {
       ...commonHeaders,

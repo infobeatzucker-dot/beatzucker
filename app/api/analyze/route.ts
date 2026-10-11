@@ -37,14 +37,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Find the uploaded file
-    const files = existsSync(UPLOAD_DIR) ? await readdir(UPLOAD_DIR) : [];
+    const files = existsSync(/*turbopackIgnore: true*/ UPLOAD_DIR) ? await readdir(/*turbopackIgnore: true*/ UPLOAD_DIR) : [];
     const filename = files.find((f) => f.startsWith(`${file_id}.`));
 
     if (!filename) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
-    const filePath = path.resolve(path.join(UPLOAD_DIR, filename));
+    const filePath = path.resolve(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, filename));
 
     // Call Python analyzer
     const res = await fetch(`${PYTHON_URL}/analyze`, {

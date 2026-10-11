@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { DOWNLOAD_WINDOW_MS } from "@/lib/constants";
+import { DOWNLOAD_WINDOW_MS, DONATE_URL } from "@/lib/constants";
 
 // Lazy initialization — avoids "Missing API key" error at build time
 function getResend() {
@@ -8,7 +8,16 @@ function getResend() {
   return new Resend(key);
 }
 
-const FROM = process.env.EMAIL_FROM ?? "noreply@beatzucker.de";
+// Keep the product sender stable even when a legacy EMAIL_FROM is still set.
+const FROM = "noreplay@beatzucker.de";
+
+async function sendEmail(input: Parameters<Resend["emails"]["send"]>[0], idempotencyKey?: string) {
+  const result = await getResend().emails.send(input, idempotencyKey ? { idempotencyKey } : undefined);
+  if (result.error || !result.data?.id) {
+    throw new Error(`Email delivery rejected: ${result.error?.message ?? "missing message ID"}`);
+  }
+  return result.data;
+}
 const BASE = process.env.NEXTAUTH_URL ?? "https://beatzucker.de";
 const YEAR = new Date().getFullYear();
 
@@ -36,14 +45,21 @@ const emailFooter = `
     <a href="mailto:info@re-beatz.com" style="color:#6b7280;text-decoration:none;">info@re-beatz.com</a>
   </div>`;
 
-const emailWrap = (content: string) => `
+const emailWrap = (content: string, lang: "de" | "en" = "de") => `
 <!DOCTYPE html>
-<html lang="de">
+<html lang="${lang}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#0d0d1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:480px;margin:40px auto;background:#1a1a2e;border:1px solid rgba(139,92,246,0.2);border-radius:14px;overflow:hidden;">
     ${emailHeader}
     <div style="padding:28px 32px 32px;">${content}</div>
+    <div style="padding:18px 32px;border-top:1px solid rgba(139,92,246,.2);font-size:.8rem;line-height:1.7;color:#9ca3af;">
+      <strong style="color:#c4b5fd;">${lang === "en" ? "Help Beatzucker stay free" : "Hilf mit, Beatzucker kostenlos zu halten"}</strong><br>
+      ${lang === "en" ? "Beatzucker is free and we want to keep it that way. Development takes time, and servers cost money. Voluntary donations help fund operations and additional capacity, so we can offer more free masters in the future." : "Beatzucker ist kostenlos und soll es bleiben. Entwicklung kostet Zeit, Server kosten Geld. Freiwillige Spenden helfen beim Betrieb und Ausbau – damit künftig mehr kostenlose Masters möglich werden."}<br>
+      <a href="${DONATE_URL}" style="color:#7dd3fc;">${lang === "en" ? "Support the project" : "Projekt unterstützen"}</a> ·
+      <a href="${BASE}${lang === "en" ? "/en/support" : "/in-eigener-sache"}" style="color:#c4b5fd;">${lang === "en" ? "Why your support matters" : "Mehr dazu"}</a><br>
+      <small>${lang === "en" ? "Entirely optional. Donations do not unlock extra masters or priority processing." : "Vollkommen freiwillig. Spenden schalten keine zusätzlichen Masters oder bevorzugte Bearbeitung frei."}</small>
+    </div>
     ${emailFooter}
   </div>
 </body>
@@ -70,7 +86,7 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
       Link: <a href="${safeResetUrl}" style="color:#38bdf8;word-break:break-all;">${safeResetUrl}</a>
     </p>`);
 
-  await getResend().emails.send({
+  await sendEmail({
     from: FROM,
     to: email,
     subject: "Beatzucker – Passwort zurücksetzen",
@@ -91,7 +107,7 @@ export async function sendWelcomeEmail(email: string) {
       Jetzt mastern →
     </a>`);
 
-  await getResend().emails.send({
+  await sendEmail({
     from: FROM,
     to: email,
     subject: "Willkommen bei Beatzucker 🎧",
@@ -149,7 +165,7 @@ export async function sendMasteringCompleteEmail(
       Jetzt herunterladen →
     </a>`);
 
-  await getResend().emails.send({
+  await sendEmail({
     from: FROM,
     to: email,
     subject: `✓ Master fertig: ${originalName}`,
@@ -178,7 +194,7 @@ export async function sendLoginOtpEmail(email: string, otp: string) {
       Falls du dich nicht angemeldet hast, ignoriere diese E-Mail.
     </p>`);
 
-  await getResend().emails.send({
+  await sendEmail({
     from: FROM,
     to: email,
     subject: `${otp} – Dein Beatzucker Login-Code`,
@@ -210,7 +226,7 @@ export async function sendMasteringErrorEmail(email: string, originalName: strin
       Support kontaktieren
     </a>`);
 
-  await getResend().emails.send({
+  await sendEmail({
     from: FROM,
     to: email,
     subject: `Mastering fehlgeschlagen: ${originalName}`,
@@ -225,6 +241,10 @@ export async function sendWithdrawalEmails(input: {
   receivedAt: Date;
   receiptId: string;
   lang: "de" | "en";
+}, delivery?: {
+  userSent?: boolean;
+  adminSent?: boolean;
+  onSent: (recipient: "user" | "admin") => Promise<void>;
 }) {
   const name = escapeHtml(input.name);
   const email = escapeHtml(input.email);
@@ -242,14 +262,15 @@ export async function sendWithdrawalEmails(input: {
     <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:10px;padding:14px 18px;color:#d1d5db;line-height:1.7;">
       Name: ${name}<br>${english ? "Email" : "E-Mail"}: ${email}<br>${english ? "Agreement/reference" : "Vertrag/Referenz"}: ${reference}<br>${english ? "Receipt ID" : "Eingangs-ID"}: ${receiptId}
     </div>
-    <p style="color:#9ca3af;line-height:1.6;">${english ? "Your cancellation will be processed. If you also want your account and stored data deleted, you can initiate this separately in your account or reply to us." : "Der Widerruf wird bearbeitet. Falls damit zugleich dein Konto und deine gespeicherten Daten gelöscht werden sollen, kannst du dies zusätzlich im Konto auslösen oder uns antworten."}</p>`);
+    <p style="color:#9ca3af;line-height:1.6;">${english ? "Your cancellation will be processed. If you also want your account and stored data deleted, you can initiate this separately in your account or reply to us." : "Der Widerruf wird bearbeitet. Falls damit zugleich dein Konto und deine gespeicherten Daten gelöscht werden sollen, kannst du dies zusätzlich im Konto auslösen oder uns antworten."}</p>`, input.lang);
 
   const notification = emailWrap(`
     <h1 style="color:#fff;font-size:1.2rem;margin:0 0 12px;">Neue Widerrufserklärung</h1>
     <p style="color:#d1d5db;line-height:1.7;">Name: ${name}<br>E-Mail: ${email}<br>Vertrag/Referenz: ${reference}<br>Eingang: ${received} Uhr<br>Eingangs-ID: ${receiptId}</p>`);
 
-  await Promise.all([
-    getResend().emails.send({ from: FROM, to: input.email, subject: `${english ? "Cancellation receipt" : "Eingangsbestätigung Widerruf"} ${input.receiptId}`, html: confirmation }),
-    getResend().emails.send({ from: FROM, to: adminEmail, replyTo: input.email, subject: `Widerruf ${input.receiptId} – ${input.name}`, html: notification }),
+  const deliveries = await Promise.allSettled([
+    delivery?.userSent ? Promise.resolve() : sendEmail({ from: FROM, to: input.email, subject: `${english ? "Cancellation receipt" : "Eingangsbestätigung Widerruf"} ${input.receiptId}`, html: confirmation }, `withdrawal-${input.receiptId}-user`).then(() => delivery?.onSent("user")),
+    delivery?.adminSent ? Promise.resolve() : sendEmail({ from: FROM, to: adminEmail, replyTo: input.email, subject: `Widerruf ${input.receiptId} – ${input.name}`, html: notification }, `withdrawal-${input.receiptId}-admin`).then(() => delivery?.onSent("admin")),
   ]);
+  if (deliveries.some(result => result.status === "rejected")) throw new Error("Withdrawal email delivery incomplete");
 }

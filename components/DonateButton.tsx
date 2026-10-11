@@ -40,9 +40,10 @@ export default function DonateButton({ variant = "nav", lang = "de" }: Props) {
           </div>
           <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
             {lang === "de"
-              ? "Beatzucker ist komplett kostenlos. Wenn's dir geholfen hat, freuen wir uns über einen Kaffee ☕"
-              : "Beatzucker is completely free. If it helped you, you can buy us a coffee ☕"}
+              ? "Beatzucker soll kostenlos bleiben. Freiwillige Spenden helfen, Serverkosten zu tragen und mehr Kapazität aufzubauen."
+              : "Help Beatzucker stay free. Voluntary donations cover server costs and help build more capacity."}
           </div>
+          <a href={lang === "de" ? "/in-eigener-sache" : "/en/support"} className="text-xs" style={{ color: "var(--accent-cyan)" }}>{lang === "de" ? "Warum deine Unterstützung hilft →" : "Why your support matters →"}</a>
         </div>
         <a
           href={DONATE_URL}

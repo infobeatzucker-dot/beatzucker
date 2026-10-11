@@ -41,11 +41,11 @@ export async function POST(req: NextRequest) {
     if (!(file instanceof File) || file.size <= 0 || file.size > MAX) return NextResponse.json({ error: "Invalid file or maximum 40 MB exceeded." }, { status: 413 });
     const format = typeof formatRaw === "string" && formatRaw in FORMATS ? formatRaw as keyof typeof FORMATS : "aac256", config = FORMATS[format];
     if (!valid(Buffer.from(await file.slice(0, 32).arrayBuffer()))) return NextResponse.json({ error: "Unsupported audio data." }, { status: 415 });
-    await mkdir(ROOT, { recursive: true });
-    const id = randomUUID(), root = path.resolve(ROOT);
-    source = path.resolve(ROOT, `codec-${id}.input`); output = path.resolve(ROOT, `codec-${id}.${config.ext}`); analysisPath = path.resolve(ROOT, `codec-${id}-analysis.wav`);
+    await mkdir(/*turbopackIgnore: true*/ ROOT, { recursive: true });
+    const id = randomUUID(), root = path.resolve(/*turbopackIgnore: true*/ ROOT);
+    source = path.resolve(/*turbopackIgnore: true*/ ROOT, `codec-${id}.input`); output = path.resolve(/*turbopackIgnore: true*/ ROOT, `codec-${id}.${config.ext}`); analysisPath = path.resolve(/*turbopackIgnore: true*/ ROOT, `codec-${id}-analysis.wav`);
     if ([source, output, analysisPath].some(candidate => path.relative(root, candidate).startsWith(".."))) return NextResponse.json({ error: "Invalid path." }, { status: 400 });
-    await pipeline(Readable.fromWeb(file.stream() as Parameters<typeof Readable.fromWeb>[0]), createWriteStream(source, { flags: "wx" }));
+    await pipeline(Readable.fromWeb(file.stream() as Parameters<typeof Readable.fromWeb>[0]), createWriteStream(/*turbopackIgnore: true*/ source, { flags: "wx" }));
     const infoResponse = await fetch(`${PYTHON}/info`, { method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: source }), signal: AbortSignal.timeout(15000) });
     if (!infoResponse.ok) return NextResponse.json({ error: "The audio file could not be decoded." }, { status: 415 });
     const info = await infoResponse.json();
@@ -61,12 +61,12 @@ export async function POST(req: NextRequest) {
       const analysisResponse = await fetch(`${PYTHON}/analyze`, { method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: analysisPath }), signal: AbortSignal.timeout(150000) });
       if (analysisResponse.ok) { const analysis = normalizeAnalysis(await analysisResponse.json()); if (analysis) truePeak = analysis.true_peak.toFixed(2); }
     } catch (error) { console.warn("Codec true-peak measurement failed", error); }
-    const bytes = await readFile(output);
+    const bytes = await readFile(/*turbopackIgnore: true*/ output);
     return new NextResponse(bytes, { headers: { "Content-Type": config.mime, "Content-Length": String(bytes.length), "Cache-Control": "no-store, private", "X-Codec-Format": format, ...(truePeak ? { "X-Encoded-True-Peak": truePeak } : {}) } });
   } catch (error) {
     console.error("Codec preview failed", error);
     return NextResponse.json({ error: "Codec preview could not be rendered." }, { status: 503 });
   } finally {
-    for (const candidate of [source, output, analysisPath]) if (candidate) await unlink(candidate).catch(() => {});
+    for (const candidate of [source, output, analysisPath]) if (candidate) await unlink(/*turbopackIgnore: true*/ candidate).catch(() => {});
   }
 }

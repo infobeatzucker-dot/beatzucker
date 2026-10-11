@@ -69,14 +69,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "The file does not contain supported audio data." }, { status: 415 });
     }
 
-    await mkdir(UPLOAD_DIR, { recursive: true });
+    await mkdir(/*turbopackIgnore: true*/ UPLOAD_DIR, { recursive: true });
     const ext = MIME_TO_EXT[file.type] || "wav";
-    filePath = path.resolve(path.join(UPLOAD_DIR, `mixcheck-${randomUUID()}.${ext}`));
-    const uploadRoot = path.resolve(UPLOAD_DIR);
+    filePath = path.resolve(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, `mixcheck-${randomUUID()}.${ext}`));
+    const uploadRoot = path.resolve(/*turbopackIgnore: true*/ UPLOAD_DIR);
     if (path.relative(uploadRoot, filePath).startsWith("..")) {
       return NextResponse.json({ error: "Invalid upload path." }, { status: 400 });
     }
-    await pipeline(Readable.fromWeb(file.stream() as Parameters<typeof Readable.fromWeb>[0]), createWriteStream(filePath, { flags: "wx" }));
+    await pipeline(Readable.fromWeb(file.stream() as Parameters<typeof Readable.fromWeb>[0]), createWriteStream(/*turbopackIgnore: true*/ filePath, { flags: "wx" }));
 
     const infoResponse = await fetch(`${PYTHON_URL}/info`, {
       method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: filePath }), signal: AbortSignal.timeout(15000),
@@ -108,6 +108,6 @@ export async function POST(req: NextRequest) {
     console.error("Public mix check error:", error);
     return NextResponse.json({ error: timeout ? "Analysis timed out." : "Mix Check is temporarily unavailable." }, { status: timeout ? 504 : 503 });
   } finally {
-    if (filePath && existsSync(filePath)) await unlink(filePath).catch(() => {});
+    if (filePath && existsSync(/*turbopackIgnore: true*/ filePath)) await unlink(/*turbopackIgnore: true*/ filePath).catch(() => {});
   }
 }

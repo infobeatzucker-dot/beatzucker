@@ -11,6 +11,7 @@ import DonateButton from "./DonateButton";
 import { subscribeGlobalAudioState, toggleGlobalAudio, getGlobalAudioState } from "@/lib/globalAudio";
 import { DONATE_URL } from "@/lib/constants";
 import type { Lang } from "@/lib/types/mastering";
+import { APP_VERSION } from "@/lib/releases";
 
 export default function Header({ lang = "de" }: { lang?: Lang }) {
   const [menuOpen, setMenuOpen]   = useState(false);
@@ -63,6 +64,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
         <div className="header-inner">
 
           {/* Logo */}
+          <div className="brand-lockup brand-with-version">
           <Link href={homeHref} className="brand-lockup" style={{ textDecoration: "none" }}>
             <span className="brand-wave" aria-hidden="true">
               {[10, 22, 32, 18, 26, 12].map((height, index) => <i key={index} style={{ height }} />)}
@@ -70,18 +72,22 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
             <span className="font-black text-xl tracking-tight brand-name">
               Beatzucker
             </span>
-            <span
-              className="hidden sm:block text-xs px-1.5 py-0.5 rounded font-semibold"
+          </Link>
+            <Link
+              href={lang === "en" ? "/en/updates" : "/versionen"}
+              aria-label={lang === "en" ? `Version ${APP_VERSION}: What's new` : `Version ${APP_VERSION}: Was ist neu?`}
+              className="brand-release text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"
               style={{
                 background: "rgba(139,92,246,0.15)",
                 color: "var(--accent-purple)",
                 border: "1px solid rgba(139,92,246,0.25)",
                 letterSpacing: "0.05em",
+                textDecoration: "none",
               }}
             >
-              BETA
-            </span>
-          </Link>
+              <span className="hidden sm:inline">BETA · </span>v{APP_VERSION}
+            </Link>
+          </div>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center header-nav">

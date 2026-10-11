@@ -34,3 +34,10 @@ next-env.d.ts
 
 # Source mirror (not part of Docker build)
 masterone/
+validation-output/
+data/
+backups/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
