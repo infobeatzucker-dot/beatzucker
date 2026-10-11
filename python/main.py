@@ -26,7 +26,10 @@ from ai_params import get_mastering_params
 from mastering import master_audio
 from waveform import extract_waveform_peaks
 from dsp_lease import DspLease
+from dsp_admission import acquire_budget
 from silence_normalizer import normalize_section
+from codec_preview import render_codec, meter_audio
+from audio_limits import validate_full_dsp_audio
 
 
 # ─── Cleanup job on startup ────────────────────────────────────────────────────
@@ -74,7 +77,7 @@ app.add_middleware(
 )
 
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
-PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize"}
+PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter"}
 MAX_CONCURRENT_DSP_JOBS = max(1, int(os.environ.get("MAX_CONCURRENT_DSP_JOBS", "2")))
 DSP_SLOTS = asyncio.Semaphore(MAX_CONCURRENT_DSP_JOBS)
 ACTIVE_MASTER_IDS = set()
@@ -90,9 +93,11 @@ async def authenticate_internal_service(request: Request, call_next):
     return await call_next(request)
 
 
-async def acquire_dsp_slot():
+async def acquire_dsp_slot(master=False):
     try:
-        await asyncio.wait_for(DSP_SLOTS.acquire(), timeout=0.1)
+        return await acquire_budget(DSP_SLOTS, MAX_CONCURRENT_DSP_JOBS, master=master,
+                                    timeout=min(30, max(.1, float(os.environ.get("MASTER_QUEUE_WAIT_SECONDS", "15")))) if master else .1,
+                                    max_waiting=max(1, min(16, int(os.environ.get("MAX_WAITING_MASTER_JOBS", "4")))))
     except asyncio.TimeoutError:
         raise HTTPException(503, "DSP service is busy", headers={"Retry-After": "15"})
 
@@ -112,6 +117,11 @@ class TrimNormalizeRequest(BaseModel):
     start: float
     end: float
     target: float
+
+
+class CodecPreviewRequest(BaseModel):
+    file_path: str
+    codec: str
 
 
 class WaveformRequest(BaseModel):
@@ -186,6 +196,10 @@ async def get_info(req: FilePathRequest):
             raise HTTPException(415, f"Sample rate may not exceed {max_sample_rate} Hz")
         if info.duration <= 0 or info.duration > max_duration:
             raise HTTPException(413, f"Audio may not exceed {max_duration:g} seconds")
+        try:
+            validate_full_dsp_audio(info)
+        except ValueError as error:
+            raise HTTPException(413, str(error))
         return {
             "duration": info.duration,
             "sample_rate": info.samplerate,
@@ -205,8 +219,8 @@ async def analyze(req: AnalyzeRequest):
     try:
         req.file_path = validate_file_path(req.file_path)
 
-        await acquire_dsp_slot()
-        lease = DspLease(DSP_SLOTS)
+        permit = await acquire_dsp_slot()
+        lease = DspLease(permit)
         try:
             analysis = await lease.run(analyze_audio, req.file_path)
             return analysis_to_dict(analysis)
@@ -219,11 +233,50 @@ async def analyze(req: AnalyzeRequest):
         raise HTTPException(500, "Analysis failed")
 
 
+@app.post("/meter")
+async def meter(req: FilePathRequest):
+    req.file_path = validate_file_path(req.file_path)
+    permit = await acquire_dsp_slot()
+    lease = DspLease(permit)
+    try:
+        return await lease.run(meter_audio, req.file_path)
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+    except Exception:
+        logger.exception("Error in /meter")
+        raise HTTPException(500, "Metering unavailable")
+    finally:
+        lease.release_when_done()
+
+
+@app.post("/codec-preview")
+async def codec_preview(req: CodecPreviewRequest):
+    req.file_path = validate_file_path(req.file_path)
+    if req.codec not in {"aac256", "mp3320", "mp3128"}:
+        raise HTTPException(400, "Unsupported codec")
+    permit = await acquire_dsp_slot()
+    lease = DspLease(permit)
+    try:
+        audio, mime, measurements = await lease.run(render_codec, req.file_path, req.codec)
+        headers = {"Cache-Control": "no-store", "X-Codec-Format": req.codec}
+        for field, header in [("true_peak", "X-Encoded-True-Peak"), ("integrated_lufs", "X-Encoded-LUFS")]:
+            if measurements.get(field) is not None:
+                headers[header] = str(measurements[field])
+        return Response(audio, media_type=mime, headers=headers)
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+    except Exception:
+        logger.exception("Error in /codec-preview")
+        raise HTTPException(500, "Codec rendering failed")
+    finally:
+        lease.release_when_done()
+
+
 @app.post("/trim-normalize")
 async def trim_normalize(req: TrimNormalizeRequest):
     req.file_path = validate_file_path(req.file_path)
-    await acquire_dsp_slot()
-    lease = DspLease(DSP_SLOTS)
+    permit = await acquire_dsp_slot()
+    lease = DspLease(permit)
     try:
         audio, stats = await lease.run(normalize_section, req.file_path, req.start, req.end, req.target)
         return Response(audio, media_type="audio/wav", headers={
@@ -247,8 +300,8 @@ async def waveform(req: WaveformRequest):
         if not 32 <= req.bins <= 512:
             raise HTTPException(400, "Waveform bin count out of range")
 
-        await acquire_dsp_slot()
-        lease = DspLease(DSP_SLOTS)
+        permit = await acquire_dsp_slot()
+        lease = DspLease(permit)
         try:
             max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
             peaks = await lease.run(
@@ -268,7 +321,7 @@ async def waveform(req: WaveformRequest):
 
 
 @app.post("/master")
-async def master(req: MasterRequest):
+async def master(req: MasterRequest, request: Request = None):
     """Full mastering chain with SSE progress streaming."""
     req.file_path = validate_file_path(req.file_path)
     req.output_dir = validate_output_dir(req.output_dir)
@@ -282,10 +335,16 @@ async def master(req: MasterRequest):
         raise HTTPException(400, "Intensity out of range")
     if req.master_id and not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", req.master_id):
         raise HTTPException(400, "Invalid master id")
-    await acquire_dsp_slot()
+    permit = await acquire_dsp_slot(master=True)
+    try:
+        if request is not None and await request.is_disconnected():
+            raise HTTPException(499, "Client disconnected before processing")
+    except BaseException:
+        permit.release()
+        raise
     if req.master_id:
         ACTIVE_MASTER_IDS.add(req.master_id)
-    lease = DspLease(DSP_SLOTS, lambda: ACTIVE_MASTER_IDS.discard(req.master_id))
+    lease = DspLease(permit, lambda: ACTIVE_MASTER_IDS.discard(req.master_id))
 
     # Real progress labels, keyed by the step names master_audio() actually emits
     # (see the emit() calls throughout mastering.py's master_audio()).

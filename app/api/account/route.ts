@@ -101,7 +101,7 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) throw new AuthRequestError("Bitte erneut anmelden. / Please sign in again.", 401);
+    if (!session?.user?.id) throw new AuthRequestError("Please sign in again. / Bitte erneut anmelden.", 401);
     const body = await readAuthRequest(req);
     const updates: Prisma.UserUpdateManyMutationInput = {};
     if ("name" in body) {
@@ -125,10 +125,10 @@ export async function PATCH(req: NextRequest) {
       updates.loginOtp = null;
       updates.loginOtpExpires = null;
     }
-    if (!Object.keys(updates).length) throw new AuthRequestError("Keine Änderungen / No changes", 400);
+    if (!Object.keys(updates).length) throw new AuthRequestError("No changes / Keine Änderungen", 400);
     await db.$transaction(async tx => {
       const user = await tx.user.findUnique({ where: { id: session.user.id } });
-      if (!user) throw new AuthRequestError("Bitte erneut anmelden. / Please sign in again.", 401);
+      if (!user) throw new AuthRequestError("Please sign in again. / Bitte erneut anmelden.", 401);
       assertCurrentSession(session, user);
       if ("twoFactor" in body || "newPassword" in body) {
         if (!user.password) throw new AuthRequestError("Only available for password accounts. / Nur für Passwort-Konten verfügbar.", 400);
@@ -141,7 +141,7 @@ export async function PATCH(req: NextRequest) {
     const failure = authRequestFailure(error);
     if (failure) return failure;
     console.error("[account] update failed", error);
-    return NextResponse.json({ error: "Speichern fehlgeschlagen. / Saving failed." }, { status: 500 });
+    return NextResponse.json({ error: "Saving failed. / Speichern fehlgeschlagen." }, { status: 500 });
   }
 }
 
@@ -149,7 +149,7 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) throw new AuthRequestError("Bitte erneut anmelden. / Please sign in again.", 401);
+    if (!session?.user?.id) throw new AuthRequestError("Please sign in again. / Bitte erneut anmelden.", 401);
     const body = await readAuthRequest(req);
     // Worker state may outlive a finished/failed database status.
     let active: Set<string>;
@@ -160,7 +160,7 @@ export async function DELETE(req: NextRequest) {
         where: { id: session.user.id },
         include: { masters: { select: { id: true, fileId: true, status: true } } },
       });
-      if (!user) throw new AuthRequestError("Bitte erneut anmelden. / Please sign in again.", 401);
+      if (!user) throw new AuthRequestError("Please sign in again. / Bitte erneut anmelden.", 401);
       await confirmAccountAction(tx, session, user, body);
       if (user.masters.some(m => ["pending", "processing"].includes(m.status) || active.has(m.id))) {
         throw new AuthRequestError("Please wait until mastering has finished. / Bitte warten, bis das Mastering beendet ist.", 409);
@@ -180,6 +180,6 @@ export async function DELETE(req: NextRequest) {
     const failure = authRequestFailure(error);
     if (failure) return failure;
     console.error("[account] deletion failed", error);
-    return NextResponse.json({ error: "Löschen fehlgeschlagen. / Deletion failed." }, { status: 500 });
+    return NextResponse.json({ error: "Deletion failed. / Löschen fehlgeschlagen." }, { status: 500 });
   }
 }

@@ -15,6 +15,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudioEngine } from "@/contexts/AudioEngineContext";
 import type { Lang } from "@/lib/types/mastering";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
 function formatTime(s: number) {
   if (!isFinite(s) || isNaN(s)) return "0:00";
@@ -30,6 +31,8 @@ interface Props {
 
 export default function ABPlayer({ filename, lang = "de" }: Props) {
   const engine = useAudioEngine();
+  const liveEngineRef = useRef(engine);
+  liveEngineRef.current = engine;
 
   // Canvas refs
   const waveCanvasRef     = useRef<HTMLCanvasElement>(null);
@@ -104,6 +107,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
     const vuR        = vuRRef.current;
 
     const draw = () => {
+      const engine = liveEngineRef.current;
       const analyser   = engine?.analyserMono ?? null;
       const analyserL  = engine?.analyserL ?? null;
       const analyserR  = engine?.analyserR ?? null;
@@ -224,12 +228,11 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
       drawVU(vuL, analyserL);
       drawVU(vuR, analyserR);
 
-      animRef.current = requestAnimationFrame(draw);
     };
-
-    animRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(animRef.current);
-  }, [engine]);
+    if (!liveCanvas) return;
+    const animation = startVisibleAnimation(liveCanvas, draw, { continuous: engine?.isPlaying ?? false });
+    return () => animation.stop();
+  }, [engine?.analyserMono, engine?.analyserL, engine?.analyserR, engine?.isPlaying, engine?.mode]);
 
   // ── Scrubber ───────────────────────────────────────────────────────────────
   const handleScrub = useCallback((e: React.MouseEvent<HTMLDivElement> | MouseEvent, ref?: React.RefObject<HTMLDivElement | null>) => {
@@ -473,7 +476,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
       </div>
 
       {/* Controls row */}
-      <div className="flex items-center gap-3 px-5 pb-4">
+      <div className="ab-player-transport flex items-center gap-3 px-5 pb-4">
 
         {/* VU Left */}
         <canvas
@@ -486,6 +489,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
         {/* Play/Pause */}
         <motion.button
           onClick={engine.togglePlay}
+          aria-label={lang === "de" ? (isPlaying ? "Wiedergabe pausieren" : "Wiedergabe starten") : (isPlaying ? "Pause playback" : "Play audio")}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.94 }}
           className="relative flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0"

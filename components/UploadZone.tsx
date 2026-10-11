@@ -416,7 +416,7 @@ export default function UploadZone({
         ))}
       </div>
       <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
-        {lang === "de" ? `Max. ${MAX_SIZE_MB} MB · Stereo oder Mono` : `Max. ${MAX_SIZE_MB} MB · Stereo or mono`}
+        {lang === "de" ? `Max. ${MAX_SIZE_MB} MB · Stereo oder Mono · bei 48 kHz bis ca. 11 Minuten, bei höheren Raten kürzer` : `Max. ${MAX_SIZE_MB} MB · Stereo or mono · up to about 11 minutes at 48 kHz, shorter at higher rates`}
       </p>
 
       {error && (

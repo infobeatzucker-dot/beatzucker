@@ -5,24 +5,14 @@ import { ArrowLeft, CheckCircle2, Loader2, RotateCcw, UploadCloud, Waves } from 
 import type { Lang } from "@/lib/types/mastering";
 import { decodeAudio } from "@/lib/clientAudio";
 
-type Result={correlation:number;width:number;monoLoss:number;balance:number;points:[number,number][];bands:{name:string;correlation:number}[]};
-function bandCorrelations(left:Float32Array,right:Float32Array,sampleRate:number){
-  const step=Math.max(1,Math.floor(sampleRate/12000)),rate=sampleRate/step,aLow=1-Math.exp(-2*Math.PI*160/rate),aMid=1-Math.exp(-2*Math.PI*4000/rate),sums=Array.from({length:3},()=>({l:0,r:0,lr:0}));let lowL=0,lowR=0,wideL=0,wideR=0;
-  for(let i=0;i<left.length;i+=step){const l=left[i],r=right[i];lowL+=aLow*(l-lowL);lowR+=aLow*(r-lowR);wideL+=aMid*(l-wideL);wideR+=aMid*(r-wideR);const ls=[lowL,wideL-lowL,l-wideL],rs=[lowR,wideR-lowR,r-wideR];for(let b=0;b<3;b++){sums[b].l+=ls[b]**2;sums[b].r+=rs[b]**2;sums[b].lr+=ls[b]*rs[b];}}
-  return sums.map((sum,index)=>({name:["20–160 Hz","160 Hz–4 kHz","4–20 kHz"][index],correlation:sum.lr/Math.sqrt(Math.max(1e-20,sum.l*sum.r))}));
-}
-function inspect(buffer:AudioBuffer):Result{
-  const monoBands=["20–160 Hz","160 Hz–4 kHz","4–20 kHz"].map(name=>({name,correlation:1}));if(buffer.numberOfChannels<2)return{correlation:1,width:0,monoLoss:0,balance:0,points:[],bands:monoBands};
-  const l=buffer.getChannelData(0),r=buffer.getChannelData(1),step=Math.max(1,Math.floor(l.length/200000)),pointStep=Math.max(1,Math.floor(l.length/1800));let ll=0,rr=0,lr=0,mid=0,side=0,n=0,nextPoint=0;const points:[number,number][]=[];
-  for(let i=0;i<l.length;i+=step){ll+=l[i]**2;rr+=r[i]**2;lr+=l[i]*r[i];const m=(l[i]+r[i])*.5,s=(l[i]-r[i])*.5;mid+=m*m;side+=s*s;n++;if(i>=nextPoint){points.push([m,s]);nextPoint+=pointStep;}}
-  const correlation=lr/Math.sqrt(Math.max(1e-20,ll*rr)),width=Math.sqrt(side/Math.max(1e-20,mid)),stereoRms=Math.sqrt((ll+rr)/(2*n)),monoRms=Math.sqrt(mid/n);
-  return{correlation,width,monoLoss:20*Math.log10(Math.max(1e-10,monoRms)/Math.max(1e-10,stereoRms)),balance:10*Math.log10(Math.max(1e-20,ll)/Math.max(1e-20,rr)),points,bands:bandCorrelations(l,r,buffer.sampleRate)};
-}
+import { inspectStereoAsync } from "@/lib/audioWorker";
+import type { StereoResult as Result } from "@/lib/workerAnalysis";
+
 function Scope({result}:{result:Result}){const ref=useRef<HTMLCanvasElement>(null);useEffect(()=>{const c=ref.current;if(!c)return;const box=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=box.width*d;c.height=box.height*d;const x=c.getContext("2d");if(!x)return;x.scale(d,d);x.translate(box.width/2,box.height/2);x.strokeStyle="rgba(255,255,255,.08)";x.beginPath();x.moveTo(-box.width/2,0);x.lineTo(box.width/2,0);x.moveTo(0,-box.height/2);x.lineTo(0,box.height/2);x.stroke();x.fillStyle="rgba(84,205,255,.24)";const scale=Math.min(box.width,box.height)*.42;for(const[m,s]of result.points)x.fillRect(m*scale-s*scale,-m*scale-s*scale,1.5,1.5)},[result]);return <canvas ref={ref} className="phase-scope"/>}
 
 export default function StereoPhaseTool({lang}:{lang:Lang}){
   const en=lang==="en",input=useRef<HTMLInputElement>(null);const[file,setFile]=useState<File|null>(null),[result,setResult]=useState<Result|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState("");
-  async function load(f:File){setBusy(true);setError("");try{const buffer=await decodeAudio(f);setFile(f);setResult(inspect(buffer));}catch{setError(en?"The audio file could not be analyzed.":"Die Audiodatei konnte nicht analysiert werden.")}finally{setBusy(false)}}
+  async function load(f:File){setBusy(true);setError("");try{const buffer=await decodeAudio(f);setFile(f);setResult(await inspectStereoAsync(buffer));}catch{setError(en?"The audio file could not be analyzed.":"Die Audiodatei konnte nicht analysiert werden.")}finally{setBusy(false)}}
   const status=result?result.correlation<0?(en?"Critical phase cancellation":"Kritische Phasenauslöschung"):result.correlation<.35?(en?"Check mono compatibility":"Mono-Kompatibilität prüfen"):(en?"Stable stereo image":"Stabiles Stereobild"):"";
   return <section className="stream-tool"><Link href={en?"/en/tools":"/tools"} className="tool-back"><ArrowLeft size={15}/>{en?"All tools":"Alle Tools"}</Link><div className="stream-hero"><span><Waves size={14}/> STEREO LAB</span><h1>{en?<>See what happens <em>between the speakers.</em></>:<>Sieh, was <em>zwischen den Boxen</em> passiert.</>}</h1><p>{en?"Measure phase correlation, width, balance and mono loss locally.":"Miss Phasenkorrelation, Breite, Balance und Mono-Verlust lokal."}</p></div>
     {!result&&<div className="stream-upload" role="button" tabIndex={0} onClick={()=>input.current?.click()}><div>{busy?<Loader2 className="mixcheck-spin"/>:<UploadCloud/>}</div><h2>{busy?(en?"Inspecting stereo image …":"Stereobild wird geprüft …"):(en?"Choose a stereo track":"Stereo-Track auswählen")}</h2><p>{en?"Analysis stays in your browser":"Die Analyse bleibt in deinem Browser"}</p><input ref={input} hidden type="file" accept="audio/*,.wav,.flac,.mp3,.aiff,.aif" onChange={e=>{const f=e.target.files?.[0];if(f)void load(f)}}/></div>}

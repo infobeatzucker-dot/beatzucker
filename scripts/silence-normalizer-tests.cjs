@@ -14,12 +14,13 @@ function load(file, mocks, extras = {}) {
     if (!(name in mocks)) throw Error(`Unmocked dependency: ${name}`);
     return mocks[name];
   }, console: { error() {} }, process: { env: { NEXTAUTH_URL: "https://beatzucker.de", TEMP_UPLOAD_DIR: "/mock/uploads" } },
-  globalThis: {}, Number, URL, Blob, File, Response, Buffer, Uint8Array, AbortSignal, ...extras }, { filename: file });
+  globalThis: {}, Number, URL, Blob, File, Response, Buffer, Uint8Array, AbortSignal, Error, setTimeout, clearTimeout, ...extras }, { filename: file });
   return module.exports;
 }
 const result = { before: { integrated_lufs: -22, true_peak: -9 }, after: { integrated_lufs: -14, true_peak: -1.01 },
   gain_db: 8, target_lufs: -14, peak_limited: false, start: 0, end: 2, duration: 2, sample_rate: 48000, channels: 2 };
 const parser = load("lib/types/normalization.ts", {});
+const bounded = load("lib/boundedMultipart.ts", { "next/server": { NextResponse: require("next/server").NextResponse } });
 let fetchCount, removed, status = 200, allow = true;
 const route = load("app/api/silence-normalize/route.ts", {
   crypto: { randomUUID: () => "test-only-id" },
@@ -29,6 +30,7 @@ const route = load("app/api/silence-normalize/route.ts", {
   "next/server": { NextResponse: require("next/server").NextResponse },
   "@/lib/rateLimit": { rateLimit: () => allow }, "@/lib/pythonService": { pythonServiceHeaders: () => ({}) },
   "@/lib/types/normalization": parser,
+  "@/lib/boundedMultipart": bounded,
 }, { fetch: async (_, options) => {
   fetchCount++; const request = JSON.parse(options.body);
   assert.equal(request.start, 0); assert.equal(request.end, 2); assert.equal(request.target, -14);

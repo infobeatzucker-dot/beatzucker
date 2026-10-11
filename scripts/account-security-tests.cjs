@@ -75,6 +75,7 @@ async function main() {
     await storage.cleanupFile("mock.wav", true);
   });
   const authOptions = load("lib/authOptions.ts", {
+    "@/lib/termsConsent": { registrationTermsProof: async () => null },
     "next-auth/providers/google": { default: config => config },
     "next-auth/providers/credentials": { default: config => config },
     "@auth/prisma-adapter": { PrismaAdapter: () => ({}) },

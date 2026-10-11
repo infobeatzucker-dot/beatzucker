@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
 interface Props {
   stereoWidth: number;
@@ -146,19 +147,20 @@ export default function StereoField({
       ctx.fillText("CORR", cx, corrY - 3);
       ctx.textAlign  = "left";
 
-      animRef.current = requestAnimationFrame(draw);
+
     };
 
     const resize = () => {
       const rect    = canvas.parentElement!.getBoundingClientRect();
       canvas.width  = rect.width;
-      canvas.height = rect.height - 24;
+      canvas.height = Math.max(1, rect.height - 24);
     };
     resize();
-    animRef.current = requestAnimationFrame(draw);
+
     window.addEventListener("resize", resize);
+    const animation = startVisibleAnimation(canvas, draw, { continuous: Boolean(analyserL || analyserR) || isProcessing, resize });
     return () => {
-      cancelAnimationFrame(animRef.current);
+      animation.stop();
       window.removeEventListener("resize", resize);
     };
   }, [stereoWidth, monoCompatibility, isProcessing, analyserL, analyserR]);

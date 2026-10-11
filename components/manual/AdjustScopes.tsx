@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Lang } from "@/lib/types/mastering";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
 /**
  * Animierte Audio-Scopes für die Tabs, in denen nur ein bis zwei Fader stehen.
@@ -10,10 +11,6 @@ import type { Lang } from "@/lib/types/mastering";
  * Signal fallen sie auf eine sehr ruhige Demo-Bewegung zurück, damit das Panel
  * nicht wie ein defekter schwarzer Bildschirm wirkt.
  */
-
-const REDUCE_MOTION =
-  typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 function useCanvasLoop(
   draw: (ctx: CanvasRenderingContext2D, w: number, h: number, t: number) => void,
@@ -29,9 +26,7 @@ function useCanvasLoop(
     const ctx = cv.getContext("2d");
     if (!ctx) return;
 
-    let raf = 0;
     let t = 0;
-    let stopped = false;
     // Abmessungen cachen: getBoundingClientRect() pro Frame erzwingt jedes Mal
     // ein Layout und war eine der Ruckel-Ursachen.
     let w = 1, h = 1;
@@ -47,22 +42,15 @@ function useCanvasLoop(
     resize();
     // Nur messen, niemals zeichnen — sonst startet jede Größenänderung eine
     // weitere Endlosschleife, die nie wieder abgeräumt wird.
-    const ro = new ResizeObserver(resize);
-    ro.observe(cv);
-
-    const frame = () => {
-      if (stopped) return;
+    const frame = (time: number) => {
       ctx.clearRect(0, 0, w, h);
       drawRef.current(ctx, w, h, t);
-      t += REDUCE_MOTION ? 0 : 0.022;
-      raf = requestAnimationFrame(frame);
+      t = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : time / 1000;
     };
-    raf = requestAnimationFrame(frame);
+    const animation = startVisibleAnimation(cv, frame, { resize });
 
     return () => {
-      stopped = true;
-      cancelAnimationFrame(raf);
-      ro.disconnect();
+      animation.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);

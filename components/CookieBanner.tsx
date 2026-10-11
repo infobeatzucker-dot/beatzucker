@@ -9,13 +9,23 @@ const STORAGE_KEY = "beatzucker_cookie_consent";
 
 export default function CookieBanner() {
   const pathname = usePathname();
-  const en = pathname.startsWith("/en/") || ["/privacy", "/terms", "/legal-notice", "/cancellation-policy"].includes(pathname);
+  const [accountEnglish, setAccountEnglish] = useState(false);
+  const en = pathname === "/en" || pathname.startsWith("/en/") || ["/privacy", "/terms", "/legal-notice", "/cancellation-policy"].includes(pathname)
+    || ((pathname.startsWith("/dashboard") || pathname === "/account") && accountEnglish);
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("lang");
+    let saved: string | null = null;
+    try { saved = localStorage.getItem("beatzucker-language"); } catch { /* optional */ }
+    setAccountEnglish(requested === "en" || (requested !== "de" && saved === "en"));
+  }, [pathname]);
+
+  useEffect(() => {
     setMounted(true);
-    const accepted = localStorage.getItem(STORAGE_KEY);
+    let accepted: string | null = null;
+    try { accepted = localStorage.getItem(STORAGE_KEY); } catch { /* Storage can be unavailable in private browsing. */ }
     if (!accepted) setVisible(true);
 
     // Listen for reopen event dispatched by Footer
@@ -25,7 +35,7 @@ export default function CookieBanner() {
   }, []);
 
   function accept() {
-    localStorage.setItem(STORAGE_KEY, "accepted");
+    try { localStorage.setItem(STORAGE_KEY, "accepted"); } catch { /* The notice can still be dismissed for this visit. */ }
     setVisible(false);
   }
 

@@ -10,10 +10,11 @@ import { rateLimit } from "@/lib/rateLimit";
 export async function POST(req: NextRequest) {
   try {
     const body = await readAuthRequest(req);
+    const t = (de: string, en: string) => body.lang === "en" ? en : de;
     const email = typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
     const password = typeof body.password === "string" ? body.password : "";
     if (!email || email.length > 255 || !password || password.length > 128)
-      return NextResponse.json({ error: "Fehlende Felder" }, { status: 400 });
+      return NextResponse.json({ error: t("Fehlende Felder", "Missing fields") }, { status: 400 });
 
     if (!rateLimit(`otp:${email}`, 5, 15 * 60_000)) {
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429, headers: { "Retry-After": "900" } });
@@ -25,12 +26,12 @@ export async function POST(req: NextRequest) {
 
     // No user or no password (Google-only) or wrong password → uniform error
     if (!user?.password) {
-      return NextResponse.json({ error: "Ungültige Anmeldedaten" }, { status: 401 });
+      return NextResponse.json({ error: t("Ungültige Anmeldedaten", "Invalid credentials") }, { status: 401 });
     }
 
     const valid = await verifyPassword(password, user.password);
     if (!valid)
-      return NextResponse.json({ error: "Ungültige Anmeldedaten" }, { status: 401 });
+      return NextResponse.json({ error: t("Ungültige Anmeldedaten", "Invalid credentials") }, { status: 401 });
 
     if (!user.twoFactorEnabled) return NextResponse.json({ requiresOtp: false });
 
@@ -50,6 +51,6 @@ export async function POST(req: NextRequest) {
     const failure = authRequestFailure(err);
     if (failure) return failure;
     console.error("[auth] OTP delivery failed:", err);
-    return NextResponse.json({ error: "Serverfehler" }, { status: 500 });
+    return NextResponse.json({ error: "Code delivery failed. Please try again. / Codeversand fehlgeschlagen. Bitte erneut versuchen." }, { status: 500 });
   }
 }

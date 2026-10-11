@@ -3,18 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUiLanguage } from "@/lib/useUiLanguage";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Library, UploadCloud, SlidersHorizontal, UserCircle, Menu, X, Sparkles, ShieldCheck } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Übersicht", href: "/dashboard",         icon: LayoutDashboard },
-  { label: "Bibliothek", href: "/dashboard/library",  icon: Library },
-  { label: "Uploads",   href: "/dashboard/uploads",  icon: UploadCloud },
-  { label: "Referenzen", href: "/dashboard/presets", icon: SlidersHorizontal },
-  { label: "Profil",   href: "/dashboard/profile",  icon: UserCircle },
+  { label: "Übersicht", en: "Overview", href: "/dashboard",         icon: LayoutDashboard },
+  { label: "Bibliothek", en: "Library", href: "/dashboard/library",  icon: Library },
+  { label: "Uploads", en: "Uploads", href: "/dashboard/uploads",  icon: UploadCloud },
+  { label: "Referenzen", en: "References", href: "/dashboard/presets", icon: SlidersHorizontal },
+  { label: "Profil", en: "Profile", href: "/dashboard/profile",  icon: UserCircle },
 ];
 
 function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  const lang = useUiLanguage();
   return (
     <nav className="dashboard-nav flex flex-col gap-1">
       {NAV_ITEMS.map((item) => {
@@ -25,7 +27,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={`${item.href}?lang=${lang}`}
             onClick={onNavigate}
             className={`dashboard-nav-item ${active ? "nav-item-active" : ""}`}
             style={{
@@ -42,7 +44,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
             }}
           >
             <Icon size={16} strokeWidth={2} />
-            {item.label}
+            {lang === "en" ? item.en : item.label}
           </Link>
         );
       })}
@@ -51,6 +53,8 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
 }
 
 export default function Sidebar({ previewPath }: { previewPath?: string }) {
+  const lang = useUiLanguage();
+  const en = lang === "en";
   const pathname = usePathname();
   const effectivePathname = previewPath ?? pathname;
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -69,7 +73,7 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
           padding: "1.5rem 1rem",
         }}
       >
-        <Link href="/" className="brand-lockup dashboard-brand px-2 mb-1" style={{ textDecoration: "none" }}>
+        <Link href={en ? "/en" : "/"} className="brand-lockup dashboard-brand px-2 mb-1" style={{ textDecoration: "none" }}>
           <span className="brand-wave mini" aria-hidden="true">
             {[10, 22, 32, 18, 26, 12].map((height, index) => <i key={index} style={{ height }} />)}
           </span>
@@ -77,14 +81,14 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
             Beatzucker
           </span>
         </Link>
-        <div className="dashboard-brand-sub px-2 mb-7"><Sparkles size={10} /> ADAPTIVES MASTERING</div>
+        <div className="dashboard-brand-sub px-2 mb-7"><Sparkles size={10} /> {en ? "ADAPTIVE MASTERING" : "ADAPTIVES MASTERING"}</div>
 
         <NavLinks pathname={effectivePathname} />
 
         <div style={{ marginTop: "auto", paddingTop: "1.5rem" }}>
           <div className="sidebar-free-card">
-            <span><ShieldCheck size={16} /> Kostenlos mastern</span>
-            <small>Alle Werkzeuge. Keine Paywall.</small>
+            <span><ShieldCheck size={16} /> {en ? "Master for free" : "Kostenlos mastern"}</span>
+            <small>{en ? "All tools. No paywall." : "Alle Werkzeuge. Keine Paywall."}</small>
           </div>
         </div>
       </aside>
@@ -102,12 +106,12 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
           zIndex: 40,
         }}
       >
-        <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
+        <Link href={en ? "/en" : "/"} className="flex items-center gap-2" style={{ textDecoration: "none" }}>
           <span className="font-black text-base tracking-tight" style={{ color: "#fff" }}>Beatzucker</span>
         </Link>
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Menü"
+          aria-label={en ? "Menu" : "Menü"}
           style={{ color: "var(--text-secondary)", padding: "0.4rem" }}
         >
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}

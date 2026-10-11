@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { Mail, ShieldCheck } from "lucide-react";
 import type { Lang } from "@/lib/types/mastering";
+import { TERMS_VERSION } from "@/lib/terms";
 
 type View = "login" | "register" | "forgot" | "reset" | "forgot-sent" | "otp";
 
@@ -109,46 +110,59 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
   const [otp, setOtp]             = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const en = lang === "en";
-
-  // Switch to reset view if token is present
-  useEffect(() => {
-    if (resetToken) setView("reset");
-  }, [resetToken]);
+  const t = (de: string, english: string) => en ? english : de;
+  const apiError = (message: unknown, fallback: string) => {
+    if (typeof message !== "string") return fallback;
+    const parts = message.split(" / ");
+    return parts.length === 2 ? parts[en ? 0 : 1] : message;
+  };
+  const networkError = () => setError(t("Verbindung fehlgeschlagen. Bitte erneut versuchen.", "Connection failed. Please try again."));
+  const home = en ? "/en" : "/";
 
   useEffect(() => {
     if (open) { setError(""); setSuccess(""); }
-  }, [open, view]);
+  }, [open]);
 
   useEffect(() => {
-    setView(initialView);
-  }, [initialView]);
+    setView(resetToken ? "reset" : initialView);
+  }, [initialView, resetToken]);
 
   if (!open) return null;
 
   // ── Google login ──────────────────────────────────────────────
   async function handleGoogle() {
-    if (view === "register" && !termsAccepted) {
+    if (!termsAccepted) {
       setError(en ? "Please accept the Terms of Service first." : "Bitte akzeptiere zuerst die AGB.");
       return;
     }
     setLoading(true);
-    await signIn("google", { callbackUrl: "/" });
+    try {
+      const response = await fetch("/api/auth/consent", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accepted: true, version: TERMS_VERSION, lang }) });
+      if (!response.ok) throw Error();
+      await signIn("google", { callbackUrl: home });
+    }
+    catch { networkError(); }
+    finally { setLoading(false); }
   }
 
   // ── Email + Password login ─────────────────────────────────────
   async function handleLogin(e: FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
+    try {
     // Check if 2FA is required
     const otpRes = await fetch("/api/auth/otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, lang }),
     });
     const otpData = await otpRes.json();
     if (!otpRes.ok) {
       setLoading(false);
-      setError("E-Mail oder Passwort falsch.");
+      setError(otpRes.status === 429 ? t("Zu viele Versuche. Bitte später erneut versuchen.", "Too many attempts. Please try again later.")
+        : otpRes.status >= 500 ? t("Anmeldung momentan nicht verfügbar. Bitte erneut versuchen.", "Sign-in is temporarily unavailable. Please try again.")
+        : t("E-Mail oder Passwort falsch.", "Incorrect email or password."));
       return;
     }
     if (otpData.requiresOtp) {
@@ -160,24 +174,29 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
     // No 2FA — proceed normally
     const res = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-    if (res?.error) {
-      setError("E-Mail oder Passwort falsch.");
+    if (!res || res.error) {
+      setError(t("E-Mail oder Passwort falsch.", "Incorrect email or password."));
     } else {
       onClose();
     }
+    } catch { networkError(); }
+    finally { setLoading(false); }
   }
 
   // ── OTP submit ─────────────────────────────────────────────────
   async function handleOtp(e: FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
+    try {
     const res = await signIn("credentials", { email, password, otp, redirect: false });
     setLoading(false);
-    if (res?.error) {
-      setError("Ungültiger oder abgelaufener Code.");
+    if (!res || res.error) {
+      setError(t("Ungültiger oder abgelaufener Code.", "Invalid or expired code."));
     } else {
       onClose();
     }
+    } catch { networkError(); }
+    finally { setLoading(false); }
   }
 
   // ── Register ───────────────────────────────────────────────────
@@ -185,61 +204,74 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
     e.preventDefault();
     setError("");
     if (!termsAccepted) { setError(en ? "Please accept the Terms of Service first." : "Bitte akzeptiere zuerst die AGB."); return; }
-    if (password !== password2) { setError("Passwörter stimmen nicht überein."); return; }
+    if (password !== password2) { setError(t("Passwörter stimmen nicht überein.", "Passwords do not match.")); return; }
     setLoading(true);
+    try {
     const res = await fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "register", email, password }),
+      body: JSON.stringify({ action: "register", email, password, lang, termsAccepted: true, termsVersion: TERMS_VERSION }),
     });
     const data = await res.json();
     setLoading(false);
-    if (!res.ok) { setError(data.error ?? "Fehler beim Registrieren."); return; }
+    if (!res.ok) { setError(apiError(data.error, t("Fehler beim Registrieren.", "Registration failed."))); return; }
     // Auto-login after register
     const loginRes = await signIn("credentials", { email, password, redirect: false });
-    if (loginRes?.error) { setView("login"); setSuccess("Konto erstellt! Bitte einloggen."); }
+    if (!loginRes || loginRes.error) { setView("login"); setSuccess(t("Konto erstellt! Bitte einloggen.", "Account created! Please sign in.")); }
     else onClose();
+    } catch { networkError(); }
+    finally { setLoading(false); }
   }
 
   // ── Forgot password ────────────────────────────────────────────
   async function handleForgot(e: FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
-    await fetch("/api/auth", {
+    try {
+    const res = await fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "forgot-password", email }),
+      body: JSON.stringify({ action: "forgot-password", email, lang }),
     });
-    setLoading(false);
+    if (!res.ok) { const data = await res.json(); setError(apiError(data.error, t("Anfrage fehlgeschlagen.", "Request failed."))); return; }
     setView("forgot-sent");
+    } catch { networkError(); }
+    finally { setLoading(false); }
   }
 
   // ── Reset password ─────────────────────────────────────────────
   async function handleReset(e: FormEvent) {
     e.preventDefault();
     setError("");
-    if (password !== password2) { setError("Passwörter stimmen nicht überein."); return; }
+    if (password !== password2) { setError(t("Passwörter stimmen nicht überein.", "Passwords do not match.")); return; }
     setLoading(true);
+    try {
     const res = await fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "reset-password", token: resetToken, password }),
+      body: JSON.stringify({ action: "reset-password", token: resetToken, password, lang }),
     });
     const data = await res.json();
     setLoading(false);
-    if (!res.ok) { setError(data.error ?? "Fehler."); return; }
-    setSuccess("Passwort geändert! Du kannst dich jetzt einloggen.");
+    if (!res.ok) { setError(apiError(data.error, t("Fehler.", "Request failed."))); return; }
+    setSuccess(t("Passwort geändert! Du kannst dich jetzt einloggen.", "Password changed! You can now sign in."));
     setView("login");
+    } catch { networkError(); }
+    finally { setLoading(false); }
   }
 
   // ── Divider ────────────────────────────────────────────────────
   const Divider = () => (
     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1rem 0" }}>
       <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }}/>
-      <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>oder</span>
+      <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>{t("oder", "or")}</span>
       <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }}/>
     </div>
   );
+  const termsField = <label style={{ display: "flex", alignItems: "flex-start", gap: "0.55rem", color: "var(--text-muted)", fontSize: "0.75rem", lineHeight: 1.5, marginBottom: "0.9rem" }}>
+    <input type="checkbox" disabled={loading} checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} style={{ marginTop: "0.18rem" }} />
+    <span>{t("Ich akzeptiere die ", "I accept the ")}<a href={en ? "/terms" : "/agb"} style={{ color: "var(--accent-cyan)" }} target="_blank" rel="noopener noreferrer">{t("AGB", "Terms of Service")}</a>. {t("Informationen zur Datenverarbeitung stehen in der ", "Information about data processing is available in the ")}<a href={en ? "/privacy" : "/datenschutz"} style={{ color: "var(--accent-cyan)" }} target="_blank" rel="noopener noreferrer">{t("Datenschutzerklärung", "Privacy Policy")}</a>.</span>
+  </label>;
 
   return (
     <>
@@ -253,6 +285,8 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
       <div
         role="dialog"
         aria-modal="true"
+        aria-label={t("Anmeldung und Konto", "Sign-in and account")}
+        lang={lang}
         style={{
           position: "fixed",
           top: "50%",
@@ -263,6 +297,8 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
           border: "1px solid rgba(139,92,246,0.25)",
           borderRadius: "16px",
           padding: "2rem",
+          maxHeight: "calc(100dvh - 2rem)",
+          overflowY: "auto",
           zIndex: 9999,
           boxShadow: "0 16px 60px rgba(0,0,0,0.6)",
         }}
@@ -272,7 +308,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
           onClick={onClose}
           style={{ position: "absolute", top: "1rem", right: "1rem", background: "none", border: "none",
                    color: "var(--text-muted)", fontSize: "1.2rem", cursor: "pointer", lineHeight: 1 }}
-          aria-label="Schließen"
+          aria-label={t("Schließen", "Close")}
         >✕</button>
 
         {/* Logo */}
@@ -283,33 +319,34 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
           </span>
         </div>
 
-        {error   && <div style={{ ...errStyle, marginBottom: "1rem" }}>{error}</div>}
-        {success && <div style={{ ...okStyle, marginBottom: "1rem" }}>{success}</div>}
+        {error   && <div role="alert" style={{ ...errStyle, marginBottom: "1rem" }}>{error}</div>}
+        {success && <div role="status" style={{ ...okStyle, marginBottom: "1rem" }}>{success}</div>}
 
         {/* ── LOGIN ───────────────────────────────────────── */}
         {view === "login" && (
           <>
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
-              Anmelden
+              {t("Anmelden", "Sign in")}
             </h2>
+            {termsField}
             <button style={btnGoogle} onClick={handleGoogle} disabled={loading}>
-              <GoogleIcon /> Mit Google anmelden
+              <GoogleIcon /> {t("Mit Google anmelden", "Sign in with Google")}
             </button>
             <Divider />
             <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <label htmlFor="login-email" className="sr-only">E-Mail</label>
-              <input id="login-email" style={inputStyle} type="email" placeholder="E-Mail" value={email}
+              <label htmlFor="login-email" className="sr-only">{t("E-Mail", "Email")}</label>
+              <input id="login-email" style={inputStyle} type="email" placeholder={t("E-Mail", "Email")} value={email}
                      onChange={e => setEmail(e.target.value)} required autoFocus autoComplete="email" />
-              <label htmlFor="login-pw" className="sr-only">Passwort</label>
-              <input id="login-pw" style={inputStyle} type="password" placeholder="Passwort" value={password}
+              <label htmlFor="login-pw" className="sr-only">{t("Passwort", "Password")}</label>
+              <input id="login-pw" style={inputStyle} type="password" placeholder={t("Passwort", "Password")} value={password}
                      onChange={e => setPassword(e.target.value)} required autoComplete="current-password" />
               <button style={btnPrimary} type="submit" disabled={loading}>
-                {loading ? "…" : "Einloggen"}
+                {loading ? "…" : t("Einloggen", "Sign in")}
               </button>
             </form>
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
-              <button style={linkBtn} onClick={() => { setView("register"); setError(""); }}>Konto erstellen</button>
-              <button style={linkBtn} onClick={() => { setView("forgot"); setError(""); }}>Passwort vergessen?</button>
+              <button style={linkBtn} disabled={loading} onClick={() => { setView("register"); setError(""); setSuccess(""); }}>{t("Konto erstellen", "Create account")}</button>
+              <button style={linkBtn} disabled={loading} onClick={() => { setView("forgot"); setError(""); setSuccess(""); }}>{t("Passwort vergessen?", "Forgot password?")}</button>
             </div>
           </>
         )}
@@ -318,32 +355,29 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {view === "register" && (
           <>
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
-              Konto erstellen
+              {t("Konto erstellen", "Create account")}
             </h2>
-            <label style={{ display: "flex", alignItems: "flex-start", gap: "0.55rem", color: "var(--text-muted)", fontSize: "0.75rem", lineHeight: 1.5, marginBottom: "0.9rem" }}>
-              <input type="checkbox" checked={termsAccepted} onChange={event => setTermsAccepted(event.target.checked)} style={{ marginTop: "0.18rem" }} />
-              <span>{en ? "I accept the " : "Ich akzeptiere die "}<a href={en ? "/terms" : "/agb"} style={{ color: "var(--accent-cyan)" }} target="_blank">{en ? "Terms of Service" : "AGB"}</a>. {en ? "Information about data processing is available in the " : "Informationen zur Datenverarbeitung stehen in der "}<a href={en ? "/privacy" : "/datenschutz"} style={{ color: "var(--accent-cyan)" }} target="_blank">{en ? "Privacy Policy" : "Datenschutzerklärung"}</a>.</span>
-            </label>
+            {termsField}
             <button style={btnGoogle} onClick={handleGoogle} disabled={loading}>
-              <GoogleIcon /> Mit Google registrieren
+              <GoogleIcon /> {t("Mit Google registrieren", "Register with Google")}
             </button>
             <Divider />
             <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <label htmlFor="reg-email" className="sr-only">E-Mail</label>
-              <input id="reg-email" style={inputStyle} type="email" placeholder="E-Mail" value={email}
+              <label htmlFor="reg-email" className="sr-only">{t("E-Mail", "Email")}</label>
+              <input id="reg-email" style={inputStyle} type="email" placeholder={t("E-Mail", "Email")} value={email}
                      onChange={e => setEmail(e.target.value)} required autoFocus autoComplete="email" />
-              <label htmlFor="reg-pw" className="sr-only">Passwort</label>
-              <input id="reg-pw" style={inputStyle} type="password" placeholder="Passwort (min. 8 Zeichen)" value={password}
+              <label htmlFor="reg-pw" className="sr-only">{t("Passwort", "Password")}</label>
+              <input id="reg-pw" style={inputStyle} type="password" placeholder={t("Passwort (min. 8 Zeichen)", "Password (at least 8 characters)")} value={password}
                      onChange={e => setPassword(e.target.value)} required autoComplete="new-password" />
-              <label htmlFor="reg-pw2" className="sr-only">Passwort wiederholen</label>
-              <input id="reg-pw2" style={inputStyle} type="password" placeholder="Passwort wiederholen" value={password2}
+              <label htmlFor="reg-pw2" className="sr-only">{t("Passwort wiederholen", "Repeat password")}</label>
+              <input id="reg-pw2" style={inputStyle} type="password" placeholder={t("Passwort wiederholen", "Repeat password")} value={password2}
                      onChange={e => setPassword2(e.target.value)} required autoComplete="new-password" />
               <button style={btnPrimary} type="submit" disabled={loading}>
-                {loading ? "…" : "Konto erstellen"}
+                {loading ? "…" : t("Konto erstellen", "Create account")}
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
-              <button style={linkBtn} onClick={() => { setView("login"); setError(""); }}>Bereits ein Konto? Einloggen</button>
+              <button style={linkBtn} disabled={loading} onClick={() => { setView("login"); setError(""); setSuccess(""); }}>{t("Bereits ein Konto? Einloggen", "Already have an account? Sign in")}</button>
             </div>
           </>
         )}
@@ -352,21 +386,21 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {view === "forgot" && (
           <>
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", textAlign: "center" }}>
-              Passwort vergessen
+              {t("Passwort vergessen", "Forgot password")}
             </h2>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", margin: "0 0 1.25rem", lineHeight: 1.5 }}>
-              Wir senden dir einen Reset-Link per E-Mail.
+              {t("Wir senden dir einen Reset-Link per E-Mail.", "We'll email you a password reset link.")}
             </p>
             <form onSubmit={handleForgot} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <label htmlFor="forgot-email" className="sr-only">E-Mail</label>
-              <input id="forgot-email" style={inputStyle} type="email" placeholder="Deine E-Mail" value={email}
+              <label htmlFor="forgot-email" className="sr-only">{t("E-Mail", "Email")}</label>
+              <input id="forgot-email" style={inputStyle} type="email" placeholder={t("Deine E-Mail", "Your email")} value={email}
                      onChange={e => setEmail(e.target.value)} required autoFocus autoComplete="email" />
               <button style={btnPrimary} type="submit" disabled={loading}>
-                {loading ? "…" : "Reset-Link senden"}
+                {loading ? "…" : t("Reset-Link senden", "Send reset link")}
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
-              <button style={linkBtn} onClick={() => { setView("login"); setError(""); }}>← Zurück zum Login</button>
+              <button style={linkBtn} disabled={loading} onClick={() => { setView("login"); setError(""); }}>{t("← Zurück zum Login", "← Back to sign-in")}</button>
             </div>
           </>
         )}
@@ -378,14 +412,14 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
               <Mail size={40} strokeWidth={1.75} color="var(--accent-cyan, #38bdf8)" />
             </div>
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.75rem", textAlign: "center" }}>
-              E-Mail gesendet
+              {t("Anfrage erhalten", "Request received")}
             </h2>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", lineHeight: 1.6 }}>
-              Falls ein Konto mit dieser E-Mail existiert, erhältst du in Kürze einen Reset-Link.
-              Der Link ist <strong style={{ color: "#fff" }}>15 Minuten</strong> gültig.
+              {t("Falls ein Konto mit dieser E-Mail existiert, erhältst du in Kürze einen Reset-Link. Der Link ist ", "If an account with this email exists, you'll receive a reset link shortly. The link is valid for ")}
+              <strong style={{ color: "#fff" }}>{t("15 Minuten", "15 minutes")}</strong>.
             </p>
             <div style={{ textAlign: "center", marginTop: "1.25rem" }}>
-              <button style={linkBtn} onClick={() => { setView("login"); setError(""); }}>← Zum Login</button>
+              <button style={linkBtn} onClick={() => { setView("login"); setError(""); }}>{t("← Zum Login", "← Sign in")}</button>
             </div>
           </>
         )}
@@ -397,13 +431,13 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
               <ShieldCheck size={32} strokeWidth={1.75} color="var(--accent-purple, #8b5cf6)" />
             </div>
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", textAlign: "center" }}>
-              2-Faktor-Authentifizierung
+              {t("2-Faktor-Authentifizierung", "Two-factor authentication")}
             </h2>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", margin: "0 0 1.25rem", lineHeight: 1.5 }}>
-              Wir haben einen 6-stelligen Code an <strong style={{ color: "#fff" }}>{email}</strong> gesendet.
+              {t("Wir haben einen 6-stelligen Code an ", "We've sent a six-digit code to ")}<strong style={{ color: "#fff" }}>{email}</strong>.
             </p>
             <form onSubmit={handleOtp} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <label htmlFor="otp-code" className="sr-only">6-stelliger Bestätigungscode</label>
+              <label htmlFor="otp-code" className="sr-only">{t("6-stelliger Bestätigungscode", "Six-digit verification code")}</label>
               <input
                 id="otp-code"
                 style={{ ...inputStyle, textAlign: "center", fontSize: "1.5rem", letterSpacing: "0.3em", fontWeight: 700 }}
@@ -418,11 +452,11 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
                 autoComplete="one-time-code"
               />
               <button style={btnPrimary} type="submit" disabled={loading || otp.length !== 6}>
-                {loading ? "…" : "Bestätigen"}
+                {loading ? "…" : t("Bestätigen", "Verify")}
               </button>
             </form>
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
-              <button style={linkBtn} onClick={() => { setView("login"); setError(""); setOtp(""); }}>← Zurück</button>
+              <button style={linkBtn} disabled={loading} onClick={() => { setView("login"); setError(""); setOtp(""); }}>{t("← Zurück", "← Back")}</button>
             </div>
           </>
         )}
@@ -431,17 +465,17 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {view === "reset" && (
           <>
             <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
-              Neues Passwort setzen
+              {t("Neues Passwort setzen", "Set a new password")}
             </h2>
             <form onSubmit={handleReset} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <label htmlFor="reset-pw" className="sr-only">Neues Passwort</label>
-              <input id="reset-pw" style={inputStyle} type="password" placeholder="Neues Passwort (min. 8 Zeichen)" value={password}
+              <label htmlFor="reset-pw" className="sr-only">{t("Neues Passwort", "New password")}</label>
+              <input id="reset-pw" style={inputStyle} type="password" placeholder={t("Neues Passwort (min. 8 Zeichen)", "New password (at least 8 characters)")} value={password}
                      onChange={e => setPassword(e.target.value)} required autoFocus autoComplete="new-password" />
-              <label htmlFor="reset-pw2" className="sr-only">Passwort wiederholen</label>
-              <input id="reset-pw2" style={inputStyle} type="password" placeholder="Passwort wiederholen" value={password2}
+              <label htmlFor="reset-pw2" className="sr-only">{t("Passwort wiederholen", "Repeat password")}</label>
+              <input id="reset-pw2" style={inputStyle} type="password" placeholder={t("Passwort wiederholen", "Repeat password")} value={password2}
                      onChange={e => setPassword2(e.target.value)} required autoComplete="new-password" />
               <button style={btnPrimary} type="submit" disabled={loading}>
-                {loading ? "…" : "Passwort speichern"}
+                {loading ? "…" : t("Passwort speichern", "Save password")}
               </button>
             </form>
           </>

@@ -10,6 +10,42 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.10.0",
+  date: "2026-10-11",
+  title: { de: "Flüssigere Tools. Zuverlässigere Verarbeitung.", en: "Smoother tools. More reliable processing." },
+  summary: {
+    de: "Echte MP3- und AAC-Vorschauen werden gezielter geprüft. Bei hoher Auslastung schützt eine gemeinsame Grenze den Audiodienst vor zusätzlichen Vorschau-Aufträgen.",
+    en: "Actual MP3 and AAC previews are checked more efficiently. Under heavy load, a shared limit protects the audio service from additional preview jobs.",
+  },
+  improvements: {
+    de: [
+      "Aufwendige Audioanalysen und WAV-Exporte laufen im Hintergrund, damit du die Oberfläche währenddessen weiter bedienen kannst.",
+      "Analyzer pausieren außerhalb des sichtbaren Bereichs. Die Audiowiedergabe läuft im Hintergrund weiter; reduzierte Bewegung wird berücksichtigt.",
+      "Anmeldung und Profil sind auch auf Englisch nutzbar. Verbindungsfehler lassen die Formulare nicht dauerhaft blockiert zurück.",
+      "Neue Registrierungen bestätigen die aktuellen Nutzungsbedingungen auch bei Google-Anmeldung. Bestehende Konten bleiben erhalten.",
+      "Die manuelle Loop-Auswahl bleibt auch bei kurzen Tracks innerhalb der Datei. Bereichsanzeige und Wiedergabe am Dateiende wurden abgesichert.",
+      "Der Stereo-Check berücksichtigt das vollständige Signal und analysiert Frequenzbereiche ohne vorheriges Weglassen von Samples.",
+      "Streaming-Vorschauen und Mastering teilen sich eine Auslastungsgrenze. Ist der Audiodienst voll, erhältst du einen Hinweis, es kurz darauf erneut zu versuchen.",
+      "Eine kurze, begrenzte Warteschlange bevorzugt Mastering-Aufträge vor neu eintreffenden Tool-Anfragen.",
+      "Spitzenpegel und Lautheit werden direkt an der codierten Datei gemessen – ohne unnötige erneute Tonart-, Tempo- und Spektralanalyse. Der Klang der Vorschau bleibt dabei unverändert.",
+      "Uploads werden auch ohne Größenangabe begrenzt. Ungültige Dateien und nicht unterstützte Vorschauformate werden früher erkannt.",
+      "Fehlende Messwerte werden nicht durch scheinbar korrekte Zahlen ersetzt. Echte AAC- und MP3-Vorschauen bleiben auch ohne verfügbare Messung hörbar.",
+    ],
+    en: [
+      "Heavy audio analysis and WAV exports run in the background, keeping the interface available while they process.",
+      "Analyzers pause outside the visible area. Audio playback continues in the background; reduced-motion preferences are respected.",
+      "Sign-in and profile settings are available in English. Connection failures no longer leave forms permanently blocked.",
+      "New registrations confirm the current terms, including Google sign-in. Existing accounts are preserved.",
+      "Manual loop selection stays within the file, including short tracks. Range display and playback at the end of the file have been made more reliable.",
+      "Stereo checks use the complete signal and analyze frequency regions without dropping samples beforehand.",
+      "Streaming previews and mastering share a workload limit. If the audio service is busy, you are prompted to try again shortly.",
+      "A short, bounded queue gives mastering jobs priority over newly arriving tool requests.",
+      "Peak level and loudness are measured directly from the encoded file, without unnecessary key, tempo or spectrum analysis. The preview's sound stays unchanged during measurement.",
+      "Uploads are limited even without a declared size. Invalid files and unsupported preview formats are detected earlier.",
+      "Missing measurements are not replaced with seemingly correct numbers. Actual AAC and MP3 previews remain playable even when measurements are unavailable.",
+    ],
+  },
+}, {
   version: "0.9.1",
   date: "2026-10-11",
   title: { de: "Mehr Kontoschutz. Genauere Audio-Ergebnisse.", en: "Safer accounts. More accurate audio results." },

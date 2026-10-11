@@ -146,16 +146,36 @@ export function AudioEngineProvider({
     audio.addEventListener("ended", onEnded);
 
     // currentTime ticker
-    const tick = () => {
-      setCurrentTime(audio.currentTime || 0);
+    let lastTick = -Infinity;
+    const tick = (time: number) => {
+      rafRef.current = 0;
+      if (document.hidden || audio.paused) return;
+      if (time - lastTick >= 1000 / 30) {
+        lastTick = time;
+        setCurrentTime(audio.currentTime || 0);
+      }
       rafRef.current = requestAnimationFrame(tick);
     };
-    rafRef.current = requestAnimationFrame(tick);
+    const refreshTicker = () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+      setCurrentTime(audio.currentTime || 0);
+      if (!document.hidden && !audio.paused) rafRef.current = requestAnimationFrame(tick);
+    };
+    audio.addEventListener("play", refreshTicker);
+    audio.addEventListener("pause", refreshTicker);
+    audio.addEventListener("seeked", refreshTicker);
+    document.addEventListener("visibilitychange", refreshTicker);
+    refreshTicker();
 
     return () => {
       // On unmount (page navigation): keep audio playing, just detach listeners & RAF.
       // Audio will continue until the user stops it or a new master is loaded.
       cancelAnimationFrame(rafRef.current);
+      audio.removeEventListener("play", refreshTicker);
+      audio.removeEventListener("pause", refreshTicker);
+      audio.removeEventListener("seeked", refreshTicker);
+      document.removeEventListener("visibilitychange", refreshTicker);
       audio.removeEventListener("loadedmetadata", onMeta);
       audio.removeEventListener("play",  onPlay);
       audio.removeEventListener("pause", onPause);

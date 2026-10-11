@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
 interface Props {
   isProcessing: boolean;
@@ -141,19 +142,20 @@ export default function SpectrumAnalyzer({ isProcessing, hasPostData, analyser }
         ctx.fillText(label, x - 6, H - 4);
       });
 
-      animRef.current = requestAnimationFrame(draw);
+
     };
 
     const resize = () => {
       const rect    = canvas.parentElement!.getBoundingClientRect();
       canvas.width  = rect.width;
-      canvas.height = rect.height - 24;
+      canvas.height = Math.max(1, rect.height - 24);
     };
     resize();
-    animRef.current = requestAnimationFrame(draw);
+
     window.addEventListener("resize", resize);
+    const animation = startVisibleAnimation(canvas, draw, { continuous: Boolean(analyser) || isProcessing, resize });
     return () => {
-      cancelAnimationFrame(animRef.current);
+      animation.stop();
       window.removeEventListener("resize", resize);
     };
   }, [isProcessing, hasPostData, analyser]);

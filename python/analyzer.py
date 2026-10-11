@@ -12,6 +12,7 @@ import pyloudnorm as pyln
 from scipy import signal as scipy_signal
 from dataclasses import dataclass, asdict
 from typing import Optional
+from audio_limits import validate_full_dsp_audio
 
 logger = logging.getLogger("mastering.analyzer")
 
@@ -262,11 +263,7 @@ def compute_lra(audio: np.ndarray, sr: int) -> float:
 def analyze_audio(file_path: str) -> AudioAnalysis:
     """Perform full audio analysis on a file."""
     info = sf.info(file_path)
-    max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
-    if info.channels not in (1, 2):
-        raise ValueError("Only mono and stereo audio are supported")
-    if info.duration <= 0 or info.duration > max_duration:
-        raise ValueError(f"Audio duration must be between 0 and {max_duration:g} seconds")
+    validate_full_dsp_audio(info)
 
     # Load only after cheap metadata validation to avoid memory exhaustion from
     # very long compressed files or unsupported multichannel containers.

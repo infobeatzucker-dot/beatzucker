@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useRef } from "react";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
 interface Props {
   analyser?: AnalyserNode | null;
@@ -48,7 +49,7 @@ export default function SpectrogramWaterfall({ analyser, isProcessing }: Props) 
     const draw = () => {
       const W = canvas.width;
       const H = canvas.height;
-      if (W === 0 || H === 0) { animRef.current = requestAnimationFrame(draw); return; }
+      if (W === 0 || H === 0) {  return; }
 
       tRef.current += 0.016;
 
@@ -123,12 +124,13 @@ export default function SpectrogramWaterfall({ analyser, isProcessing }: Props) 
         ctx.fillText(f >= 1000 ? `${f / 1000}k` : `${f}`, x + 2, H - 4);
       });
 
-      animRef.current = requestAnimationFrame(draw);
+
     };
 
-    animRef.current = requestAnimationFrame(draw);
+
+    const animation = startVisibleAnimation(canvas, draw, { continuous: Boolean(analyser) || isProcessing, resize });
     return () => {
-      cancelAnimationFrame(animRef.current);
+      animation.stop();
       window.removeEventListener("resize", resize);
     };
   }, [analyser, isProcessing]);

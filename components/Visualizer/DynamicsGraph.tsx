@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
 interface Props {
   drValue: number;
@@ -85,20 +86,21 @@ export default function DynamicsGraph({ drValue, crestFactor, isProcessing }: Pr
       ctx.font = "7px monospace";
       ctx.fillText(`CF: ${crestFactor.toFixed(1)} dB`, W / 2, H - 4);
 
-      animRef.current = requestAnimationFrame(draw);
+
     };
 
     const resize = () => {
       const rect = canvas.parentElement!.getBoundingClientRect();
       canvas.width = rect.width;
-      canvas.height = rect.height - 24;
+      canvas.height = Math.max(1, rect.height - 24);
     };
     resize();
 
-    animRef.current = requestAnimationFrame(draw);
+
     window.addEventListener("resize", resize);
+    const animation = startVisibleAnimation(canvas, draw, { continuous: isProcessing, resize });
     return () => {
-      cancelAnimationFrame(animRef.current);
+      animation.stop();
       window.removeEventListener("resize", resize);
     };
   }, [drValue, crestFactor, isProcessing]);

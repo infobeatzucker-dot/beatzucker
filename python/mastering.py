@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 from ai_params import MasteringParams
+from audio_limits import validate_full_dsp_audio
 from analyzer import compute_dr, rms_band, compute_lra, compute_true_peak
 
 logger = logging.getLogger("beatzucker.mastering")
@@ -863,11 +864,7 @@ def master_audio(
 
     # 1. Load audio
     source_info = sf.info(file_path)
-    max_duration = float(os.environ.get("MAX_AUDIO_DURATION_SECONDS", "1800"))
-    if source_info.channels not in (1, 2):
-        raise ValueError("Only mono and stereo audio are supported")
-    if source_info.duration <= 0 or source_info.duration > max_duration:
-        raise ValueError(f"Audio duration must be between 0 and {max_duration:g} seconds")
+    validate_full_dsp_audio(source_info)
     audio, sr = librosa.load(file_path, sr=None, mono=False)
     if audio.ndim == 1:
         audio = np.stack([audio, audio])  # Mono to stereo

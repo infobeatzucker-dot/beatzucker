@@ -5,6 +5,7 @@ import path from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import { NextRequest, NextResponse } from "next/server";
+import { readBoundedMultipart, uploadRequestFailure } from "@/lib/boundedMultipart";
 import { rateLimit } from "@/lib/rateLimit";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { parseNormalizationResult } from "@/lib/types/normalization";
@@ -27,24 +28,6 @@ const germanErrors: Record<string, string> = {
 };
 
 /** Bound real bytes even without Content-Length before multipart parsing. */
-async function readForm(req: NextRequest) {
-  const reader = req.body?.getReader();
-  if (!reader) throw new Error("EMPTY_BODY");
-  const chunks: Uint8Array<ArrayBuffer>[] = [];
-  let size = 0;
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > MAX_BODY) { await reader.cancel(); throw new Error("BODY_TOO_LARGE"); }
-      chunks.push(new Uint8Array(value));
-    }
-  } finally { reader.releaseLock(); }
-  try {
-    return await new Response(new Blob(chunks), { headers: { "Content-Type": req.headers.get("content-type")! } }).formData();
-  } catch { throw new Error("INVALID_MULTIPART"); }
-}
 
 export async function POST(req: NextRequest) {
   const origin = req.headers.get("origin");
@@ -57,12 +40,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Normalization limit reached. Please try again later. / Limit erreicht. Bitte später erneut versuchen." }, { status: 429 });
   state.__trimRequests = (state.__trimRequests ?? 0) + 1;
   let source = "";
+  let release: (() => void) | undefined;
   try {
     if (!req.headers.get("content-type")?.includes("multipart/form-data"))
       return NextResponse.json({ error: "Expected an audio upload." }, { status: 400 });
     if (Number(req.headers.get("content-length")) > MAX_BODY)
       return NextResponse.json({ error: "Maximum file size: 40 MB." }, { status: 413 });
-    const form = await readForm(req), file = form.get("file");
+    const upload = await readBoundedMultipart(req, MAX_FILE);
+    release = upload.release;
+    const form = upload.form, file = form.get("file");
     if (!(file instanceof File) || file.size <= 0 || file.size > MAX_FILE)
       return NextResponse.json({ error: "Maximum file size: 40 MB." }, { status: 413 });
     const numeric = (key: string) => {
@@ -99,11 +85,14 @@ export async function POST(req: NextRequest) {
       "X-Normalization-Stats": JSON.stringify(stats),
     } });
   } catch (error) {
+    const failure = uploadRequestFailure(error);
+    if (failure) return failure;
     const oversized = error instanceof Error && error.message === "BODY_TOO_LARGE";
     const malformed = error instanceof Error && ["EMPTY_BODY", "INVALID_MULTIPART"].includes(error.message);
     console.error("[trim-normalize] request failed", error);
     return NextResponse.json({ error: oversized ? "Maximum file size: 40 MB." : malformed ? "Invalid audio upload. / Ungültiger Audio-Upload." : "Normalization failed. Please try again. / Normalisierung fehlgeschlagen. Bitte erneut versuchen." }, { status: oversized ? 413 : malformed ? 400 : 503 });
   } finally {
+    release?.();
     if (source) await unlink(/*turbopackIgnore: true*/ source).catch(() => {});
     state.__trimRequests = Math.max(0, (state.__trimRequests ?? 1) - 1);
   }

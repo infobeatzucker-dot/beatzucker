@@ -1,0 +1,18 @@
+const { spawnSync } = require('node:child_process'), fs = require('node:fs'), path = require('node:path');
+const root = path.resolve(__dirname, '..');
+function run(command, args) {
+  const result = spawnSync(command, args, { cwd: root, stdio: 'inherit', env: process.env });
+  if (result.error || result.status !== 0) throw Error(`${command} failed: ${result.error?.message || result.status}`);
+}
+try {
+  // Refuse a misleading green result with skipped codec tests.
+  run(process.env.FFMPEG_BINARY || 'ffmpeg', ['-version']);
+  for (const suite of ['audit-regression', 'account-security', 'codec-preview', 'silence-normalizer', 'terms-consent', 'upload-budget', 'browser-audio', 'json-body', 'rollback', 'isolated-qa', 'manual-loop'])
+    run(process.execPath, [`scripts/${suite}-tests.cjs`]);
+  run(process.execPath, ['scripts/withdrawal-db-test.cjs']);
+  const venv = path.join(root, 'python', 'venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
+  const python = fs.existsSync(venv) ? venv : process.platform === 'win32' ? 'python' : 'python3';
+  run(python, ['-m', 'unittest', 'discover', '-s', 'python/tests']);
+  run(python, ['python/self_test.py']);
+  console.log('Audit regression tests and offline DSP self-test passed. Local HTTP integration tests are a separate, isolated QA step.');
+} catch (error) { console.error(error.message); process.exitCode = 1; }

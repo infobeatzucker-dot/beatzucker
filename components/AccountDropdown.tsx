@@ -123,7 +123,7 @@ export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
           {/* Menu items */}
           <div style={{ padding: "0.4rem 0" }}>
             <Link
-              href="/dashboard"
+              href={`/dashboard?lang=${lang}`}
               onClick={() => setOpen(false)}
               style={{
                 display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.55rem 1rem",
@@ -134,7 +134,7 @@ export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
               <User size={14} strokeWidth={2} /> Dashboard
             </Link>
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOut({ callbackUrl: lang === "en" ? "/en" : "/" })}
               style={{
                 display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", textAlign: "left",
                 padding: "0.55rem 1rem", background: "none", border: "none",

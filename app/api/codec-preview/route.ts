@@ -1,24 +1,21 @@
 import { createHash, randomUUID } from "crypto";
-import { execFile } from "child_process";
 import { createWriteStream } from "fs";
-import { mkdir, readFile, unlink } from "fs/promises";
+import { mkdir, unlink } from "fs/promises";
 import path from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
-import { promisify } from "util";
 import { NextRequest, NextResponse } from "next/server";
-import { normalizeAnalysis } from "@/lib/analysisValidation";
+import { readBoundedMultipart, uploadRequestFailure } from "@/lib/boundedMultipart";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const maxDuration = 180;
 export const runtime = "nodejs";
-const run = promisify(execFile), ROOT = process.env.TEMP_UPLOAD_DIR || "./uploads", PYTHON = process.env.PYTHON_SERVICE_URL || "http://localhost:8001", MAX = 40 * 1024 * 1024;
-const FORMATS = {
-  aac256: { ext: "m4a", mime: "audio/mp4", args: ["-c:a", "aac", "-b:a", "256k"] },
-  mp3320: { ext: "mp3", mime: "audio/mpeg", args: ["-c:a", "libmp3lame", "-b:a", "320k"] },
-  mp3128: { ext: "mp3", mime: "audio/mpeg", args: ["-c:a", "libmp3lame", "-b:a", "128k"] },
-} as const;
+const ROOT = process.env.TEMP_UPLOAD_DIR || "./uploads";
+const PYTHON = process.env.PYTHON_SERVICE_URL || "http://localhost:8001";
+const MAX = 40 * 1024 * 1024;
+const FORMATS: Record<string, string> = { aac256: "audio/mp4", mp3320: "audio/mpeg", mp3128: "audio/mpeg" };
+const state = globalThis as typeof globalThis & { __codecRequests?: number };
 
 function valid(buffer: Buffer) {
   if (buffer.length < 12) return false;
@@ -29,44 +26,87 @@ function clientKey(req: NextRequest) {
   const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
   return createHash("sha256").update(ip).digest("hex").slice(0, 24);
 }
-
-export async function POST(req: NextRequest) {
-  if (!rateLimit(`codec-preview:${clientKey(req)}`, 6, 60 * 60 * 1000)) return NextResponse.json({ error: "Codec preview limit reached." }, { status: 429 });
-  let source = "", output = "", analysisPath = "";
+async function readForm(req: NextRequest) {
+  const reader = req.body?.getReader();
+  if (!reader) throw new Error("INVALID_BODY");
+  const chunks: Uint8Array<ArrayBuffer>[] = [];
+  let size = 0;
   try {
-    const declared = Number(req.headers.get("content-length") || 0);
-    if (Number.isFinite(declared) && declared > MAX + 1024 * 1024) return NextResponse.json({ error: "Maximum file size is 40 MB." }, { status: 413 });
-    if (!req.headers.get("content-type")?.includes("multipart/form-data")) return NextResponse.json({ error: "Expected an audio upload." }, { status: 400 });
-    const form = await req.formData(), file = form.get("file"), formatRaw = form.get("codec");
-    if (!(file instanceof File) || file.size <= 0 || file.size > MAX) return NextResponse.json({ error: "Invalid file or maximum 40 MB exceeded." }, { status: 413 });
-    const format = typeof formatRaw === "string" && formatRaw in FORMATS ? formatRaw as keyof typeof FORMATS : "aac256", config = FORMATS[format];
-    if (!valid(Buffer.from(await file.slice(0, 32).arrayBuffer()))) return NextResponse.json({ error: "Unsupported audio data." }, { status: 415 });
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX + 1024 * 1024) { await reader.cancel(); throw new Error("TOO_LARGE"); }
+      chunks.push(new Uint8Array(value));
+    }
+  } finally { reader.releaseLock(); }
+  try {
+    return await new Response(new Blob(chunks), { headers: { "Content-Type": req.headers.get("content-type")! } }).formData();
+  } catch { throw new Error("INVALID_BODY"); }
+}
+export async function POST(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  if (origin && origin !== new URL(process.env.NEXTAUTH_URL ?? "https://beatzucker.de").origin)
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if ((state.__codecRequests ?? 0) >= 2)
+    return NextResponse.json({ error: "Audio service busy. Please try again shortly. / Audiodienst ausgelastet. Bitte gleich erneut versuchen." }, { status: 503, headers: { "Retry-After": "15" } });
+  // Global ceiling cannot be bypassed with forged client proxy headers.
+  if (!rateLimit("codec-preview:global", 60, 60 * 60 * 1000) || !rateLimit(`codec-preview:${clientKey(req)}`, 6, 60 * 60 * 1000))
+    return NextResponse.json({ error: "Codec preview limit reached. / Limit für Codec-Vorschauen erreicht." }, { status: 429 });
+  state.__codecRequests = (state.__codecRequests ?? 0) + 1;
+  let source = "";
+  let release: (() => void) | undefined;
+  try {
+    if (Number(req.headers.get("content-length")) > MAX + 1024 * 1024)
+      return NextResponse.json({ error: "Maximum file size is 40 MB." }, { status: 413 });
+    if (!req.headers.get("content-type")?.includes("multipart/form-data"))
+      return NextResponse.json({ error: "Expected an audio upload." }, { status: 400 });
+    const upload = await readBoundedMultipart(req, MAX);
+    release = upload.release;
+    const form = upload.form, file = form.get("file"), codec = form.get("codec");
+    if (!(file instanceof File) || file.size <= 0 || file.size > MAX)
+      return NextResponse.json({ error: "Invalid file or maximum 40 MB exceeded." }, { status: 413 });
+    if (typeof codec !== "string" || !Object.hasOwn(FORMATS, codec))
+      return NextResponse.json({ error: "Unsupported codec. / Nicht unterstützter Codec." }, { status: 400 });
+    if (!valid(Buffer.from(await file.slice(0, 32).arrayBuffer())))
+      return NextResponse.json({ error: "Unsupported audio data." }, { status: 415 });
     await mkdir(/*turbopackIgnore: true*/ ROOT, { recursive: true });
-    const id = randomUUID(), root = path.resolve(/*turbopackIgnore: true*/ ROOT);
-    source = path.resolve(/*turbopackIgnore: true*/ ROOT, `codec-${id}.input`); output = path.resolve(/*turbopackIgnore: true*/ ROOT, `codec-${id}.${config.ext}`); analysisPath = path.resolve(/*turbopackIgnore: true*/ ROOT, `codec-${id}-analysis.wav`);
-    if ([source, output, analysisPath].some(candidate => path.relative(root, candidate).startsWith(".."))) return NextResponse.json({ error: "Invalid path." }, { status: 400 });
+    source = path.resolve(/*turbopackIgnore: true*/ ROOT, `codec-${randomUUID()}.input`);
     await pipeline(Readable.fromWeb(file.stream() as Parameters<typeof Readable.fromWeb>[0]), createWriteStream(/*turbopackIgnore: true*/ source, { flags: "wx" }));
-    const infoResponse = await fetch(`${PYTHON}/info`, { method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: source }), signal: AbortSignal.timeout(15000) });
-    if (!infoResponse.ok) return NextResponse.json({ error: "The audio file could not be decoded." }, { status: 415 });
-    const info = await infoResponse.json();
-    if (!Number.isFinite(info.duration) || info.duration <= 0 || info.duration > 600) return NextResponse.json({ error: "Codec previews support tracks up to 10 minutes." }, { status: 413 });
-    const ffmpeg = process.env.FFMPEG_BINARY || "ffmpeg";
-    await run(ffmpeg, ["-v", "error", "-nostdin", "-i", source, "-map_metadata", "-1", "-vn", ...config.args, "-y", output], { timeout: 150000, maxBuffer: 1024 * 1024 });
-
-    // Decode every codec back to PCM before analysis. libsndfile can read MP3
-    // directly but not every AAC/M4A build, which previously omitted AAC peak.
-    let truePeak = "";
-    try {
-      await run(ffmpeg, ["-v", "error", "-nostdin", "-i", output, "-vn", "-c:a", "pcm_s24le", "-y", analysisPath], { timeout: 150000, maxBuffer: 1024 * 1024 });
-      const analysisResponse = await fetch(`${PYTHON}/analyze`, { method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: analysisPath }), signal: AbortSignal.timeout(150000) });
-      if (analysisResponse.ok) { const analysis = normalizeAnalysis(await analysisResponse.json()); if (analysis) truePeak = analysis.true_peak.toFixed(2); }
-    } catch (error) { console.warn("Codec true-peak measurement failed", error); }
-    const bytes = await readFile(/*turbopackIgnore: true*/ output);
-    return new NextResponse(bytes, { headers: { "Content-Type": config.mime, "Content-Length": String(bytes.length), "Cache-Control": "no-store, private", "X-Codec-Format": format, ...(truePeak ? { "X-Encoded-True-Peak": truePeak } : {}) } });
+    // Encoding + metering stay under ONE permit in the same Python service as mastering.
+    const response = await fetch(`${PYTHON}/codec-preview`, {
+      method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: source, codec }),
+      signal: AbortSignal.timeout(160000),
+    });
+    if (!response.ok) {
+      return NextResponse.json({ error: response.status === 503
+        ? "Audio service busy. Please try again shortly. / Audiodienst ausgelastet. Bitte gleich erneut versuchen."
+        : "Codec rendering failed. Check the file and try again. / Codec-Rendering fehlgeschlagen. Bitte die Datei prüfen und erneut versuchen." },
+        { status: [400, 413, 415, 422, 503].includes(response.status) ? response.status : 502,
+          ...(response.status === 503 ? { headers: { "Retry-After": "15" } } : {}) });
+    }
+    if (response.headers.get("X-Codec-Format") !== codec || !response.headers.get("Content-Type")?.startsWith(FORMATS[codec]))
+      throw new Error("Invalid codec output");
+    const headers: Record<string, string> = {
+      "Content-Type": FORMATS[codec], "Cache-Control": "no-store, private", "X-Codec-Format": codec, "X-Robots-Tag": "noindex",
+    };
+    for (const key of ["X-Encoded-True-Peak", "X-Encoded-LUFS"]) {
+      const value = response.headers.get(key);
+      if (value !== null && value.trim() !== "" && Number.isFinite(Number(value))) headers[key] = value;
+    }
+    const bytes = await response.arrayBuffer();
+    if (!bytes.byteLength || bytes.byteLength > 32 * 1024 * 1024) throw new Error("Invalid codec output size");
+    return new NextResponse(bytes, { headers });
   } catch (error) {
+    const failure = uploadRequestFailure(error);
+    if (failure) return failure;
     console.error("Codec preview failed", error);
-    return NextResponse.json({ error: "Codec preview could not be rendered." }, { status: 503 });
+    const code = error instanceof Error ? error.message : "";
+    return NextResponse.json({ error: code === "TOO_LARGE" ? "Maximum file size is 40 MB." : "Codec preview could not be rendered. / Codec-Vorschau konnte nicht erstellt werden." },
+      { status: code === "TOO_LARGE" ? 413 : code === "INVALID_BODY" ? 400 : 503 });
   } finally {
-    for (const candidate of [source, output, analysisPath]) if (candidate) await unlink(/*turbopackIgnore: true*/ candidate).catch(() => {});
+    release?.();
+    if (source) await unlink(/*turbopackIgnore: true*/ source).catch(() => {});
+    state.__codecRequests = Math.max(0, (state.__codecRequests ?? 1) - 1);
   }
 }

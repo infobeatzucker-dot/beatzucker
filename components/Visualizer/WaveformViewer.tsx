@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
 interface Props {
   isProcessing: boolean;
@@ -79,7 +80,7 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
       } else {
         // ── Static simulation ────────────────────────────────────
         const preWave = preWaveRef.current;
-        if (!preWave) { animRef.current = requestAnimationFrame(draw); return; }
+        if (!preWave) {  return; }
 
         const drawWave = (wave: Float32Array, color: string, opacity: number, gainBoost = 1.0) => {
           const step = Math.max(1, Math.floor(wave.length / W));
@@ -130,7 +131,7 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
           ctx.strokeStyle = "rgba(56,189,248,0.25)";
           ctx.lineWidth   = 1;
           ctx.beginPath();
-          const ws = Math.floor(wave.length / W);
+          const ws = Math.max(1, Math.floor(wave.length / Math.max(1, W)));
           for (let px = 0; px < W; px++) {
             const si = Math.floor((px / W) * wave.length);
             let rms  = 0;
@@ -143,19 +144,20 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
         }
       }
 
-      animRef.current = requestAnimationFrame(draw);
+
     };
 
     const resize = () => {
       const rect    = canvas.parentElement!.getBoundingClientRect();
       canvas.width  = rect.width;
-      canvas.height = rect.height - 24;
+      canvas.height = Math.max(1, rect.height - 24);
     };
     resize();
-    animRef.current = requestAnimationFrame(draw);
+
     window.addEventListener("resize", resize);
+    const animation = startVisibleAnimation(canvas, draw, { continuous: Boolean(analyser) || isProcessing, resize });
     return () => {
-      cancelAnimationFrame(animRef.current);
+      animation.stop();
       window.removeEventListener("resize", resize);
     };
   }, [isProcessing, hasPostData, analyser]);

@@ -5,36 +5,12 @@ import Link from "next/link";
 import { AlertTriangle, ArrowLeft, CheckCircle2, FileAudio2, Loader2, LockKeyhole, RotateCcw, ScanSearch, UploadCloud, Waves } from "lucide-react";
 import type { Lang } from "@/lib/types/mastering";
 
-type Spectrum = { frequencies: number[]; levels: number[]; activity: number[]; duration: number };
+import { decodeAudio } from "@/lib/clientAudio";
+import { analyzeSpectrumAsync } from "@/lib/audioWorker";
+import type { Spectrum } from "@/lib/workerAnalysis";
 type Result = { kick: Spectrum; bass: Spectrum; overlap: number[]; score: number; peakHz: number; spectral: number; temporal: number };
-const FFT_SIZE = 4096; const BINS = 42; const MIN_HZ = 35; const MAX_HZ = 350;
-
-function fft(real: Float64Array, imag: Float64Array) {
-  const n = real.length;
-  for (let i = 1, j = 0; i < n; i++) { let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { [real[i], real[j]] = [real[j], real[i]]; [imag[i], imag[j]] = [imag[j], imag[i]]; } }
-  for (let length = 2; length <= n; length <<= 1) { const angle = -2 * Math.PI / length; const wLenR = Math.cos(angle); const wLenI = Math.sin(angle); for (let i = 0; i < n; i += length) { let wr = 1, wi = 0; for (let j = 0; j < length / 2; j++) { const even = i + j, odd = even + length / 2; const vr = real[odd] * wr - imag[odd] * wi, vi = real[odd] * wi + imag[odd] * wr; const ur = real[even], ui = imag[even]; real[even] = ur + vr; imag[even] = ui + vi; real[odd] = ur - vr; imag[odd] = ui - vi; const nextR = wr * wLenR - wi * wLenI; wi = wr * wLenI + wi * wLenR; wr = nextR; } } }
-}
-
-async function analyzeFile(file: File): Promise<Spectrum> {
-  if (file.size > 40 * 1024 * 1024) throw new Error("SIZE");
-  const context = new AudioContext();
-  try {
-    const buffer = await context.decodeAudioData(await file.arrayBuffer()); const frames = Math.min(56, Math.max(12, Math.floor(buffer.duration * 1.5)));
-    const sums = new Float64Array(BINS); const activity = new Float64Array(frames); const frequencies = Array.from({ length: BINS }, (_, index) => MIN_HZ * Math.pow(MAX_HZ / MIN_HZ, index / (BINS - 1)));
-    for (let frame = 0; frame < frames; frame++) {
-      const center = Math.floor((frame + .5) / frames * buffer.length); const start = Math.max(0, Math.min(buffer.length - FFT_SIZE, center - FFT_SIZE / 2));
-      const real = new Float64Array(FFT_SIZE); const imag = new Float64Array(FFT_SIZE);
-      for (let i = 0; i < FFT_SIZE; i++) { let sample = 0; for (let channel = 0; channel < buffer.numberOfChannels; channel++) sample += buffer.getChannelData(channel)[start + i] ?? 0; real[i] = sample / buffer.numberOfChannels * (.5 - .5 * Math.cos(2 * Math.PI * i / (FFT_SIZE - 1))); }
-      fft(real, imag); let frameEnergy = 0;
-      for (let bin = 0; bin < BINS; bin++) { const fftBin = Math.max(1, Math.min(FFT_SIZE / 2 - 1, Math.round(frequencies[bin] * FFT_SIZE / buffer.sampleRate))); const power = real[fftBin] ** 2 + imag[fftBin] ** 2; sums[bin] += power; frameEnergy += power; }
-      activity[frame] = frameEnergy;
-      if (frame % 8 === 0) await new Promise(resolve => setTimeout(resolve, 0));
-    }
-    const db = Array.from(sums, value => 10 * Math.log10(value / frames + 1e-14)); const floor = Math.max(...db) - 48;
-    const levels = db.map(value => Math.max(0, Math.min(1, (value - floor) / 48))); const activityMax = Math.max(...activity, 1e-12);
-    return { frequencies, levels, activity: Array.from(activity, value => Math.sqrt(value / activityMax)), duration: buffer.duration };
-  } finally { await context.close(); }
-}
+const MIN_HZ = 35, MAX_HZ = 350;
+async function analyzeFile(file: File): Promise<Spectrum> { return analyzeSpectrumAsync(await decodeAudio(file, 40 * 1024 * 1024)); }
 
 function compare(kick: Spectrum, bass: Spectrum): Result {
   const overlap = kick.levels.map((value, index) => Math.min(value, bass.levels[index]));

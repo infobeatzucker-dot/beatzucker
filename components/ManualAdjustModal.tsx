@@ -12,6 +12,8 @@ import { GoniometerScope, SaturationScope, GainReductionScope, MultibandScope } 
 import { ManualPreviewEngine } from "@/lib/manualPreviewEngine";
 import { stopGlobalAudio } from "@/lib/globalAudio";
 import type { AnalysisData, Lang, Platform, Preset } from "@/lib/types/mastering";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
+import { normalizeLoopRegion } from "@/lib/manualLoop";
 
 interface Props {
   open: boolean; onClose: () => void; lang?: Lang; fileId: string; uploadToken: string; filename: string;
@@ -92,14 +94,14 @@ function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null
   useEffect(() => {
     const canvas = ref.current, ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-    let width = 1, height = 1, raf = 0;
+    let width = 1, height = 1;
     const data = analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
     const resize = () => {
       const rect = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
       width = rect.width; height = rect.height; canvas.width = Math.max(1, Math.round(width * dpr)); canvas.height = Math.max(1, Math.round(height * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    resize(); const ro = new ResizeObserver(resize); ro.observe(canvas);
+    resize();
     const draw = () => {
       ctx.clearRect(0, 0, width, height); if (analyser && data && playing) analyser.getByteFrequencyData(data);
       const count = 52;
@@ -109,10 +111,9 @@ function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null
         ctx.fillStyle = `rgba(${72 + i * 2},${191 - i},255,${.08 + level * .22})`;
         ctx.fillRect(i / count * width, height - bar, Math.max(1, width / count - 2), bar);
       }
-      raf = requestAnimationFrame(draw);
     };
-    raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+    const animation = startVisibleAnimation(canvas, draw, { continuous: playing, resize });
+    return () => animation.stop();
   }, [analyser, playing]);
   return <canvas ref={ref} className="adjust-spectrum" aria-hidden="true" />;
 }
@@ -123,8 +124,8 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   const base = useMemo(() => seedValues(serverParams), [serverParams]);
   const [values, setValues] = useState<ParamValues>(base), valuesRef = useRef(values); valuesRef.current = values;
   const [tab, setTab] = useState<TabId>("eq");
-  const dur = Math.max(1, durationSec);
-  const regionRef = useRef({ start: Math.max(0, dur * .35), len: Math.min(8, dur) });
+  const dur = Number.isFinite(durationSec) && durationSec > 0 ? durationSec : .001;
+  const regionRef = useRef(normalizeLoopRegion(dur, dur * .35, 8));
   const [region, setRegion] = useState({ ...regionRef.current });
   const dragRef = useRef<{ ratio: number; start: number; moved: boolean } | null>(null);
   const waveRef = useRef<HTMLCanvasElement>(null), chipTimeRef = useRef<HTMLSpanElement>(null);
@@ -155,7 +156,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   useEffect(() => {
     if (open) {
       setValues(base); setPreviewError(null); setAuditionBase(false); auditionBaseRef.current = false; stopGlobalAudio();
-      const next = { start: Math.max(0, dur * .35), len: Math.min(8, dur) }; regionRef.current = next; setRegion({ ...next });
+      const next = normalizeLoopRegion(dur, dur * .35, 8); regionRef.current = next; setRegion({ ...next });
     } else destroyEngine();
   }, [open, base, dur, destroyEngine]);
   useEffect(() => destroyEngine, [destroyEngine]);
@@ -216,11 +217,16 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     engineRef.current?.update(next ? base : valuesRef.current);
   }, [base]);
   const setRegionLive = useCallback((start: number, len: number) => {
-    const safeLen = Math.max(1, Math.min(20, Math.min(len, dur)));
-    const next = { start: Math.max(0, Math.min(dur - safeLen, start)), len: safeLen }; regionRef.current = next;
+    const next = normalizeLoopRegion(dur, start, len); regionRef.current = next;
     engineRef.current?.setRegion(next.start, next.start + next.len);
   }, [dur]);
-  const commitRegion = useCallback(() => setRegion({ ...regionRef.current }), []);
+  const commitRegion = useCallback(() => {
+    const current = regionRef.current;
+    // Pointer-move updates the chip outside React. Restore the canonical text
+    // explicitly on commit, even when React's previous text prop is unchanged.
+    if (chipTimeRef.current) chipTimeRef.current.textContent = `${fmtTime(current.start)}–${fmtTime(current.start + current.len)}`;
+    setRegion({ ...current });
+  }, []);
   const ratioAt = useCallback((clientX: number) => {
     const rect = waveRef.current?.getBoundingClientRect(); return rect?.width ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
   }, []);
@@ -253,12 +259,12 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
 
   useEffect(() => {
     const canvas = waveRef.current, ctx = canvas?.getContext("2d"); if (!canvas || !ctx || !open) return;
-    let width = 1, height = 1, raf = 0;
+    let width = 1, height = 1;
     const resize = () => {
       const rect = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2); width = rect.width; height = rect.height;
       canvas.width = Math.max(1, Math.round(width * dpr)); canvas.height = Math.max(1, Math.round(height * dpr)); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    resize(); const ro = new ResizeObserver(resize); ro.observe(canvas);
+    resize();
     const draw = () => {
       const current = regionRef.current, lo = current.start / dur, hi = (current.start + current.len) / dur; ctx.clearRect(0, 0, width, height);
       const bg = ctx.createLinearGradient(0, 0, 0, height); bg.addColorStop(0, "rgba(72,191,255,.42)"); bg.addColorStop(1, "rgba(139,92,246,.2)");
@@ -270,11 +276,15 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
       [lo, hi].forEach((ratio) => { ctx.beginPath(); ctx.moveTo(ratio * width, 0); ctx.lineTo(ratio * width, height); ctx.stroke(); }); ctx.shadowBlur = 0;
       const engine = engineRef.current;
       if (engine && !engine.paused) { const x = Math.min(1, engine.currentTime / dur) * width; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.shadowColor = "#48bfff"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); ctx.shadowBlur = 0; }
-      if (dragRef.current && chipTimeRef.current) chipTimeRef.current.textContent = `${fmtTime(current.start)}–${fmtTime(current.start + current.len)}`;
-      raf = requestAnimationFrame(draw);
+      if (chipTimeRef.current) chipTimeRef.current.textContent = `${fmtTime(current.start)}–${fmtTime(Math.min(dur, current.start + current.len))}`;
     };
-    raf = requestAnimationFrame(draw); return () => { cancelAnimationFrame(raf); ro.disconnect(); };
-  }, [open, waveBars, dur]);
+    const animation = startVisibleAnimation(canvas, draw, { continuous: playing, resize });
+    const redraw = () => animation.invalidate();
+    canvas.addEventListener("pointermove", redraw);
+    canvas.addEventListener("pointerdown", redraw);
+    window.addEventListener("pointermove", redraw);
+    return () => { animation.stop(); canvas.removeEventListener("pointermove", redraw); canvas.removeEventListener("pointerdown", redraw); window.removeEventListener("pointermove", redraw); };
+  }, [open, waveBars, dur, playing, region]);
 
   const togglePlay = useCallback(async () => {
     setEngineBusy(true); setPreviewError(null); stopGlobalAudio();

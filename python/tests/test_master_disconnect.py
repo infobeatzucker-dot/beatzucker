@@ -11,6 +11,25 @@ import main
 
 
 class MasterDisconnectTests(unittest.IsolatedAsyncioTestCase):
+    async def test_disconnect_check_releases_permit_before_worker_start(self):
+        class Disconnected:
+            async def is_disconnected(self):
+                return True
+        class Cancelled:
+            async def is_disconnected(self):
+                raise asyncio.CancelledError()
+        slots = asyncio.Semaphore(1)
+        with patch.object(main, "DSP_SLOTS", slots), \
+             patch.object(main, "validate_file_path", side_effect=lambda value: value), \
+             patch.object(main, "validate_output_dir", side_effect=lambda value: value), \
+             patch.object(main, "master_audio") as worker:
+            for request, error in [(Disconnected(), main.HTTPException), (Cancelled(), asyncio.CancelledError)]:
+                with self.assertRaises(error):
+                    await main.master(main.MasterRequest(file_path="test.wav", master_id="test-queued-disconnect"), request)
+                self.assertEqual(slots._value, 1)
+                self.assertNotIn("test-queued-disconnect", main.ACTIVE_MASTER_IDS)
+            worker.assert_not_called()
+
     async def test_cancelled_stream_keeps_worker_registered_and_slot_reserved(self):
         slots = asyncio.Semaphore(1)
         started, finish = threading.Event(), threading.Event()

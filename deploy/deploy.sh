@@ -61,6 +61,12 @@ git fetch origin || { echo "FATAL: git fetch failed; running deployment remains 
 git merge --ff-only origin/main || { echo "FATAL: fast-forward failed; running deployment remains unchanged."; exit 1; }
 NEW_SHA=$(git rev-parse --short HEAD)
 echo "Now at commit $NEW_SHA"
+for rollback_file in check-schema.cjs start.sh; do
+  if [ ! -r "$APP_DIR/deploy/rollback-tools/$rollback_file" ]; then
+    echo "FATAL: rollback helper $rollback_file missing; running site remains unchanged."
+    exit 1
+  fi
+done
 
 echo "=== 3. Tagging current image as rollback point ($ROLLBACK_TAG) ==="
 if sudo docker image inspect "$IMAGE" > /dev/null 2>&1; then
@@ -78,6 +84,17 @@ if ! sudo docker build -t "$IMAGE" .; then
 fi
 
 echo "=== 5. Swapping container ==="
+SMOKE_CONTAINER="beatzucker-dsp-smoke-${NEW_SHA}-$$"
+echo "=== Checking DSP in isolated new image before replacing the running site ==="
+if ! timeout 180s sudo docker run --rm --name "$SMOKE_CONTAINER" \
+  --network none --cpus=1 --memory=2g --entrypoint python \
+  "$IMAGE" /app/python/self_test.py; then
+  # Exact, uniquely named test container only; no production volumes attached.
+  sudo docker rm -f "$SMOKE_CONTAINER" >/dev/null 2>&1 || true
+  echo "FATAL: new image failed DSP self-test. Running site remains unchanged."
+  cleanup_old_images
+  exit 1
+fi
 sudo docker stop "$CONTAINER" 2>/dev/null || true
 sudo docker rm "$CONTAINER" 2>/dev/null || true
 sudo docker run -d \
@@ -116,10 +133,12 @@ if [ -n "$ROLLBACK_TAG" ]; then
     --env-file "$APP_DIR/.env" \
     -v "$APP_DIR/uploads:/app/uploads" \
     -v "$APP_DIR/data:/app/data" \
-    "$ROLLBACK_TAG"
+    --mount "type=bind,source=$APP_DIR/deploy/rollback-tools,target=/app/rollback-tools,readonly" \
+    --entrypoint /bin/sh \
+    "$ROLLBACK_TAG" /app/rollback-tools/start.sh
   sleep 10
-  # The prior image predates /api/health. Verify its original smoke contract.
-  if REQUIRE_READINESS=0 bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
+  # Current rollback images support DB/Python readiness; do not hide a broken DSP service.
+  if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
     echo "Rollback to previous image succeeded. Deploy of $NEW_SHA was aborted."
   else
     echo "FATAL: rollback also failed smoke test — manual intervention required!"

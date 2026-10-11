@@ -15,6 +15,7 @@ import { findExistingMasterFormats, removeMasterFiles } from "@/lib/storage";
 import { sanitizeOriginalFilename } from "@/lib/filename";
 import { normalizeParamOverrides } from "@/lib/masteringParams";
 import { pythonServiceHeaders } from "@/lib/pythonService";
+import { readBoundedJson, JsonBodyError } from "@/lib/boundedJson";
 
 // Allow up to 10 minutes – mastering a full track can take 3–5 min
 export const maxDuration = 600;
@@ -35,14 +36,12 @@ function encodeSSE(data: object) {
 }
 
 export async function POST(req: NextRequest) {
-  const declaredLength = Number(req.headers.get("content-length") ?? 0);
-  if (Number.isFinite(declaredLength) && declaredLength > 64 * 1024) {
-    return Response.json({ error: "Mastering-Anfrage ist zu groß" }, { status: 413 });
+  let body: Record<string, unknown>;
+  try { body = await readBoundedJson(req); }
+  catch (error) {
+    return Response.json({ error: "Invalid or oversized mastering request. / Ungültige oder zu große Mastering-Anfrage." },
+      { status: error instanceof JsonBodyError ? error.status : 400 });
   }
-  const parsedBody: unknown = await req.json().catch(() => null);
-  const body = parsedBody && typeof parsedBody === "object" && !Array.isArray(parsedBody)
-    ? parsedBody as Record<string, unknown>
-    : {};
   const fileId    = body.file_id    as string | undefined;
   const platformRaw = (body.platform as string) || "spotify";
   const presetRaw = (body.preset as string) || "auto";

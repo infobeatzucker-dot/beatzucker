@@ -1,0 +1,17 @@
+const assert = require('node:assert/strict');
+const { isContainerQa } = require('./isolated-qa-guard.cjs');
+const env = { BEATZUCKER_ISOLATED_QA: '1', DATABASE_URL: 'file:/app/data/production.db', NEXTAUTH_URL: 'http://localhost:3012' };
+const none = () => 'Iface\tDestination\tGateway\n';
+assert.equal(isContainerQa({}, 'linux', none), false);
+assert.equal(isContainerQa(env, 'linux', none), true);
+assert.throws(() => isContainerQa(env, 'win32', none));
+assert.throws(() => isContainerQa({ ...env, NEXTAUTH_URL: 'https://beatzucker.de' }, 'linux', none));
+assert.throws(() => isContainerQa({ ...env, DATABASE_URL: 'file:/real/database.db' }, 'linux', none));
+assert.throws(() => isContainerQa(env, 'linux', () => 'Iface\tDestination\tGateway\neth0\t00000000\t010011AC\n'));
+assert.throws(() => isContainerQa({ ...env, RESEND_API_KEY: 'not-a-real-key' }, 'linux', none));
+assert.throws(() => isContainerQa({ ...env, GOOGLE_CLIENT_SECRET: 'not-a-real-key' }, 'linux', none));
+const source = require('node:fs').readFileSync('scripts/prepare-local-qa.cjs', 'utf8');
+assert.ok(!source.includes("require('bcryptjs')"));
+const hash = source.match(/QA_PASSWORD_HASH = '([^']+)'/)[1];
+assert.ok(require('bcryptjs').compareSync('Local-Audit-Only-2026!', hash));
+console.log('9 isolated container QA guard/fixture checks passed');

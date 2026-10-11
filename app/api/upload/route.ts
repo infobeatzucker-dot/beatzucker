@@ -11,6 +11,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { signUpload } from "@/lib/uploadAuthorization";
 import { sanitizeOriginalFilename } from "@/lib/filename";
 import { pythonServiceHeaders } from "@/lib/pythonService";
+import { readBoundedMultipart, uploadRequestFailure } from "@/lib/boundedMultipart";
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 const MAX_SIZE = 200 * 1024 * 1024; // 200MB
@@ -51,6 +52,7 @@ function hasValidAudioMagicBytes(buf: Buffer): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  let release: (() => void) | undefined;
   // Require authentication — no anonymous uploads
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -61,6 +63,8 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(`upload:${session.user.id}`, 10, 10 * 60 * 1000)) {
     return NextResponse.json({ error: "Zu viele Uploads. Bitte warte kurz." }, { status: 429 });
   }
+  if (!rateLimit("upload:global", 30, 10 * 60 * 1000))
+    return NextResponse.json({ error: "Upload service busy. / Upload-Dienst ausgelastet." }, { status: 429 });
 
   try {
     const declaredLength = Number(req.headers.get("content-length") ?? 0);
@@ -73,7 +77,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Must be multipart/form-data" }, { status: 400 });
     }
 
-    const formData = await req.formData();
+    const upload = await readBoundedMultipart(req, MAX_SIZE);
+    release = upload.release;
+    const formData = upload.form;
     const file = formData.get("file");
 
     if (!(file instanceof File)) {
@@ -166,7 +172,11 @@ export async function POST(req: NextRequest) {
       size: file.size,
     });
   } catch (err) {
+    const failure = uploadRequestFailure(err);
+    if (failure) return failure;
     console.error("Upload error:", err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+  } finally {
+    release?.();
   }
 }

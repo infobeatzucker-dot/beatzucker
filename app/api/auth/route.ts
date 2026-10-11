@@ -10,6 +10,7 @@ import { hashPassword } from "@/lib/auth";
 import { sendPasswordResetEmail, sendWelcomeEmail } from "@/lib/email";
 import { readAuthRequest, authRequestFailure } from "@/lib/authRequest";
 import { rateLimit } from "@/lib/rateLimit";
+import { TERMS_VERSION } from "@/lib/terms";
 
 // ── Validation helpers ───────────────────────────────────────────────
 function isValidEmail(email: string) {
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
   }
   try {
     const body = await readAuthRequest(req);
+    const t = (de: string, en: string) => body.lang === "en" ? en : de;
     const { action } = body;
     const emailValue = typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
     if (isValidEmail(emailValue) && !rateLimit(`auth:${action}:${emailValue}`, 5, 15 * 60_000)) {
@@ -55,21 +57,23 @@ export async function POST(req: NextRequest) {
 
     // ── Register ──────────────────────────────────────────
     if (action === "register") {
+      if (body.termsAccepted !== true || body.termsVersion !== TERMS_VERSION)
+        return NextResponse.json({ error: t("Bitte akzeptiere die aktuellen AGB.", "Please accept the current Terms of Service.") }, { status: 400 });
       const email    = emailValue;
       const password = typeof body.password === "string" ? body.password : "";
 
       if (!isValidEmail(email))
-        return NextResponse.json({ error: "Ungültige E-Mail-Adresse" }, { status: 400 });
+        return NextResponse.json({ error: t("Ungültige E-Mail-Adresse", "Invalid email address") }, { status: 400 });
       if (!isValidPassword(password))
-        return NextResponse.json({ error: "Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten" }, { status: 400 });
+        return NextResponse.json({ error: t("Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten", "Password needs at least 8 characters, uppercase and lowercase letters, and a digit") }, { status: 400 });
 
       const existing = await db.user.findUnique({ where: { email } });
       if (existing)
-        return NextResponse.json({ error: "E-Mail bereits registriert" }, { status: 409 });
+        return NextResponse.json({ error: t("E-Mail bereits registriert", "Email already registered") }, { status: 409 });
 
       const hashed = await hashPassword(password);
       const user   = await db.user.create({
-        data: { email, password: hashed },
+        data: { email, password: hashed, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsLanguage: body.lang === "en" ? "en" : "de" },
       });
 
       // Fire-and-forget welcome email
@@ -82,7 +86,7 @@ export async function POST(req: NextRequest) {
     if (action === "forgot-password") {
       const email = emailValue;
       if (!isValidEmail(email))
-        return NextResponse.json({ error: "Ungültige E-Mail-Adresse" }, { status: 400 });
+        return NextResponse.json({ error: t("Ungültige E-Mail-Adresse", "Invalid email address") }, { status: 400 });
 
       const user = await db.user.findUnique({ where: { email } });
 
@@ -96,7 +100,7 @@ export async function POST(req: NextRequest) {
         });
 
         const baseUrl  = process.env.NEXTAUTH_URL ?? "https://beatzucker.de";
-        const resetUrl = `${baseUrl}/?reset=${token}`;
+        const resetUrl = `${baseUrl}${body.lang === "en" ? "/en" : "/"}?reset=${token}`;
 
         sendPasswordResetEmail(email, resetUrl).catch((err) => console.error("[email] password-reset:", err));
       }
@@ -111,19 +115,19 @@ export async function POST(req: NextRequest) {
       const newPassword = typeof body.password === "string" ? body.password : "";
 
       if (!/^[a-f0-9]{64}$/.test(token))
-        return NextResponse.json({ error: "Ungültiger Token" }, { status: 400 });
+        return NextResponse.json({ error: t("Ungültiger Token", "Invalid reset link") }, { status: 400 });
       if (!isValidPassword(newPassword))
-        return NextResponse.json({ error: "Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten" }, { status: 400 });
+        return NextResponse.json({ error: t("Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten", "Password needs at least 8 characters, uppercase and lowercase letters, and a digit") }, { status: 400 });
 
       const user = await db.user.findFirst({
         where: { passwordResetToken: token },
       });
 
       if (!user || !user.passwordResetExpires)
-        return NextResponse.json({ error: "Ungültiger oder abgelaufener Token" }, { status: 400 });
+        return NextResponse.json({ error: t("Ungültiger oder abgelaufener Token", "Invalid or expired reset link") }, { status: 400 });
 
       if (user.passwordResetExpires < new Date())
-        return NextResponse.json({ error: "Token abgelaufen — bitte erneut anfordern" }, { status: 400 });
+        return NextResponse.json({ error: t("Token abgelaufen — bitte erneut anfordern", "Reset link expired — please request another") }, { status: 400 });
 
       const hashed = await hashPassword(newPassword);
       const updated = await db.user.updateMany({
@@ -138,18 +142,18 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (updated.count !== 1) return NextResponse.json({ error: "Ungültiger oder abgelaufener Token" }, { status: 400 });
+      if (updated.count !== 1) return NextResponse.json({ error: t("Ungültiger oder abgelaufener Token", "Invalid or expired reset link") }, { status: 400 });
 
       return NextResponse.json({ ok: true });
     }
 
-    return NextResponse.json({ error: "Unbekannte Aktion" }, { status: 400 });
+    return NextResponse.json({ error: t("Unbekannte Aktion", "Unknown action") }, { status: 400 });
 
   } catch (err) {
     const failure = authRequestFailure(err);
     if (failure) return failure;
     console.error("[auth] POST error:", err);
-    return NextResponse.json({ error: "Server-Fehler" }, { status: 500 });
+    return NextResponse.json({ error: "Server error. Please try again. / Serverfehler. Bitte erneut versuchen." }, { status: 500 });
   }
 }
 

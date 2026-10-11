@@ -1,8 +1,9 @@
 {
   "name": "masterone",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "private": true,
   "scripts": {
+    "test:audit": "node scripts/run-audit-tests.cjs",
     "dev": "concurrently \"next dev\" \"node scripts/run-python-dev.mjs\"",
     "dev:next": "next dev",
     "dev:python": "node scripts/run-python-dev.mjs",

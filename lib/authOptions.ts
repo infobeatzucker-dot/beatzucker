@@ -6,10 +6,22 @@ import { db } from "@/lib/db";
 import { verifyPassword } from "@/lib/auth";
 import { sendWelcomeEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
+import { registrationTermsProof } from "@/lib/termsConsent";
+
+const baseAdapter = PrismaAdapter(db);
 
 export const authOptions: NextAuthOptions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  adapter: PrismaAdapter(db) as any,
+  adapter: {
+    ...baseAdapter,
+    async createUser(user: { email: string; name?: string | null; image?: string | null; emailVerified?: Date | null }) {
+      const proof = await registrationTermsProof();
+      if (!proof) throw Error("Registration requires current Terms acceptance");
+      return db.user.create({ data: {
+        ...user, termsAcceptedAt: new Date(proof.acceptedAt), termsVersion: proof.version, termsLanguage: proof.lang,
+      } });
+    },
+  } as any,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -59,6 +71,15 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
+    async signIn({ account }) {
+      if (account?.provider !== "google") return true;
+      const existing = await db.account.findUnique({ where: {
+        provider_providerAccountId: { provider: account.provider, providerAccountId: account.providerAccountId },
+      } });
+      // Existing Google sign-ins remain valid; never invent historic acceptance.
+      if (existing) return true;
+      return Boolean(await registrationTermsProof());
+    },
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;

@@ -98,7 +98,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
               { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
               { label: lang === "de" ? "Tools" : "Tools", href: toolsHref },
               { label: "FAQ", href: helpHref },
-              ...(session ? [{ label: "Dashboard", href: "/dashboard" }] : []),
+              ...(session ? [{ label: "Dashboard", href: `/dashboard?lang=${lang}` }] : []),
             ].map((item) => (
               <Link
                 key={item.label}
@@ -231,7 +231,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
                   </Link>
                 ))}
                 {session ? (
-                  <Link href="/dashboard" className="text-sm flex items-center gap-1.5"
+                  <Link href={`/dashboard?lang=${lang}`} className="text-sm flex items-center gap-1.5"
                     style={{ color: "var(--accent-purple)", textDecoration: "none" }}
                     onClick={() => setMenuOpen(false)}>
                     <User size={14} strokeWidth={2} /> Dashboard

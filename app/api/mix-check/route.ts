@@ -9,6 +9,7 @@ import { normalizeAnalysis } from "@/lib/analysisValidation";
 import { rateLimit } from "@/lib/rateLimit";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { sanitizeOriginalFilename } from "@/lib/filename";
+import { readBoundedMultipart, uploadRequestFailure } from "@/lib/boundedMultipart";
 
 export const maxDuration = 180;
 
@@ -45,6 +46,9 @@ function clientKey(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const key = clientKey(req);
   let filePath: string | null = null;
+  let release: (() => void) | undefined;
+  if (!rateLimit("public-analysis:global", 90, 60 * 60 * 1000))
+    return NextResponse.json({ error: "Analysis limit reached. Please try again later." }, { status: 429 });
   try {
     const declaredLength = Number(req.headers.get("content-length") || 0);
     if (Number.isFinite(declaredLength) && declaredLength > MAX_SIZE + 1024 * 1024) {
@@ -54,7 +58,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Expected an audio upload." }, { status: 400 });
     }
 
-    const form = await req.formData();
+    const upload = await readBoundedMultipart(req, MAX_SIZE);
+    release = upload.release;
+    const form = upload.form;
     const requestedPurpose = form.get("purpose");
     const purpose = typeof requestedPurpose === "string" && ["mix-check", "key-bpm", "streaming-preview", "album-consistency", "reference-comparison", "silence-normalizer"].includes(requestedPurpose) ? requestedPurpose : "mix-check";
     const limit = purpose === "album-consistency" ? 16 : purpose === "reference-comparison" ? 10 : 3;
@@ -90,12 +96,9 @@ export async function POST(req: NextRequest) {
     const requestAnalysis = () => fetch(`${PYTHON_URL}/analyze`, {
       method: "POST", headers: pythonServiceHeaders(), body: JSON.stringify({ file_path: filePath }), signal: AbortSignal.timeout(160000),
     });
-    let analysisResponse = await requestAnalysis();
-    if (analysisResponse.status === 503) {
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      analysisResponse = await requestAnalysis();
-    }
-    if (!analysisResponse.ok) return NextResponse.json({ error: "Audio analysis failed." }, { status: analysisResponse.status });
+    const analysisResponse = await requestAnalysis();
+    if (!analysisResponse.ok) return NextResponse.json({ error: analysisResponse.status === 503 ? "Audio service busy. Please try again shortly." : "Audio analysis failed." }, { status: analysisResponse.status,
+      ...(analysisResponse.status === 503 ? { headers: { "Retry-After": "15" } } : {}) });
     const analysis = normalizeAnalysis(await analysisResponse.json());
     if (!analysis) return NextResponse.json({ error: "The analyzer returned invalid measurements." }, { status: 502 });
 
@@ -104,10 +107,13 @@ export async function POST(req: NextRequest) {
       { headers: { "Cache-Control": "no-store, private", "X-Robots-Tag": "noindex" } },
     );
   } catch (error: unknown) {
+    const failure = uploadRequestFailure(error);
+    if (failure) return failure;
     const timeout = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
     console.error("Public mix check error:", error);
     return NextResponse.json({ error: timeout ? "Analysis timed out." : "Mix Check is temporarily unavailable." }, { status: timeout ? 504 : 503 });
   } finally {
     if (filePath && existsSync(/*turbopackIgnore: true*/ filePath)) await unlink(/*turbopackIgnore: true*/ filePath).catch(() => {});
+    release?.();
   }
 }

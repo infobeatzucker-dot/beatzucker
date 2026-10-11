@@ -1,6 +1,33 @@
 "use client";
-import{useEffect,useRef,useState}from"react";import Link from"next/link";import{ArrowLeft,CheckCircle2,Download,Loader2,Scissors,UploadCloud}from"lucide-react";import type{Lang}from"@/lib/types/mastering";import{decodeAudio,findActiveRange}from"@/lib/clientAudio";
-function Wave({buffer,start,end}:{buffer:AudioBuffer;start:number;end:number}){const ref=useRef<HTMLCanvasElement>(null);useEffect(()=>{const c=ref.current;if(!c)return;const box=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=box.width*d;c.height=box.height*d;const x=c.getContext("2d");if(!x)return;x.scale(d,d);const w=box.width,h=box.height,data=buffer.getChannelData(0),bins=Math.max(1,Math.floor(w));x.fillStyle="#090d20";x.fillRect(0,0,w,h);x.strokeStyle="#66d4ff";x.beginPath();for(let b=0;b<bins;b++){const from=Math.floor(b/bins*data.length),to=Math.max(from+1,Math.floor((b+1)/bins*data.length));let peak=0;for(let i=from;i<to;i++)peak=Math.max(peak,Math.abs(data[i]));const y=peak*h*.45;x.moveTo(b,h/2-y);x.lineTo(b,h/2+y)}x.stroke();x.fillStyle="rgba(6,9,23,.76)";x.fillRect(0,0,start/buffer.duration*w,h);x.fillRect(end/buffer.duration*w,0,w-end/buffer.duration*w,h);x.strokeStyle="#e861d6";x.lineWidth=2;for(const time of[start,end]){const px=time/buffer.duration*w;x.beginPath();x.moveTo(px,0);x.lineTo(px,h);x.stroke()}},[buffer,start,end]);return <canvas className="trim-waveform" ref={ref}/>}
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
+import { findActiveRangeAsync, waveformPeaksAsync } from "@/lib/audioWorker";
+import{useEffect,useRef,useState}from"react";import Link from"next/link";import{ArrowLeft,CheckCircle2,Download,Loader2,Scissors,UploadCloud}from"lucide-react";import type{Lang}from"@/lib/types/mastering";import{decodeAudio}from"@/lib/clientAudio";
+function Wave({buffer,start,end}:{buffer:AudioBuffer;start:number;end:number}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [peaks, setPeaks] = useState<Float32Array | null>(null);
+  useEffect(() => {
+    let active = true; setPeaks(null);
+    waveformPeaksAsync(buffer).then(value => { if (active) setPeaks(value); }).catch(() => {});
+    return () => { active = false; };
+  }, [buffer]);
+  useEffect(() => {
+    const canvas = ref.current, ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    const draw = () => {
+      const box = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, box.width * dpr); canvas.height = Math.max(1, box.height * dpr); ctx.scale(dpr,dpr);
+      const w = box.width, h = box.height;
+      ctx.fillStyle = "#090d20"; ctx.fillRect(0,0,w,h); ctx.strokeStyle = "#66d4ff"; ctx.beginPath();
+      peaks?.forEach((peak, index) => { const x = index / peaks.length * w, y = peak * h * .45; ctx.moveTo(x,h/2-y); ctx.lineTo(x,h/2+y); }); ctx.stroke();
+      ctx.fillStyle = "rgba(6,9,23,.76)"; ctx.fillRect(0,0,start/buffer.duration*w,h); ctx.fillRect(end/buffer.duration*w,0,w-end/buffer.duration*w,h);
+      ctx.strokeStyle = "#e861d6"; ctx.lineWidth = 2;
+      for (const time of [start,end]) { const x = time / buffer.duration*w; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+    };
+    const animation = startVisibleAnimation(canvas, draw, { continuous: false });
+    return () => animation.stop();
+  }, [buffer,start,end,peaks]);
+  return <canvas className="trim-waveform" ref={ref}/>;
+}
 
 import { parseNormalizationResult, type NormalizationResult } from "@/lib/types/normalization";
 
@@ -23,7 +50,7 @@ export default function SilenceNormalizerTool({ lang }: { lang: Lang }) {
     try {
       const decoded = await decodeAudio(f, 40 * 1024 * 1024);
       if (decoded.duration < .4 || decoded.duration > 600) throw new Error(en ? "Use audio between 0.4 seconds and 10 minutes." : "Bitte Audio zwischen 0,4 Sekunden und 10 Minuten verwenden.");
-      const range = findActiveRange(decoded, threshold);
+      const range = await findActiveRangeAsync(decoded, threshold);
       setFile(f); setBuffer(decoded);
       setStart(Math.min(range.start, Math.max(0, range.end - .4)));
       setEnd(Math.max(range.end, .4));
@@ -31,11 +58,15 @@ export default function SilenceNormalizerTool({ lang }: { lang: Lang }) {
       setError(reason instanceof Error ? (reason.message === "SIZE" ? (en ? "Maximum file size: 40 MB." : "Maximale Dateigröße: 40 MB.") : reason.message) : (en ? "Decoding failed." : "Dekodieren fehlgeschlagen."));
     } finally { inFlight.current = false; setBusy(false); }
   }
-  function detect() {
+  async function detect() {
     if (!buffer || inFlight.current) return;
-    const range = findActiveRange(buffer, threshold);
+    inFlight.current = true; setBusy(true); invalidate();
+    try {
+    const range = await findActiveRangeAsync(buffer, threshold);
     setStart(Math.min(range.start, Math.max(0, range.end - .4)));
     setEnd(Math.max(range.end, .4)); invalidate();
+    } catch { setError(en ? "Silence detection failed. Please try again." : "Stillesuche fehlgeschlagen. Bitte erneut versuchen."); }
+    finally { inFlight.current = false; setBusy(false); }
   }
   async function render() {
     if (!file || !buffer || inFlight.current) return;

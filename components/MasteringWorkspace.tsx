@@ -1,21 +1,19 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, RotateCcw, X } from "lucide-react";
 import UploadZone from "@/components/UploadZone";
 import AuthModal from "@/components/AuthModal";
-import AnalysisPanel from "@/components/AnalysisPanel";
 import MasterButton from "@/components/MasterButton";
 import DownloadPanel from "@/components/DownloadPanel";
-import ABPlayer from "@/components/ABPlayer";
 import PlatformTargets from "@/components/PlatformTargets";
 import PresetSelector from "@/components/PresetSelector";
 import MasteringIntensity from "@/components/MasteringIntensity";
 import ReferenceTrack, { type SavedRef, type ReferenceAnalysis as RefAnalysis } from "@/components/ReferenceTrack";
 import MasteringProgressModal from "@/components/MasteringProgressModal";
-import ManualAdjustModal from "@/components/ManualAdjustModal";
 import type { ParamValues } from "@/lib/masteringParams";
 import { runMastering } from "@/lib/runMastering";
 import { AudioEngineProvider, useAudioEngine } from "@/contexts/AudioEngineContext";
@@ -24,6 +22,10 @@ import { DAILY_MASTER_LIMIT } from "@/lib/constants";
 import type {
   AppState, Platform, Preset, AnalysisData, MasterData, UploadedFile, ProgressStep, Lang,
 } from "@/lib/types/mastering";
+
+const AnalysisPanel = dynamic(() => import("@/components/AnalysisPanel"), { ssr: false });
+const ABPlayer = dynamic(() => import("@/components/ABPlayer"), { ssr: false });
+const ManualAdjustModal = dynamic(() => import("@/components/ManualAdjustModal"), { ssr: false });
 
 
 // ── Auto-play master after mastering completes ─────────────────────────────────

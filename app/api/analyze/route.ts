@@ -8,6 +8,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { normalizeAnalysis, signAnalysis } from "@/lib/analysisValidation";
 import { verifyUpload } from "@/lib/uploadAuthorization";
 import { pythonServiceHeaders } from "@/lib/pythonService";
+import { readBoundedJson, JsonBodyError } from "@/lib/boundedJson";
 
 // Allow up to 3 minutes – librosa analysis on long tracks can take 60–90s
 export const maxDuration = 180;
@@ -23,11 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Zu viele Analysen. Bitte warte einen Moment." }, { status: 429 });
     }
 
-    const parsedBody: unknown = await req.json().catch(() => null);
-    if (!parsedBody || typeof parsedBody !== "object" || Array.isArray(parsedBody)) {
-      return NextResponse.json({ error: "Ungültige Anfrage" }, { status: 400 });
-    }
-    const { file_id, upload_token } = parsedBody as Record<string, unknown>;
+    const { file_id, upload_token } = await readBoundedJson(req, 8192);
 
     if (typeof file_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(file_id)) {
       return NextResponse.json({ error: "Ungültige Datei-ID" }, { status: 400 });
@@ -65,6 +62,7 @@ export async function POST(req: NextRequest) {
     if (!token) return NextResponse.json({ error: "Analysesignatur ist nicht konfiguriert" }, { status: 500 });
     return NextResponse.json({ ...analysis, analysis_token: token });
   } catch (err: unknown) {
+    if (err instanceof JsonBodyError) return NextResponse.json({ error: "Invalid analysis request. / Ungültige Analyse-Anfrage." }, { status: err.status });
     console.error("Analyze error:", err);
     const timeout = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
     return NextResponse.json(

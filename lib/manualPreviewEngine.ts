@@ -1,4 +1,5 @@
 import type { ParamValues } from "@/lib/masteringParams";
+import { normalizeLoopRegion } from "./manualLoop";
 
 type BandName = "sub" | "low" | "mid" | "high";
 
@@ -31,6 +32,7 @@ export class ManualPreviewEngine {
   private loopEnd = 8;
   private raf = 0;
   private destroyed = false;
+  private looping = false;
   private stateListener: ((playing: boolean) => void) | null = null;
 
   constructor(url: string, values: ParamValues, inputLufs = -18, inputTruePeak = -6) {
@@ -128,12 +130,22 @@ export class ManualPreviewEngine {
 
     this.audio.addEventListener("play", this.handlePlay);
     this.audio.addEventListener("pause", this.handlePause);
+    this.audio.addEventListener("ended", this.handleEnded);
+    this.audio.addEventListener("loadedmetadata", this.handleMetadata);
     this.update(values, true);
     this.tick();
   }
 
   private handlePlay = () => this.stateListener?.(true);
   private handlePause = () => this.stateListener?.(false);
+  private handleMetadata = () => this.setRegion(this.loopStart, this.loopEnd);
+  private handleEnded = () => {
+    // RAF can be throttled in a hidden tab or miss the final samples. Restart
+    // at EOF as well, including loops whose end is exactly the file duration.
+    if (!this.looping || this.destroyed) return;
+    this.audio.currentTime = this.loopStart;
+    void this.audio.play().catch(() => { this.looping = false; this.stateListener?.(false); });
+  };
 
   private tick = () => {
     if (this.destroyed) return;
@@ -153,8 +165,10 @@ export class ManualPreviewEngine {
   get busReduction() { return Math.abs(this.bus.reduction || 0); }
 
   setRegion(start: number, end: number) {
-    this.loopStart = Math.max(0, start);
-    this.loopEnd = Math.max(this.loopStart + 1, end);
+    const duration = this.duration || Math.max(1, Number.isFinite(end) ? end : 8);
+    const region = normalizeLoopRegion(duration, start, end - start);
+    this.loopStart = region.start;
+    this.loopEnd = region.start + region.len;
     if (this.audio.currentTime < this.loopStart || this.audio.currentTime >= this.loopEnd) {
       this.audio.currentTime = this.loopStart;
     }
@@ -163,15 +177,18 @@ export class ManualPreviewEngine {
   async toggle(start: number, end: number) {
     this.setRegion(start, end);
     if (!this.audio.paused) {
+      this.looping = false;
       this.audio.pause();
       return;
     }
     if (this.ctx.state === "suspended") await this.ctx.resume();
     this.audio.currentTime = this.loopStart;
-    await this.audio.play();
+    this.looping = true;
+    try { await this.audio.play(); }
+    catch (error) { this.looping = false; throw error; }
   }
 
-  pause() { this.audio.pause(); }
+  pause() { this.looping = false; this.audio.pause(); }
 
   update(values: ParamValues, immediate = false) {
     const now = this.ctx.currentTime;
@@ -223,10 +240,13 @@ export class ManualPreviewEngine {
 
   destroy() {
     this.destroyed = true;
+    this.looping = false;
     cancelAnimationFrame(this.raf);
     this.audio.pause();
     this.audio.removeEventListener("play", this.handlePlay);
     this.audio.removeEventListener("pause", this.handlePause);
+    this.audio.removeEventListener("ended", this.handleEnded);
+    this.audio.removeEventListener("loadedmetadata", this.handleMetadata);
     this.audio.removeAttribute("src");
     this.audio.load();
     void this.ctx.close();

@@ -1179,6 +1179,16 @@ body::before {
 .dashboard-main { position: relative; z-index: 1; }
 .dashboard-content { width: min(100%, 1320px); }
 
+@media (max-width: 767px) {
+  .dashboard-shell { flex-direction: column; }
+  .dashboard-main { width: 100%; }
+  .dashboard-secondary-grid { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-secondary-grid > * { min-width: 0; }
+  .ab-player-transport { flex-wrap: wrap; }
+  .ab-player-transport > .ml-auto { margin-left: 0; }
+  .ab-player-transport > .ml-2 { display: none; }
+}
+
 .dashboard-sidebar {
   position: sticky;
   z-index: 5;

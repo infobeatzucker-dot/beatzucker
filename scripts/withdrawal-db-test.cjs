@@ -43,6 +43,35 @@ async function main() {
     await db.withdrawalReceipt.update({ where: { id: "BZ-TEST" }, data: { retainUntil: new Date(0), legalHold: true } });
     assert.equal((await db.withdrawalReceipt.deleteMany({ where: { legalHold: false, retainUntil: { lt: new Date() } } })).count, 0);
     console.log("PASS Retention cleanup preserves evidence under legal hold");
+    const oldUser = await db.user.create({ data: { email: "old-account@example.invalid", name: "Preserved test account", password: "test-only-hash" } });
+    for (const field of ["termsAcceptedAt", "termsVersion", "termsLanguage"])
+      await db.$executeRawUnsafe(`ALTER TABLE User DROP COLUMN ${field}`);
+    await db.$disconnect();
+    execFileSync(process.execPath, [path.resolve(__dirname, "../node_modules/prisma/build/index.js"), "db", "push", "--skip-generate"], {
+      cwd: path.resolve(__dirname, ".."), env: { ...process.env, DATABASE_URL: url }, stdio: "pipe",
+    });
+    db = new PrismaClient({ datasources: { db: { url } } });
+    const restored = await db.user.findUniqueOrThrow({ where: { id: oldUser.id } });
+    assert.equal(restored.name, oldUser.name); assert.equal(restored.password, oldUser.password);
+    assert.equal(restored.termsAcceptedAt, null); assert.equal(restored.termsVersion, null); assert.equal(restored.termsLanguage, null);
+    console.log("PASS Nullable consent fields migrate without losing old account data or inventing acceptance");
+    const timestamp = new Date();
+    const newUser = await db.user.create({ data: { email: "new-account@example.invalid", termsAcceptedAt: timestamp, termsVersion: "test-terms", termsLanguage: "en" } });
+    assert.equal(newUser.termsAcceptedAt.getTime(), timestamp.getTime()); assert.equal(newUser.termsVersion, "test-terms");
+    console.log("PASS Consent and new account are stored together");
+    await db.user.update({ where: { id: oldUser.id }, data: { loginOtp: "123456", loginOtpExpires: new Date(Date.now() + 60000) } });
+    const otpClaims = await Promise.all([1, 2, 3].map(() => db.user.updateMany({
+      where: { id: oldUser.id, loginOtp: "123456", loginOtpExpires: { gt: new Date() } }, data: { loginOtp: null, loginOtpExpires: null },
+    })));
+    assert.equal(otpClaims.reduce((sum, result) => sum + result.count, 0), 1);
+    console.log("PASS Concurrent SQLite OTP consumption succeeds exactly once");
+    await db.user.update({ where: { id: oldUser.id }, data: { loginOtp: "654321", loginOtpExpires: new Date(Date.now() + 60000) } });
+    await assert.rejects(db.$transaction(async tx => {
+      await tx.user.updateMany({ where: { id: oldUser.id, loginOtp: "654321" }, data: { loginOtp: null } });
+      throw Error("test-only mutation failure");
+    }));
+    assert.equal((await db.user.findUniqueOrThrow({ where: { id: oldUser.id } })).loginOtp, "654321");
+    console.log("PASS Real SQLite failed mutation rolls back OTP consumption");
   } finally {
     if (db) await db.$disconnect();
     // Only this test-created folder, validated against the intended workspace.
