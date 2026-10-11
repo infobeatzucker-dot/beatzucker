@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   publisher: "Beatzucker",
 
   verification: {
-    google: "cdAqmUQF4JgCkEgRVswUrhbeX_hXR2Ed70bbN7W4WWU",
+    google: "a_r7RjFlKS1_W8u8PhyfcGPaTN4PC9rmIiMuq3vELAc",
   },
 
   alternates: {
