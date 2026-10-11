@@ -7,7 +7,7 @@ function run(command, args) {
 try {
   // Refuse a misleading green result with skipped codec tests.
   run(process.env.FFMPEG_BINARY || 'ffmpeg', ['-version']);
-  for (const suite of ['audit-regression', 'account-security', 'codec-preview', 'silence-normalizer', 'terms-consent', 'upload-budget', 'browser-audio', 'json-body', 'rollback', 'isolated-qa', 'manual-loop'])
+  for (const suite of ['audit-regression', 'account-security', 'codec-preview', 'silence-normalizer', 'terms-consent', 'upload-budget', 'browser-audio', 'json-body', 'rollback', 'isolated-qa', 'manual-loop', 'prebuilt-deploy'])
     run(process.execPath, [`scripts/${suite}-tests.cjs`]);
   run(process.execPath, ['scripts/withdrawal-db-test.cjs']);
   const venv = path.join(root, 'python', 'venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');

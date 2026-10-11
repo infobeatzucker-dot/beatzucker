@@ -10,6 +10,15 @@
 
 set -uo pipefail
 
+# Optional resource-limited build performed separately with Docker buildx.
+PREBUILT_IMAGE=""
+if [ "$#" -eq 2 ] && [ "$1" = "--prebuilt-image" ]; then
+  PREBUILT_IMAGE="$2"
+elif [ "$#" -ne 0 ]; then
+  echo "Usage: bash deploy/deploy.sh [--prebuilt-image beatzucker:release-<git revision>]"
+  exit 1
+fi
+
 APP_DIR="/opt/beatzucker"
 IMAGE="beatzucker:latest"
 CONTAINER="beatzucker"
@@ -68,6 +77,18 @@ for rollback_file in check-schema.cjs start.sh; do
   fi
 done
 
+CANDIDATE_IMAGE="$IMAGE"
+if [ -n "$PREBUILT_IMAGE" ]; then
+  source "$APP_DIR/deploy/prebuilt-image.sh" || exit 1
+  check_prebuilt_source "$PREBUILT_IMAGE" || exit 1
+  # Resolve immutable image ID before testing/tagging, not a mutable tag later.
+  CANDIDATE_IMAGE=$(sudo docker image inspect --format '{{.Id}}' "$PREBUILT_IMAGE") || exit 1
+  if [[ ! "$CANDIDATE_IMAGE" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+    echo "FATAL: invalid prebuilt image ID."
+    exit 1
+  fi
+fi
+
 echo "=== 3. Tagging current image as rollback point ($ROLLBACK_TAG) ==="
 if sudo docker image inspect "$IMAGE" > /dev/null 2>&1; then
   sudo docker tag "$IMAGE" "$ROLLBACK_TAG"
@@ -77,7 +98,9 @@ else
 fi
 
 echo "=== 4. Building new image ==="
-if ! sudo docker build -t "$IMAGE" .; then
+if [ -n "$PREBUILT_IMAGE" ]; then
+  echo "Using already built image $PREBUILT_IMAGE ($CANDIDATE_IMAGE); no rebuild."
+elif ! sudo docker build -t "$IMAGE" .; then
   echo "FATAL: docker build failed. Nothing was changed on the running container."
   cleanup_old_images
   exit 1
@@ -87,13 +110,17 @@ echo "=== 5. Swapping container ==="
 SMOKE_CONTAINER="beatzucker-dsp-smoke-${NEW_SHA}-$$"
 echo "=== Checking DSP in isolated new image before replacing the running site ==="
 if ! timeout 180s sudo docker run --rm --name "$SMOKE_CONTAINER" \
-  --network none --cpus=1 --memory=2g --entrypoint python \
-  "$IMAGE" /app/python/self_test.py; then
+  --network none --cpus=0.75 --memory=1536m --memory-swap=1536m --pids-limit=256 \
+  --env PYTHONDONTWRITEBYTECODE=1 --env NUMBA_CACHE_DIR=/tmp/numba-cache --entrypoint python \
+  "$CANDIDATE_IMAGE" /app/python/self_test.py; then
   # Exact, uniquely named test container only; no production volumes attached.
   sudo docker rm -f "$SMOKE_CONTAINER" >/dev/null 2>&1 || true
   echo "FATAL: new image failed DSP self-test. Running site remains unchanged."
   cleanup_old_images
   exit 1
+fi
+if [ -n "$PREBUILT_IMAGE" ]; then
+  sudo docker tag "$CANDIDATE_IMAGE" "$IMAGE" || exit 1
 fi
 sudo docker stop "$CONTAINER" 2>/dev/null || true
 sudo docker rm "$CONTAINER" 2>/dev/null || true
