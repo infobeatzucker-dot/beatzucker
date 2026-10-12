@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Activity, ArrowRight, Disc3, FileOutput, Gauge, GitCompareArrows, Mic2, Music2, Radio, Scissors, Sparkles, Waves } from "lucide-react";
 import type { Lang } from "@/lib/types/mastering";
 import ToolLanguageNav from "./ToolLanguageNav";
+import { PracticeHub } from "./ToolPractice";
 
 export default function ToolsHub({ lang }: { lang: Lang }) {
   const en = lang === "en";
@@ -58,6 +59,7 @@ export default function ToolsHub({ lang }: { lang: Lang }) {
       <Link className="tool-card" href={en?"/en/tools/silence-normalizer":"/tools/silence-normalizer"}><div className="tool-card-icon"><Scissors size={27}/></div><span className="tool-status live">LIVE</span><h2>{en?"Silence Trimmer & Normalizer":"Silence-Trimmer & Normalizer"}</h2><p>{en?"Detect quiet edges, choose cut points and render a level-matched 24-bit WAV.":"Erkenne stille Ränder, wähle Schnittpunkte und rendere eine pegelangepasste 24-Bit-WAV."}</p><div className="tool-tags"><span>TRIM</span><span>LUFS</span><span>WAV</span></div><strong>{en?"Open tool":"Tool öffnen"}<ArrowRight size={16}/></strong></Link>
       <Link className="tool-card" href={en?"/en/tools/vocal-chain":"/tools/vocal-chain"}><div className="tool-card-icon"><Mic2 size={27}/></div><span className="tool-status live">LIVE</span><h2>Vocal Chain</h2><p>{en?"Shape vocals in real time with de-essing, filtering, compression, presence and air.":"Forme Vocals in Echtzeit mit De-Essing, Filter, Kompression, Präsenz und Air."}</p><div className="tool-tags"><span>REAL-TIME</span><span>DE-ESS</span><span>EXPORT</span></div><strong>{en?"Open tool":"Tool öffnen"}<ArrowRight size={16}/></strong></Link>
     </section>
+    <PracticeHub lang={lang}/>
     <section className="tools-principles"><Gauge size={22} /><div><strong>{en ? "Measurements, not magic." : "Messwerte statt Magie."}</strong><span>{en ? "Every result explains what was measured and what is only an estimate." : "Jedes Ergebnis erklärt, was gemessen wurde und was lediglich eine Prognose ist."}</span></div></section>
   </>;
 }

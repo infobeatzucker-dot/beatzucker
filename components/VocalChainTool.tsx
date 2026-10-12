@@ -9,6 +9,7 @@ import { toolError } from "@/lib/toolClient";
 import { useToolJob } from "@/lib/useToolJob";
 import { buildVocalGraph,VOCAL_DEFAULT,VOCAL_PRESETS,type VocalGraph,type VocalParams } from "@/lib/vocalAudio";
 import ToolLanguageNav from "./ToolLanguageNav";
+import ToolJourney from "./ToolJourney";
 
 export default function VocalChainTool({lang}:{lang:Lang}) {
   const en=lang==="en",input=useRef<HTMLInputElement>(null),context=useRef<AudioContext|null>(null),source=useRef<AudioBufferSourceNode|null>(null),graph=useRef<VocalGraph|null>(null),starting=useRef(false),job=useToolJob();
@@ -56,7 +57,8 @@ export default function VocalChainTool({lang}:{lang:Lang}) {
     <div className="stream-hero"><span><Mic2 size={14}/> VOCAL CHAIN</span><h1>{en?<>Polish vocals with <em>instant feedback.</em></>:<>Veredle Vocals mit <em>direktem Feedback.</em></>}</h1><p>{en?"Real-time vocal processing with a protected WAV export.":"Echtzeit-Bearbeitung für Vocals mit geschütztem WAV-Export."}</p></div>
     <input ref={input} hidden disabled={busy} type="file" accept="audio/*,.wav,.flac,.mp3,.aiff,.aif" onChange={e=>{const f=e.target.files?.[0];if(f)void load(f);e.target.value="";}}/>
     {!buffer&&<button className="stream-upload" disabled={busy} onClick={()=>input.current?.click()}><div>{busy?<Loader2 className="mixcheck-spin"/>:<UploadCloud/>}</div><h2>{en?"Choose a vocal or a cappella":"Vocal oder A-cappella auswählen"}</h2><p>{en?"Browser-supported audio · up to 80 MB":"Browser-unterstütztes Audio · bis 80 MB"}</p></button>}
-    {error&&<div className="mixcheck-error" role="alert">{error}</div>}
+
+    <ToolJourney mode="feedback" tool="vocal-chain" lang={lang} busy={busy} complete={!!download} incomplete={false} error={error} progress={buffer ? (en ? "Rendering your vocal chain …" : "Deine Vocal Chain wird gerendert …") : (en ? "Decoding vocals …" : "Vocals werden dekodiert …")} analysis={null}/>
     {buffer&&<div className="stream-console vocal-console" aria-busy={busy}>
       <div className="vocal-transport"><button disabled={busy} aria-label={playing?(en?"Pause":"Pausieren"):(en?"Play processed vocals":"Bearbeitete Vocals abspielen")} onClick={()=>void toggle()}>{playing?<Pause/>:<Play/>}</button><div><strong>{file?.name}</strong><span>{en?"Live controls · de-esser and compressor bypass at 0%":"Live-Regler · De-Esser und Kompressor bei 0 % aus"}</span></div><button disabled={busy} className="vocal-reset" onClick={()=>update(VOCAL_DEFAULT,"Clean")}>{en?"Reset chain":"Chain zurücksetzen"}</button></div>
       {playing&&<p role="status" className={peak!==null&&peak>=0?"mixcheck-error":"stream-note"}>{en?"Live mono-sum sample peak: ":"Live-Sample-Peak der Monosumme: "}{peak?.toFixed(1)??"—"} dBFS {peak!==null&&peak>=0&&(en?"— reduce output gain.":"– Ausgangspegel senken.")}</p>}
@@ -69,5 +71,6 @@ export default function VocalChainTool({lang}:{lang:Lang}) {
       <button className="tool-back" disabled={busy} onClick={()=>input.current?.click()}>{en?"Choose another file":"Andere Datei wählen"}</button>
       <p className="stream-honesty"><CheckCircle2 size={14}/>{en?"Preview and export use the same zero-lookahead, stereo-linked dynamics and EQ. Export protection can lower the whole file, without clipping samples or changing dynamics.":"Vorschau und Export verwenden dieselbe verzögerungsfreie, stereogekoppelte Dynamikbearbeitung und denselben EQ. Der Exportschutz senkt bei Bedarf die ganze Datei ab, ohne Samples abzuschneiden oder die Dynamik zu verändern."}</p>
     </div>}
-  </section>;
+  <ToolJourney mode="recommendations" tool="vocal-chain" lang={lang} busy={busy} complete={!!download} incomplete={false} error={error} progress={buffer ? (en ? "Rendering your vocal chain …" : "Deine Vocal Chain wird gerendert …") : (en ? "Decoding vocals …" : "Vocals werden dekodiert …")} analysis={null}/>
+</section>;
 }

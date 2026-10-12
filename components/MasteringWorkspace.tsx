@@ -18,6 +18,7 @@ import type { ParamValues } from "@/lib/masteringParams";
 import { runMastering } from "@/lib/runMastering";
 import { AudioEngineProvider, useAudioEngine } from "@/contexts/AudioEngineContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import AnalysisNextSteps from "@/components/AnalysisNextSteps";
 import { DAILY_MASTER_LIMIT } from "@/lib/constants";
 import type {
   AppState, Platform, Preset, AnalysisData, MasterData, UploadedFile, ProgressStep, Lang,
@@ -434,6 +435,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                     isProcessing={appState === "mastering"}
                     lang={lang}
                   />
+                  {appState === "analyzed" && <AnalysisNextSteps analysis={analysis} lang={lang}/>}
                 </motion.div>
               )}
             </AnimatePresence>

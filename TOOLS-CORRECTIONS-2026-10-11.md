@@ -1,6 +1,6 @@
 # Tools-Korrekturen – vorbereitet für 0.11.0
 
-Stand: 11.10.2026. Lokale Umsetzung, **nicht deployed**. Grundlage ist `TOOLS-AUDIT-2026-10-11.md`. Bestehende englische Tool-Seiten wurden beibehalten und mit denselben Korrekturen versehen.
+Stand: 11.10.2026. **Version 0.11.0 deployed**, Commit `1f79c04`; bestätigt durch die übermittelte Serverausgabe und den anschließenden öffentlichen HTTPS-Nachtest. Grundlage ist `TOOLS-AUDIT-2026-10-11.md`. Bestehende englische Tool-Seiten wurden beibehalten und mit denselben Korrekturen versehen.
 
 ## Umgesetzte Auditpunkte
 
@@ -42,4 +42,11 @@ Zusätzlich beim realen HTTP-Test gefunden: Spektral-Flatness von Stille lag dur
 - OfflineAudioContext lässt sich nicht zuverlässig abbrechen. Bei Vocal/Konverter heißt die Aktion deshalb „Ergebnis verwerfen“; neue Verarbeitung bleibt bis zum Ende der laufenden nativen Berechnung gesperrt. Laufende Server-DSP-Arbeit kann nach Client-Abbruch noch enden.
 - Die In-App-Browser-Schnittstelle meldete bei Blob-Downloads keinen Downloadabschluss. Deshalb ist der neue Vocal-Download **nicht als numerisch nachgemessene heruntergeladene Datei verifiziert**. Der ältere Download aus dem Originalaudit darf nicht als neue Datei herangezogen werden. Exportberechnung, Encoder und Überlastschutz wurden separat automatisiert geprüft. Vor Freigabe tatsächlichen Download im normalen Browser prüfen.
 - Kein vollständiger End-to-End-Test aller Regler in allen Browsern, keine mobile Geräte-/Hörqualitätsfreigabe. Nach Deployment öffentliche Tools DE/EN, tatsächliche Downloads und Codec-Umschaltung mit echten Tracks prüfen.
-- Kein automatisches Deployment und keine Änderung an Produktionsdaten, Serverkonfiguration oder der getrennten Upmado-Seite.
+- Umsetzung zunächst ohne Deployment oder Eingriffe in Produktionsdaten/Serverkonfiguration. Der anschließende, ausdrücklich freigegebene Beatzucker-Deploy wurde vom Nutzer in seiner Serversitzung ausgeführt; die getrennte Upmado-Seite war kein Deployment-Ziel.
+
+## Bestätigtes Deployment
+
+- Server: begrenzter Build des Images `beatzucker:release-1f79c04` erfolgreich. Isolierter DSP-Selbsttest mit allen sechs Checks erfolgreich, anschließend Datenbank/Python bereit und vier Smoke-Tests bestanden. Deploy-Helfer meldet `Deploy of 1f79c04 succeeded`.
+- Neue Container-ID laut Serverausgabe: `887732021be2bc2ab110d94a731767af5a4fcf86a39c119a91d5a6129e72aed1`. Cleanup entfernte die ältere Sicherung `beatzucker:pre-deploy-20261011_120353`; der Helfer behält die drei neuesten Sicherungen.
+- Öffentlicher Nachtest: `/`, `/versionen`, `/en/updates`, `/tools`, `/en/tools`, `/tools/vocal-chain`, `/en/tools/vocal-chain` jeweils HTTP 200 und Version 0.11.0 im Antwortinhalt. `/api/health` HTTP 200 mit `{"status":"ok"}`. Direkte HTTPS-Abrufe mit `Cache-Control: no-cache`, keine Suchmaschinen-Cache-Auswertung.
+- Dies bestätigt Release/Erreichbarkeit/Readiness, nicht einen vollständigen erneuten Live-Audio-Test aller Tools. Die oben beschriebenen Download- und Browserprüfungen bleiben offen.

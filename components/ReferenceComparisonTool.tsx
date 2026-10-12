@@ -8,6 +8,7 @@ import type { AnalysisData, Lang } from "@/lib/types/mastering";
 import { requestToolAnalysis, toolError, TOOL_AUDIO_ACCEPT } from "@/lib/toolClient";
 import { useToolJob } from "@/lib/useToolJob";
 import ToolLanguageNav from "./ToolLanguageNav";
+import ToolJourney from "./ToolJourney";
 import ToolABPlayer from "./ToolABPlayer";
 
 type Slot = { file: File | null; analysis: AnalysisData | null };
@@ -65,7 +66,9 @@ export default function ReferenceComparisonTool({ lang }: { lang: Lang }) {
     <div className="stem-grid"><Upload slot={a} set={setA} inputRef={aRef} label={en ? "YOUR TRACK" : "DEIN TRACK"} /><div className="stem-versus">VS</div><Upload slot={b} set={setB} inputRef={bRef} label={en ? "REFERENCE" : "REFERENZ"} /></div>
     {!metrics.length && <button className="conflict-run" disabled={!a.file || !b.file || busy} onClick={() => void run()}>{busy ? <Loader2 className="mixcheck-spin" /> : <GitCompareArrows size={18} />} {busy ? progress : (en ? "Compare tracks" : "Tracks vergleichen")}</button>}
     {busy&&<button className="tool-back" onClick={()=>{job.cancel();setBusy(false);setStep(0);}}>{en?"Cancel":"Abbrechen"}</button>}
-    {error && <div className="mixcheck-error" role="alert"><span>{error}</span><button onClick={() => void run()}>{en ? "Try again" : "Erneut versuchen"}</button></div>}
+
+    <ToolJourney mode="feedback" tool="reference-comparison" lang={lang} busy={busy} complete={!!a.analysis && !!b.analysis} incomplete={false} error={error} progress={progress} analysis={a.analysis} onRetry={() => void run()}/>
     {metrics.length > 0 && <div className="stream-console reference-results"><div className="reference-metrics">{metrics.map(metric => <article key={metric.name}><span>{metric.name}</span><div><b>{metric.a.toFixed(1)}</b><i>{metric.unit}</i><em>{metric.b - metric.a > 0 ? "+" : ""}{(metric.b - metric.a).toFixed(1)}</em><b>{metric.b.toFixed(1)}</b></div><small>{en ? "Track · difference · reference" : "Track · Differenz · Referenz"}</small></article>)}</div>{a.file&&b.file&&a.analysis&&b.analysis&&<ToolABPlayer a={a.file} b={b.file} aAnalysis={a.analysis} bAnalysis={b.analysis} lang={lang}/>}<div className="reference-bands"><label className="tool-option"><input type="checkbox" checked={relative} onChange={e=>setRelative(e.target.checked)}/>{en?"Compare tonal balance independently of loudness":"Klangbalance unabhängig von Lautheit vergleichen"}</label><h2>{en ? "Tonal energy comparison" : "Vergleich der Klangenergie"}</h2>{bands.map(band => { const av=band.a-(relative?a.analysis!.integrated_lufs:0),bv=band.b-(relative?b.analysis!.integrated_lufs:0);const min = Math.min(av,bv) - 6, max = Math.max(av,bv); return <div key={band.n}><span>{band.n}</span><i><b style={{ width: `${Math.max(4, (av - min) / (max - min || 1) * 100)}%` }} /><em style={{ width: `${Math.max(4, (bv - min) / (max - min || 1) * 100)}%` }} /></i><strong>{bv - av > 0 ? "+" : ""}{(bv - av).toFixed(1)} dB</strong></div>; })}</div>{recommendations.length > 0 && <div className="reference-advice"><h2>{en ? "What to check next" : "Was du als Nächstes prüfen solltest"}</h2>{recommendations.map(item => <p key={item}><CheckCircle2 size={15} /><span>{item}</span></p>)}</div>}<p className="stream-honesty"><CheckCircle2 size={14} />{en ? "Tracks are analyzed sequentially to keep the DSP service stable. Differences are measurements, not automatic mastering targets." : "Die Tracks werden nacheinander analysiert, damit der DSP-Dienst stabil bleibt. Unterschiede sind Messwerte, keine automatischen Mastering-Ziele."}</p></div>}
-  </section>;
+  <ToolJourney mode="recommendations" tool="reference-comparison" lang={lang} busy={busy} complete={!!a.analysis && !!b.analysis} incomplete={false} error={error} progress={progress} analysis={a.analysis} onRetry={() => void run()}/>
+</section>;
 }

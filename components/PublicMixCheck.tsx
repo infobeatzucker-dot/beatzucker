@@ -9,6 +9,8 @@ import type { AnalysisData, Lang } from "@/lib/types/mastering";
 import { requestToolAnalysis, toolError } from "@/lib/toolClient";
 import { useToolJob } from "@/lib/useToolJob";
 import ToolLanguageNav from "./ToolLanguageNav";
+import ToolJourney from "./ToolJourney";
+import { ToolPractice } from "./ToolPractice";
 
 type Status = "idle" | "checking" | "done" | "error";
 type Check = { label: string; detail: string; state: "good" | "warn" | "bad" };
@@ -105,9 +107,10 @@ export default function PublicMixCheck({ lang = "de" }: { lang?: Lang }) {
         )}
 
         {status==="checking"&&<button className="tool-back" onClick={reset}>{lang==="en"?"Cancel":"Abbrechen"}</button>}
-        {status === "error" && <div className="mixcheck-error" role="alert"><AlertTriangle size={16} /><span>{error}</span><button onClick={reset}>{lang === "de" ? "Erneut versuchen" : "Try again"}</button></div>}
 
-        {status === "done" && analysis && (
+
+        <ToolJourney mode="feedback" tool="mix-check" lang={lang} busy={status === "checking"} complete={status === "done" && !!analysis} incomplete={false} error={error} progress={lang === "de" ? "Headroom, Dynamik und Mono-Verhalten werden gemessen …" : "Measuring headroom, dynamics and mono behavior …"} analysis={analysis} onRetry={() => void reset()}/>
+    {status === "done" && analysis && (
           <div className="mixcheck-result" aria-live="polite">
             <div className="mixcheck-score-card">
               <div className="mixcheck-score" style={{ "--score": `${score * 3.6}deg` } as React.CSSProperties}><div><strong>{score}</strong><span>/100</span></div></div>
@@ -118,13 +121,15 @@ export default function PublicMixCheck({ lang = "de" }: { lang?: Lang }) {
             <p className="mixcheck-disclaimer">{lang === "de" ? "Der Score ist eine technische Orientierung, keine Bewertung von Musik, Geschmack oder künstlerischer Qualität." : "The score is technical guidance, not a judgment of the music, taste or artistic quality."}</p>
           </div>
         )}
+<ToolJourney mode="recommendations" tool="mix-check" lang={lang} busy={status === "checking"} complete={status === "done" && !!analysis} incomplete={false} error={error} progress={lang === "de" ? "Headroom, Dynamik und Mono-Verhalten werden gemessen …" : "Measuring headroom, dynamics and mono behavior …"} analysis={analysis} onRetry={() => void reset()}/>
       </section>
 
       {status === "done" && analysis && <div className="mixcheck-analysis"><AnalysisPanel preAnalysis={analysis} postAnalysis={null} isProcessing={false} lang={lang} /></div>}
 
+      <div className="mixcheck-analysis"><ToolPractice tool="mix-check" lang={lang}/></div>
       <section className="mixcheck-privacy"><ShieldCheck size={18} /><div><strong>{lang === "de" ? "Dein Track bleibt deiner." : "Your track stays yours."}</strong><span>{lang === "de" ? "Die Upload-Datei wird unmittelbar nach der Analyse gelöscht. Kein Account, kein Mastering, kein Audioarchiv." : "The uploaded file is deleted immediately after analysis. No account, no mastering, no audio archive."}</span></div></section>
 
-      {status === "done" && <section className="mixcheck-cta"><h2>{lang === "de" ? "Bereit für den nächsten Schritt?" : "Ready for the next step?"}</h2><p>{lang === "de" ? "Mastere den geprüften Mix mit Beatzucker und vergleiche das Ergebnis direkt per A/B." : "Master the checked mix with Beatzucker and compare the result directly with A/B playback."}</p><Link href={lang === "en" ? "/en#mastering" : "/#mastering"}>{lang === "de" ? "Jetzt kostenlos mastern" : "Master for free"} <ArrowRight size={16} /></Link></section>}
+      {status === "done" && analysis && !analysis.clipping_detected && analysis.mono_compatibility >= 0.5 && <section className="mixcheck-cta"><h2>{lang === "de" ? "Bereit für den nächsten Schritt?" : "Ready for the next step?"}</h2><p>{lang === "de" ? "Mastere den geprüften Mix mit Beatzucker und vergleiche das Ergebnis direkt per A/B." : "Master the checked mix with Beatzucker and compare the result directly with A/B playback."}</p><Link href={lang === "en" ? "/en#mastering" : "/#mastering"}>{lang === "de" ? "Jetzt kostenlos mastern" : "Master for free"} <ArrowRight size={16} /></Link></section>}
     </>
   );
 }

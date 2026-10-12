@@ -6,6 +6,8 @@ export async function register() {
     startMasterRecovery();
     const { startWithdrawalQueue } = await import("@/lib/withdrawalQueue");
     startWithdrawalQueue();
+    const { startRegistrationQueue } = await import("@/lib/registrationQueue");
+    startRegistrationQueue();
   }
 
   // Validate required environment variables at startup

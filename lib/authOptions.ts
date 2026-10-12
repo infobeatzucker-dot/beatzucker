@@ -19,6 +19,7 @@ export const authOptions: NextAuthOptions = {
       if (!proof) throw Error("Registration requires current Terms acceptance");
       return db.user.create({ data: {
         ...user, termsAcceptedAt: new Date(proof.acceptedAt), termsVersion: proof.version, termsLanguage: proof.lang,
+        registrationNotification: { create: { provider: "google" } },
       } });
     },
   } as any,

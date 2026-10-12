@@ -10,6 +10,27 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.12.0",
+  date: "2026-10-12",
+  title: { de: "Vom Messwert zum nächsten Schritt.", en: "From measurements to your next step." },
+  summary: { de: "Praxisbeispiele und passende Ratgeber helfen dir, Tool-Ergebnisse einzuordnen. Die Bibliothek lässt sich mit Mehrfachauswahl leichter aufräumen.", en: "Practical examples and matching guides help you interpret tool results. Multi-select makes your library easier to organize." },
+  improvements: {
+    de: [
+      "Alle Audio-Tools haben konkrete Praxisbeispiele. Wissensartikel führen direkt zu passenden Tools – und nach der Analyse bekommst du sinnvolle nächste Schritte.",
+      "Verarbeitung, Erfolg, unvollständige Ergebnisse und Fehler sind einheitlich erkennbar. Eine abgeschlossene Analyse ist kein Versprechen, dass dein Audio fehlerfrei ist.",
+      "In der Bibliothek kannst du mehrere Einträge oder alle abgeschlossenen Einträge auswählen und nach einer Bestätigung gemeinsam löschen. Fehlgeschlagene Löschungen bleiben sichtbar.",
+      "Die Sitemap enthält passende Änderungsdaten und verbindet die deutschen und englischen Seiten für Suchmaschinen.",
+      "Der Betreiber erhält eine interne Nachricht bei neuen E-Mail- und Google-Konten. Versandprobleme werden erneut versucht, ohne die Registrierung zu blockieren. Die Datenschutzhinweise erklären die verwendeten Angaben.",
+    ],
+    en: [
+      "Every audio tool has a practical example. Guides link directly to matching tools, and completed analyses offer useful next steps.",
+      "Processing, completion, incomplete results and errors share clear status displays. A completed analysis is not a promise that your audio is free of issues.",
+      "Select several library entries or all finished entries and delete them together after confirmation. Failed deletions remain visible.",
+      "The sitemap uses appropriate modification dates and connects German and English pages for search engines.",
+      "The operator receives internal notifications for new email and Google accounts. Delivery failures are retried without blocking registration. The privacy information explains which details are used.",
+    ],
+  },
+}, {
   version: "0.11.0",
   date: "2026-10-11",
   title: { de: "Audio-Tools mit verlässlicheren Ergebnissen.", en: "Audio tools with more reliable results." },

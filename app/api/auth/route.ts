@@ -73,7 +73,9 @@ export async function POST(req: NextRequest) {
 
       const hashed = await hashPassword(password);
       const user   = await db.user.create({
-        data: { email, password: hashed, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsLanguage: body.lang === "en" ? "en" : "de" },
+        data: { email, password: hashed, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsLanguage: body.lang === "en" ? "en" : "de",
+          registrationNotification: { create: { provider: "credentials" } },
+        },
       });
 
       // Fire-and-forget welcome email

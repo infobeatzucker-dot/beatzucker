@@ -67,6 +67,22 @@ const emailWrap = (content: string, lang: "de" | "en" = "de") => `
 
 // ── Emails ───────────────────────────────────────────────────────────────────
 
+export async function sendNewRegistrationAdminEmail(input: {
+  userId: string; email: string; name: string | null; createdAt: Date; provider: string;
+}) {
+  const recipient = process.env.ADMIN_EMAIL?.trim();
+  if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient))
+    throw new Error("ADMIN_EMAIL must contain one valid administrator address");
+  const method = input.provider === "google" ? "Google" : "E-Mail und Passwort";
+  const date = input.createdAt.toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
+  // Operational admin mail: no tracking, credentials, IPs, or donation block.
+  await sendEmail({ from: FROM, to: recipient,
+    subject: "Beatzucker – neue Registrierung",
+    text: `Ein neues Konto wurde bei Beatzucker angelegt.\n\nE-Mail: ${input.email}\nName: ${input.name || "Nicht angegeben"}\nRegistrierung: ${date} (Europe/Berlin)\nAnmeldeart: ${method}\n\nAdminbereich: ${BASE}/admin`,
+    html: `<h1>Neue Registrierung bei Beatzucker</h1><p>Ein neues Konto wurde angelegt.</p><ul><li>E-Mail: ${escapeHtml(input.email)}</li><li>Name: ${escapeHtml(input.name || "Nicht angegeben")}</li><li>Registrierung: ${escapeHtml(date)} (Europe/Berlin)</li><li>Anmeldeart: ${method}</li></ul><p><a href="${escapeHtml(BASE)}/admin">Adminbereich öffnen</a></p>`,
+  }, `registration-${input.userId}-admin`);
+}
+
 export async function sendPasswordResetEmail(email: string, resetUrl: string) {
   const safeResetUrl = escapeHtml(resetUrl);
   const html = emailWrap(`

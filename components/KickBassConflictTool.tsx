@@ -13,6 +13,7 @@ import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import { useToolJob } from "@/lib/useToolJob";
 import { toolError, TOOL_AUDIO_ACCEPT } from "@/lib/toolClient";
 import ToolLanguageNav from "./ToolLanguageNav";
+import ToolJourney from "./ToolJourney";
 const MIN_HZ = 35, MAX_HZ = 350;
 async function analyzeFile(file: File,signal:AbortSignal): Promise<Spectrum> { const buffer=await decodeAudio(file,40*1024*1024);return analyzeSpectrumAsync(buffer,signal); }
 
@@ -49,7 +50,8 @@ export default function KickBassConflictTool({ lang }: { lang: Lang }) {
     <div className="local-badge"><LockKeyhole size={15}/><span><strong>{en ? "Local analysis" : "Lokale Analyse"}</strong>{en ? "Audio stays in your browser and is not uploaded." : "Das Audio bleibt in deinem Browser und wird nicht hochgeladen."}</span></div>
     {!result && <button className="conflict-run" disabled={!kick || !bass || loading} onClick={()=>void run()}>{loading?<Loader2 className="mixcheck-spin" size={18}/>:<ScanSearch size={18}/>} {loading ? (en ? "Calculating FFT overlap …" : "FFT-Überlagerung wird berechnet …") : (en ? "Analyze conflict" : "Konflikt analysieren")}</button>}
     {loading&&<button className="tool-back" onClick={()=>{job.cancel();setLoading(false);}}>{en?"Cancel":"Abbrechen"}</button>}
-    {error && <div className="mixcheck-error" role="alert"><AlertTriangle size={16}/><span>{error}</span></div>}
+
+    <ToolJourney mode="feedback" tool="kick-bass-conflict" lang={lang} busy={loading} complete={!!result} incomplete={false} error={error} progress={en ? "Comparing low-frequency activity …" : "Tieftonaktivität wird verglichen …"} analysis={null} onRetry={() => void run()}/>
     {result && <div className="stream-console conflict-console">
       <div className="conflict-head"><div><span>{en ? "LOW-END OVERLAP" : "LOW-END-ÜBERLAGERUNG"}</span><h2>{gradeText}</h2></div><button onClick={()=>setResult(null)}><RotateCcw size={14}/> {en ? "New analysis" : "Neue Analyse"}</button></div>
       <div className="conflict-layout"><article className={`conflict-score ${grade}`}><div style={{"--score":`${result.score * 3.6}deg`} as React.CSSProperties}><strong>{result.score}</strong><span>/ 100</span></div><small>{en ? "Overlap index" : "Überlagerungsindex"}</small></article><article className="conflict-spectrum"><div className="spectrum-legend"><span><i className="kick"/>Kick</span><span><i className="bass"/>Bass</span><b>35–350 Hz</b></div><SpectrumChart result={result}/></article></div>
@@ -57,5 +59,6 @@ export default function KickBassConflictTool({ lang }: { lang: Lang }) {
       <div className="conflict-advice"><CheckCircle2 size={18}/><div><strong>{grade === "high" ? (en ? `Review the highlighted frequency region.` : `Prüfe den hervorgehobenen Frequenzbereich.`) : (en ? "No automatic EQ decision needed." : "Keine automatische EQ-Entscheidung nötig.")}</strong><span>{grade === "high" ? (en ? "Try arrangement, envelope or sidechain changes before cutting a fixed frequency. Soloed spectra do not reveal the full musical context." : "Prüfe Arrangement, Hüllkurven oder Sidechain, bevor du eine feste Frequenz absenkst. Einzelne Spektren zeigen nicht den gesamten musikalischen Kontext.") : (en ? "Listen in context. A low score does not guarantee a balanced mix." : "Höre im Kontext. Ein niedriger Wert garantiert noch keinen ausgewogenen Mix.")}</span></div></div>
       {Math.abs(result.kick.duration-result.bass.duration)>.25&&<p className="stream-note">{en?"Different lengths: time comparison uses only the common duration from file start. Leading offsets must be aligned in your DAW.":"Unterschiedliche Längen: Der Zeitvergleich nutzt nur die gemeinsame Dauer ab Dateianfang. Startversätze bitte vorher in deiner DAW ausrichten."}</p>}<p className="stream-honesty"><CheckCircle2 size={14}/>{en ? "The complete files are sampled with overlapping FFT windows; time activity is compared from the same starting timestamp in approximate 0.25-second bins. It is a diagnostic indicator, not a claim that overlap is inherently bad." : "Die ganzen Dateien werden mit überlappenden FFT-Fenstern geprüft; der Zeitvergleich erfolgt ab demselben Startzeitpunkt in ungefähr 0,25-Sekunden-Schritten. Er ist ein Diagnosehinweis – keine Behauptung, dass Überlagerung grundsätzlich schlecht ist."}</p>
     </div>}
-  </section>;
+  <ToolJourney mode="recommendations" tool="kick-bass-conflict" lang={lang} busy={loading} complete={!!result} incomplete={false} error={error} progress={en ? "Comparing low-frequency activity …" : "Tieftonaktivität wird verglichen …"} analysis={null} onRetry={() => void run()}/>
+</section>;
 }

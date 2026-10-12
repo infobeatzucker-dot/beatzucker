@@ -53,6 +53,7 @@ async function main() {
   await test("Google user and consent saved in same creation, no fabricated historic proof", async () => {
     cookie = proof.signTermsConsent("en"); await options.adapter.createUser({ email: "test@example.invalid" });
     assert.equal(stored.termsVersion, terms.TERMS_VERSION); assert.equal(stored.termsLanguage, "en"); assert.ok(stored.termsAcceptedAt instanceof Date);
+    assert.equal(stored.registrationNotification.create.provider, "google");
   });
   await test("password registration rejects absent, false, stale and string acceptance before hashing", async () => {
     for (const accepted of [undefined, false, "true", true]) {
@@ -64,6 +65,7 @@ async function main() {
   await test("password registration stores explicit current acceptance and language", async () => {
     const response = await route.POST({ headers: new Headers(), body: { action: "register", email: "test@example.invalid", password: "Valid1234", termsAccepted: true, termsVersion: terms.TERMS_VERSION, lang: "en" } });
     assert.equal(response.status, 200); assert.equal(stored.termsVersion, terms.TERMS_VERSION); assert.equal(stored.termsLanguage, "en"); assert.equal(hashed, 1);
+    assert.equal(stored.registrationNotification.create.provider, "credentials");
   });
   console.log(`${passed} consent tests passed.`);
 }

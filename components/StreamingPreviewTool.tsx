@@ -8,6 +8,7 @@ import type { AnalysisData, Lang } from "@/lib/types/mastering";
 import { requestToolAnalysis, toolError, responseError, TOOL_AUDIO_ACCEPT } from "@/lib/toolClient";
 import { useToolJob } from "@/lib/useToolJob";
 import ToolLanguageNav from "./ToolLanguageNav";
+import ToolJourney from "./ToolJourney";
 
 const PLATFORMS = [
   { id: "spotify", name: "Spotify", target: -14, ceiling: -1, color: "#1ed760" },
@@ -77,7 +78,8 @@ export default function StreamingPreviewTool({ lang }: { lang: Lang }) {
       <input ref={inputRef} hidden type="file" accept={TOOL_AUDIO_ACCEPT} onChange={e => { const f=e.target.files?.[0]; if(f) void analyze(f); }} />
     </div>}
     {(loading||codecBusy)&&<button className="tool-back" onClick={()=>{job.cancel();setLoading(false);setCodecBusy(false);}}>{en?"Cancel":"Abbrechen"}</button>}
-    {error && <div className="mixcheck-error" role="alert"><AlertTriangle size={16}/><span>{error}</span><button onClick={reset}>{en ? "Try again" : "Erneut versuchen"}</button></div>}
+
+    <ToolJourney mode="feedback" tool="streaming-preview" lang={lang} busy={loading || codecBusy} complete={!!analysis} incomplete={false} error={error} progress={codecBusy ? (en ? "Encoding the real codec preview …" : "Echte Codec-Vorschau wird codiert …") : (en ? "Measuring loudness …" : "Lautheit wird gemessen …")} analysis={analysis} onRetry={() => void reset()}/>
     {analysis && values && <div className="stream-console">
       <div className="stream-file"><div><strong>{file?.name}</strong><span>{analysis.integrated_lufs.toFixed(1)} LUFS · {analysis.true_peak.toFixed(1)} dBTP</span></div><button disabled={codecBusy} onClick={reset}><RotateCcw size={14}/> {en ? "Change" : "Wechseln"}</button></div>
       <p className="stream-note">{en?"Platform presets are simplified estimates. Device settings, normalization modes and album playback may differ.":"Plattform-Presets sind vereinfachte Prognosen. Geräteeinstellungen, Normalisierungsmodi und Albumwiedergabe können abweichen."}</p><div className="stream-platforms">{PLATFORMS.map(p => <button key={p.id} className={p.id===platform.id?"active":""} style={{"--platform":p.color} as React.CSSProperties} onClick={()=>setPlatformId(p.id)}><i/><strong>{p.name}</strong><span>{p.target} LUFS</span></button>)}</div>
@@ -92,5 +94,6 @@ export default function StreamingPreviewTool({ lang }: { lang: Lang }) {
       <button className="codec-render" disabled={codecBusy} onClick={()=>void renderCodec()}>{codecBusy?<Loader2 className="mixcheck-spin" size={16}/>:<WandSparkles size={16}/>} {codecBusy?(en?"Encoding real preview …":"Echte Vorschau wird codiert …"):(en?"Generate real codec A/B":"Echten Codec-A/B-Vergleich erzeugen")}</button>{values.measuredPeak!==null&&<p className="stream-note">{en?"Codec peak after playback gain: ":"Codec-Peak nach Wiedergabe-Gain: "}{values.measuredPeak.toFixed(2)} dBTP · {values.codecGain.toFixed(2)} dB {en?"gain":"Gain"}</p>}{codecPeak!==null&&<div className="stream-note"><CheckCircle2 size={16}/>{en?`Encoded file measured at ${codecPeak.toFixed(1)} dBTP.`:`Codierte Datei gemessen: ${codecPeak.toFixed(1)} dBTP.`}</div>}
       <p className="stream-honesty"><CheckCircle2 size={14}/>{codecUrl?(en?"Mode C plays the actual server-encoded file. Gain uses encoded loudness when available; peak headroom can limit matching. Switching retains the playback position; residual codec timing differences are possible.":"Modus C spielt die tatsächlich serverseitig codierte Datei. Der Gain nutzt die codierte Lautheit, soweit verfügbar; Peak-Reserve kann den Abgleich begrenzen. Der Wechsel behält die Abspielposition bei; kleine Codec-Zeitunterschiede bleiben möglich."):(en?"A/B applies measured platform gain in real time. Generate mode C to hear an actually encoded file.":"A/B wendet den gemessenen Plattform-Gain in Echtzeit an. Erzeuge Modus C, um eine tatsächlich codierte Datei zu hören.")}</p>
     </div>}
-  </section>;
+  <ToolJourney mode="recommendations" tool="streaming-preview" lang={lang} busy={loading || codecBusy} complete={!!analysis} incomplete={false} error={error} progress={codecBusy ? (en ? "Encoding the real codec preview …" : "Echte Codec-Vorschau wird codiert …") : (en ? "Measuring loudness …" : "Lautheit wird gemessen …")} analysis={analysis} onRetry={() => void reset()}/>
+</section>;
 }

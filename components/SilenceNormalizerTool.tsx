@@ -5,6 +5,7 @@ import{useEffect,useRef,useState}from"react";import Link from"next/link";import{
 import { useToolJob } from "@/lib/useToolJob";
 import { toolError, validateToolFile } from "@/lib/toolClient";
 import ToolLanguageNav from "./ToolLanguageNav";
+import ToolJourney from "./ToolJourney";
 function Wave({buffer,start,end,disabled,onChange,lang}:{buffer:AudioBuffer;start:number;end:number;disabled:boolean;onChange:(start:number,end:number)=>void;lang:Lang}) {
   const ref = useRef<HTMLCanvasElement>(null);
   const edge = useRef<"start"|"end"|null>(null);
@@ -126,8 +127,9 @@ export default function SilenceNormalizerTool({ lang }: { lang: Lang }) {
       <h2>{busy ? (en ? "Decoding …" : "Dekodieren …") : (en ? "Choose audio file" : "Audiodatei auswählen")}</h2>
       <p>{en ? "WAV, FLAC, MP3 or AIFF · up to 40 MB" : "WAV, FLAC, MP3 oder AIFF · bis 40 MB"}</p>
     </button>}
-    {error && <div role="alert" className="mixcheck-error">{error}</div>}
+
     {busy&&<button className="tool-back" onClick={()=>{job.cancel();inFlight.current=false;setBusy(false);}}>{en?"Cancel":"Abbrechen"}</button>}
+    <ToolJourney mode="feedback" tool="silence-normalizer" lang={lang} busy={busy} complete={!!download && !!result} incomplete={false} error={error} progress={buffer ? (en ? "Preparing the section; export includes measurement and verification …" : "Ausschnitt wird vorbereitet; beim Export wird gemessen und geprüft …") : (en ? "Decoding audio …" : "Audio wird dekodiert …")} analysis={null}/>
     {buffer && <div className="stream-console trim-console" aria-busy={busy}>
       <Wave buffer={buffer} start={start} end={end} disabled={busy} lang={lang} onChange={(a,b)=>{setStart(Math.max(0,a));setEnd(Math.min(buffer.duration,b));invalidate();}}/>
       <p>{en?"Click or drag an edge in the waveform, or use the precise sliders below.":"Eine Grenze in der Wellenform anklicken oder ziehen – oder die genauen Regler darunter nutzen."}</p>
@@ -168,5 +170,6 @@ export default function SilenceNormalizerTool({ lang }: { lang: Lang }) {
       <button className="tool-back" disabled={busy} onClick={() => input.current?.click()}>{en ? "Choose another file" : "Andere Datei wählen"}</button>
       <p className="stream-honesty"><CheckCircle2 size={14}/>{en ? "Server-side measurement of the faded section and the exported WAV. Peak ceiling −1 dBTP, 10 ms edge fades, 24-bit WAV with dither. Minimum section: 0.4 s. Memory budget: 32 million selected channel samples (about 5.5 min of stereo at 48 kHz)." : "Servermessung des gefadeten Ausschnitts und der exportierten WAV. Spitzenpegel maximal −1 dBTP, 10-ms-Randfades, 24-Bit-WAV mit Dither. Ausschnitt mindestens 0,4 s. Speichergrenze: 32 Millionen ausgewählte Kanal-Samples (etwa 5,5 Min. Stereo bei 48 kHz)."}</p>
     </div>}
-  </section>;
+  <ToolJourney mode="recommendations" tool="silence-normalizer" lang={lang} busy={busy} complete={!!download && !!result} incomplete={false} error={error} progress={buffer ? (en ? "Preparing the section; export includes measurement and verification …" : "Ausschnitt wird vorbereitet; beim Export wird gemessen und geprüft …") : (en ? "Decoding audio …" : "Audio wird dekodiert …")} analysis={null}/>
+</section>;
 }

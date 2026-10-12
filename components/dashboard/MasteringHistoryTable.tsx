@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useUiLanguage } from "@/lib/useUiLanguage";
+import { deleteHistoryEntries } from "@/lib/historySelection";
+import ToolFeedback from "@/components/ToolFeedback";
 import {
   getOrCreateAudioElement,
   setGlobalAudioAvailable,
@@ -27,12 +30,20 @@ function fmt(lufs: number | null) {
   return `${lufs.toFixed(1)} LUFS`;
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+function fmtDate(iso: string, lang: "de" | "en") {
+  return new Date(iso).toLocaleDateString(lang === "en" ? "en-GB" : "de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 export default function MasteringHistoryTable() {
+  const lang = useUiLanguage(), en = lang === "en";
+  const t = (de: string, english: string) => en ? english : de;
   const [masters, setMasters] = useState<Master[] | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteFeedback, setDeleteFeedback] = useState<{ error: boolean; text: string } | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const selectAllRef = useRef<HTMLInputElement>(null);
+  const deletingRef = useRef(false);
 
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState("");
@@ -45,13 +56,24 @@ export default function MasteringHistoryTable() {
   const [audioPlaying, setAudioPlaying] = useState(() => getGlobalAudioState().playing);
   const previewMasterIdRef = useRef<string | null>(null);
 
-  const [deletingMaster, setDeletingMaster] = useState<string | null>(null);
+  const selectable = masters?.filter(m => m.status !== "processing") ?? [];
+  const allSelected = selectable.length > 0 && selectable.every(m => selectedIds.has(m.id));
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = selectedIds.size > 0 && !allSelected;
+  }, [selectedIds, allSelected]);
+
+  function toggleSelection(id: string) {
+    if (deletingRef.current) return;
+    setSelectedIds(previous => { const next = new Set(previous); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+    setDeleteFeedback(null);
+  }
 
   useEffect(() => {
     fetch("/api/account")
-      .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d.masters)) setMasters(d.masters); })
-      .catch(() => setMasters([]));
+      .then((r) => { if (!r.ok) throw Error("account unavailable"); return r.json(); })
+      .then((d) => { if (!Array.isArray(d.masters)) throw Error("invalid account response"); setMasters(d.masters); })
+      .catch(() => { setLoadError(true); setMasters([]); });
   }, []);
 
   useEffect(() => {
@@ -130,7 +152,7 @@ export default function MasteringHistoryTable() {
       const res = await fetch(href, { headers: { Range: "bytes=0-0" } });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        setDownloadError(err.error ?? "Download nicht verfügbar");
+        setDownloadError(err.error ?? t("Download nicht verfügbar", "Download unavailable"));
         setTimeout(() => setDownloadError(null), 5000);
         return;
       }
@@ -139,19 +161,32 @@ export default function MasteringHistoryTable() {
       a.href = href;
       a.click();
     } catch {
-      setDownloadError("Verbindungsfehler");
+      setDownloadError(t("Verbindungsfehler", "Connection error"));
       setTimeout(() => setDownloadError(null), 5000);
     } finally {
       setDownloadingId(null);
     }
   }
 
-  async function deleteMaster(masterId: string) {
-    if (!confirm("Eintrag aus dem Verlauf löschen?")) return;
-    setDeletingMaster(masterId);
-    await fetch(`/api/master/${masterId}`, { method: "DELETE" });
-    setMasters((prev) => prev ? prev.filter((m) => m.id !== masterId) : prev);
-    setDeletingMaster(null);
+  async function deleteMasters(ids: string[]) {
+    if (deletingRef.current || !ids.length) return;
+    if (!confirm(t(`${ids.length} Eintrag/Einträge endgültig löschen? Zugehörige Master-Dateien werden ebenfalls entfernt. Das kann nicht rückgängig gemacht werden.`, `Permanently delete ${ids.length} selected entry/entries? Their master files will also be removed. This cannot be undone.`))) return;
+    deletingRef.current = true; setDeleteBusy(true); setDeleteFeedback(null);
+    try {
+      const { deleted, failed } = await deleteHistoryEntries(ids);
+      const removed = new Set(deleted);
+      if (previewMasterIdRef.current && removed.has(previewMasterIdRef.current)) {
+        const audio = getOrCreateAudioElement(); audio.pause(); audio.removeAttribute("src"); audio.load();
+        previewMasterIdRef.current = null; setPlayingMasterId(null); setPreviewLoading(null);
+        setGlobalAudioAvailable(false); setGlobalAudioPlaying(false);
+      }
+      setMasters(previous => previous ? previous.filter(m => !removed.has(m.id)) : previous);
+      setSelectedIds(previous => new Set([...previous].filter(id => !removed.has(id))));
+      if (editingNotes && removed.has(editingNotes)) setEditingNotes(null);
+      setDeleteFeedback({ error: failed.length > 0, text: failed.length
+        ? t(`${deleted.length} gelöscht, ${failed.length} nicht gelöscht. Die übrigen Einträge bleiben erhalten und können erneut versucht werden.`, `${deleted.length} deleted, ${failed.length} not deleted. Remaining entries are retained and can be retried.`)
+        : t(`${deleted.length} Eintrag/Einträge gelöscht.`, `${deleted.length} entry/entries deleted.`) });
+    } finally { deletingRef.current = false; setDeleteBusy(false); }
   }
 
   async function saveNotes(masterId: string) {
@@ -165,11 +200,12 @@ export default function MasteringHistoryTable() {
   }
 
   if (masters === null) {
-    return <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Lädt…</p>;
+    return <ToolFeedback lang={lang} state="working" detail={t("Bibliothek wird geladen …", "Loading your library …")}/>;
   }
 
   return (
     <div>
+      <ToolFeedback lang={lang} state={loadError ? "error" : deleteBusy ? "working" : deleteFeedback ? deleteFeedback.error ? "error" : "success" : "idle"} detail={loadError ? t("Bibliothek konnte nicht geladen werden. Bitte lade die Seite erneut.", "Your library could not be loaded. Please reload the page.") : deleteBusy ? t("Ausgewählte Einträge werden gelöscht …", "Deleting selected entries …") : deleteFeedback?.text}/>
       {downloadError && (
         <div style={{
           marginBottom: "1rem", background: "rgba(239,68,68,0.1)",
@@ -181,14 +217,20 @@ export default function MasteringHistoryTable() {
       )}
 
       {masters.length === 0 ? (
-        <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Noch keine Masters vorhanden.</p>
+        !loadError && <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>{t("Noch keine Masters vorhanden.", "No masters yet.")}</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
+          <div className="history-selection-bar">
+            <span aria-live="polite">{selectedIds.size} {t("ausgewählt", "selected")}</span>
+            <button type="button" disabled={deleteBusy || !selectedIds.size} onClick={() => setSelectedIds(new Set())}>{t("Auswahl aufheben", "Clear selection")}</button>
+            <button type="button" data-danger disabled={deleteBusy || !selectedIds.size} onClick={() => void deleteMasters([...selectedIds])}>{t("Ausgewählte löschen", "Delete selected")} ({selectedIds.size})</button>
+          </div>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                {["Datum", "Datei", "Genre", "LUFS vorher", "LUFS nachher", "", "Download", ""].map((h) => (
-                  <th key={h} style={{ padding: "0.4rem 0.6rem", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                <th style={{ padding: "0.4rem 0.6rem" }}><input ref={selectAllRef} type="checkbox" className="history-select" checked={allSelected} disabled={deleteBusy || !selectable.length} aria-label={t("Alle löschbaren Einträge auswählen", "Select all deletable entries")} onChange={() => { setSelectedIds(allSelected ? new Set() : new Set(selectable.map(m => m.id))); setDeleteFeedback(null); }}/></th>
+                {[t("Datum", "Date"), t("Datei", "File"), t("Genre", "Genre"), t("LUFS vorher", "LUFS before"), t("LUFS nachher", "LUFS after"), "", "Download", ""].map((h, index) => (
+                  <th key={index} style={{ padding: "0.4rem 0.6rem", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -204,8 +246,9 @@ export default function MasteringHistoryTable() {
                 const expired = Boolean(m.expiresAt && new Date(m.expiresAt).getTime() <= Date.now());
                 const canDownload = m.downloadAvailable && !expired && Boolean(selectedFormat);
                 return (
-                  <tr key={m.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(m.completedAt ?? m.createdAt)}</td>
+                  <tr key={m.id} aria-selected={selectedIds.has(m.id)} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: selectedIds.has(m.id) ? "rgba(139,92,246,.1)" : undefined }}>
+                    <td style={{ padding: "0.5rem 0.6rem" }}><input type="checkbox" className="history-select" checked={selectedIds.has(m.id)} disabled={deleteBusy || m.status === "processing"} aria-label={t(`${m.originalName} auswählen`, `Select ${m.originalName}`)} onChange={() => toggleSelection(m.id)}/></td>
+                    <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(m.completedAt ?? m.createdAt, lang)}</td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-primary)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.originalName}</td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", fontSize: "0.75rem" }}>
                       {editingNotes === m.id ? (
@@ -225,7 +268,7 @@ export default function MasteringHistoryTable() {
                         <span
                           onClick={() => { setEditingNotes(m.id); setNotesDraft(m.notes); }}
                           style={{ cursor: "pointer", borderBottom: "1px dashed rgba(255,255,255,0.1)" }}
-                          title="Klicken zum Bearbeiten"
+                          title={t("Klicken zum Bearbeiten", "Click to edit")}
                         >
                           {m.notes || "—"}
                         </span>
@@ -238,7 +281,7 @@ export default function MasteringHistoryTable() {
                       {canDownload && previewFormat ? (
                         <button
                           onClick={() => handlePreview(m.id, previewFormat)}
-                          title={playingMasterId === m.id && audioPlaying ? "Pause" : "Vorschau abspielen"}
+                          title={playingMasterId === m.id && audioPlaying ? "Pause" : t("Vorschau abspielen", "Play preview")}
                           style={{
                             display: "inline-flex", alignItems: "center", justifyContent: "center",
                             width: 26, height: 26, borderRadius: "50%", border: "none", cursor: "pointer",
@@ -284,18 +327,18 @@ export default function MasteringHistoryTable() {
                         </button>
                       ) : (
                         <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                          {m.status === "done" ? (expired ? "Abgelaufen" : "Nicht verfügbar") : m.status}
+                          {m.status === "done" ? (expired ? t("Abgelaufen", "Expired") : t("Nicht verfügbar", "Unavailable")) : m.status}
                         </span>
                       )}
                     </td>
                     <td style={{ padding: "0.5rem 0.3rem" }}>
                       <button
-                        onClick={() => deleteMaster(m.id)}
-                        disabled={deletingMaster === m.id}
-                        title="Aus Verlauf löschen"
+                        onClick={() => void deleteMasters([m.id])}
+                        disabled={deleteBusy || m.status === "processing"}
+                        title={t("Aus Verlauf löschen", "Delete from history")}
                         style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(239,68,68,0.4)", fontSize: "0.85rem", padding: "0.1rem 0.3rem", lineHeight: 1 }}
                       >
-                        {deletingMaster === m.id ? "…" : "✕"}
+                        {deleteBusy ? "…" : "✕"}
                       </button>
                     </td>
                   </tr>
@@ -304,7 +347,7 @@ export default function MasteringHistoryTable() {
             </tbody>
           </table>
           <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "0.75rem" }}>
-            Downloads sind 24h nach Fertigstellung verfügbar.
+            {t("Downloads sind 24h nach Fertigstellung verfügbar. Laufende Masterings können nicht ausgewählt oder gelöscht werden.", "Downloads remain available for 24 hours after completion. Masters still being processed cannot be selected or deleted.")}
           </p>
         </div>
       )}

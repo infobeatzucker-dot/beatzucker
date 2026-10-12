@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { KnowledgeTools } from "../ToolPractice";
 import type { RessourceArticle, LocalizedSection } from "@/app/data/ressourcen";
 
 type Lang = "de" | "en";
@@ -157,6 +158,7 @@ export default function ArticleBody({ article, initialLang = "de" }: Props) {
         <Section key={i} sec={sec} lang={lang} />
       ))}
 
+      <KnowledgeTools article={article.slug} lang={lang}/>
       {/* Conclusion */}
       {article.content.conclusion && (
         <div

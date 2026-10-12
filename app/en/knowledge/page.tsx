@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import ArticleGrid from "@/components/ressourcen/ArticleGrid";
+import { PracticeHub } from "@/components/ToolPractice";
 import { ARTICLES } from "@/app/data/ressourcen";
 
 export const metadata: Metadata = {
@@ -58,6 +59,7 @@ export default function EnglishKnowledgePage() {
         <section style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 1.5rem 5rem" }}>
           <ArticleGrid articles={ARTICLES} initialLang="en" />
         </section>
+      <div style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 1.5rem 3rem" }}><PracticeHub lang="en"/></div>
       </main>
       <Footer lang="en" />
       <ScrollToTop lang="en" />

@@ -1,180 +1,35 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 import { ARTICLES } from "@/app/data/ressourcen";
 import { RELEASE_DATE } from "@/lib/releases";
+import { articleContentDate, GUIDANCE_UPDATED, TOOL_GUIDES } from "@/lib/toolGuidance";
 
 const BASE = "https://beatzucker.de";
 
+// Dates refer to meaningful content changes, not requests or every new release.
+// Keep unchanged legal/help/support dates independent of RELEASE_DATE.
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Keep this value tied to a meaningful public-content release. Google may
-  // ignore lastModified when a sitemap claims every page changed on each hit.
-  const coreUpdated = new Date("2026-08-20");
-
+  const pair = (de: string, en: string, modified: string, priority: number): MetadataRoute.Sitemap => {
+    const languages = { "de-DE": BASE + de, en: BASE + en, "x-default": BASE + de };
+    return [de, en].map(path => ({
+      url: BASE + path, lastModified: new Date(modified),
+      changeFrequency: "monthly", priority, alternates: { languages },
+    }));
+  };
   return [
-    /* ── Core pages ──────────────────────────────────────────── */
-    { url: `${BASE}/in-eigener-sache`, lastModified: new Date(RELEASE_DATE), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE}/en/support`, lastModified: new Date(RELEASE_DATE), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE}/versionen`, lastModified: new Date(RELEASE_DATE), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE}/en/updates`, lastModified: new Date(RELEASE_DATE), changeFrequency: "monthly", priority: 0.5 },
-    {
-      url: BASE,
-      lastModified: coreUpdated,
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
-    {
-      url: `${BASE}/en`,
-      lastModified: coreUpdated,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE}/features`,
-      lastModified: coreUpdated,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE}/en/features`,
-      lastModified: coreUpdated,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/help`,
-      lastModified: coreUpdated,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/en/help`,
-      lastModified: coreUpdated,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE}/mix-check`,
-      lastModified: coreUpdated,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE}/en/mix-check`,
-      lastModified: coreUpdated,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/tools`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9,
-    },
-    {
-      url: `${BASE}/en/tools`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
-    },
-    {
-      url: `${BASE}/tools/streaming-preview`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9,
-    },
-    {
-      url: `${BASE}/en/tools/streaming-preview`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
-    },
-    {
-      url: `${BASE}/tools/key-bpm`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9,
-    },
-    {
-      url: `${BASE}/en/tools/key-bpm`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
-    },
-    {
-      url: `${BASE}/tools/kick-bass-conflict`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9,
-    },
-    {
-      url: `${BASE}/en/tools/kick-bass-conflict`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8,
-    },
-    { url: `${BASE}/tools/audio-converter`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/en/tools/audio-converter`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/tools/album-consistency`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/en/tools/album-consistency`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/tools/reference-comparison`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/en/tools/reference-comparison`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/tools/stereo-phase`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/en/tools/stereo-phase`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/tools/silence-normalizer`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/en/tools/silence-normalizer`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE}/tools/vocal-chain`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${BASE}/en/tools/vocal-chain`, lastModified: coreUpdated, changeFrequency: "monthly", priority: 0.8 },
-
-    /* ── Ressourcen / Wissen ──────────────────────────────────── */
-    {
-      url: `${BASE}/ressourcen`,
-      lastModified: coreUpdated,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${BASE}/en/knowledge`,
-      lastModified: coreUpdated,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    ...ARTICLES.map((a) => ({
-      url: `${BASE}/ressourcen/${a.slug}`,
-      lastModified: new Date(a.updatedAt ?? a.publishedAt),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    })),
-    ...ARTICLES.map((a) => ({
-      url: `${BASE}/en/knowledge/${a.slug}`,
-      lastModified: new Date(a.updatedAt ?? a.publishedAt),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    })),
-
-    /* ── Legal – German ───────────────────────────────────────── */
-    {
-      url: `${BASE}/impressum`,
-      lastModified: coreUpdated,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${BASE}/datenschutz`,
-      lastModified: coreUpdated,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${BASE}/agb`,
-      lastModified: coreUpdated,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${BASE}/widerruf`,
-      lastModified: coreUpdated,
-      changeFrequency: "yearly",
-      priority: 0.1,
-    },
-    /* ── Legal – English ──────────────────────────────────────── */
-    {
-      url: `${BASE}/terms`,
-      lastModified: coreUpdated,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${BASE}/privacy`,
-      lastModified: coreUpdated,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${BASE}/legal-notice`,
-      lastModified: coreUpdated,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${BASE}/cancellation-policy`,
-      lastModified: coreUpdated,
-      changeFrequency: "yearly",
-      priority: 0.1,
-    },
+    ...pair("", "/en", "2026-10-11", 1),
+    ...pair("/features", "/en/features", "2026-10-11", 0.9),
+    ...pair("/help", "/en/help", "2026-08-20", 0.7),
+    ...pair("/in-eigener-sache", "/en/support", "2026-10-11", 0.5),
+    ...pair("/versionen", "/en/updates", RELEASE_DATE, 0.5),
+    ...pair("/mix-check", "/en/mix-check", GUIDANCE_UPDATED, 0.9),
+    ...pair("/tools", "/en/tools", GUIDANCE_UPDATED, 0.9),
+    ...Object.keys(TOOL_GUIDES).filter(slug => slug !== "mix-check").flatMap(slug =>
+      pair(`/tools/${slug}`, `/en/tools/${slug}`, GUIDANCE_UPDATED, 0.8)),
+    ...pair("/ressourcen", "/en/knowledge", GUIDANCE_UPDATED, 0.8),
+    ...ARTICLES.flatMap(article => pair(`/ressourcen/${article.slug}`, `/en/knowledge/${article.slug}`, articleContentDate(article), 0.7)),
+    ...pair("/impressum", "/legal-notice", "2026-08-23", 0.2),
+    ...pair("/datenschutz", "/privacy", "2026-10-12", 0.2),
+    ...pair("/agb", "/terms", "2026-08-23", 0.2),
+    ...pair("/widerruf", "/cancellation-policy", "2026-08-23", 0.1),
   ];
 }

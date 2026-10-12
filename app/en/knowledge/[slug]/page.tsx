@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { articleContentDate } from "@/lib/toolGuidance";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: enUrl,
       locale: "en_US",
       publishedTime: article.publishedAt,
-      modifiedTime: article.updatedAt ?? article.publishedAt,
+      modifiedTime: articleContentDate(article),
       images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: article.title.en }],
     },
   };
@@ -63,7 +64,7 @@ export default async function EnglishArticlePage({ params }: Props) {
     image: ["https://beatzucker.de/opengraph-image"],
     author: { "@type": "Organization", "@id": "https://beatzucker.de/#organization", name: "Beatzucker" },
     publisher: { "@id": "https://beatzucker.de/#organization" },
-    datePublished: article.publishedAt, dateModified: article.updatedAt ?? article.publishedAt,
+    datePublished: article.publishedAt, dateModified: articleContentDate(article),
     inLanguage: "en", mainEntityOfPage: { "@type": "WebPage", "@id": url },
     isPartOf: { "@id": "https://beatzucker.de/#website" },
   };

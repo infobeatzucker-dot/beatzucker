@@ -8,6 +8,7 @@ import type { AnalysisData, Lang } from "@/lib/types/mastering";
 import { requestToolAnalysis, toolError, tapTempo, TOOL_AUDIO_ACCEPT } from "@/lib/toolClient";
 import { useToolJob } from "@/lib/useToolJob";
 import ToolLanguageNav from "./ToolLanguageNav";
+import ToolJourney from "./ToolJourney";
 
 const CAMELOT: Record<string, string> = {
   "A minor": "8A", "E minor": "9A", "B minor": "10A", "F# minor": "11A", "C# minor": "12A", "G# minor": "1A", "D# minor": "2A", "A# minor": "3A", "F minor": "4A", "C minor": "5A", "G minor": "6A", "D minor": "7A",
@@ -53,7 +54,8 @@ export default function KeyBpmTool({ lang }: { lang: Lang }) {
       <input ref={inputRef} hidden type="file" accept={TOOL_AUDIO_ACCEPT} onChange={event => { const selected = event.target.files?.[0]; if (selected) void analyze(selected); }}/>
     </div>}
     {loading&&<button className="tool-back" onClick={reset}>{en?"Cancel":"Abbrechen"}</button>}
-    {error && <div className="mixcheck-error" role="alert"><AlertTriangle size={16}/><span>{error}</span><button onClick={reset}>{en ? "Try again" : "Erneut versuchen"}</button></div>}
+
+    <ToolJourney mode="feedback" tool="key-bpm" lang={lang} busy={loading} complete={!!analysis} incomplete={!!analysis && (analysis.bpm <= 0 || key === "Unknown")} error={error} progress={en ? "Detecting tempo and key …" : "Tempo und Tonart werden erkannt …"} analysis={analysis} onRetry={() => void reset()}/>
     {analysis && <div className="stream-console key-console">
       <div className="stream-file"><div><strong>{file?.name}</strong><span>{Math.floor(analysis.duration_seconds / 60)}:{String(Math.floor(analysis.duration_seconds % 60)).padStart(2,"0")} · {(analysis.sample_rate / 1000).toFixed(1)} kHz</span></div><button onClick={reset}><RotateCcw size={14}/> {en ? "Change" : "Wechseln"}</button></div>
       <div className="key-result-grid">
@@ -65,5 +67,6 @@ export default function KeyBpmTool({ lang }: { lang: Lang }) {
       <div className="key-audio"><audio src={url} controls/><div className="tap-tempo"><button onClick={tap}><Clock3 size={17}/>{en ? "Tap tempo" : "Tempo tippen"}</button><span>{tapBpm ? `${Math.round(tapBpm)} BPM` : en ? "Tap at least twice" : "Mindestens zweimal tippen"}</span><button className="tap-reset" onClick={() => setTaps([])}>{en ? "Reset" : "Zurücksetzen"}</button></div></div>
       <p className="stream-honesty"><ShieldCheck size={14}/>{en ? "Tempo and key are algorithmic estimates. Half-time, double-time and ambiguous harmonies can produce alternatives; use your ears for the final decision." : "Tempo und Tonart sind algorithmische Schätzungen. Half-Time, Double-Time und mehrdeutige Harmonien können Alternativen ergeben – entscheide abschließend mit dem Gehör."}</p>
     </div>}
-  </section>;
+  <ToolJourney mode="recommendations" tool="key-bpm" lang={lang} busy={loading} complete={!!analysis} incomplete={!!analysis && (analysis.bpm <= 0 || key === "Unknown")} error={error} progress={en ? "Detecting tempo and key …" : "Tempo und Tonart werden erkannt …"} analysis={analysis} onRetry={() => void reset()}/>
+</section>;
 }

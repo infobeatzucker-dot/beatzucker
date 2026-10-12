@@ -30,6 +30,21 @@ model User {
   sessions         Session[]
   masters          Master[]
   savedReferences  SavedReference[]
+  registrationNotification RegistrationNotification?
+}
+
+// Enqueued atomically with NEW accounts only; no backfill for existing users.
+model RegistrationNotification {
+  userId        String    @id
+  provider      String
+  createdAt     DateTime  @default(now())
+  sentAt        DateTime?
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime  @default(now())
+  lockedUntil   DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sentAt, nextAttemptAt])
 }
 
 // Independent evidence of receipt: survives account erasure and mail outages.
