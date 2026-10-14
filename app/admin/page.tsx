@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
+import ToolUsageStats from "@/components/admin/ToolUsageStats";
 
 interface Stats {
   totalUsers: number;
@@ -309,6 +310,8 @@ export default function AdminPage() {
             </>
           ))}
         </div>
+
+        <ToolUsageStats />
 
         {/* ── ADMIN PASSWORD RESET ── */}
         <div style={{ marginBottom: "2.5rem" }}>

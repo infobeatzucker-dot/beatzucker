@@ -10,6 +10,15 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.13.0",
+  date: "2026-10-14",
+  title: { de: "Audio-Tools im Blick.", en: "Keeping track of audio tools." },
+  summary: { de: "Eine neue interne Übersicht hilft dem Betreiber zu erkennen, welche Audio-Tools genutzt werden und wo Probleme gemeldet werden.", en: "A new internal overview helps the operator see which audio tools are used and where problems are reported." },
+  improvements: {
+    de: ["Die Admin-Übersicht zeigt Tool-Vorgänge, Ergebnisse und Fehler für 7, 30 oder 90 Tage sowie einen Tagesverlauf.", "Die Statistik speichert keine Audiodaten, Dateinamen oder Kontoverknüpfungen. Browsermeldungen können unvollständig sein; die Datenschutzhinweise erklären die Erfassung."],
+    en: ["The admin overview shows tool operations, outcomes and errors over 7, 30 or 90 days, with a daily activity chart.", "The statistics store no audio, filenames or account links. Browser reports may be incomplete; the privacy information explains the collection."],
+  },
+}, {
   version: "0.12.0",
   date: "2026-10-12",
   title: { de: "Vom Messwert zum nächsten Schritt.", en: "From measurements to your next step." },

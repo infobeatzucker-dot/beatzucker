@@ -133,6 +133,15 @@ model SavedReference {
   @@index([userId])
 }
 
+model ToolUsage {
+  id      String @id
+  tool    String
+  day     String
+  outcome String
+
+  @@index([day, tool, outcome])
+}
+
 model Master {
   id           String   @id @default(cuid())
   userId       String?

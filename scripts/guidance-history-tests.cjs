@@ -47,7 +47,7 @@ async function test(name, fn) { await fn(); passed++; console.log('PASS ' + name
     assert.equal(urls.size, sitemap.length);
     for (const item of sitemap) {
       assert.ok(item.lastModified instanceof Date && Number.isFinite(+item.lastModified));
-      assert.ok(+item.lastModified <= +new Date('2026-10-12T23:59:59Z'));
+      assert.ok(+item.lastModified <= +new Date(load('lib/releases.ts').RELEASES[0].date + 'T23:59:59Z'));
       assert.doesNotMatch(item.url, /dashboard|admin|api\/|login|register/);
       for (const link of Object.values(item.alternates.languages)) assert.ok(urls.has(link), link);
       for (const link of [item.alternates.languages.en, item.alternates.languages['de-DE']])

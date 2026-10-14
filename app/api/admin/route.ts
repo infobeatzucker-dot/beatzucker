@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession, type Session } from "next-auth";
+import { getServerSession } from "next-auth";
+import { requireAdmin } from "@/lib/adminAccess";
 import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
-
-function isAdmin(email: string) {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail) return false;
-  return email.toLowerCase() === adminEmail.toLowerCase();
-}
-
-async function requireAdmin(session: Session | null) {
-  if (!session?.user?.email || !isAdmin(session.user.email)) return false;
-  const adminUser = await db.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
-  return !!adminUser;
-}
 
 // GET /api/admin — returns full dashboard data
 export async function GET() {

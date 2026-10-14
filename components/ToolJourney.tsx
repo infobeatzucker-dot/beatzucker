@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useToolUsage } from "@/lib/useToolUsage";
 import { ArrowRight, BookOpen } from "lucide-react";
 import type { AnalysisData, Lang } from "@/lib/types/mastering";
 import { nextStepGuidance, TOOL_GUIDES, toolHref } from "@/lib/toolGuidance";
@@ -8,6 +10,7 @@ export default function ToolJourney({ tool, lang, busy, complete, incomplete = f
   tool: string; lang: Lang; busy: boolean; complete: boolean; incomplete?: boolean;
   error?: string; progress?: string; analysis?: AnalysisData | null; onRetry?: () => void; mode?: "all" | "feedback" | "recommendations";
 }) {
+  useToolUsage(tool, mode !== "recommendations", busy, complete, incomplete, error);
   const en = lang === "en", next = nextStepGuidance(tool, lang, analysis);
   const state = busy ? "working" : error ? "error" : incomplete ? "warning" : complete ? "success" : "idle";
   return <>
