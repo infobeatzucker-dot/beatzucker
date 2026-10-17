@@ -11,6 +11,17 @@ import main
 
 
 class ControlLeaseTests(unittest.IsolatedAsyncioTestCase):
+    async def test_raw_preview_is_protected_and_disconnected_read_releases_budget(self):
+        self.assertIn("/preview-section", main.PROTECTED_PATHS)
+        class Request:
+            async def is_disconnected(self): return True
+        slots = asyncio.Semaphore(1)
+        with patch.object(main, "DSP_SLOTS", slots), patch.object(main, "validate_file_path", side_effect=lambda value:value), patch.object(main, "read_preview_section") as worker:
+            with self.assertRaises(main.HTTPException):
+                await main.preview_section(main.PreviewSectionRequest(file_path="fixture.wav", start=0, end=1), Request())
+            worker.assert_not_called()
+            self.assertEqual(slots._value, 1)
+
     async def test_protected_route_releases_slot_when_already_disconnected(self):
         self.assertIn("/control-preview", main.PROTECTED_PATHS)
         class Request:

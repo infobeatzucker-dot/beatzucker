@@ -47,6 +47,27 @@ let passed=0;async function test(name,fn){await fn();console.log('PASS '+name);p
  await test('manual UI invalidates stale control renders and labels section/export differences honestly',()=>{
    const source=fs.readFileSync('components/ManualAdjustModal.tsx','utf8');assert.ok(source.includes('controller.signal.aborted'));assert.ok(source.includes('URL.revokeObjectURL(controlUrl)'));assert.ok(source.includes('controlKey, open'));assert.ok(source.includes('kein identischer Ausschnitt'));assert.ok(source.includes('not an identical excerpt'));assert.ok(source.includes('Ausgangswerte'));assert.ok(source.includes('Base settings'));
  });
+ let clipCalls=0;
+ const clip=load('app/api/preview-section/route.ts',{
+   'next-auth/next':{getServerSession:async()=>session},'@/lib/authOptions':{authOptions:{}},
+   '@/lib/uploadAuthorization':{verifyUpload:(_,owner,token)=>owner==='fixture'&&token==='upload-fixture'},
+   '@/lib/boundedJson':load('lib/boundedJson.ts'),'@/lib/pythonService':{pythonServiceHeaders:()=>({})},'@/lib/rateLimit':{rateLimit:()=>allow},
+   'fs/promises':{readdir:async()=>[id+'.wav'],realpath:async target=>escaped&&String(target).endsWith('.wav')?path.resolve('outside-fixture.wav'):path.resolve(target)},
+ },{fetch:async()=>{clipCalls++;return new Response(new Uint8Array([82,73,70,70]));}});
+ const clipBody={file_id:id,upload_token:'upload-fixture',start:2,end:10};
+ const sendClip=(body=clipBody,origin=base)=>clip.POST(new Request(base+'/api/preview-section',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(body)}));
+ await test('buffered source rejects guests, foreign uploads, origins, invalid regions and oversized bodies',async()=>{
+   session=null;assert.equal((await sendClip()).status,401);session={user:{id:'fixture'}};
+   assert.equal((await sendClip(clipBody,'https://foreign.invalid')).status,403);
+   assert.equal((await sendClip({...clipBody,upload_token:'foreign'})).status,403);
+   for(const change of[{start:-1},{end:50},{end:2},{start:'2'},{file_id:'../escape'}])assert.equal((await sendClip({...clipBody,...change})).status,400);
+   assert.equal((await sendClip({...clipBody,padding:'x'.repeat(3000)})).status,413);
+   allow=false;assert.equal((await sendClip()).status,429);allow=true;escaped=true;assert.equal((await sendClip()).status,403);escaped=false;assert.equal(clipCalls,0);
+ });
+ await test('buffered source returns private WAV without writing master history',async()=>{
+   const response=await sendClip();assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/);assert.equal((await response.arrayBuffer()).byteLength,4);assert.equal(clipCalls,1);
+   assert.ok(!fs.readFileSync('app/api/preview-section/route.ts','utf8').includes('db.master.create'));
+ });
  if(previous===undefined)delete process.env.ANALYSIS_SIGNING_SECRET;else process.env.ANALYSIS_SIGNING_SECRET=previous;
  console.log(passed+' mastering request/preview checks passed; no production requests.');
 })().catch(error=>{console.error(error);process.exitCode=1});

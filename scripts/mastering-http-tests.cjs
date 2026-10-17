@@ -29,7 +29,8 @@ async function request(url,options={}){
    console.log('PASS actual '+(overrides?'manual re-master':'auto-master')+' and private WAV download');
  }
  const before=await(await request('/api/account')).json();
+ response=await request('/api/preview-section',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...upload,start:1,end:4})});assert.equal(response.status,200,await response.clone().text());assert.match(response.headers.get('cache-control'),/no-store/);const section=Buffer.from(await response.arrayBuffer());assert.equal(section.subarray(0,4).toString(),'RIFF');assert.ok(section.length>rate*3*2*4&&section.length<8000000);console.log('PASS actual buffered PCM16-source audition section');
  response=await request('/api/control-preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...settings,start:1,end:4,overrides:{low_shelf_gain:1.5,bass_mono_amount:.25}})});assert.equal(response.status,200,await response.clone().text());assert.match(response.headers.get('cache-control'),/no-store/);assert.equal(response.headers.get('content-type'),'audio/wav');const audio=Buffer.from(await response.arrayBuffer());assert.equal(audio.subarray(0,4).toString(),'RIFF');assert.ok(audio.length>rate*3*2*4);
  const after=await(await request('/api/account')).json();assert.equal(after.masters.length,before.masters.length);console.log('PASS actual server control WAV without extra master/quota entry');
- console.log('5 actual mastering HTTP checks passed; no production audio or mail used.');
+ console.log('6 actual mastering HTTP checks passed; no production audio or mail used.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -10,6 +10,15 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.14.1",
+  date: "2026-10-17",
+  title: { de: "Flüssiger manuell vorhören.", en: "Smoother manual previews." },
+  summary: { de: "Die manuelle Vorschau lädt den gewählten Ausschnitt vor und wiederholt ihn aus dem Speicher. Die Live-Effekte benötigen weniger Rechenarbeit.", en: "Manual preview preloads the selected section and loops it from memory. Live effects require less processing." },
+  improvements: {
+    de: ["Keine erneuten Dateisprünge beim Wiederholen des Loops. Beim Laden wird der Fortschritt sichtbar angezeigt.", "Bereichswechsel werden nach dem Loslassen übernommen; verspätete Ladevorgänge starten keine alte Auswahl.", "Die Vorschau pausiert ihre Audioberechnung bei gestoppter Wiedergabe. Der Hauptvergleich und der endgültige Master-Export bleiben unverändert."],
+    en: ["Loop repetitions no longer seek through the source file. Loading is visibly indicated.", "Section changes are applied on release; late loads cannot play an old selection.", "Preview audio processing is suspended when paused. The main comparison and final master export are unchanged."],
+  },
+}, {
   version: "0.14.0",
   date: "2026-10-17",
   title: { de: "Gezielter bearbeiten. Genauer vorhören.", en: "More focused processing. Closer previews." },

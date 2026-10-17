@@ -31,6 +31,7 @@ from silence_normalizer import normalize_section
 from codec_preview import render_codec, meter_audio
 from audio_limits import validate_full_dsp_audio
 from control_preview import render_control
+from preview_section import read_preview_section
 
 
 # ─── Cleanup job on startup ────────────────────────────────────────────────────
@@ -78,7 +79,7 @@ app.add_middleware(
 )
 
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
-PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview"}
+PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview", "/preview-section"}
 MAX_CONCURRENT_DSP_JOBS = max(1, int(os.environ.get("MAX_CONCURRENT_DSP_JOBS", "2")))
 DSP_SLOTS = asyncio.Semaphore(MAX_CONCURRENT_DSP_JOBS)
 ACTIVE_MASTER_IDS = set()
@@ -145,6 +146,11 @@ class MasterRequest(BaseModel):
 
 
 class ControlPreviewRequest(MasterRequest):
+    start: float
+    end: float
+
+
+class PreviewSectionRequest(FilePathRequest):
     start: float
     end: float
 
@@ -326,6 +332,20 @@ async def waveform(req: WaveformRequest):
     except Exception:
         logger.exception("Error in /waveform")
         raise HTTPException(500, "Waveform extraction failed")
+
+
+@app.post("/preview-section")
+async def preview_section(req: PreviewSectionRequest, request: Request):
+    req.file_path = validate_file_path(req.file_path)
+    permit = await acquire_dsp_slot(); lease = DspLease(permit)
+    try:
+        if await request.is_disconnected(): raise HTTPException(499, "Client disconnected")
+        data = await lease.run(read_preview_section, req.file_path, req.start, req.end)
+        return Response(data, media_type="audio/wav", headers={"Cache-Control": "no-store"})
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+    finally:
+        lease.release_when_done()
 
 
 @app.post("/control-preview")

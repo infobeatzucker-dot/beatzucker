@@ -227,12 +227,19 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         analysis?.integrated_lufs ?? -18,
         analysis?.true_peak ?? -6,
         serverParams ?? {},
+        dur,
       );
       engine.onState(setPlaying);
+      engine.onLoading(setEngineBusy);
+      engine.onError(() => setPreviewError(lang === "en" ? "Preview unavailable. Please try Play again." : "Vorschau nicht verfügbar. Bitte erneut auf Play klicken."));
       engine.setRegion(regionRef.current.start, regionRef.current.start + regionRef.current.len); engineRef.current = engine; setAnalyser(engine.analyser);
     }
     return engineRef.current;
-  }, [sourceUrl, analysis?.integrated_lufs, analysis?.true_peak, serverParams]);
+  }, [sourceUrl, analysis?.integrated_lufs, analysis?.true_peak, serverParams, dur, lang]);
+  useEffect(() => {
+    if (!open) return;
+    try { void ensureEngine().prepare().catch(() => {}); } catch { /* Play reports initialization errors. */ }
+  }, [open, ensureEngine]);
   const setParam = useCallback((key: ParamKey, value: number) => setValues((previous) => {
     const next = { ...previous, [key]: value }; if (!auditionBaseRef.current) engineRef.current?.update(next); return next;
   }), []);
@@ -243,7 +250,6 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   }, [base]);
   const setRegionLive = useCallback((start: number, len: number) => {
     const next = normalizeLoopRegion(dur, start, len); regionRef.current = next;
-    engineRef.current?.setRegion(next.start, next.start + next.len);
   }, [dur]);
   const commitRegion = useCallback(() => {
     const current = regionRef.current;
@@ -251,6 +257,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     // explicitly on commit, even when React's previous text prop is unchanged.
     if (chipTimeRef.current) chipTimeRef.current.textContent = `${fmtTime(current.start)}–${fmtTime(current.start + current.len)}`;
     setRegion({ ...current });
+    engineRef.current?.setRegion(current.start, current.start + current.len);
   }, []);
   const ratioAt = useCallback((clientX: number) => {
     const rect = waveRef.current?.getBoundingClientRect(); return rect?.width ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
@@ -336,7 +343,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         </div>
         <button className="adjust-loudest" onClick={locateLoudest} disabled={waveLoading}><LocateFixed size={12} />{lang === "en" ? "Loudest part" : "Lauteste Stelle"}</button>
         <div className="adjust-lenpicker">{[5, 8, 12, 20].filter((length) => length <= dur || length === 5).map((length) => <button key={length} className={Math.abs(region.len - Math.min(length, dur)) < .1 ? "is-active" : ""} onClick={() => { const current = regionRef.current; setRegionLive(current.start + current.len / 2 - length / 2, length); commitRegion(); }}>{length}s</button>)}</div>
-      </div>{previewError && <span className="adjust-error">{previewError}</span>}</div>
+      </div>{engineBusy && <span role="status">{lang === "en" ? "Loading loop section …" : "Loopausschnitt wird geladen …"}</span>}{previewError && <span className="adjust-error">{previewError}</span>}</div>
       <canvas ref={waveRef} className="adjust-wave-canvas" onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { ratio: ratioAt(event.clientX), start: regionRef.current.start, moved: false }; }} />
       <p className="adjust-hint">{waveLoading ? (lang === "en" ? "Reading waveform…" : "Wellenform wird analysiert…") : (lang === "en" ? "Click to position · drag to move the loop" : "Klicken zum Positionieren · Ziehen verschiebt den Loop")}</p></section>
 
