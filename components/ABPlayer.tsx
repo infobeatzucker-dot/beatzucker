@@ -12,7 +12,8 @@
  */
 
 import { useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import ABModeSwitch from "@/components/ABModeSwitch";
 import { useAudioEngine } from "@/contexts/AudioEngineContext";
 import type { Lang } from "@/lib/types/mastering";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export default function ABPlayer({ filename, lang = "de" }: Props) {
+  const reduced = useReducedMotion();
   const engine = useAudioEngine();
   const liveEngineRef = useRef(engine);
   liveEngineRef.current = engine;
@@ -276,7 +278,8 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
 
   return (
     <div
-      className="rounded-2xl overflow-hidden mb-6"
+      className="studio-ab-player rounded-2xl overflow-hidden mb-6"
+      data-mode={mode}
       style={{
         background: "rgba(8,10,18,0.85)",
         border: `1px solid ${isB ? "rgba(56,189,248,0.25)" : "rgba(139,92,246,0.25)"}`,
@@ -298,7 +301,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
             style={{
               background: accent,
               boxShadow: `0 0 6px ${accent}`,
-              animation: isPlaying ? "pulse 1s ease-in-out infinite" : "none",
+              animation: isPlaying && !reduced ? "pulse 1s ease-in-out infinite" : "none",
             }}
           />
           <span className="text-xs font-semibold tracking-widest" style={{ color: accent }}>
@@ -310,52 +313,9 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
         </span>
       </div>
 
-      {/* A/B Toggle Pills */}
-      <div className="flex items-center gap-3 px-5 pt-4 pb-3">
-        {(["A", "B"] as const).map((m) => {
-          const active   = mode === m;
-          const disabled = m === "B" && (masterUnavailable || !engine.masteredUrl);
-          const mAccent  = m === "B" ? "#38bdf8" : "#8b5cf6";
-          return (
-            <motion.button
-              key={m}
-              onClick={() => engine.setMode(m)}
-              disabled={disabled}
-              title={m === "B" && !masteredUrl ? (lang === "de" ? "Master noch nicht verfügbar" : "Master not available yet") : undefined}
-              whileHover={disabled ? {} : { scale: 1.04 }}
-              whileTap={disabled   ? {} : { scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="flex-1 py-3 rounded-xl font-bold tracking-widest text-sm relative overflow-hidden"
-              style={{
-                cursor: disabled ? "not-allowed" : "pointer",
-                opacity: disabled ? 0.35 : 1,
-                background: active
-                  ? `linear-gradient(135deg, ${mAccent}22, ${mAccent}11)`
-                  : "rgba(255,255,255,0.02)",
-                border: `1.5px solid ${active ? mAccent : "rgba(255,255,255,0.06)"}`,
-                color: active ? mAccent : "var(--text-muted)",
-                boxShadow: active ? `0 0 20px ${mAccent}33, inset 0 1px 0 ${mAccent}22` : "none",
-                transition: "all 0.3s ease",
-              }}
-            >
-              {/* Animated glow sweep */}
-              {active && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "100%" }}
-                  transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 1.5 }}
-                  style={{
-                    background: `linear-gradient(90deg, transparent, ${mAccent}18, transparent)`,
-                  }}
-                />
-              )}
-              <span className="relative z-10">
-                {m} · {m === "A" ? "ORIGINAL" : (lang === "de" ? "MASTER" : "MASTERED")}
-              </span>
-            </motion.button>
-          );
-        })}
+      {/* Selection animation never controls or delays audio. */}
+      <div className="px-5 pt-4 pb-3">
+        <ABModeSwitch mode={mode} onChange={engine.setMode} available={!masterUnavailable && !!masteredUrl} lang={lang} />
       </div>
 
       {/* A fair mastering comparison must not reward the louder source. */}
@@ -398,7 +358,8 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
       {/* Waveform + Oscilloscope canvas area — clickable to seek */}
       <div
         ref={waveAreaRef}
-        className="relative mx-5 mb-3 rounded-xl overflow-hidden"
+        className="studio-waveform-area relative mx-5 mb-3 rounded-xl overflow-hidden"
+        data-wave-ready={!!engine.staticWaveform}
         style={{ height: 80, cursor: "pointer" }}
         onClick={(e) => handleScrub(e, waveAreaRef)}
         onMouseDown={() => { isDragging.current = true; }}
@@ -490,8 +451,8 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
         <motion.button
           onClick={engine.togglePlay}
           aria-label={lang === "de" ? (isPlaying ? "Wiedergabe pausieren" : "Wiedergabe starten") : (isPlaying ? "Pause playback" : "Play audio")}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.94 }}
+          whileHover={reduced ? {} : { scale: 1.08 }}
+          whileTap={reduced ? {} : { scale: 0.94 }}
           className="relative flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0"
           style={{
             background: isPlaying
@@ -503,7 +464,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
         >
           {/* Pulsing ring when playing */}
           <AnimatePresence>
-            {isPlaying && (
+            {isPlaying && !reduced && (
               <motion.div
                 className="absolute inset-0 rounded-full"
                 initial={{ scale: 1, opacity: 0.5 }}
@@ -547,9 +508,9 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
           <AnimatePresence mode="wait">
             <motion.span
               key={mode}
-              initial={{ opacity: 0, y: -6 }}
+              initial={{ opacity: 0, y: reduced ? 0 : -6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
+              exit={{ opacity: 0, y: reduced ? 0 : 6 }}
               transition={{ duration: 0.2 }}
               className="text-xs font-semibold tracking-wider"
               style={{ color: accent }}

@@ -1,0 +1,31 @@
+.sonic-progress-overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 24px 16px; overflow-y: auto; background: #040610df; backdrop-filter: blur(9px); }
+.sonic-progress-card { position: relative; isolation: isolate; width: min(100%,560px); margin: auto; overflow: hidden; border: 1px solid #a693e83b; border-radius: 25px; outline: none; color: #f3f1fa; background: radial-gradient(ellipse at 80% 5%,#3e285236,transparent 65%),linear-gradient(145deg,#151a2bf5,#090d19); box-shadow: 0 40px 130px #0009,0 0 65px #8160cc12,inset 0 1px #ffffff12; }
+.sonic-progress-card::before { content: ""; position: absolute; top: 0; left: 20%; right: 20%; height: 1px; background: linear-gradient(90deg,transparent,#a9caff8c,transparent); }
+.sonic-progress-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 22px 26px 0; color: #8d94ac; font: 9px/1.5 monospace; letter-spacing: .15em; }
+.sonic-progress-top > span:first-child { display: inline-flex; align-items: center; gap: 8px; }
+.sonic-progress-top i { width: 5px; height: 5px; border-radius: 50%; background: #98dacc; box-shadow: 0 0 10px #98dacc50; }
+.sonic-progress-top > span:last-child { color: #a7a0c3; font-size: 8px; white-space: nowrap; }
+.sonic-progress-art { position: relative; height: 234px; margin: 0 8px; }
+.sonic-progress-canvas { width: 100%; height: 100%; display: block; mask-image: linear-gradient(180deg,#000 78%,transparent); pointer-events: none; }
+.sonic-progress-art-label { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); color: #79829c; font: 8px/1 monospace; letter-spacing: .23em; white-space: nowrap; }
+.sonic-progress-art-label b { color: #b3a8d0; font-weight: 400; margin-left: 10px; }
+.sonic-progress-content { position: relative; padding: 5px 32px 26px; }
+.sonic-progress-heading { display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+.sonic-progress-eyebrow { color: #9f94bb; font-size: 8px; font-weight: 650; letter-spacing: .18em; }
+.sonic-progress-heading h2 { margin-top: 8px; font-size: clamp(1.3rem,4vw,1.7rem); font-weight: 650; line-height: 1.2; letter-spacing: -.035em; }
+.sonic-progress-percentage { flex-shrink: 0; font-size: 2.2rem; line-height: 1; font-weight: 350; letter-spacing: -.07em; color: #c4bbdf; font-variant-numeric: tabular-nums; }
+.sonic-progress-percentage small { font-size: .8rem; color: #737d98; margin-left: 4px; }
+.sonic-progress-status { min-height: 2.8em; margin: 18px 0 10px; color: #b0c7da; font-size: .78rem; line-height: 1.5; }
+.sonic-progress-bar { height: 4px; overflow: hidden; border-radius: 4px; background: #ffffff0b; }
+.sonic-progress-bar > div { height: 100%; border-radius: inherit; background: linear-gradient(90deg,#719edf,#af8ade,#c39be4); transition: width .5s ease-out; }
+.sonic-progress-steps { list-style: none; display: flex; gap: 7px; padding: 0; margin: 22px 0; }
+.sonic-progress-steps li { flex: 1; min-width: 0; color: #818aa2; text-align: center; font-size: 8px; }
+.sonic-progress-steps i { display: block; height: 2px; margin-bottom: 8px; border-radius: 2px; background: #ffffff12; }
+.sonic-progress-steps .is-active { color: #c5b4ec; }
+.sonic-progress-steps .is-active i { background: #b09bdf; box-shadow: 0 0 10px #a78bfa40; }
+.sonic-progress-steps .is-done i { background: #75bccc; }
+.sonic-progress-note { border-top: 1px solid #ffffff0b; padding-top: 16px; color: #9b9bb2; font-size: .64rem; line-height: 1.6; }
+.sonic-progress-patience { color: #818ba2; margin-top: 7px; font-size: .65rem; line-height: 1.7; }
+@media (max-width: 480px) { .sonic-progress-top { padding: 19px 20px 0; font-size: 8px; letter-spacing: .1em; } .sonic-progress-art { height: 205px; } .sonic-progress-content { padding: 3px 22px 22px; } .sonic-progress-steps { gap: 4px; } .sonic-progress-steps li { font-size: 7px; } .sonic-progress-percentage { font-size: 1.8rem; } }
+@media (max-height: 650px) { .sonic-progress-art { height: 150px; } .sonic-progress-overlay { padding-top: 12px; padding-bottom: 12px; } .sonic-progress-steps { margin: 17px 0; } }
+@media (prefers-reduced-motion: reduce) { .sonic-progress-card *, .sonic-progress-card::before { animation: none !important; transition: none !important; } }

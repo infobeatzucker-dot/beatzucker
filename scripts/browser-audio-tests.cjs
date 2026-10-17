@@ -41,6 +41,12 @@ async function main() {
     for (let t = 0; t < 1000; t += 10) tick(t);
     assert.equal(draws, 10); loop.stop(); reduced = false;
   });
+  await test('Sonic Core reduced motion draws once and only redraws for changes', () => {
+    reduced = true; let draws = 0; const loop = animation.startVisibleAnimation({}, () => draws++, { maxFps: 24, reducedFps: 0 });
+    tick(0); tick(1000); assert.equal(draws, 1); assert.equal(frames.size, 0);
+    loop.invalidate(); tick(1100); assert.equal(draws, 2); assert.equal(frames.size, 0);
+    loop.stop(); reduced = false;
+  });
   const client = load('lib/clientAudio.ts'), analysis = load('lib/workerAnalysis.ts');
   let output; const scope = { postMessage: value => output = value };
   load('lib/audioExport.worker.ts', { globalThis: scope }, { './clientAudio': client, './workerAnalysis': analysis });

@@ -571,6 +571,7 @@ export default function MasteringWorkspace({ lang }: Props) {
       {/* ── Mastering progress modal ─────────────────────────────────────────── */}
       <MasteringProgressModal
         isOpen={appState === "mastering"}
+        completed={appState === "done" && !masteringError}
         step={currentProgress}
         lang={lang}
       />

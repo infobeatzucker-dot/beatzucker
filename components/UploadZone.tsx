@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { AppState, AnalysisData, UploadedFile, type Lang } from "@/lib/types/mastering";
 import { withDspAdmissionRetry } from "@/lib/dspAdmissionRetry";
+import UploadSignal from "@/components/UploadSignal";
 
 interface Props {
   onUploadComplete: (file: UploadedFile) => void;
@@ -199,7 +200,8 @@ export default function UploadZone({
 
   if (isUploading || isAnalyzing) {
     return (
-      <div className="upload-zone p-6" style={{ minHeight: 200 }}>
+      <div className="upload-zone studio-upload-busy p-6" style={{ minHeight: 200 }}>
+        <UploadSignal phase={isUploading ? "uploading" : "received"} progress={uploadProgress} />
         <div className="flex flex-col gap-5 justify-center h-full" style={{ minHeight: 160 }}>
 
           {/* Filename */}
@@ -389,17 +391,21 @@ export default function UploadZone({
 
   return (
     <div
-      className={`upload-zone p-8 text-center cursor-pointer ${isDragging ? "drag-over" : ""}`}
+      className={`upload-zone studio-upload-zone p-8 text-center cursor-pointer ${isDragging ? "drag-over" : ""}`}
       style={{ minHeight: 220 }}
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-      onDragLeave={() => setIsDragging(false)}
+      onDragLeave={(e) => { if (!(e.relatedTarget instanceof Node) || !e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); }}
       onDrop={onDrop}
       onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      aria-label={lang === "de" ? "Audiodatei hochladen" : "Upload audio file"}
+      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); inputRef.current?.click(); } }}
     >
-      <IdleWaveform />
+      <UploadSignal dragging={isDragging} />
 
       <div
-        className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+        className="studio-upload-legacy-icon w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
         style={{
           background: isDragging
             ? "rgba(56,189,248,0.15)"

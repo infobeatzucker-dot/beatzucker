@@ -10,6 +10,15 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.18.0",
+  date: "2026-10-17",
+  title: { de: "Dein Master nimmt Gestalt an.", en: "Watch your master take shape." },
+  summary: { de: "Ein animierter Klangkern begleitet das Mastering. Upload, Abschluss und Hörvergleich erhalten ruhigere, aufeinander abgestimmte Übergänge. Ein direkter Download-Sprung führt vom Player zu den Formaten. Die Klangbearbeitung bleibt unverändert.", en: "An animated sound core accompanies mastering. Upload, completion and listening comparison receive subtle, coordinated transitions. A direct download shortcut leads from the player to the available formats. Audio processing remains unchanged." },
+  improvements: {
+    de: ["Das Mastering-Fenster zeigt einen schwebenden Klangkern mit feinen Linien und Partikeln. Seine Darstellung verändert sich passend zum aktuellen Arbeitsschritt.", "Echter Fortschritt und Arbeitsschritte bleiben gut erkennbar. Die Animation ist eine Illustration, kein Live-Analyzer.", "In unsichtbaren Tabs pausiert die Animation. Bei reduzierter Bewegung bleibt die Darstellung ruhig. Deutsch und Englisch sind vollständig enthalten.", "Die Uploadfläche reagiert auf abgelegte Dateien und bestätigt den erfolgreichen Upload. Die echte Wellenform blendet sich nach dem Laden ein.", "Ein kurzer Abschlussübergang führt zum fertigen Master. Der gewohnte Autostart bleibt erhalten; der A/B-Schalter zeigt die Auswahl mit einem gleitenden Lichtmarker statt einer Dauerschleife."],
+    en: ["The mastering window shows a floating sound core with fine lines and particles. Its appearance changes with the current processing stage.", "Actual progress and processing stages remain clearly visible. The animation is an illustration, not a live analyzer.", "Animation pauses in hidden tabs. Reduced-motion preferences produce a still illustration. German and English are fully supported.", "The upload area reacts to dragged files and confirms successful uploads. The actual waveform fades in after loading.", "A short completion transition introduces the finished master. Existing autoplay stays available; the A/B switch shows your selection with a sliding light marker instead of a repeating sweep."],
+  },
+}, {
   version: "0.16.0",
   date: "2026-10-17",
   title: { de: "Mehr hören. Zuverlässiger weiterarbeiten.", en: "More to hear. Smoother consecutive masters." },

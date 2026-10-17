@@ -1,147 +1,49 @@
 "use client";
+import { useEffect, useId, useRef } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import type { ProgressStep, Lang } from "@/lib/types/mastering";
+import { sonicStage } from "@/lib/sonicCore";
+import MasteringSonicCore from "@/components/MasteringSonicCore";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { ProgressStep, type Lang } from "@/lib/types/mastering";
+interface Props { isOpen: boolean; step: ProgressStep | null; lang?: Lang; completed?: boolean }
+const STEPS = ["analyzing", "eq", "compression", "ms", "saturation", "limiting", "rendering"];
+const LABELS = { de: ["Analyse", "EQ", "Kompression", "Stereo", "Sättigung", "Limiting", "Export"], en: ["Analysis", "EQ", "Compression", "Stereo", "Saturation", "Limiting", "Export"] };
 
-interface Props {
-  isOpen: boolean;
-  step: ProgressStep | null;
-  lang?: Lang;
-}
-
-const STEPS = [
-  { key: "analyzing",   label: "Track wird analysiert…" },
-  { key: "eq",          label: "EQ wird angewendet…" },
-  { key: "compression", label: "Kompression…" },
-  { key: "ms",          label: "M/S-Bearbeitung…" },
-  { key: "saturation",  label: "Sättigung…" },
-  { key: "limiting",    label: "Limiting…" },
-  { key: "rendering",   label: "Ausgabe wird erstellt…" },
-];
-
-const STEPS_EN = [
-  { key: "analyzing", label: "Analyzing track…" }, { key: "eq", label: "Applying EQ…" },
-  { key: "compression", label: "Compression…" }, { key: "ms", label: "M/S processing…" },
-  { key: "saturation", label: "Saturation…" }, { key: "limiting", label: "Limiting…" },
-  { key: "rendering", label: "Rendering…" },
-];
-
-export default function MasteringProgressModal({ isOpen, step, lang = "de" }: Props) {
-  const progress = step?.progress ?? 0;
-  const label = step?.label ?? (lang === "de" ? "Wird verarbeitet…" : "Processing…");
-  const displaySteps = lang === "de" ? STEPS : STEPS_EN;
-
-  // Which step index is active (for the step dots)
-  const activeIdx = STEPS.findIndex((s) => s.key === step?.step);
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="modal-backdrop"
-            className="fixed inset-0 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            style={{ background: "rgba(4,5,10,0.85)", backdropFilter: "blur(8px)" }}
-          />
-
-          {/* Modal card */}
-          <motion.div
-            key="modal-card"
-            className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          >
-            <div
-              className="w-full max-w-md rounded-2xl p-8"
-              style={{
-                background: "rgba(14,16,28,0.98)",
-                border: "1px solid rgba(139,92,246,0.25)",
-                boxShadow: "0 0 60px rgba(139,92,246,0.15), 0 0 120px rgba(56,189,248,0.05), 0 24px 48px rgba(0,0,0,0.6)",
-              }}
-            >
-              {/* Header */}
-              <div className="flex items-center gap-3 mb-6">
-                {/* Spinning ring */}
-                <div
-                  className="w-8 h-8 rounded-full border-2 border-transparent animate-spin flex-shrink-0"
-                  style={{
-                    borderTopColor: "var(--accent-purple)",
-                    borderRightColor: "var(--accent-cyan)",
-                  }}
-                />
-                <div>
-                  <div className="font-bold text-base" style={{ color: "var(--text-primary)" }}>
-                    {lang === "de" ? "Mastering läuft…" : "Mastering in progress…"}
-                  </div>
-                  <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                    {lang === "de" ? "Bitte warten — das dauert 1–3 Minuten" : "Please wait — this takes 1–3 minutes"}
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div
-                className="relative h-2 rounded-full overflow-hidden mb-2"
-                style={{ background: "rgba(255,255,255,0.06)" }}
-              >
-                <motion.div
-                  className="absolute inset-y-0 left-0 rounded-full"
-                  style={{
-                    background: "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))",
-                    boxShadow: "0 0 12px rgba(139,92,246,0.6)",
-                  }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                />
-              </div>
-
-              {/* Percentage + label */}
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-sm font-medium" style={{ color: "var(--accent-cyan)" }}>
-                  {label}
-                </span>
-                <span className="text-sm font-bold mono" style={{ color: "var(--accent-purple)" }}>
-                  {progress}%
-                </span>
-              </div>
-
-              {/* Step dots */}
-              <div className="flex items-center gap-1.5">
-                {displaySteps.map((s, i) => {
-                  const done   = activeIdx > i;
-                  const active = activeIdx === i;
-                  return (
-                    <div
-                      key={s.key}
-                      className="flex-1 h-1 rounded-full transition-all duration-500"
-                      style={{
-                        background: done
-                          ? "var(--accent-cyan)"
-                          : active
-                          ? "var(--accent-purple)"
-                          : "rgba(255,255,255,0.08)",
-                        boxShadow: active ? "0 0 8px rgba(139,92,246,0.8)" : "none",
-                      }}
-                      title={s.label}
-                    />
-                  );
-                })}
-              </div>
-              <div className="flex justify-between mt-1.5">
-                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{lang === "de" ? "Analyse" : "Analysis"}</span>
-                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{lang === "de" ? "Ausgabe" : "Output"}</span>
-              </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
+export default function MasteringProgressModal({ isOpen, step, lang = "de", completed = false }: Props) {
+  const reduced = useReducedMotion(), titleId = useId(), descriptionId = useId(), dialog = useRef<HTMLDivElement>(null);
+  const completion = useRef(false);
+  useEffect(() => { completion.current = completed && !isOpen; }, [completed, isOpen]);
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement, overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; dialog.current?.focus({ preventScroll: true });
+    return () => {
+      document.body.style.overflow = overflow;
+      if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
+    };
+  }, [isOpen]);
+  const stage = sonicStage(step?.step), index = STEPS.indexOf(stage);
+  const progress = Number.isFinite(step?.progress) ? Math.round(Math.min(100, Math.max(0, step!.progress))) : 0;
+  const label = step?.label || (lang === "de" ? "Mastering wird vorbereitet…" : "Preparing mastering…");
+  return <AnimatePresence>
+    {isOpen && <motion.div key="mastering-sonic-overlay" className="sonic-progress-overlay"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? .1 : .38 }}>
+      <motion.div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId}
+        className="sonic-progress-card" data-stage={stage}
+        onKeyDown={event => { if (event.key === "Tab") { event.preventDefault(); dialog.current?.focus(); } }}
+        initial={{ y: reduced ? 0 : 18, scale: reduced ? 1 : .98 }} animate={{ y: 0, scale: 1 }} exit={{ y: reduced ? 0 : -5, scale: 1 }}
+        transition={{ duration: reduced ? .1 : .38, ease: [.22, 1, .36, 1] }}>
+        <div className="sonic-progress-top"><span><i /> BEATZUCKER / MASTERING</span><span>{stage === "waiting" ? (lang === "de" ? "WARTET" : "QUEUED") : "IN SESSION"}</span></div>
+        <div className="sonic-progress-art"><MasteringSonicCore step={step?.step} completed={completion} /><span className="sonic-progress-art-label">SONIC CORE <b>01</b></span></div>
+        <div className="sonic-progress-content">
+          <div className="sonic-progress-heading"><div><span className="sonic-progress-eyebrow">{lang === "de" ? "DEIN SOUND. IM FOKUS." : "YOUR SOUND. IN FOCUS."}</span><h2 id={titleId}>{lang === "de" ? "Dein Master entsteht." : "Your master is taking shape."}</h2></div><span className="sonic-progress-percentage" aria-hidden="true">{progress}<small>%</small></span></div>
+          <p className="sonic-progress-status" role="status" aria-live="polite" aria-atomic="true">{label}</p>
+          <div className="sonic-progress-bar" role="progressbar" aria-label={lang === "de" ? "Mastering-Fortschritt" : "Mastering progress"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-valuetext={`${label} ${progress}%`}><div style={{ width: `${progress}%` }} /></div>
+          <ol className="sonic-progress-steps" aria-label={lang === "de" ? "Arbeitsschritte" : "Processing stages"}>{STEPS.map((key, i) => <li key={key} className={i === index ? "is-active" : index > i ? "is-done" : ""} aria-current={i === index ? "step" : undefined}><i /><span>{LABELS[lang][i]}</span></li>)}</ol>
+          <p id={descriptionId} className="sonic-progress-note">{lang === "de" ? "Visualisierung der Arbeitsschritte · kein Live-Analyzer" : "Processing-stage visualization · not a live analyzer"}</p>
+          <p className="sonic-progress-patience">{lang === "de" ? "Die Dauer hängt von Tracklänge und Auslastung ab. Bitte lass diese Seite geöffnet." : "Timing depends on track length and server load. Please keep this page open."}</p>
+        </div>
+      </motion.div>
+    </motion.div>}
+  </AnimatePresence>;
 }

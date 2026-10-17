@@ -1,9 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useId, useRef } from "react";
 import { MasterData, AnalysisData, type Lang } from "@/lib/types/mastering";
 import ABPlayer from "./ABPlayer";
 import DonateButton from "./DonateButton";
+import MasterReadyReveal from "./MasterReadyReveal";
+import DownloadJumpButton from "./DownloadJumpButton";
 
 interface Props {
   masterData:  MasterData;
@@ -60,6 +63,7 @@ function resultSummary(masterData: MasterData, platform: string, preset: string,
 }
 
 export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster, onManualAdjust, lang = "de" }: Props) {
+  const downloadHeading = useRef<HTMLHeadingElement>(null), downloadHeadingId = useId();
   const displayNotes = resultSummary(masterData, platform, preset, intensity, lang);
 
   // Build clean base name: strip extension + sanitize for filename
@@ -102,7 +106,10 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
   return (
     <div className="mt-6">
       {/* A/B Comparison Player — URLs are provided via AudioEngineContext */}
-      <ABPlayer filename={filename} lang={lang} />
+      <MasterReadyReveal key={masterData.master_id} lang={lang}>
+        <ABPlayer filename={filename} lang={lang} />
+        <DownloadJumpButton target={downloadHeading} targetId={downloadHeadingId} lang={lang} />
+      </MasterReadyReveal>
 
       {/* Success Banner */}
       <div
@@ -124,7 +131,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm mb-0.5" style={{ color: "var(--accent-cyan)" }}>
-              {lang === "de" ? "Mastering abgeschlossen" : "Mastering complete"}
+              {lang === "de" ? "Einstellungen & Ergebnis" : "Settings & result"}
             </div>
             <div className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               {displayNotes}
@@ -156,7 +163,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
       </div>
 
       {/* Download Options */}
-      <div className="label mb-3">{lang === "de" ? "Download-Formate" : "Download formats"}</div>
+      <h3 ref={downloadHeading} id={downloadHeadingId} tabIndex={-1} className="studio-download-target label mb-3">{lang === "de" ? "Download-Formate" : "Download formats"}</h3>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {FORMAT_CONFIG.map((fmt) => {
           const url = masterData.formats[fmt.key as FormatKey];

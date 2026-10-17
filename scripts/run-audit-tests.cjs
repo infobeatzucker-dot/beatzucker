@@ -15,6 +15,9 @@ try {
   run(process.execPath, ['scripts/mastering-quality-tests.cjs']);
   run(process.execPath, ['scripts/mastering-stability-tests.cjs']);
   run(process.execPath, ['scripts/mastering-audio-lifecycle-tests.cjs']);
+  run(process.execPath, ['scripts/sonic-progress-tests.cjs']);
+  run(process.execPath, ['scripts/studio-transitions-tests.cjs']);
+  run(process.execPath, ['scripts/upload-motion-tests.cjs']);
   run(process.execPath, ['scripts/seo-metadata-tests.cjs']);
   run(process.execPath, ['scripts/seo-frontend-tests.cjs']);
   run(process.execPath, ['scripts/showcase-tests.cjs']);

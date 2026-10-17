@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./sonic-progress.css";
+@import "./studio-transitions.css";
 
 /* Stable before hydration: do not rearrange cards after a JS width check. */
 .testimonials-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
