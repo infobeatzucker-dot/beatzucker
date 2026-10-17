@@ -13,14 +13,14 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
   const pathname = usePathname();
   const navigation = lang === "de"
     ? [
-        ["/features", "Funktionen"], ["/help", "Hilfe"], ["/tools", "Tools"], ["/mix-check", "Mix-Check"], ["/ressourcen", "Wissen"],
+        ["/features", "Funktionen"], ["/help", "Hilfe"], ["/tools", "Tools"], ["/mix-check", "Mix-Check"], ["/ressourcen", "Wissen"], ["/hoervergleich", "Hörvergleich"],
         ["/impressum", "Impressum"], ["/datenschutz", "Datenschutz"], ["/agb", "AGB"],
         ["/widerruf", "Widerruf"],
         ["/versionen", "Versionshistorie"],
         ["/in-eigener-sache", "In eigener Sache"],
       ]
     : [
-        ["/en/features", "Features"], ["/en/help", "Help"], ["/en/tools", "Tools"], ["/en/mix-check", "Mix Check"], ["/en/knowledge", "Knowledge"],
+        ["/en/features", "Features"], ["/en/help", "Help"], ["/en/tools", "Tools"], ["/en/mix-check", "Mix Check"], ["/en/knowledge", "Knowledge"], ["/en/mastering-examples", "Mastering examples"],
         ["/legal-notice", "Legal notice"], ["/privacy", "Privacy"], ["/terms", "Terms"],
         ["/cancellation-policy", "Cancellation policy"],
         ["/en/updates", "What's new"],

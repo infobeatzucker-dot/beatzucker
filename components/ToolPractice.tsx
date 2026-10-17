@@ -21,6 +21,7 @@ export function KnowledgeTools({ article, lang }: { article: string; lang: Lang 
     <h2>{en ? "Try it with your own audio." : "Probiere es mit deinem Audio aus."}</h2>
     <p>{en ? "These free tools help you apply the guide. Measurements are starting points, not automatic mixing decisions." : "Mit diesen kostenlosen Tools wendest du den Ratgeber an. Messwerte sind Ausgangspunkte, keine automatischen Mixentscheidungen."}</p>
     <div className="tool-guidance-links">{matches.map(([slug, guide]) => <Link key={slug} href={toolHref(slug, lang)}>{guide.title[lang]}<ArrowRight size={16}/></Link>)}</div>
+    {["lufs-erklaert", "true-peak-rms-lufs", "was-ist-audio-mastering", "mastering-vs-mixing", "re-beatz-online-mastering-mit-kontrolle"].includes(article) && <p>{en ? "Want to hear the difference before uploading your own track? " : "Du möchtest den Unterschied erst hören, bevor du deinen eigenen Track hochlädst? "}<Link href={en ? "/en/mastering-examples" : "/hoervergleich"}>{en ? "Compare real original mixes and masters" : "Echte Original-Mixe und Master vergleichen"}</Link>.</p>}
   </section>;
 }
 
@@ -32,5 +33,6 @@ export function PracticeHub({ lang }: { lang: Lang }) {
       <h3>{TOOL_GUIDES[slug].situation[lang]}</h3><div className="tool-guidance-links"><Link href={toolHref(slug, lang)}>{TOOL_GUIDES[slug].title[lang]}<ArrowRight size={16}/></Link>
         <Link href={`${en ? "/en/knowledge" : "/ressourcen"}/${TOOL_GUIDES[slug].articles[0]}`}>{en ? "Understand the background" : "Hintergrund verstehen"}</Link></div>
     </article>)}</div>
+    <p><Link href={en ? "/en/mastering-examples" : "/hoervergleich"}>{en ? "Listen to real mastering examples with measured excerpt values" : "Echte Mastering-Hörbeispiele mit gemessenen Ausschnittwerten anhören"}<ArrowRight size={15}/></Link></p>
   </section>;
 }

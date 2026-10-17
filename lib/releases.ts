@@ -10,6 +10,14 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.21.0", date: "2026-10-18",
+  title: { de: "Hören. Vergleichen. Besser einordnen.", en: "Listen. Compare. Understand." },
+  summary: { de: "Eine eigene Hörvergleichsseite verbindet echte Original-/Master-Hörproben mit verständlichen Erklärungen und Messwerten.", en: "A dedicated listening page brings real original/master excerpts together with clear explanations and measurements." },
+  improvements: {
+    de: ["Original und Master auf einer eigenen Seite vergleichen – auch ohne Anmeldung.", "Hörhinweise erklären Lautheitsabgleich, Klangbalance und die Grenzen einzelner Messwerte.", "Passende Ratgeber und Tools sind direkt verknüpft; alle Inhalte sind auf Deutsch und Englisch verfügbar."],
+    en: ["Compare original mixes and masters on a dedicated page without signing in.", "Listening guidance explains loudness matching, tonal balance and the limits of individual measurements.", "Relevant guides and tools are linked directly, with complete German and English versions."],
+  },
+}, {
   "version": "0.20.0",
   "date": "2026-10-17",
   "title": {

@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...pair("/help", "/en/help", "2026-08-20", 0.7),
     ...pair("/in-eigener-sache", "/en/support", "2026-10-11", 0.5),
     ...pair("/versionen", "/en/updates", RELEASE_DATE, 0.5),
+    ...pair("/hoervergleich", "/en/mastering-examples", "2026-10-18", 0.8),
     ...pair("/mix-check", "/en/mix-check", GUIDANCE_UPDATED, 0.9),
     ...pair("/tools", "/en/tools", GUIDANCE_UPDATED, 0.9),
     ...Object.keys(TOOL_GUIDES).filter(slug => slug !== "mix-check").flatMap(slug =>

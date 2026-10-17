@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, AudioLines, Check, Disc3, Headphones, Loader2, Pause, Play, ShieldCheck, Volume2 } from "lucide-react";
-import { SHOWCASE_TRACKS, showcaseTrims, showcaseWavePath, validShowcaseTrack, type ShowcaseSide } from "@/lib/showcaseTracks";
+import { SHOWCASE_TRACKS, showcaseTrims, showcaseWavePath, validShowcaseTrack, type ShowcaseSide, type ShowcaseTrack } from "@/lib/showcaseTracks";
 import { ShowcasePlayer } from "@/lib/showcasePlayer";
 import { stopGlobalAudio, subscribeGlobalAudio } from "@/lib/globalAudio";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
@@ -10,9 +10,9 @@ import { startVisibleAnimation } from "@/lib/visibleAnimation";
 type Lang = "de" | "en";
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
-export default function MasteringListeningShowcase({ lang = "de" }: { lang?: Lang }) {
+export default function MasteringListeningShowcase({ lang = "de", initialTracks }: { lang?: Lang; initialTracks?: ShowcaseTrack[] }) {
   const en = lang === "en";
-  const [tracks, setTracks] = useState(SHOWCASE_TRACKS);
+  const [tracks, setTracks] = useState(initialTracks ?? SHOWCASE_TRACKS);
   const [index, setIndex] = useState(0), [side, setSide] = useState<ShowcaseSide>("original"), [matched, setMatched] = useState(false);
   const [playing, setPlaying] = useState(false), [loading, setLoading] = useState(false), [position, setPosition] = useState(0), [error, setError] = useState(false);
   const engine = useRef<ShowcasePlayer | null>(null), canvas = useRef<HTMLCanvasElement>(null), mounted = useRef(true);
@@ -33,6 +33,7 @@ export default function MasteringListeningShowcase({ lang = "de" }: { lang?: Lan
     return () => { mounted.current = false; unsubscribe(); engine.current?.destroy(); engine.current = null; };
   }, []);
   useEffect(() => {
+    if (initialTracks) return; // The examples page already supplies the current server-rendered publication.
     const controller = new AbortController();
     fetch("/api/showcase", { cache: "no-store", signal: controller.signal }).then(response => response.ok ? response.json() : null).then(publication => {
       // Never replace a pair while someone is listening to this page.
@@ -40,7 +41,7 @@ export default function MasteringListeningShowcase({ lang = "de" }: { lang?: Lan
       setIndex(0); setTracks(publication.tracks);
     }).catch(() => {});
     return () => controller.abort();
-  }, []);
+  }, [initialTracks]);
   const reportError = useCallback(() => { if (mounted.current) { setError(true); setPlaying(false); setLoading(false); } }, []);
   async function toggle() {
     if (playing || loading) { engine.current?.pause(); return; }
@@ -84,6 +85,7 @@ export default function MasteringListeningShowcase({ lang = "de" }: { lang?: Lan
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(audioLd).replace(/</g, "\\u003c") }} />
     <div className="listening-wrap">
       <header className="listening-heading"><span className="listening-eyebrow"><Headphones size={15} />{en ? "REAL TRACKS. YOUR EARS." : "ECHTE TRACKS. DEINE OHREN."}</span><h2 id="listening-heading">{en ? <>Hear what <em>mastering changes.</em></> : <>Hör selbst, was <em>Mastering verändert.</em></>}</h2><p>{en ? "Real songs. Original mix and Beatzucker master. Switch at the same position and decide for yourself." : "Echte Songs. Original-Mix und Beatzucker-Master. Wechsle an derselben Stelle und entscheide selbst."}</p></header>
+      {!initialTracks && <p style={{textAlign:"center",margin:"-12px 0 28px",fontSize:13}}><a href={en ? "/en/mastering-examples" : "/hoervergleich"} style={{color:"#b9c9ec"}}>{en ? "Mastering before and after: listening guidance and all excerpt measurements" : "Mastering vorher und nachher: Hörhinweise und alle Ausschnitt-Messwerte"} <ArrowRight size={13} style={{display:"inline",verticalAlign:"middle"}}/></a></p>}
       <div className="listening-deck" data-side={side}>
         <aside className="listening-library"><div className="listening-library-title"><Disc3 size={15} />{en ? "CHOOSE YOUR SOUND" : "WÄHLE DEINEN SOUND"}<span>{String(tracks.length).padStart(2, "0")}</span></div>
           <div className="listening-track-list">{tracks.map((song, i) => <button key={song.id} type="button" className={`listening-track ${i === index ? "is-selected" : ""}`} aria-pressed={i === index} onClick={() => selectTrack(i)}><span className={`listening-art listening-art-${song.id}`} aria-hidden="true"><Disc3 size={29}/><small>0{i+1}</small></span><span className="listening-track-copy"><small>{song.genre}</small><strong>{song.title}</strong><span>24s · {clock(song.sourceStart)}–{clock(song.sourceStart+song.duration)}</span></span>{i === index && <Check size={16}/>}</button>)}</div>
