@@ -10,6 +10,15 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.16.0",
+  date: "2026-10-17",
+  title: { de: "Mehr hören. Zuverlässiger weiterarbeiten.", en: "More to hear. Smoother consecutive masters." },
+  summary: { de: "Zwei weitere echte Hörvergleiche ergänzen die Startseite. Trackwechsel und aufeinanderfolgende Mastering-Aufträge sind besser abgesichert – ohne Änderung der Klangbearbeitung.", en: "Two more real listening comparisons join the homepage. Track changes and consecutive mastering jobs have stronger safeguards, without changing the audio processing chain." },
+  improvements: {
+    de: ["Lass mich nicht allein und On Tour ergänzen den Hörvergleich. On Tour steht an dritter Stelle, Xplore Belgium am Ende; Originalpegel bleibt voreingestellt.", "Die MP3-Ausgabe prüft neu entstehende Spitzen mit begrenzten, kleinen Pegelkorrekturen nach. Ein schwieriger Export bricht nicht mehr schon nach einem einzigen Korrekturversuch ab; die Schutzgrenze bleibt gleich.", "Doppelstarts werden abgefangen. Beim Trackwechsel werden alte Ergebnisse zurückgesetzt; verspätete Antworten überschreiben keinen neuen Auftrag.", "Abgeschlossene Verbindungen und Rechenplätze werden gezielt freigegeben. Der Versand der Fertigmeldung per E-Mail verzögert das fertige Ergebnis nicht mehr.", "Rechenintensive Verarbeitung läuft standardmäßig nacheinander, um Arbeitsspeicher zu schonen. Bei Engpässen erscheinen verständlichere Hinweise mit einer Fehlerreferenz."],
+    en: ["Lass mich nicht allein and On Tour join the listening comparison. On Tour appears third, Xplore Belgium last; original levels remain the default.", "MP3 output rechecks encoder-created peaks with bounded, small level corrections. A difficult export no longer stops after just one correction attempt; the safety ceiling stays unchanged.", "Duplicate starts are blocked. Changing tracks clears old results; late responses cannot overwrite a new job.", "Completed connections and processing slots are explicitly released. Sending the completion email no longer holds up the finished result.", "Heavy processing runs sequentially by default to protect available memory. Capacity issues show clearer explanations and an error reference."],
+  },
+}, {
   version: "0.15.0",
   date: "2026-10-17",
   title: { de: "Echte Hörproben. Klare Vergleiche.", en: "Real audio. Clear comparisons." },

@@ -1,26 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Platform, Preset, MasterData, ProgressStep, AnalysisData, type Lang } from "@/lib/types/mastering";
-import type { ParamValues } from "@/lib/masteringParams";
-import { runMastering } from "@/lib/runMastering";
+import type { Lang } from "@/lib/types/mastering";
 
 interface Props {
-  fileId: string;
-  uploadToken: string;
-  originalName?: string;      // original filename for mastering history
-  platform: Platform;
-  targetLufs?: number;
-  preset: Preset;
-  intensity: number;          // 0–100
   selectedFormat: string;
-  analysis?: AnalysisData;          // pre-computed analysis — passed to Python to skip librosa re-run
-  referenceAnalysis?: AnalysisData; // optional reference track analysis for reference mastering
   isProcessing: boolean;
-  onStart: () => void;
-  onProgress: (step: ProgressStep) => void;
-  onComplete: (data: MasterData) => void;
-  onError: (message: string) => void;
+  onRun: () => Promise<void>;
   compact?: boolean;          // compact layout for sticky popup (no hint text, smaller button)
   downloadWindow?: "24h"; // shown as reminder below the button
   lang?: Lang;
@@ -30,17 +16,13 @@ interface Props {
 // jeden Mastering-Lauf gelten — auch für die, die nicht über diesen Button gehen.
 
 export default function MasterButton({
-  fileId, uploadToken, originalName, platform, targetLufs, preset, intensity, selectedFormat,
-  analysis,
-  referenceAnalysis,
-  isProcessing, onStart, onProgress, onComplete, onError,
+  selectedFormat, isProcessing, onRun,
   compact = false,
   downloadWindow = "24h",
   lang = "de",
 }: Props) {
   const particleContainerRef = useRef<HTMLDivElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
-  const handleClickRef = useRef<(overrides?: ParamValues) => void>(() => {});
+  const handleClickRef = useRef<() => void>(() => {});
 
   // Particles while processing
   useEffect(() => {
@@ -62,23 +44,9 @@ export default function MasterButton({
     return () => clearInterval(interval);
   }, [isProcessing]);
 
-  const handleClick = async (overrides?: ParamValues) => {
+  const handleClick = async () => {
     if (isProcessing) return;
-
-    // Create controller BEFORE calling onStart() so the ref is set
-    // before any state change (e.g. sticky popup unmounting) could
-    // trigger the old cleanup and abort an in-flight request.
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    onStart();
-
-    await runMastering({
-      fileId, uploadToken, originalName, platform, targetLufs, preset, intensity, selectedFormat,
-      analysis, referenceAnalysis, overrides, lang,
-      signal: controller.signal,
-      onProgress, onComplete, onError,
-    });
+    await onRun();
   };
 
   // Keep ref in sync so keyboard shortcut can call latest version
@@ -88,7 +56,7 @@ export default function MasterButton({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if ((e.key === "m" || e.key === "M") && !isProcessing) {
+      if ((e.key === "m" || e.key === "M") && !e.repeat && !isProcessing) {
         handleClickRef.current();
       }
     };
@@ -96,11 +64,7 @@ export default function MasterButton({
     return () => window.removeEventListener("keydown", onKey);
   }, [isProcessing]);
 
-  // NOTE: intentionally no unmount-abort cleanup here.
-  // The controller is stored in abortRef so it outlives this component
-  // instance (e.g. when the sticky popup unmounts after appState changes
-  // to "mastering"). An abort on unmount would cancel the in-flight SSE
-  // stream before Python has a chance to return results.
+  // Request ownership stays with the workspace when this button animates out.
 
   return (
     <div className={`flex flex-col items-center gap-4 ${compact ? "" : "mt-6"}`}>

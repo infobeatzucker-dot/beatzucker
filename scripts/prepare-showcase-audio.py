@@ -21,6 +21,17 @@ sys.path.insert(0, str(ROOT / "python"))
 from analyzer import compute_true_peak
 
 
+def match_anchor(a, b, center, rate):
+    anchor = a[center:center + 4 * rate:8].astype(np.float64)
+    radius = rate // 4
+    search = b[center-radius:center+4*rate+radius:8].astype(np.float64)
+    corr = signal.correlate(search, anchor, mode="valid", method="fft")
+    energy = signal.fftconvolve(search ** 2, np.ones(len(anchor)), mode="valid")
+    score = corr / np.sqrt(np.maximum(energy * np.sum(anchor ** 2), 1e-20))
+    index = int(np.argmax(score))
+    return index * 8 - radius, float(score[index])
+
+
 def prepare(original, master, title, slug, genre, start, ffmpeg, out, provenance):
     sources = [Path(original).resolve(strict=True), Path(master).resolve(strict=True)]
     arrays = []
@@ -34,17 +45,22 @@ def prepare(original, master, title, slug, genre, start, ffmpeg, out, provenance
     # Match a four-second anchor within +/- 0.25 seconds, with normalized FFT
     # correlation. Positive offset means the master starts later than original.
     center = int((start + 8) * rate)
-    anchor = a[center:center + 4 * rate].mean(axis=1)[::8].astype(np.float64)
-    radius = rate // 4
-    search = b[center-radius:center+4*rate+radius].mean(axis=1)[::8].astype(np.float64)
-    corr = signal.correlate(search, anchor, mode="valid", method="fft")
-    energy = np.convolve(search ** 2, np.ones(len(anchor)), mode="valid") if len(anchor) < 1000 else signal.fftconvolve(search ** 2, np.ones(len(anchor)), mode="valid")
-    score = corr / np.sqrt(np.maximum(energy * np.sum(anchor ** 2), 1e-20))
-    index = int(np.argmax(score)); offset = index * 8 - radius
-    if float(score[index]) < .65:
-        raise ValueError(f"Pair alignment uncertain: {title}: {score[index]:.3f}")
+    mono_a, mono_b = a.mean(axis=1), b.mean(axis=1)
+    offset, correlation = match_anchor(mono_a, mono_b, center, rate)
+    alignment = {"method": "broadband", "broadbandCorrelation": correlation}
+    if correlation < .65:
+        # Mastering can change broadband phase/tonal balance. Validate two
+        # independent low-band anchors instead; NEVER filter the published audio.
+        sos = signal.butter(4, 1000, fs=rate, output="sos")
+        low_a, low_b = (signal.sosfiltfilt(sos, mono) for mono in (mono_a, mono_b))
+        matches = [match_anchor(low_a, low_b, int((start + at) * rate), rate) for at in (8, 16)]
+        if min(score for _, score in matches) < .65 or abs(matches[0][0] - matches[1][0]) > rate * .002:
+            raise ValueError(f"Pair alignment uncertain: {title}: {correlation:.3f}; anchors={matches}")
+        offset = int(round(float(np.median([lag for lag, _ in matches]))))
+        correlation = min(score for _, score in matches)
+        alignment.update(method="two-low-band-anchors", anchors=matches)
     rows = []
-    record = {"title": title, "alignmentSamples": offset, "alignmentCorrelation": float(score[index]), "sources": []}
+    record = {"title": title, "alignmentSamples": offset, "alignmentCorrelation": correlation, "alignment": alignment, "sources": []}
     for side, source, audio, delta in zip(("original", "master"), sources, arrays, (0, offset)):
         excerpt = audio[int(start * rate)+delta:int((start+seconds)*rate)+delta].copy()
         fade = int(rate * .012)
@@ -65,22 +81,41 @@ def prepare(original, master, title, slug, genre, start, ffmpeg, out, provenance
         record[side] = metrics
         record["sources"].append({"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest()})
     provenance.append(record)
-    print(json.dumps({"track": title, "start": start, "offsetSamples": offset, "correlation": round(float(score[index]), 4), "original": rows[0]["metrics"], "master": rows[1]["metrics"]}))
+    print(json.dumps({"track": title, "start": start, "offsetSamples": offset, "correlation": round(correlation, 4), "alignment": alignment, "original": rows[0]["metrics"], "master": rows[1]["metrics"]}))
     return {"id": slug, "title": title, "genre": genre, "sourceStart": start, "duration": seconds, "original": rows[0], "master": rows[1]}
 
 
 def main():
     parser = argparse.ArgumentParser()
-    for name in ("xplore-original", "xplore-master", "acid-original", "acid-master", "ffmpeg"):
+    for name in ("ffmpeg",):
         parser.add_argument("--" + name, required=True)
+    for name in ("xplore-original", "xplore-master", "acid-original", "acid-master", "lass-original", "lass-master", "tour-original", "tour-master"):
+        parser.add_argument("--" + name)
     args = parser.parse_args()
     out = ROOT / "public/audio/showcase"; out.mkdir(parents=True, exist_ok=True)
     private = ROOT / "validation-output/showcase"; private.mkdir(parents=True, exist_ok=True)
     provenance = []
-    tracks = [prepare(args.xplore_original, args.xplore_master, "Xplore Belgium", "xplore-belgium", "Pop", 48, args.ffmpeg, out, provenance), prepare(args.acid_original, args.acid_master, "Back to My Acid", "back-to-my-acid", "Electronic / Club", 120, args.ffmpeg, out, provenance)]
+    existing = out / "manifest.json"
+    tracks = json.loads(existing.read_text(encoding="utf-8"))["tracks"] if existing.exists() else []
+    for original, master, title, slug, genre, start in [
+        (args.lass_original, args.lass_master, "Lass mich nicht allein", "lass-mich-nicht-allein", "Original / Master", 48),
+        (args.acid_original, args.acid_master, "Back to My Acid", "back-to-my-acid", "Electronic / Club", 120),
+        (args.tour_original, args.tour_master, "On Tour", "on-tour", "Pop / Club", 48),
+        (args.xplore_original, args.xplore_master, "Xplore Belgium", "xplore-belgium", "Pop", 48),
+    ]:
+        if bool(original) != bool(master):
+            parser.error(f"Both original and master are required for {title}")
+        if original:
+            item = prepare(original, master, title, slug, genre, start, args.ffmpeg, out, provenance)
+            tracks = [track for track in tracks if track["id"] != slug] + [item]
+    order = ["lass-mich-nicht-allein", "back-to-my-acid", "on-tour", "xplore-belgium"]
+    tracks.sort(key=lambda track: order.index(track["id"]))
     manifest = {"version": 1, "previewFormat": "MP3 320 kbps", "sampleRate": 48000, "sourceFormats": {"original": "WAV 16-bit", "master": "MP3 320 kbps"}, "tracks": tracks}
     (out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (private / "provenance.json").write_text(json.dumps(provenance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    history = private / "provenance.json"
+    previous = json.loads(history.read_text(encoding="utf-8")) if history.exists() else []
+    titles = {item["title"] for item in provenance}
+    history.write_text(json.dumps([item for item in previous if item["title"] not in titles] + provenance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

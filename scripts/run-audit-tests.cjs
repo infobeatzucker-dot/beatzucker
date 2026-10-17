@@ -13,6 +13,8 @@ try {
   run(process.execPath, ['scripts/registration-db-tests.cjs']);
   run(process.execPath, ['scripts/tool-usage-tests.cjs']);
   run(process.execPath, ['scripts/mastering-quality-tests.cjs']);
+  run(process.execPath, ['scripts/mastering-stability-tests.cjs']);
+  run(process.execPath, ['scripts/mastering-audio-lifecycle-tests.cjs']);
   run(process.execPath, ['scripts/seo-metadata-tests.cjs']);
   run(process.execPath, ['scripts/seo-frontend-tests.cjs']);
   run(process.execPath, ['scripts/showcase-tests.cjs']);

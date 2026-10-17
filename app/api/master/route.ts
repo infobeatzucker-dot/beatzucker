@@ -16,6 +16,7 @@ import { sanitizeOriginalFilename } from "@/lib/filename";
 import { normalizeParamOverrides } from "@/lib/masteringParams";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { readBoundedJson, JsonBodyError } from "@/lib/boundedJson";
+import { withDspAdmissionRetry } from "@/lib/dspAdmissionRetry";
 
 // Allow up to 10 minutes – mastering a full track can take 3–5 min
 export const maxDuration = 600;
@@ -159,6 +160,7 @@ export async function POST(req: NextRequest) {
   let clientConnected = true;
   const stream = new ReadableStream({
     async start(controller) {
+      let failureCode = "processing";
       const send = (data: object) => {
         if (!clientConnected) return;
         try {
@@ -175,6 +177,14 @@ export async function POST(req: NextRequest) {
 
       const masterId = reservedMaster.master.id;
       const dbMasterId = reservedMaster.master.id;
+      // Keep proxies alive while admission, final verification or DB work waits.
+      // A comment is not a fabricated progress event.
+      const heartbeat = setInterval(() => {
+        if (clientConnected) {
+          try { controller.enqueue(encoder.encode(": keep-alive\n\n")); }
+          catch { clientConnected = false; }
+        }
+      }, 15000);
 
       try {
         // Find uploaded file
@@ -182,6 +192,7 @@ export async function POST(req: NextRequest) {
         const filename = files.find((f) => f.startsWith(`${fileId}.`));
 
         if (!filename) {
+          failureCode = "upload";
           throw new Error("Upload wurde nicht gefunden oder ist bereits abgelaufen");
         }
 
@@ -189,7 +200,8 @@ export async function POST(req: NextRequest) {
         send({ step: "analyzing", label: "Analyzing track…", progress: 5 });
 
         // Call Python mastering service
-        const res = await fetch(`${PYTHON_URL}/master`, {
+        const serviceSignal = AbortSignal.timeout(540000); // One deadline across admission attempts and DSP.
+        const res = await withDspAdmissionRetry(() => fetch(`${PYTHON_URL}/master`, {
           method: "POST",
           headers: pythonServiceHeaders(),
           body: JSON.stringify({
@@ -205,10 +217,11 @@ export async function POST(req: NextRequest) {
             ...(referenceAnalysis ? { reference_analysis: referenceAnalysis } : {}),
             ...(overrides         ? { overrides }                              : {}),
           }),
-          signal: AbortSignal.timeout(540000), // 9 min timeout
-        });
+          signal: serviceSignal,
+        }), serviceSignal, () => send({ step: "waiting", label: "Waiting for processing capacity…", progress: 5 }));
 
         if (!res.ok || !res.body) {
+          failureCode = res.status === 503 ? "busy" : "processing";
           const detail = await res.text().catch(() => "");
           throw new Error(`Mastering-Service nicht erreichbar (${res.status})${detail ? `: ${detail.slice(0, 160)}` : ""}`);
         }
@@ -221,7 +234,7 @@ export async function POST(req: NextRequest) {
         let finalPayload: Record<string, unknown> | null = null;
         let pythonError = "";
 
-        outer: while (true) {
+        try { outer: while (true) {
           const { done, value } = await reader.read();
 
           if (done) {
@@ -233,11 +246,12 @@ export async function POST(req: NextRequest) {
                 try {
                   const data = JSON.parse(line.slice(6)) as Record<string, unknown>;
                   if (data.step === "complete") { pythonCompleted = true; finalPayload = data; break outer; }
-                  send(data);
                   if (data.error || data.step === "error") {
+                    failureCode = typeof data.error_code === "string" ? data.error_code : "processing";
                     pythonError = typeof data.error === "string" ? data.error : "Mastering wurde abgebrochen";
                     break outer;
                   }
+                  send(data);
                 } catch { /* ignore */ }
               }
             }
@@ -258,7 +272,7 @@ export async function POST(req: NextRequest) {
                 finalPayload = data;
                 break outer;
               } else if (data.error || data.step === "error") {
-                send(data);
+                failureCode = typeof data.error_code === "string" ? data.error_code : "processing";
                 pythonError = typeof data.error === "string" ? data.error : "Mastering wurde abgebrochen";
                 break outer;
               } else {
@@ -266,6 +280,9 @@ export async function POST(req: NextRequest) {
               }
             } catch { /* ignore */ }
           }
+        } } finally {
+          try { await reader.cancel(); } catch { /* already closed */ }
+          reader.releaseLock();
         }
 
         if (!pythonCompleted) {
@@ -281,7 +298,8 @@ export async function POST(req: NextRequest) {
         send(validatedPayload);
 
       } catch (err) {
-        console.error("Mastering error:", err);
+        if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) failureCode = "timeout";
+        console.error("[mastering] failed", { masterId, fileId, platform, preset, intensity, format, code: failureCode, error: err });
         await Promise.all([
           db.master.update({ where: { id: dbMasterId }, data: { status: "error" } }).catch(() => {}),
           removeMasterFiles(masterId),
@@ -296,11 +314,13 @@ export async function POST(req: NextRequest) {
         send({
           step: "error",
           progress: 0,
-          error: err instanceof Error ? err.message : "Mastering fehlgeschlagen",
+          error: "Das Mastering konnte nicht abgeschlossen werden. Deine Einstellungen bleiben erhalten – bitte versuche es erneut.",
+          error_code: failureCode,
+          master_id: masterId,
         });
         close();
         return;
-      }
+      } finally { clearInterval(heartbeat); }
 
       close();
     },
@@ -410,7 +430,9 @@ async function finalizeMaster(
       db.master.findUnique({ where: { id: dbMasterId }, select: { originalName: true, platform: true } }),
     ]);
     if (user?.email && masterRecord) {
-      await sendMasteringCompleteEmail(user.email, masterRecord.originalName, masterRecord.platform, lufsOut);
+      // Delivery must not hold the finished result/HTTP stream hostage.
+      void sendMasteringCompleteEmail(user.email, masterRecord.originalName, masterRecord.platform, lufsOut)
+        .catch(mailErr => console.error("Failed to send mastering complete email:", mailErr));
     }
   } catch (mailErr) {
     console.error("Failed to send mastering complete email:", mailErr);

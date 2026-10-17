@@ -185,17 +185,19 @@ export function AudioEngineProvider({
   }, []);
 
   // ── Decode static waveform helper ────────────────────────────────────────────
-  const decodeWaveform = useCallback(async (url: string): Promise<{
+  const decodeWaveform = useCallback(async (url: string, signal?: AbortSignal): Promise<{
     rms: Float32Array; peaks: Float32Array;
   } | null> => {
     if (!url) return null;
+    let tmpCtx: AudioContext | undefined;
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { signal });
       if (!res.ok) return null;
       const arrayBuffer = await res.arrayBuffer();
-      const tmpCtx = new AudioContext();
+      if (signal?.aborted) return null;
+      tmpCtx = new AudioContext();
       const decoded = await tmpCtx.decodeAudioData(arrayBuffer);
-      await tmpCtx.close();
+      if (signal?.aborted) return null;
 
       const channel = decoded.getChannelData(0);
       const bars    = 800;
@@ -215,12 +217,17 @@ export function AudioEngineProvider({
       return { rms: rmsData, peaks: peakData };
     } catch {
       return null;
+    } finally {
+      if (tmpCtx && tmpCtx.state !== "closed") await tmpCtx.close().catch(() => {});
     }
   }, []);
 
   // ── Update src when originalUrl changes + decode A waveform ─────────────────
   useEffect(() => {
     const audio = audioRef.current;
+    const controller = new AbortController();
+    setStaticWaveform(null);
+    setPeakWaveform(null);
     if (!audio || !originalUrl) return;
 
     if (mode === "A") {
@@ -230,25 +237,30 @@ export function AudioEngineProvider({
       }
     }
 
-    decodeWaveform(originalUrl).then((result) => {
-      if (result) {
+    decodeWaveform(originalUrl, controller.signal).then((result) => {
+      if (result && !controller.signal.aborted) {
         setStaticWaveform(result.rms);
         setPeakWaveform(result.peaks);
       }
     });
+    return () => controller.abort();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [originalUrl]);
 
   // ── When masteredUrl becomes available: pre-fetch as Blob (enables seeking) ──
   useEffect(() => {
+    setStaticWaveformB(null);
+    setPeakWaveformB(null);
     if (!masteredUrl) return;
+    const controller = new AbortController();
 
     setMasterUnavailable(false);
 
     // Fetch as blob so the audio element can seek regardless of server Range support
-    fetch(masteredUrl)
-      .then((r) => r.blob())
+    fetch(masteredUrl, { signal: controller.signal })
+      .then((r) => { if (!r.ok) throw new Error("Preview unavailable"); return r.blob(); })
       .then((blob) => {
+        if (controller.signal.aborted) return;
         // Revoke old blob URL if any
         if (masteredBlobRef.current) URL.revokeObjectURL(masteredBlobRef.current);
         masteredBlobRef.current = URL.createObjectURL(blob);
@@ -262,9 +274,11 @@ export function AudioEngineProvider({
           audio.src = masteredBlobRef.current;
           audio.load();
           audio.addEventListener("loadedmetadata", () => {
+            if (controller.signal.aborted) return;
             audio.currentTime = ct;
           }, { once: true });
           audio.addEventListener("canplay", () => {
+            if (controller.signal.aborted) return;
             if (wasPlaying) audio.play().catch(() => {});
           }, { once: true });
         }
@@ -272,14 +286,15 @@ export function AudioEngineProvider({
       .catch(() => { /* fallback: use original URL, seeking may not work */ });
 
     // Decode waveform for visualizer
-    decodeWaveform(masteredUrl).then((result) => {
-      if (result) {
+    decodeWaveform(masteredUrl, controller.signal).then((result) => {
+      if (result && !controller.signal.aborted) {
         setStaticWaveformB(result.rms);
         setPeakWaveformB(result.peaks);
       }
     });
 
     return () => {
+      controller.abort();
       if (masteredBlobRef.current) {
         URL.revokeObjectURL(masteredBlobRef.current);
         masteredBlobRef.current = "";

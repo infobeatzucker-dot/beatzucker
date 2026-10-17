@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { AppState, AnalysisData, UploadedFile, type Lang } from "@/lib/types/mastering";
+import { withDspAdmissionRetry } from "@/lib/dspAdmissionRetry";
 
 interface Props {
   onUploadComplete: (file: UploadedFile) => void;
@@ -67,14 +68,18 @@ export default function UploadZone({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isWaiting, setIsWaiting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const [currentFilename, setCurrentFilename] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const workRef = useRef<AbortController | null>(null);
+  useEffect(() => () => workRef.current?.abort(), []);
 
   const handleFile = useCallback(
     async (file: File) => {
+      if (workRef.current) return;
       setError(null);
     setCurrentFilename(file.name);
 
@@ -90,6 +95,9 @@ export default function UploadZone({
       }
 
       // Upload
+      const controller = new AbortController();
+      workRef.current = controller;
+      let analyzeTimer: ReturnType<typeof setInterval> | undefined;
       setIsUploading(true);
       setUploadProgress(0);
       setAppState("uploaded");
@@ -107,16 +115,23 @@ export default function UploadZone({
 
         const uploadResult = await new Promise<UploadedFile>((resolve, reject) => {
           xhr.onload = () => {
+            try {
             if (xhr.status === 200) {
               resolve(JSON.parse(xhr.responseText));
             } else {
               reject(new Error(JSON.parse(xhr.responseText)?.error || (lang === "de" ? "Upload fehlgeschlagen" : "Upload failed")));
             }
+            } catch { reject(new Error(lang === "de" ? "Ungültige Serverantwort beim Upload" : "Invalid upload response")); }
           };
           xhr.onerror = () => reject(new Error("Network error"));
+          xhr.onabort = () => reject(new DOMException("Upload cancelled", "AbortError"));
+          xhr.timeout = 180000;
+          xhr.ontimeout = () => reject(new Error(lang === "de" ? "Upload hat zu lange gedauert. Bitte erneut versuchen." : "Upload timed out. Please retry."));
+          controller.signal.addEventListener("abort", () => xhr.abort(), { once: true });
           xhr.open("POST", "/api/upload");
           xhr.send(formData);
         });
+        if (controller.signal.aborted) return;
 
         setIsUploading(false);
         onUploadComplete(uploadResult);
@@ -127,35 +142,46 @@ export default function UploadZone({
         setAppState("analyzing");
 
         // Simulate analysis progress (real progress unavailable from API)
-        const analyzeTimer = setInterval(() => {
+        analyzeTimer = setInterval(() => {
           setAnalyzeProgress((p) => (p < 88 ? p + (88 - p) * 0.12 : p));
         }, 300);
 
-        const analysisRes = await fetch("/api/analyze", {
+        const analysisRes = await withDspAdmissionRetry(() => {
+          setIsWaiting(false);
+          return fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             file_id: uploadResult.file_id,
             upload_token: uploadResult.upload_token,
           }),
-        });
+          signal: controller.signal,
+          });
+        }, controller.signal, () => setIsWaiting(true));
+        setIsWaiting(false);
 
         clearInterval(analyzeTimer);
 
         if (!analysisRes.ok) {
+          if (analysisRes.status === 503) throw new Error(lang === "de" ? "Der Server ist noch ausgelastet. Bitte versuche die Analyse gleich erneut." : "The server is still busy. Please retry the analysis shortly.");
           const err = await analysisRes.json();
           throw new Error(err.error || (lang === "de" ? "Analyse fehlgeschlagen" : "Analysis failed"));
         }
 
         setAnalyzeProgress(100);
         const analysisData: AnalysisData = await analysisRes.json();
+        if (controller.signal.aborted) return;
         setIsAnalyzing(false);
         onAnalysisComplete(analysisData);
       } catch (err: unknown) {
+        if (controller.signal.aborted) return;
         setIsUploading(false);
         setIsAnalyzing(false);
         setError(err instanceof Error ? err.message : (lang === "de" ? "Upload fehlgeschlagen" : "Upload failed"));
         setAppState("idle");
+      } finally {
+        clearInterval(analyzeTimer);
+        if (workRef.current === controller) workRef.current = null;
       }
     },
     [onUploadComplete, onAnalysisComplete, setAppState, lang]
@@ -237,7 +263,7 @@ export default function UploadZone({
               </span>
               {isAnalyzing && (
                 <span style={{ fontSize: "0.72rem", color: "var(--accent-cyan)", fontVariantNumeric: "tabular-nums" }}>
-                  {Math.round(analyzeProgress)}%
+                  {isWaiting ? (lang === "de" ? "Warte auf freien Rechenplatz…" : "Waiting for processing capacity…") : `${Math.round(analyzeProgress)}%`}
                 </span>
               )}
             </div>

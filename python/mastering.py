@@ -897,6 +897,43 @@ def process_mastering_audio(audio: np.ndarray, sr: int, params: MasteringParams,
     return apply_true_peak_limiter(audio, sr, params.true_peak_ceiling, params.target_lufs)
 
 
+def export_peak_safe(audio: np.ndarray, sr: int, output_dir: str, master_id: str,
+                     selected_format: str, ceiling_db: float):
+    """Verify the delivered codec; bounded level-only corrections, never re-DSP.
+
+    Lossy encoding is not perfectly scale invariant. One predicted trim can
+    change quantization and leave another reconstructed peak above the ceiling.
+    Keep the existing tolerances/first correction, then allow two further small
+    safety corrections with increasing headroom. Never weaken verification.
+    """
+    total_trim_db = 0.0
+    for correction in range(4):  # Initial render + at most three safety renders.
+        paths = export_formats(audio, sr, output_dir, master_id, selected_format)
+        selected_path = paths.get(selected_format)
+        if not selected_path:
+            raise RuntimeError(f"Selected {selected_format} export was not produced")
+        post_audio, post_sr = load_and_verify_export(selected_path, selected_format, sr)
+        delivered_tp = float(compute_true_peak(post_audio, post_sr, oversample=4))
+        if not np.isfinite(delivered_tp):
+            raise RuntimeError(f"{selected_format} true peak verification is not finite")
+        # Preserve the initial trigger and accepted corrected-result tolerance.
+        tolerance = 0.05 if correction == 0 else 0.1
+        if delivered_tp <= ceiling_db + tolerance:
+            return paths, post_audio, post_sr, total_trim_db, correction
+        if correction == 3:
+            raise RuntimeError(
+                f"{selected_format} true peak remains above ceiling after 3 safety renders: "
+                f"{delivered_tp:.3f} dBTP, ceiling {ceiling_db:.3f} dBTP"
+            )
+        trim_db = ceiling_db - delivered_tp - (0.05 + correction * 0.1)
+        total_trim_db += trim_db
+        logger.info("Codec safety master_id=%s format=%s pass=%s measured=%.3f trim=%.3f",
+                    master_id, selected_format, correction + 1, delivered_tp, trim_db)
+        # Release decoded delivery before loading another full-length copy.
+        del post_audio
+        audio = (audio * db_to_linear(trim_db)).astype(np.float32)
+
+
 def master_audio(
     file_path: str,
     params: MasteringParams,
@@ -930,32 +967,12 @@ def master_audio(
     # 12. Export the selected format plus preview; generate an ID only for direct calls.
     if not master_id:
         master_id = str(uuid.uuid4())
-    paths = export_formats(audio, sr, output_dir, master_id, selected_format)
-
-    selected_path = paths.get(selected_format)
-    if not selected_path:
-        raise RuntimeError(f"Selected {selected_format} export was not produced")
-
-    # Decode what the user will actually download. Lossy codecs can create new
-    # inter-sample overshoots even when the PCM feeding the encoder was safe.
-    # Re-trim and render once when required, then report measurements from the
-    # delivered codec rather than from an in-memory precursor.
-    post_audio, post_sr = load_and_verify_export(selected_path, selected_format, sr)
-    delivered_tp = compute_true_peak(post_audio, post_sr, oversample=4)
-    if delivered_tp > params.true_peak_ceiling + 0.05:
-        codec_trim_db = params.true_peak_ceiling - delivered_tp - 0.05
-        audio = (audio * db_to_linear(codec_trim_db)).astype(np.float32)
-        paths = export_formats(audio, sr, output_dir, master_id, selected_format)
-        selected_path = paths.get(selected_format)
-        if not selected_path:
-            raise RuntimeError(f"Selected {selected_format} re-export was not produced")
-        post_audio, post_sr = load_and_verify_export(selected_path, selected_format, sr)
-        delivered_tp = compute_true_peak(post_audio, post_sr, oversample=4)
-        params.notes += f" Codec safety trim: {codec_trim_db:.2f} dB."
-        if delivered_tp > params.true_peak_ceiling + 0.1:
-            raise RuntimeError(
-                f"{selected_format} true peak remains above ceiling after safety render"
-            )
+    paths, post_audio, post_sr, codec_trim_db, safety_passes = export_peak_safe(
+        audio, sr, output_dir, master_id, selected_format, params.true_peak_ceiling
+    )
+    del audio  # Post-analysis needs delivered audio only, not a second full PCM copy.
+    if safety_passes:
+        params.notes += f" Codec safety trim: {codec_trim_db:.2f} dB ({safety_passes} passes)."
 
     # Post-analysis — lightweight in-memory measurement (skip BPM/key, they don't change)
     pre_bpm = float(pre_analysis.get("bpm", 0.0)) if pre_analysis else 0.0

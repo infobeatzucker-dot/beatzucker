@@ -8,6 +8,8 @@ import { AlertCircle, RotateCcw, X } from "lucide-react";
 import UploadZone from "@/components/UploadZone";
 import AuthModal from "@/components/AuthModal";
 import MasterButton from "@/components/MasterButton";
+import { MasteringRun } from "@/lib/masteringRun";
+import { stopGlobalAudio } from "@/lib/globalAudio";
 import PlatformTargets from "@/components/PlatformTargets";
 import PresetSelector from "@/components/PresetSelector";
 import MasteringIntensity from "@/components/MasteringIntensity";
@@ -44,7 +46,7 @@ function MasterPlayTrigger({ shouldPlay, downloadRef }: {
     didTrigger.current = true;
 
     // Scroll to download/player panel
-    setTimeout(() => {
+    const scrollTimer = setTimeout(() => {
       const el = downloadRef.current;
       if (el) {
         const y = el.getBoundingClientRect().top + window.scrollY - 100;
@@ -53,7 +55,8 @@ function MasterPlayTrigger({ shouldPlay, downloadRef }: {
     }, 400);
 
     // Switch to master + attempt autoplay (700ms delay for panel animation)
-    setTimeout(() => engine.playMaster(), 700);
+    const playTimer = setTimeout(() => engine.playMaster(), 700);
+    return () => { clearTimeout(scrollTimer); clearTimeout(playTimer); didTrigger.current = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldPlay, engine?.masteredUrl]);
 
@@ -99,6 +102,7 @@ export default function MasteringWorkspace({ lang }: Props) {
   const [dailyUsed, setDailyUsed] = useState<number | null>(null);
   const [appState,         setAppState]         = useState<AppState>("idle");
   const [uploadedFile,     setUploadedFile]     = useState<UploadedFile | null>(null);
+  const [uploadCycle, setUploadCycle] = useState(0);
   const [analysis,         setAnalysis]         = useState<AnalysisData | null>(null);
   const [masterData,       setMasterData]       = useState<MasterData | null>(null);
   const [platform,         setPlatform]         = useState<Platform>("spotify");
@@ -157,6 +161,8 @@ export default function MasteringWorkspace({ lang }: Props) {
   // Guard: prevents stale handleMasteringComplete / handleMasteringError
   // callbacks from updating state after a reset or remaster.
   const isMasteringRef = useRef(false);
+  const masteringRun = useRef(new MasteringRun());
+  useEffect(() => () => masteringRun.current.reset(), []);
 
   const scrollToPanel = useCallback(() => {
     setTimeout(() => {
@@ -180,6 +186,13 @@ export default function MasteringWorkspace({ lang }: Props) {
   }, []);
 
   const handleUploadComplete   = useCallback((file: UploadedFile) => {
+    stopGlobalAudio();
+    masteringRun.current.reset();
+    isMasteringRef.current = false;
+    setAnalysis(null);
+    setMasterData(null);
+    setCurrentProgress(null);
+    setAdjustOpen(false);
     setMasteringError(null);
     setUploadedFile(file);
     setAppState("uploaded");
@@ -215,6 +228,10 @@ export default function MasteringWorkspace({ lang }: Props) {
   }, [masterData]);
 
   const handleReset = useCallback(() => {
+    stopGlobalAudio();
+    masteringRun.current.reset();
+    setUploadCycle(cycle => cycle + 1);
+    setAdjustOpen(false);
     isMasteringRef.current = false; // cancel any in-flight mastering callbacks
     setAppState("idle");
     setUploadedFile(null);
@@ -227,6 +244,7 @@ export default function MasteringWorkspace({ lang }: Props) {
 
   // Remaster: keep file + analysis, just clear the master result
   const handleRemaster = useCallback(() => {
+    masteringRun.current.reset();
     isMasteringRef.current = false; // cancel any in-flight mastering callbacks
     setMasterData(null);
     setCurrentProgress(null);
@@ -236,16 +254,17 @@ export default function MasteringWorkspace({ lang }: Props) {
   }, [scrollToPanel]);
 
   /**
-   * Übernimmt die manuell eingestellten Werte und rendert den Track damit neu.
-   * Läuft direkt über runMastering(), weil der MasterButton im Zustand "done"
-   * gar nicht gemountet ist — eine zweite Instanz nur zum Auslösen würde den
-   * Tastatur-Shortcut doppelt registrieren.
+   * One owner for automatic and manual jobs. The button may animate out, but
+   * its request stays alive. A reset invalidates only that run's callbacks;
+   * an older request cannot replace the result of a newer track.
    */
-  const handleApplyAdjustments = useCallback(async (overrides: ParamValues) => {
+  const handleRun = useCallback(async (overrides?: ParamValues) => {
     if (!uploadedFile) return;
+    const run = masteringRun.current.start();
+    if (!run) return; // Synchronous protection against double clicks and shortcuts.
     setAdjustOpen(false);
     handleMasteringStart();
-    await runMastering({
+    try { await runMastering({
       fileId: uploadedFile.file_id,
       uploadToken: uploadedFile.upload_token,
       originalName: uploadedFile.filename,
@@ -255,10 +274,11 @@ export default function MasteringWorkspace({ lang }: Props) {
       referenceAnalysis: referenceAnalysis ?? undefined,
       overrides,
       lang,
-      onProgress: handleProgressUpdate,
-      onComplete: handleMasteringComplete,
-      onError: handleMasteringError,
-    });
+      signal: run.signal,
+      onProgress: step => { if (run.current()) handleProgressUpdate(step); },
+      onComplete: data => { if (run.current()) handleMasteringComplete(data); },
+      onError: message => { if (run.current()) handleMasteringError(message); },
+    }); } finally { run.finish(); }
   }, [uploadedFile, platform, customLufs, preset, intensity, selectedFormat, analysis,
       referenceAnalysis, lang, handleMasteringStart, handleProgressUpdate,
       handleMasteringComplete, handleMasteringError]);
@@ -372,6 +392,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                     transition={{ duration: 0.3 }}
                   >
                     <UploadZone
+                      key={uploadCycle}
                       onUploadComplete={handleUploadComplete}
                       onAnalysisComplete={handleAnalysisComplete}
                       setAppState={setAppState}
@@ -535,21 +556,9 @@ export default function MasteringWorkspace({ lang }: Props) {
 
                 {/* Master NOW button */}
                 <MasterButton
-                  fileId={uploadedFile.file_id}
-                  uploadToken={uploadedFile.upload_token}
-                  originalName={uploadedFile.filename}
-                  platform={platform}
-                  targetLufs={customLufs}
-                  preset={preset}
-                  intensity={intensity}
                   selectedFormat={selectedFormat}
-                  analysis={analysis ?? undefined}
-                  referenceAnalysis={referenceAnalysis ?? undefined}
                   isProcessing={false}
-                  onStart={handleMasteringStart}
-                  onProgress={handleProgressUpdate}
-                  onComplete={handleMasteringComplete}
-                  onError={handleMasteringError}
+                  onRun={handleRun}
                   compact
                   lang={lang}
                 />
@@ -582,7 +591,7 @@ export default function MasteringWorkspace({ lang }: Props) {
           analysis={analysis}
           referenceAnalysis={referenceAnalysis}
           serverParams={masterData?.params ?? null}
-          onApply={handleApplyAdjustments}
+          onApply={handleRun}
         />
       )}
 

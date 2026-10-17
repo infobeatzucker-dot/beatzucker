@@ -3,7 +3,9 @@ function load(file,imports={},globals={}){const module={exports:{}};vm.runInNewC
 const manifest=JSON.parse(fs.readFileSync('public/audio/showcase/manifest.json')),tracks=load('lib/showcaseTracks.ts',{'@/public/audio/showcase/manifest.json':manifest});
 const watchdog=setTimeout(()=>{console.error('FAIL showcase tests stalled');process.exit(1);},10000);
 (async()=>{
- assert.equal(tracks.SHOWCASE_TRACKS.length,2);
+ assert.equal(tracks.SHOWCASE_TRACKS.length,4);
+ assert.equal(tracks.SHOWCASE_TRACKS[2].id,'on-tour');
+ assert.equal(tracks.SHOWCASE_TRACKS.at(-1).id,'xplore-belgium');
  for(const t of tracks.SHOWCASE_TRACKS){const trims=tracks.showcaseTrims(t,true);assert.ok(trims.original<=0&&trims.master<=0);assert.ok(Math.abs(t.original.metrics.lufs+trims.original-t.master.metrics.lufs-trims.master)<1e-7);for(const side of ['original','master']){assert.ok(t[side].metrics.truePeak+trims[side]<=-.5+1e-7);assert.equal(t[side].waveform.length,128);assert.ok(t[side].waveform.every(v=>Number.isFinite(v)&&v>=0&&v<=1));assert.equal(fs.statSync('public'+t[side].url).size,t[side].bytes);assert.ok(t[side].bytes<2000000);assert.equal(t[side].duration,24);}const raw=tracks.showcaseTrims(t,false);assert.equal(raw.original,raw.master);assert.equal(raw.master,0);assert.ok(tracks.showcaseWavePath(t,'master',true).startsWith('M'));}
  console.log('PASS supplied excerpts, waveform sizes, equal LUFS matching, shared peak safety and untouched original-level option');
  let contexts=[],requests=0,blocked=false,fail=false;const releases=[],log=[];

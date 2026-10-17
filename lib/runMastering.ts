@@ -4,6 +4,7 @@ import type {
 import type { ParamValues } from "@/lib/masteringParams";
 
 const STEP_LABELS: Record<string, string> = {
+  waiting: "Warte auf freien Rechenplatz…",
   analyzing:   "Track wird analysiert…",
   loading:     "Track wird geladen…",
   eq:          "EQ-Korrektur wird angewendet…",
@@ -16,6 +17,7 @@ const STEP_LABELS: Record<string, string> = {
 };
 
 const STEP_LABELS_EN: Record<string, string> = {
+  waiting: "Waiting for processing capacity…",
   analyzing: "Analyzing track…", loading: "Loading track…",
   eq: "Applying EQ correction…", compression: "Multiband compression…",
   ms: "M/S processing…", saturation: "Harmonic saturation…",
@@ -59,7 +61,7 @@ export async function runMastering({
   const fallbackError = lang === "de"
     ? "Das Mastering konnte nicht abgeschlossen werden. Deine Einstellungen bleiben erhalten – bitte versuche es erneut."
     : "Mastering could not be completed. Your settings are still available—please try again.";
-
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   try {
     const response = await fetch("/api/master", {
       method: "POST",
@@ -87,6 +89,8 @@ export async function runMastering({
         ? (lang === "de" ? "Deine Anmeldung ist abgelaufen. Bitte melde dich erneut an." : "Your session has expired. Please sign in again.")
         : response.status === 403
           ? (lang === "de" ? "Dieser Upload gehört nicht zu deiner aktuellen Sitzung. Bitte lade den Track erneut hoch." : "This upload does not belong to your current session. Please upload the track again.")
+          : response.status === 409
+            ? (lang === "de" ? "Für dein Konto läuft noch ein Mastering. Du findest das Ergebnis anschließend in deiner Bibliothek." : "A mastering job is still running for your account. Its result will appear in your library.")
           : response.status === 429
             ? (lang === "de" ? (serverMessage || "Das Nutzungslimit ist erreicht. Bitte versuche es später erneut.") : "The usage limit has been reached. Please try again later.")
             : (lang === "de" ? serverMessage : "");
@@ -98,7 +102,7 @@ export async function runMastering({
       return;
     }
 
-    const reader = response.body.getReader();
+    reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
     const labels = lang === "de" ? STEP_LABELS : STEP_LABELS_EN;
@@ -106,13 +110,21 @@ export async function runMastering({
     const processChunk = (chunk: string): boolean => {
       const line = chunk.trim();
       if (!line.startsWith("data: ")) return false;
-      try {
-        const data = JSON.parse(line.slice(6));
+      let data;
+      try { data = JSON.parse(line.slice(6)); }
+      catch { return false; }
         if (data.step === "complete") { onComplete(data as MasterData); return true; }
-        if (data.error) {
-          const message = lang === "de" && typeof data.error === "string" && data.error.length <= 300
-            ? data.error : fallbackError;
-          onError(message);
+        if (data.error || data.step === "error") {
+          const known: Record<string, [string, string]> = {
+            upload: ["Der Upload ist nicht mehr verfügbar. Bitte lade den Track erneut hoch.", "The upload is no longer available. Please upload the track again."],
+            busy: ["Der Server ist gerade ausgelastet. Bitte warte kurz und starte erneut; es wurde kein Master berechnet.", "The server is busy. Please wait briefly and retry; no master was rendered."],
+            memory: ["Für diesen Track reicht der verfügbare Arbeitsspeicher momentan nicht aus. Bitte später erneut versuchen.", "There is not enough available memory for this track right now. Please retry later."],
+            timeout: ["Die Verarbeitung hat zu lange gedauert. Bitte versuche es später erneut.", "Processing took too long. Please retry later."],
+          };
+          const reference = typeof data.master_id === "string" ? ` (${data.master_id.slice(0, 8)})` : "";
+          const message = known[data.error_code]?.[lang === "de" ? 0 : 1] || (lang === "de" && typeof data.error === "string" && data.error.length <= 300
+            ? data.error : fallbackError);
+          onError(message + reference);
           return true;
         }
         onProgress({
@@ -120,9 +132,6 @@ export async function runMastering({
           label: labels[data.step] || data.label || data.step,
           progress: data.progress ?? 0,
         });
-      } catch (e) {
-        if (process.env.NODE_ENV === "development") console.warn("[SSE] malformed chunk:", line, e);
-      }
       return false;
     };
 
@@ -148,5 +157,10 @@ export async function runMastering({
     onError(lang === "de"
       ? "Der Mastering-Service ist momentan nicht erreichbar. Bitte prüfe deine Verbindung und versuche es erneut."
       : "The mastering service is currently unavailable. Please check your connection and try again.");
+  } finally {
+    if (reader) {
+      try { await reader.cancel(); } catch { /* stream already closed */ }
+      reader.releaseLock();
+    }
   }
 }

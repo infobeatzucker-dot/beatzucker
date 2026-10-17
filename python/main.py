@@ -80,7 +80,10 @@ app.add_middleware(
 
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
 PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview", "/preview-section"}
-MAX_CONCURRENT_DSP_JOBS = max(1, int(os.environ.get("MAX_CONCURRENT_DSP_JOBS", "2")))
+# Full-track DSP temporarily allocates several arrays per stage. The small
+# production host must not run two such allocations on top of each other.
+# Larger installations can still explicitly opt into a higher capacity.
+MAX_CONCURRENT_DSP_JOBS = max(1, int(os.environ.get("MAX_CONCURRENT_DSP_JOBS", "1")))
 DSP_SLOTS = asyncio.Semaphore(MAX_CONCURRENT_DSP_JOBS)
 ACTIVE_MASTER_IDS = set()
 
@@ -495,6 +498,9 @@ async def master(req: MasterRequest, request: Request = None):
             # starten, mit denen dieser Master entstanden ist — sonst springt
             # der Klang beim ersten Reglerkontakt unerwartet.
             from dataclasses import asdict as _asdict
+            # Free the completed worker slot BEFORE announcing completion.
+            # A second track may start as soon as the client receives this event.
+            lease.release_when_done()
             yield encode({
                 "step": "complete",
                 "progress": 100,
@@ -508,8 +514,12 @@ async def master(req: MasterRequest, request: Request = None):
             })
 
         except Exception as e:
-            logger.exception("Error in /master")
-            yield encode({"step": "error", "progress": 0, "error": "Mastering failed"})
+            logger.exception("Error in /master master_id=%s platform=%s preset=%s intensity=%s format=%s",
+                             req.master_id, req.platform, req.preset, req.intensity, req.format)
+            lease.release_when_done()
+            yield encode({"step": "error", "progress": 0, "error": "Mastering failed",
+                          "error_code": "memory" if isinstance(e, MemoryError) else "processing",
+                          "master_id": req.master_id})
         finally:
             lease.release_when_done()
 

@@ -53,7 +53,10 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Analysis failed" }));
-      return NextResponse.json(err, { status: res.status });
+      const retry = res.headers.get("retry-after");
+      return NextResponse.json(err, { status: res.status,
+        ...(res.status === 503 && retry ? { headers: { "Retry-After": "15" } } : {}),
+      });
     }
 
     const analysis = normalizeAnalysis(await res.json());
