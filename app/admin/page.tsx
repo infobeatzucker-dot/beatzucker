@@ -5,6 +5,9 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import ToolUsageStats from "@/components/admin/ToolUsageStats";
+import UserDailyLimit from "@/components/admin/UserDailyLimit";
+import ShowcaseManager from "@/components/admin/ShowcaseManager";
+import { useUiLanguage } from "@/lib/useUiLanguage";
 
 interface Stats {
   totalUsers: number;
@@ -14,6 +17,9 @@ interface Stats {
 }
 
 interface AdminUser {
+  dailyMasterLimit: number | null;
+  dailyLimit: number;
+  dailyUsed: number;
   id: string;
   email: string;
   name: string | null;
@@ -123,6 +129,7 @@ function PromoPreview({ title, body, ctaText, bgStyle }: { title: string; body: 
 
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function AdminPage() {
+  const lang = useUiLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -312,6 +319,7 @@ export default function AdminPage() {
         </div>
 
         <ToolUsageStats />
+        <ShowcaseManager />
 
         {/* ── ADMIN PASSWORD RESET ── */}
         <div style={{ marginBottom: "2.5rem" }}>
@@ -513,7 +521,7 @@ export default function AdminPage() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                    {["Email", "Name", "Masters", "Dabei seit", ""].map(h => (
+                    {["Email", "Name", "Masters", lang === "en" ? "Daily limit" : "Tageslimit", "Dabei seit", ""].map(h => (
                       <th key={h} style={thStyle}>{h}</th>
                     ))}
                   </tr>
@@ -524,6 +532,7 @@ export default function AdminPage() {
                       <td style={{ ...tdStyle, color: "var(--text-primary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</td>
                       <td style={tdStyle}>{u.name ?? "—"}</td>
                       <td style={{ ...tdStyle, textAlign: "center" }}>{u.mastersCount}</td>
+                      <td style={tdStyle}><UserDailyLimit lang={lang} userId={u.id} email={u.email} value={u.dailyMasterLimit} used={u.dailyUsed} onSaved={quota => setData(current => current ? { ...current, users: current.users.map(user => user.id === u.id ? { ...user, ...quota } : user) } : current)} /></td>
                       <td style={tdStyle}>{fmtDate(u.createdAt)}</td>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>
                         <button

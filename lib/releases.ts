@@ -10,215 +10,281 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
-  version: "0.19.0",
-  date: "2026-10-17",
-  title: { de: "Die ganze Kette im Blick.", en: "See the complete chain." },
-  summary: { de: "Das Mastering-Fenster zeigt alle zwölf Verarbeitungsstufen mit passenden Animationen. Nach dem Mastering ergänzt eine kompakte Übersicht den linken Seitenbereich.", en: "The mastering window shows all twelve processing stages with matching animations. A compact overview fills the left-hand area after mastering." },
-  improvements: {
-    de: ["Alle zwölf Stufen werden anhand des tatsächlichen Ablaufs angezeigt. Nicht angewendete Stufen sind klar gekennzeichnet; schnelle Schritte werden nicht künstlich verlängert.", "Gain-Staging, De-Esser, Final-EQ, Bus-Kompression, Dithering und Codec-Prüfung haben eigene visuelle Motive. Die Klangbearbeitung bleibt unverändert.", "Nach dem Mastering zeigt die linke Spalte den Track und gemessene Original-/Master-Lautheit, Spitzenpegel und Lautheitsumfang. Auf großen Bildschirmen bleibt die Übersicht beim Scrollen im Blick."],
-    en: ["All twelve stages follow actual processing events. Stages that are not applied are clearly marked; fast steps are not artificially prolonged.", "Gain staging, de-essing, final EQ, bus compression, dithering and codec verification have distinct visual motifs. Audio processing remains unchanged.", "After mastering, the left column shows the track and measured original/master loudness, true peak and loudness range. On large screens, the overview stays visible while scrolling."],
+  "version": "0.20.0",
+  "date": "2026-10-17",
+  "title": {
+    "de": "Mehr Klangskulptur. Weniger Rahmen.",
+    "en": "More sound sculpture. Less framing."
   },
-}, {
-  version: "0.18.0",
-  date: "2026-10-17",
-  title: { de: "Dein Master nimmt Gestalt an.", en: "Watch your master take shape." },
-  summary: { de: "Ein animierter Klangkern begleitet das Mastering. Upload, Abschluss und Hörvergleich erhalten ruhigere, aufeinander abgestimmte Übergänge. Ein direkter Download-Sprung führt vom Player zu den Formaten. Die Klangbearbeitung bleibt unverändert.", en: "An animated sound core accompanies mastering. Upload, completion and listening comparison receive subtle, coordinated transitions. A direct download shortcut leads from the player to the available formats. Audio processing remains unchanged." },
-  improvements: {
-    de: ["Das Mastering-Fenster zeigt einen schwebenden Klangkern mit feinen Linien und Partikeln. Seine Darstellung verändert sich passend zum aktuellen Arbeitsschritt.", "Echter Fortschritt und Arbeitsschritte bleiben gut erkennbar. Die Animation ist eine Illustration, kein Live-Analyzer.", "In unsichtbaren Tabs pausiert die Animation. Bei reduzierter Bewegung bleibt die Darstellung ruhig. Deutsch und Englisch sind vollständig enthalten.", "Die Uploadfläche reagiert auf abgelegte Dateien und bestätigt den erfolgreichen Upload. Die echte Wellenform blendet sich nach dem Laden ein.", "Ein kurzer Abschlussübergang führt zum fertigen Master. Der gewohnte Autostart bleibt erhalten; der A/B-Schalter zeigt die Auswahl mit einem gleitenden Lichtmarker statt einer Dauerschleife."],
-    en: ["The mastering window shows a floating sound core with fine lines and particles. Its appearance changes with the current processing stage.", "Actual progress and processing stages remain clearly visible. The animation is an illustration, not a live analyzer.", "Animation pauses in hidden tabs. Reduced-motion preferences produce a still illustration. German and English are fully supported.", "The upload area reacts to dragged files and confirms successful uploads. The actual waveform fades in after loading.", "A short completion transition introduces the finished master. Existing autoplay stays available; the A/B switch shows your selection with a sliding light marker instead of a repeating sweep."],
+  "summary": {
+    "de": "Eine offene Klangskulptur begleitet deinen fertigen Master. Die Oberfläche und die Hörvergleiche bleiben übersichtlich.",
+    "en": "An open sound sculpture accompanies your finished master, with a clearer interface and listening comparisons."
   },
-}, {
-  version: "0.16.0",
-  date: "2026-10-17",
-  title: { de: "Mehr hören. Zuverlässiger weiterarbeiten.", en: "More to hear. Smoother consecutive masters." },
-  summary: { de: "Zwei weitere echte Hörvergleiche ergänzen die Startseite. Trackwechsel und aufeinanderfolgende Mastering-Aufträge sind besser abgesichert – ohne Änderung der Klangbearbeitung.", en: "Two more real listening comparisons join the homepage. Track changes and consecutive mastering jobs have stronger safeguards, without changing the audio processing chain." },
-  improvements: {
-    de: ["Lass mich nicht allein und On Tour ergänzen den Hörvergleich. On Tour steht an dritter Stelle, Xplore Belgium am Ende; Originalpegel bleibt voreingestellt.", "Die MP3-Ausgabe prüft neu entstehende Spitzen mit begrenzten, kleinen Pegelkorrekturen nach. Ein schwieriger Export bricht nicht mehr schon nach einem einzigen Korrekturversuch ab; die Schutzgrenze bleibt gleich.", "Doppelstarts werden abgefangen. Beim Trackwechsel werden alte Ergebnisse zurückgesetzt; verspätete Antworten überschreiben keinen neuen Auftrag.", "Abgeschlossene Verbindungen und Rechenplätze werden gezielt freigegeben. Der Versand der Fertigmeldung per E-Mail verzögert das fertige Ergebnis nicht mehr.", "Rechenintensive Verarbeitung läuft standardmäßig nacheinander, um Arbeitsspeicher zu schonen. Bei Engpässen erscheinen verständlichere Hinweise mit einer Fehlerreferenz."],
-    en: ["Lass mich nicht allein and On Tour join the listening comparison. On Tour appears third, Xplore Belgium last; original levels remain the default.", "MP3 output rechecks encoder-created peaks with bounded, small level corrections. A difficult export no longer stops after just one correction attempt; the safety ceiling stays unchanged.", "Duplicate starts are blocked. Changing tracks clears old results; late responses cannot overwrite a new job.", "Completed connections and processing slots are explicitly released. Sending the completion email no longer holds up the finished result.", "Heavy processing runs sequentially by default to protect available memory. Capacity issues show clearer explanations and an error reference."],
-  },
-}, {
-  version: "0.15.0",
-  date: "2026-10-17",
-  title: { de: "Echte Hörproben. Klare Vergleiche.", en: "Real audio. Clear comparisons." },
-  summary: { de: "Zwei echte Tracks lassen sich auf der Startseite vor und nach dem Mastering anhören – mit wählbarem Lautheitsabgleich. Aktuelle Ratgeber und passendere Linkvorschauen ergänzen das Update.", en: "Listen to two real tracks before and after mastering on the homepage, with optional loudness matching. Updated guidance and more relevant link previews complete the update." },
-  improvements: {
-    de: ["Auf der Startseite kannst du Xplore Belgium und Back to My Acid als Original und Beatzucker-Master anhören. A/B wechselt an derselben Position; Lautheitsabgleich ist wählbar.", "Echte Wellenformen, ein Live-Frequenzbild und gemessene Werte ersetzen die bisherige Beispielanimation. Die Hörproben werden erst beim Start geladen.", "Der bisherige re-beatz-Ratgeber erklärt jetzt Auto-Master, manuelle Vorschau, Kontrollrender und neuen Export. Bestehende Artikeladressen bleiben erreichbar.", "Linkvorschauen nutzen die jeweilige Seitenadresse und Sprache statt pauschal die Startseite.", "Suchmaschinen erhalten passendere Angaben zur Mastering-Anwendung. Überarbeitete Ratgeber zeigen ihr Aktualisierungsdatum.", "Die Tool-Überschriften benennen ihre Funktion deutlicher – auf Deutsch und Englisch.", "Startseitentext ist sofort sichtbar. Der Downloadbereich wird erst bei einem fertigen Ergebnis geladen; das Community-Raster passt sich ohne nachträgliche JavaScript-Umschaltung an.", "Nicht vorhandene Seiten erhalten eindeutige Hinweise, nicht in Suchergebnissen zu erscheinen."],
-    en: ["Listen to Xplore Belgium and Back to My Acid as original and Beatzucker master on the homepage. A/B switches at the same position, with optional loudness matching.", "Real waveforms, a live frequency view and measured values replace the illustrative animation. Audio excerpts load only when playback starts.", "The former re-beatz guide now explains automatic mastering, manual preview, control renders and new exports. Existing article addresses remain accessible.", "Link previews use each page’s address and language instead of generic homepage details.", "Search engines receive more relevant mastering app information. Revised guides show their update date.", "Tool headings describe their purpose more clearly in German and English.", "Homepage text is immediately visible. The download panel loads only when a result is ready; the community grid adapts without a later JavaScript layout switch.", "Missing pages receive consistent instructions to stay out of search results."],
-  },
-}, {
-  version: "0.14.1",
-  date: "2026-10-17",
-  title: { de: "Flüssiger manuell vorhören.", en: "Smoother manual previews." },
-  summary: { de: "Die manuelle Vorschau lädt den gewählten Ausschnitt vor und wiederholt ihn aus dem Speicher. Die Live-Effekte benötigen weniger Rechenarbeit.", en: "Manual preview preloads the selected section and loops it from memory. Live effects require less processing." },
-  improvements: {
-    de: ["Keine erneuten Dateisprünge beim Wiederholen des Loops. Beim Laden wird der Fortschritt sichtbar angezeigt.", "Bereichswechsel werden nach dem Loslassen übernommen; verspätete Ladevorgänge starten keine alte Auswahl.", "Die Vorschau pausiert ihre Audioberechnung bei gestoppter Wiedergabe. Der Hauptvergleich und der endgültige Master-Export bleiben unverändert."],
-    en: ["Loop repetitions no longer seek through the source file. Loading is visibly indicated.", "Section changes are applied on release; late loads cannot play an old selection.", "Preview audio processing is suspended when paused. The main comparison and final master export are unchanged."],
-  },
-}, {
-  version: "0.14.0",
-  date: "2026-10-17",
-  title: { de: "Gezielter bearbeiten. Genauer vorhören.", en: "More focused processing. Closer previews." },
-  summary: { de: "Die Frequenzaufteilung wurde korrigiert. Die Automatik beurteilt Klangbalance unabhängig vom Dateipegel und behandelt bereits dichte Mischungen zurückhaltender.", en: "Frequency splitting has been corrected. Automatic decisions use tonal balance independently of file level and treat already dense mixes more gently." },
-  improvements: {
-    de: ["Bass-Trennung und das Zusammenfügen der Frequenzbänder wurden korrigiert, damit keine unbeabsichtigten Pegelsenken entstehen.", "Referenzvergleich und zusätzliche Höhenkorrektur orientieren sich an relativer Klangbalance statt an der Lautstärke des Uploads.", "Kompression setzt sanfter ein. Bereits dichte Mischungen werden zurückhaltender bearbeitet; die Erholungszeiten richten sich nach der gemessenen Dynamik.", "Das Bass-Stereobild bleibt ohne gemessenes Tieftonproblem erhalten. Bei der manuellen Bearbeitung kannst du die Bass-Bündelung selbst einstellen.", "Die Live-Vorschau übernimmt mehr Eigenschaften der Export-Kette. Ein optionaler Server-Kontrollrender prüft bis zu 20 Sekunden ohne Master-Kontingent; Abschnittslautheit und Randkontext können vom vollständigen Export abweichen."],
-    en: ["Bass splitting and frequency-band recombination have been corrected to avoid unintended level dips.", "Reference comparison and additional treble correction use relative tonal balance rather than upload loudness.", "Compression starts more gradually. Already dense mixes receive less processing, with recovery times based on measured dynamics.", "Bass stereo is preserved unless a low-frequency problem is measured. Manual adjustments now include a bass-narrowing control.", "Live preview shares more properties with the export chain. An optional server control render checks up to 20 seconds without using master quota; section loudness and boundary context can differ from the full export."],
-  },
-}, {
-  version: "0.13.0",
-  date: "2026-10-14",
-  title: { de: "Audio-Tools im Blick.", en: "Keeping track of audio tools." },
-  summary: { de: "Eine neue interne Übersicht hilft dem Betreiber zu erkennen, welche Audio-Tools genutzt werden und wo Probleme gemeldet werden.", en: "A new internal overview helps the operator see which audio tools are used and where problems are reported." },
-  improvements: {
-    de: ["Die Admin-Übersicht zeigt Tool-Vorgänge, Ergebnisse und Fehler für 7, 30 oder 90 Tage sowie einen Tagesverlauf.", "Die Statistik speichert keine Audiodaten, Dateinamen oder Kontoverknüpfungen. Browsermeldungen können unvollständig sein; die Datenschutzhinweise erklären die Erfassung."],
-    en: ["The admin overview shows tool operations, outcomes and errors over 7, 30 or 90 days, with a daily activity chart.", "The statistics store no audio, filenames or account links. Browser reports may be incomplete; the privacy information explains the collection."],
-  },
-}, {
-  version: "0.12.0",
-  date: "2026-10-12",
-  title: { de: "Vom Messwert zum nächsten Schritt.", en: "From measurements to your next step." },
-  summary: { de: "Praxisbeispiele und passende Ratgeber helfen dir, Tool-Ergebnisse einzuordnen. Die Bibliothek lässt sich mit Mehrfachauswahl leichter aufräumen.", en: "Practical examples and matching guides help you interpret tool results. Multi-select makes your library easier to organize." },
-  improvements: {
-    de: [
-      "Alle Audio-Tools haben konkrete Praxisbeispiele. Wissensartikel führen direkt zu passenden Tools – und nach der Analyse bekommst du sinnvolle nächste Schritte.",
-      "Verarbeitung, Erfolg, unvollständige Ergebnisse und Fehler sind einheitlich erkennbar. Eine abgeschlossene Analyse ist kein Versprechen, dass dein Audio fehlerfrei ist.",
-      "In der Bibliothek kannst du mehrere Einträge oder alle abgeschlossenen Einträge auswählen und nach einer Bestätigung gemeinsam löschen. Fehlgeschlagene Löschungen bleiben sichtbar.",
-      "Die Sitemap enthält passende Änderungsdaten und verbindet die deutschen und englischen Seiten für Suchmaschinen.",
-      "Der Betreiber erhält eine interne Nachricht bei neuen E-Mail- und Google-Konten. Versandprobleme werden erneut versucht, ohne die Registrierung zu blockieren. Die Datenschutzhinweise erklären die verwendeten Angaben.",
+  "improvements": {
+    "de": [
+      "Die neue Master-Übersicht zeigt deinen Track und echte Messwerte neben einer schwebenden Klangskulptur.",
+      "Kein innerer Scrollbalken mehr: Auf kleineren Bildschirmen scrollt die Übersicht mit der Seite.",
+      "Der Tageszähler bleibt beim Aufräumen deiner Bibliothek korrekt."
     ],
-    en: [
-      "Every audio tool has a practical example. Guides link directly to matching tools, and completed analyses offer useful next steps.",
-      "Processing, completion, incomplete results and errors share clear status displays. A completed analysis is not a promise that your audio is free of issues.",
-      "Select several library entries or all finished entries and delete them together after confirmation. Failed deletions remain visible.",
-      "The sitemap uses appropriate modification dates and connects German and English pages for search engines.",
-      "The operator receives internal notifications for new email and Google accounts. Delivery failures are retried without blocking registration. The privacy information explains which details are used.",
-    ],
-  },
+    "en": [
+      "The new master overview pairs your track and real measurements with a floating sound sculpture.",
+      "No more inner scrollbar: the overview scrolls with the page on smaller screens.",
+      "Your daily usage stays accurate when you tidy your library."
+    ]
+  }
 }, {
-  version: "0.11.0",
-  date: "2026-10-11",
-  title: { de: "Audio-Tools mit verlässlicheren Ergebnissen.", en: "Audio tools with more reliable results." },
-  summary: {
-    de: "Unsere Audio-Tools zeigen Grenzen und fehlende Messungen klarer. Vergleiche, Live-Bearbeitung und Exporte wurden überarbeitet; Deutsch und Englisch lassen sich direkt im Tool wechseln.",
-    en: "Our audio tools explain limitations and missing measurements more clearly. Comparisons, live processing and exports have been improved, with a direct German/English switch in each tool.",
+  "version": "0.19.0",
+  "date": "2026-10-17",
+  "title": {
+    "de": "Die ganze Kette im Blick.",
+    "en": "See the complete chain."
   },
-  improvements: {
-    de: [
-      "Die Vocal Chain verwendet für Vorschau und Export dieselbe Bearbeitung. Bei 0 % sind De-Esser und Kompressor wirklich aus. Ein wählbarer Exportschutz verhindert das Abschneiden übersteuerter Samples.",
-      "Der Kick-/Bass-Vergleich berücksichtigt auch kurze Ereignisse und gegenphasige Spuren. Stille erzeugt keinen scheinbaren Konflikt mehr.",
-      "Beim Referenzvergleich kannst du beide Tracks pegelangepasst anhören und Klangfarbe unabhängig vom Gesamtpegel vergleichen.",
-      "Der Album-Check kennzeichnet unvollständige Analysen und kann fehlende Tracks erneut prüfen, ohne erfolgreiche Ergebnisse zu verlieren.",
-      "Streaming-Vorschauen unterscheiden Prognosen von tatsächlich gemessenen Codec-Werten. Der codierte Vergleich wird genauer im Pegel angepasst.",
-      "Im Trimmer lassen sich Schnittpunkte direkt an der Wellenform verschieben und der ausgewählte Bereich vorhören.",
-      "Der WAV-Konverter prüft den Speicherbedarf vor der Verarbeitung und warnt vor übersteuerten Integer-Exporten. Eine Pegelabsenkung bleibt deine Entscheidung.",
-      "Stereo- und Tonart-Checks zeigen bei Stille oder fehlenden brauchbaren Werten keine scheinbar sicheren Ergebnisse. Fehlermeldungen und Sprachwechsel wurden vereinheitlicht.",
-    ],
-    en: [
-      "The Vocal Chain uses the same processing for preview and export. At 0%, de-esser and compressor are truly bypassed. Optional export protection prevents overloaded samples from being clipped.",
-      "Kick/bass comparison includes short events and opposing-phase tracks. Silence no longer produces a misleading conflict score.",
-      "Reference comparison lets you audition both tracks with level matching and compare tonal balance separately from overall loudness.",
-      "Album checks flag incomplete analyses and retry missing tracks without losing successful results.",
-      "Streaming previews distinguish predictions from measured codec values. The encoded comparison has more accurate level matching.",
-      "Trim points can be dragged directly on the waveform, and the selected section can be auditioned before export.",
-      "The WAV converter checks memory requirements before processing and warns about overloaded integer exports. Gain reduction remains your choice.",
-      "Stereo and key checks no longer present silence or missing usable measurements as reliable results. Error messages and language switching are more consistent.",
-    ],
+  "summary": {
+    "de": "Das Mastering-Fenster zeigt alle zwölf Verarbeitungsstufen mit passenden Animationen. Nach dem Mastering ergänzt eine kompakte Übersicht den linken Seitenbereich.",
+    "en": "The mastering window shows all twelve processing stages with matching animations. A compact overview fills the left-hand area after mastering."
   },
+  "improvements": {
+    "de": [
+      "Alle zwölf Bearbeitungsstufen sind im Mastering-Fenster sichtbar, jeweils mit passender Animation.",
+      "Nicht benötigte Stufen sind klar gekennzeichnet.",
+      "Nach dem Mastering zeigt die linke Spalte deinen Track und die gemessenen Lautheitswerte."
+    ],
+    "en": [
+      "All twelve processing stages appear in the mastering window, with matching animations.",
+      "Stages that are not applied are clearly marked.",
+      "After mastering, the left column shows your track and measured loudness."
+    ]
+  }
 }, {
-  version: "0.10.0",
-  date: "2026-10-11",
-  title: { de: "Flüssigere Tools. Zuverlässigere Verarbeitung.", en: "Smoother tools. More reliable processing." },
-  summary: {
-    de: "Echte MP3- und AAC-Vorschauen werden gezielter geprüft. Bei hoher Auslastung schützt eine gemeinsame Grenze den Audiodienst vor zusätzlichen Vorschau-Aufträgen.",
-    en: "Actual MP3 and AAC previews are checked more efficiently. Under heavy load, a shared limit protects the audio service from additional preview jobs.",
+  "version": "0.18.0",
+  "date": "2026-10-17",
+  "title": {
+    "de": "Dein Master nimmt Gestalt an.",
+    "en": "Watch your master take shape."
   },
-  improvements: {
-    de: [
-      "Aufwendige Audioanalysen und WAV-Exporte laufen im Hintergrund, damit du die Oberfläche währenddessen weiter bedienen kannst.",
-      "Analyzer pausieren außerhalb des sichtbaren Bereichs. Die Audiowiedergabe läuft im Hintergrund weiter; reduzierte Bewegung wird berücksichtigt.",
-      "Anmeldung und Profil sind auch auf Englisch nutzbar. Verbindungsfehler lassen die Formulare nicht dauerhaft blockiert zurück.",
-      "Neue Registrierungen bestätigen die aktuellen Nutzungsbedingungen auch bei Google-Anmeldung. Bestehende Konten bleiben erhalten.",
-      "Die manuelle Loop-Auswahl bleibt auch bei kurzen Tracks innerhalb der Datei. Bereichsanzeige und Wiedergabe am Dateiende wurden abgesichert.",
-      "Der Stereo-Check berücksichtigt das vollständige Signal und analysiert Frequenzbereiche ohne vorheriges Weglassen von Samples.",
-      "Streaming-Vorschauen und Mastering teilen sich eine Auslastungsgrenze. Ist der Audiodienst voll, erhältst du einen Hinweis, es kurz darauf erneut zu versuchen.",
-      "Eine kurze, begrenzte Warteschlange bevorzugt Mastering-Aufträge vor neu eintreffenden Tool-Anfragen.",
-      "Spitzenpegel und Lautheit werden direkt an der codierten Datei gemessen – ohne unnötige erneute Tonart-, Tempo- und Spektralanalyse. Der Klang der Vorschau bleibt dabei unverändert.",
-      "Uploads werden auch ohne Größenangabe begrenzt. Ungültige Dateien und nicht unterstützte Vorschauformate werden früher erkannt.",
-      "Fehlende Messwerte werden nicht durch scheinbar korrekte Zahlen ersetzt. Echte AAC- und MP3-Vorschauen bleiben auch ohne verfügbare Messung hörbar.",
-    ],
-    en: [
-      "Heavy audio analysis and WAV exports run in the background, keeping the interface available while they process.",
-      "Analyzers pause outside the visible area. Audio playback continues in the background; reduced-motion preferences are respected.",
-      "Sign-in and profile settings are available in English. Connection failures no longer leave forms permanently blocked.",
-      "New registrations confirm the current terms, including Google sign-in. Existing accounts are preserved.",
-      "Manual loop selection stays within the file, including short tracks. Range display and playback at the end of the file have been made more reliable.",
-      "Stereo checks use the complete signal and analyze frequency regions without dropping samples beforehand.",
-      "Streaming previews and mastering share a workload limit. If the audio service is busy, you are prompted to try again shortly.",
-      "A short, bounded queue gives mastering jobs priority over newly arriving tool requests.",
-      "Peak level and loudness are measured directly from the encoded file, without unnecessary key, tempo or spectrum analysis. The preview's sound stays unchanged during measurement.",
-      "Uploads are limited even without a declared size. Invalid files and unsupported preview formats are detected earlier.",
-      "Missing measurements are not replaced with seemingly correct numbers. Actual AAC and MP3 previews remain playable even when measurements are unavailable.",
-    ],
+  "summary": {
+    "de": "Ein animierter Klangkern begleitet das Mastering. Upload, Abschluss und Hörvergleich erhalten ruhigere, aufeinander abgestimmte Übergänge. Ein direkter Download-Sprung führt vom Player zu den Formaten. Die Klangbearbeitung bleibt unverändert.",
+    "en": "An animated sound core accompanies mastering. Upload, completion and listening comparison receive subtle, coordinated transitions. A direct download shortcut leads from the player to the available formats. Audio processing remains unchanged."
   },
+  "improvements": {
+    "de": [
+      "Ein schwebender Klangkern begleitet die Fortschrittsanzeige.",
+      "Upload und Abschluss bekommen dezente visuelle Rückmeldungen.",
+      "Original und Master lassen sich über deutlichere A/B-Buttons vergleichen. Ein direkter Button führt zum Download."
+    ],
+    "en": [
+      "A floating sound core accompanies the progress display.",
+      "Upload and completion provide subtle visual feedback.",
+      "Clearer A/B buttons switch between original and master, with a direct shortcut to downloads."
+    ]
+  }
 }, {
-  version: "0.9.1",
-  date: "2026-10-11",
-  title: { de: "Mehr Kontoschutz. Genauere Audio-Ergebnisse.", en: "Safer accounts. More accurate audio results." },
-  summary: {
-    de: "Wichtige Kontoänderungen werden besser geschützt. Beim Kürzen und Normalisieren zeigen wir dir die gemessenen Werte des fertigen Ergebnisses.",
-    en: "Important account changes are better protected. Trimming and normalization now show the measured values of the finished result.",
+  "version": "0.16.0",
+  "date": "2026-10-17",
+  "title": {
+    "de": "Mehr hören. Zuverlässiger weiterarbeiten.",
+    "en": "More to hear. Smoother consecutive masters."
   },
-  improvements: {
-    de: [
-      "Der Silence Normalizer misst den tatsächlich gewählten Ausschnitt nach Schnitt und Randfades. Die fertige WAV wird erneut geprüft; erreichte Lautheit und Spitzenpegel werden angezeigt.",
-      "Unter „So funktioniert’s“ erklären wir, wie du nach dem Auto-Mastering manuell nachjustierst, Änderungen in der Live-Vorschau hörst und einen neuen Master erstellst.",
-      "Zum Ändern des Passworts, Aktivieren oder Abschalten von 2FA und Löschen eines Passwort-Kontos wird das aktuelle Passwort geprüft. Bei bereits aktiver 2FA ist zusätzlich ein gültiger E-Mail-Code nötig.",
-      "Google-Konten bestätigen sich vor der Kontolöschung erneut über Google, wenn die letzte Anmeldung länger als fünf Minuten zurückliegt.",
-      "Eine Kontolöschung wartet auf laufende Masters. Audiodateien werden erst entfernt, nachdem die Kontolöschung erfolgreich gespeichert wurde.",
-      "Nach einer Passwortänderung meldest du dich neu an. Alte Sitzungen dürfen die Kontoeinstellungen nicht mehr verändern.",
-    ],
-    en: [
-      "Silence Normalizer measures the selected section after trimming and edge fades. The finished WAV is checked again, with its achieved loudness and peak displayed.",
-      "How it works now explains how to fine-tune after auto-mastering, listen to your changes in the live preview and create a new master.",
-      "Changing your password, enabling or disabling 2FA, and deleting a password account requires your current password. If 2FA is already enabled, a valid email code is also required.",
-      "Google accounts confirm through Google again before account deletion if their last sign-in was more than five minutes ago.",
-      "Account deletion waits for running masters. Audio files are removed only after the account deletion has been saved successfully.",
-      "After a password change, you sign in again. Old sessions can no longer change account settings.",
-    ],
+  "summary": {
+    "de": "Mehr echte Hörbeispiele und zuverlässigeres Mastering mehrerer Songs nacheinander.",
+    "en": "More real listening examples and more reliable consecutive mastering."
   },
+  "improvements": {
+    "de": [
+      "Lass mich nicht allein und On Tour ergänzen die Hörvergleiche.",
+      "MP3-Exporte gelingen bei schwierigen Tracks zuverlässiger.",
+      "Trackwechsel und aufeinanderfolgende Masterings sind besser abgesichert. Bei hoher Auslastung erscheinen klarere Hinweise."
+    ],
+    "en": [
+      "Lass mich nicht allein and On Tour join the listening comparisons.",
+      "MP3 exports are more reliable with challenging tracks.",
+      "Track changes and consecutive masters work more reliably, with clearer messages when the service is busy."
+    ]
+  }
 }, {
-  version: "0.9.0",
-  date: "2026-10-11",
-  title: { de: "Zuverlässiger arbeiten. Entspannter hören.", en: "More reliable tools. Smoother listening." },
-  summary: {
-    de: "Dieses Update verbessert die Sicherheit deines Kontos, die Audiovorschau und den Umgang mit deinen fertigen Masters.",
-    en: "This update improves account security, audio previews and the handling of your finished masters.",
+  "version": "0.15.0",
+  "date": "2026-10-17",
+  "title": {
+    "de": "Echte Hörproben. Klare Vergleiche.",
+    "en": "Real audio. Clear comparisons."
   },
-  improvements: {
-    de: [
-      "Unter „In eigener Sache“ erklären wir, wie freiwillige Unterstützung Beatzucker kostenlos hält und den Ausbau ermöglicht.",
-      "Widerrufe werden unabhängig vom Mailversand gespeichert. Bei Versandproblemen wird die Bestätigung automatisch erneut versucht, ohne deine Erklärung doppelt anzulegen.",
-      "Audiovorschauen funktionieren auch nach dem Export oder dem Erstellen einer Streaming-Vorschau weiter.",
-      "Passwort-Zurücksetzungen schützen dein Konto besser: Ältere Anmeldungen verlieren ihre Gültigkeit, und Login-Codes können nur einmal verwendet werden.",
-      "Die Downloadfrist deiner fertigen Masters wird bei der automatischen Dateibereinigung berücksichtigt. Laufende Bearbeitungen bleiben geschützt.",
-      "Unterbrochene Mastering-Aufträge werden regelmäßig geprüft, damit sie dein Konto nicht dauerhaft für neue Aufträge blockieren.",
-      "32-Bit-Float-WAV-Exporte behalten ihren zusätzlichen Lautstärkespielraum. WAV- und FLAC-Dateien werden in den Browser-Tools mit ihrer ursprünglichen Abtastrate eingelesen, sofern der Browser diese unterstützt.",
-      "Eine fehlende Spitzenpegel-Messung wird in der Streaming-Vorschau nicht mehr als gemessener Wert angezeigt. Beim Wechsel des Dateiformats wird eine alte Vorschau zurückgesetzt.",
-      "Bestätigungsmails kommen von noreplay@beatzucker.de. Versandfehler werden erkannt; das Widerrufsformular bleibt bei Verbindungsproblemen erneut bedienbar.",
-      "Die Versionsnummer und diese Übersicht zeigen dir künftig auf einen Blick, was sich verbessert hat.",
-    ],
-    en: [
-      "A new support page explains how voluntary contributions help keep Beatzucker free and fund future capacity.",
-      "Cancellation statements are stored independently of email sending. Failed confirmations are retried automatically without creating a duplicate statement.",
-      "Audio previews keep working after an export or after generating a streaming preview.",
-      "Password resets protect your account better: Older sign-ins expire, and login codes can only be used once.",
-      "Automatic file cleanup respects the download window of your finished masters. Files being processed stay protected.",
-      "Interrupted mastering jobs are checked regularly so they do not permanently block new jobs on your account.",
-      "32-bit float WAV exports retain their extra headroom. Browser tools read WAV and FLAC files at their original sample rate when supported by your browser.",
-      "A missing peak measurement is no longer displayed as a measured value in Streaming Preview. Changing the file format clears the old preview.",
-      "Confirmation emails come from noreplay@beatzucker.de. Sending failures are detected, and the cancellation form remains usable after connection problems.",
-      "The version number and this overview help you see what has improved with each update.",
-    ],
+  "summary": {
+    "de": "Zwei echte Tracks lassen sich auf der Startseite vor und nach dem Mastering anhören – mit wählbarem Lautheitsabgleich. Aktuelle Ratgeber und passendere Linkvorschauen ergänzen das Update.",
+    "en": "Listen to two real tracks before and after mastering on the homepage, with optional loudness matching. Updated guidance and more relevant link previews complete the update."
   },
+  "improvements": {
+    "de": [
+      "Xplore Belgium und Back to My Acid lassen sich als Original und Master an derselben Stelle vergleichen. Lautheitsabgleich ist optional.",
+      "Die Hörproben zeigen echte Wellenformen und gemessene Werte.",
+      "Ratgeber zur manuellen Bearbeitung sind aktualisiert. Geteilte Links zeigen passendere Vorschauen."
+    ],
+    "en": [
+      "Compare Xplore Belgium and Back to My Acid as original and master at the same position, with optional loudness matching.",
+      "Listening examples show actual waveforms and measured values.",
+      "Manual-mastering guides are updated, with more relevant previews for shared links."
+    ]
+  }
+}, {
+  "version": "0.14.1",
+  "date": "2026-10-17",
+  "title": {
+    "de": "Flüssiger manuell vorhören.",
+    "en": "Smoother manual previews."
+  },
+  "summary": {
+    "de": "Die manuelle Vorschau lädt den gewählten Ausschnitt vor und wiederholt ihn aus dem Speicher. Die Live-Effekte benötigen weniger Rechenarbeit.",
+    "en": "Manual preview preloads the selected section and loops it from memory. Live effects require less processing."
+  },
+  "improvements": {
+    "de": [
+      "Die manuelle Vorschau wiederholt den gewählten Ausschnitt flüssiger.",
+      "Beim Laden wird der Fortschritt angezeigt; Bereichswechsel starten keine alte Auswahl."
+    ],
+    "en": [
+      "Manual preview loops the selected section more smoothly.",
+      "Loading progress is visible, and changing sections cannot start an old selection."
+    ]
+  }
+}, {
+  "version": "0.14.0",
+  "date": "2026-10-17",
+  "title": {
+    "de": "Gezielter bearbeiten. Genauer vorhören.",
+    "en": "More focused processing. Closer previews."
+  },
+  "summary": {
+    "de": "Die automatische Klangbearbeitung arbeitet zurückhaltender mit bereits dichten Mischungen. Die manuelle Vorschau wurde genauer.",
+    "en": "Automatic processing treats already dense mixes more gently, with more accurate manual previews."
+  },
+  "improvements": {
+    "de": [
+      "Ausgewogenere Bearbeitung von Bass, Höhen und Dynamik.",
+      "Das Bass-Stereobild bleibt erhalten, wenn kein Eingriff vorgesehen ist. Die manuelle Feinabstimmung gibt dir zusätzliche Kontrolle.",
+      "Ein kurzer Kontrollrender hilft dir, manuelle Einstellungen vor dem vollständigen Export zu prüfen."
+    ],
+    "en": [
+      "More balanced processing of bass, treble and dynamics.",
+      "Bass stereo is preserved when no change is needed, with additional control in manual fine-tuning.",
+      "A short control render helps you check manual settings before a full export."
+    ]
+  }
+}, {
+  "version": "0.12.0",
+  "date": "2026-10-12",
+  "title": {
+    "de": "Vom Messwert zum nächsten Schritt.",
+    "en": "From measurements to your next step."
+  },
+  "summary": {
+    "de": "Praxisbeispiele und passende Ratgeber helfen dir, Tool-Ergebnisse einzuordnen. Die Bibliothek lässt sich mit Mehrfachauswahl leichter aufräumen.",
+    "en": "Practical examples and matching guides help you interpret tool results. Multi-select makes your library easier to organize."
+  },
+  "improvements": {
+    "de": [
+      "Praxisbeispiele und passende Ratgeber helfen dir, Analyseergebnisse besser einzuordnen.",
+      "Die Tools schlagen nach der Analyse sinnvolle nächste Schritte vor.",
+      "In der Bibliothek lassen sich mehrere abgeschlossene Einträge gemeinsam löschen."
+    ],
+    "en": [
+      "Practical examples and matching guides help you interpret analysis results.",
+      "Tools suggest useful next steps after analysis.",
+      "Select and delete several finished library entries together."
+    ]
+  }
+}, {
+  "version": "0.11.0",
+  "date": "2026-10-11",
+  "title": {
+    "de": "Audio-Tools mit verlässlicheren Ergebnissen.",
+    "en": "Audio tools with more reliable results."
+  },
+  "summary": {
+    "de": "Unsere Audio-Tools zeigen Grenzen und fehlende Messungen klarer. Vergleiche, Live-Bearbeitung und Exporte wurden überarbeitet; Deutsch und Englisch lassen sich direkt im Tool wechseln.",
+    "en": "Our audio tools explain limitations and missing measurements more clearly. Comparisons, live processing and exports have been improved, with a direct German/English switch in each tool."
+  },
+  "improvements": {
+    "de": [
+      "Vocal Chain, Referenzvergleich und Streaming-Vorschau wurden verbessert.",
+      "Kick-/Bass- und Stereo-Checks geben klarere Hinweise bei Stille oder fehlenden Messwerten.",
+      "Album-Checks können fehlende Ergebnisse erneut prüfen. Schnittpunkte lassen sich direkt an der Wellenform verschieben.",
+      "Deutsch und Englisch lassen sich direkt im Tool wechseln."
+    ],
+    "en": [
+      "Vocal Chain, reference comparison and streaming previews have been improved.",
+      "Kick/bass and stereo checks give clearer guidance for silence or missing measurements.",
+      "Album checks can retry missing results, and trim points can be dragged directly on the waveform.",
+      "Switch between German and English within each tool."
+    ]
+  }
+}, {
+  "version": "0.10.0",
+  "date": "2026-10-11",
+  "title": {
+    "de": "Flüssigere Tools. Zuverlässigere Verarbeitung.",
+    "en": "Smoother tools. More reliable processing."
+  },
+  "summary": {
+    "de": "Die Tools lassen sich während der Verarbeitung flüssiger bedienen. Vorschauen und Loop-Auswahl funktionieren zuverlässiger.",
+    "en": "Tools remain smoother to use while processing, with more reliable previews and loop selection."
+  },
+  "improvements": {
+    "de": [
+      "Die Oberfläche bleibt während aufwendiger Analysen und Exporte besser bedienbar.",
+      "Manuelle Loop-Auswahl und Wiedergabe am Dateiende wurden verbessert.",
+      "Anmeldung und Profil sind auch auf Englisch nutzbar. Fehlende Messwerte werden klar gekennzeichnet."
+    ],
+    "en": [
+      "The interface stays more responsive during complex analyses and exports.",
+      "Manual loop selection and playback at the end of a file work more reliably.",
+      "Sign-in and profile are available in English, and missing measurements are clearly marked."
+    ]
+  }
+}, {
+  "version": "0.9.1",
+  "date": "2026-10-11",
+  "title": {
+    "de": "Mehr Kontoschutz. Genauere Audio-Ergebnisse.",
+    "en": "Safer accounts. More accurate audio results."
+  },
+  "summary": {
+    "de": "Wichtige Kontoänderungen werden besser geschützt. Beim Kürzen und Normalisieren zeigen wir dir die gemessenen Werte des fertigen Ergebnisses.",
+    "en": "Important account changes are better protected. Trimming and normalization now show the measured values of the finished result."
+  },
+  "improvements": {
+    "de": [
+      "Der Trimmer zeigt die erreichte Lautheit und den Spitzenpegel des fertigen Ausschnitts.",
+      "Unter „So funktioniert’s“ wird die manuelle Feinabstimmung verständlicher erklärt.",
+      "Wichtige Kontoänderungen und die Kontolöschung verlangen eine erneute Bestätigung."
+    ],
+    "en": [
+      "The trimmer shows the achieved loudness and peak level of the finished section.",
+      "How it works explains manual fine-tuning more clearly.",
+      "Important account changes and account deletion require renewed confirmation."
+    ]
+  }
+}, {
+  "version": "0.9.0",
+  "date": "2026-10-11",
+  "title": {
+    "de": "Zuverlässiger arbeiten. Entspannter hören.",
+    "en": "More reliable tools. Smoother listening."
+  },
+  "summary": {
+    "de": "Dieses Update verbessert die Sicherheit deines Kontos, die Audiovorschau und den Umgang mit deinen fertigen Masters.",
+    "en": "This update improves account security, audio previews and the handling of your finished masters."
+  },
+  "improvements": {
+    "de": [
+      "Audiovorschauen funktionieren nach Exporten und Streaming-Vergleichen zuverlässiger.",
+      "Unterbrochene Aufträge blockieren dein Konto nicht dauerhaft.",
+      "Eine neue Unterstützungsseite erklärt das kostenlose Projekt. Version und Verbesserungen sind auf einer eigenen Seite sichtbar."
+    ],
+    "en": [
+      "Audio previews work more reliably after exports and streaming comparisons.",
+      "Interrupted jobs no longer block your account indefinitely.",
+      "A new support page explains the free project, with a dedicated page for versions and improvements."
+    ]
+  }
 }, {
   version: "0.8.0", date: "2026-08-23", retrospective: true,
   title: { de: "Mehr Werkzeuge für deinen nächsten Release", en: "More tools for your next release" },
@@ -258,39 +324,53 @@ export const RELEASES: {
     ],
   },
 }, {
-  version: "0.6.0", date: "2026-08-19", retrospective: true,
-  title: { de: "Drehen. Hören. Feinabstimmen.", en: "Adjust. Listen. Fine-tune." },
-  summary: { de: "Manuelle Klangkorrekturen werden während der Wiedergabe hörbar – ohne für jede Änderung neu rendern zu müssen.", en: "Hear manual sound adjustments during playback without rendering every individual change." },
-  improvements: {
-    de: [
-      "Die manuelle Nachbearbeitung wurde auf direkte Audiovorschau umgestellt.",
-      "Weniger Ruckeln beim Einstellen der Regler und zuverlässigeres Vorhören des gewählten Ausschnitts.",
-      "Nachjustierte Einstellungen können für eine neue Bearbeitung des Masters übernommen werden.",
-      "Die Mastering-Verarbeitung wurde überprüft; wirkungslose Schritte und unbemerkte Ersatzlösungen wurden korrigiert.",
-    ],
-    en: [
-      "Manual fine-tuning switched to immediate audio preview.",
-      "Smoother controls and more reliable listening to the selected section.",
-      "Fine-tuned settings can be used to process the master again.",
-      "Mastering processing was reviewed, correcting ineffective steps and unnoticed fallback behaviour.",
-    ],
+  "version": "0.6.0",
+  "date": "2026-08-19",
+  "retrospective": true,
+  "title": {
+    "de": "Drehen. Hören. Feinabstimmen.",
+    "en": "Adjust. Listen. Fine-tune."
   },
+  "summary": {
+    "de": "Manuelle Klangkorrekturen werden während der Wiedergabe hörbar – ohne für jede Änderung neu rendern zu müssen.",
+    "en": "Hear manual sound adjustments during playback without rendering every individual change."
+  },
+  "improvements": {
+    "de": [
+      "Manuelle Änderungen sind direkt in der Audiovorschau hörbar.",
+      "Regler und Ausschnitt-Wiedergabe wurden flüssiger.",
+      "Deine Feinabstimmung kann in einen neuen Master übernommen werden."
+    ],
+    "en": [
+      "Hear manual changes directly in the audio preview.",
+      "Smoother controls and section playback.",
+      "Apply your fine-tuned settings to a new master."
+    ]
+  }
 }, {
-  version: "0.5.0", date: "2026-08-18", retrospective: true,
-  title: { de: "Mehr Kontrolle über deinen Sound", en: "More control over your sound" },
-  summary: { de: "Die automatische Bearbeitung wurde genauer abgestimmt und um manuelle Nachjustierung ergänzt.", en: "Automatic processing was refined and extended with manual adjustments." },
-  improvements: {
-    de: [
-      "Manuelle Nachbearbeitung ergänzt das automatische Mastering.",
-      "Lautheit und Dynamik wurden mit echten Musikdateien geprüft; dabei gefundene Mess- und Verarbeitungsfehler wurden behoben.",
-      "Die Fortschrittsanzeige folgt den tatsächlichen Bearbeitungsschritten und springt bei langsamen Abschnitten nicht mehr zurück.",
-    ],
-    en: [
-      "Manual adjustments complement automatic mastering.",
-      "Loudness and dynamics were tested with real music files, correcting measurement and processing errors found along the way.",
-      "Progress follows the actual processing steps and no longer jumps backwards during slower stages.",
-    ],
+  "version": "0.5.0",
+  "date": "2026-08-18",
+  "retrospective": true,
+  "title": {
+    "de": "Mehr Kontrolle über deinen Sound",
+    "en": "More control over your sound"
   },
+  "summary": {
+    "de": "Die automatische Bearbeitung wurde genauer abgestimmt und um manuelle Nachjustierung ergänzt.",
+    "en": "Automatic processing was refined and extended with manual adjustments."
+  },
+  "improvements": {
+    "de": [
+      "Manuelle Nachbearbeitung ergänzt das automatische Mastering.",
+      "Lautheit und Dynamik wurden verbessert.",
+      "Die Fortschrittsanzeige folgt den tatsächlichen Bearbeitungsschritten."
+    ],
+    "en": [
+      "Manual adjustments complement automatic mastering.",
+      "Improved loudness and dynamics processing.",
+      "Progress follows actual processing steps."
+    ]
+  }
 }, {
   version: "0.4.0", date: "2026-08-18", retrospective: true,
   title: { de: "Ein neuer Look für deinen Workspace", en: "A new look for your workspace" },

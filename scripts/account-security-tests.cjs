@@ -42,6 +42,7 @@ const route = load("app/api/account/route.ts", {
   },
   "@/lib/auth": { hashPassword: async () => "newHash" },
   "@/lib/constants": {},
+  "@/lib/masterQuota": { dailyMasterLimit: value => value ?? 10, startOfMasteringDay: () => new Date(), usedDailyMasters: async () => 0 },
   "@/lib/dspJobs": { activeDspMasterIds: async () => { if (failWorkers) throw Error("unavailable"); return active; } },
   "@/lib/storage": { removeMasterFiles: async () => events.push("remove-master-file"), removeUploadFiles: async () => events.push("remove-upload") },
   "@/lib/db": { db: { $transaction: async callback => {

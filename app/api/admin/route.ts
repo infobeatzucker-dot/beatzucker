@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/adminAccess";
 import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
+import { dailyMasterLimit, startOfMasteringDay } from "@/lib/masterQuota";
 
 // GET /api/admin — returns full dashboard data
 export async function GET() {
@@ -18,6 +19,8 @@ export async function GET() {
     recentMasters,
     users,
     promo,
+    quotaUsage,
+    chargedUsage,
   ] = await Promise.all([
     db.user.count(),
     db.master.count(),
@@ -37,8 +40,12 @@ export async function GET() {
       },
     }),
     db.promotion.findUnique({ where: { id: "singleton" } }),
+    db.master.groupBy({ by: ["userId"], where: { status: { in: ["done", "processing"] }, createdAt: { gte: startOfMasteringDay() }, dailyCharge: { is: null } }, _count: { _all: true } }),
+    db.dailyMasterCharge.groupBy({ by: ["userId"], where: { day: { gte: startOfMasteringDay() }, OR: [{ masterId: null }, { master: { status: { in: ["done", "processing"] } } }] }, _count: { _all: true } }),
   ]);
 
+  const quotaByUser = new Map(quotaUsage.map(usage => [usage.userId, usage._count._all]));
+  for (const usage of chargedUsage) quotaByUser.set(usage.userId, (quotaByUser.get(usage.userId) ?? 0) + usage._count._all);
   // Python service health check
   const pythonUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:8001";
   let pythonStatus: "ok" | "down" = "down";
@@ -70,6 +77,9 @@ export async function GET() {
       name: u.name,
       createdAt: u.createdAt,
       mastersCount: u._count.masters,
+      dailyMasterLimit: u.dailyMasterLimit,
+      dailyLimit: dailyMasterLimit(u.dailyMasterLimit),
+      dailyUsed: quotaByUser.get(u.id) ?? 0,
     })),
     recentMasters: recentMasters.map(m => ({
       id: m.id,

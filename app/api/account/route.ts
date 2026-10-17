@@ -7,7 +7,8 @@ import type { Prisma } from "@prisma/client";
 import { assertCurrentSession, confirmAccountAction } from "@/lib/accountSecurity";
 import { readAuthRequest, authRequestFailure, AuthRequestError } from "@/lib/authRequest";
 import { activeDspMasterIds } from "@/lib/dspJobs";
-import { DAILY_MASTER_LIMIT, DOWNLOAD_WINDOW_MS } from "@/lib/constants";
+import { DOWNLOAD_WINDOW_MS } from "@/lib/constants";
+import { dailyMasterLimit, startOfMasteringDay, usedDailyMasters } from "@/lib/masterQuota";
 import { findExistingMasterFormats, removeMasterFiles, removeUploadFiles } from "@/lib/storage";
 
 // ── GET /api/account ─────────────────────────────────────────────────
@@ -37,15 +38,8 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Nutzer nicht gefunden" }, { status: 404 });
 
   // Fair-use daily counter
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const dailyUsed = await db.master.count({
-    where: {
-      userId: user.id,
-      status: { in: ["done", "processing"] },
-      createdAt: { gte: startOfDay },
-    },
-  });
+  const startOfDay = startOfMasteringDay();
+  const dailyUsed = await usedDailyMasters(db, user.id, startOfDay);
 
   // Parse LUFS from analysis JSON
   const now = Date.now();
@@ -90,7 +84,7 @@ export async function GET() {
     },
     twoFactor:      user.twoFactorEnabled,
     dailyUsed,
-    dailyLimit:     DAILY_MASTER_LIMIT,
+    dailyLimit:     dailyMasterLimit(user.dailyMasterLimit),
     masters:        mastersWithLufs,
     savedRefs,
     savedRefsLimit: 100,

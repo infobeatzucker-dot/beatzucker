@@ -29,6 +29,13 @@ def analysis(**updates):
 
 
 class AdaptiveParameterTests(unittest.TestCase):
+    def test_final_eq_is_optional_and_independent_of_correction_eq(self):
+        normal = get_mastering_params(analysis())
+        self.assertEqual(normal.final_air_gain, 0.0)
+        self.assertNotEqual(normal.air_gain, 0.0)
+        dark = get_mastering_params(analysis(rms_air=-50.0))
+        self.assertGreater(dark.final_air_gain, 0.0)
+
     def test_custom_lufs_is_real_and_clamped(self):
         params = get_mastering_params(
             analysis(), platform="custom", target_lufs=-11.5

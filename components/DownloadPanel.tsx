@@ -230,7 +230,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
               {lang === "de" ? "mastere erneut" : "master again"}
             </button>
           ) : (lang === "de" ? "mastere erneut" : "master again")}.
-          {" "}{lang === "de" ? "Alle Funktionen sind kostenlos; pro Account sind derzeit 10 Masterings täglich möglich." : "All features are free; each account can currently create 10 masters per day."}
+          {" "}{lang === "de" ? "Alle Funktionen sind kostenlos; dein aktuelles Tageslimit findest du in deinem Konto." : "All features are free; your current daily limit is shown in your account."}
         </p>
       </div>
 

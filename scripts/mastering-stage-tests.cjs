@@ -7,6 +7,8 @@ console.log('PASS all twelve bilingual stages, preparation, actual progress and 
 const Overview=load('components/MasterOverview.tsx').default;
 for(const lang of ['de','en']){const result={filename:'Track.wav',before:{integrated_lufs:-19},after:{integrated_lufs:-14.3,true_peak:-1.1,lra:4.2}},text=JSON.stringify(Overview({result,lang}));assert.match(text,/Track.wav/);assert.match(text,lang==='de'?/-14,3/:/-14.3/);assert.match(text,lang==='de'?/dekorative Darstellung/:/decorative illustration/);assert.doesNotMatch(JSON.stringify(Overview({result:{...result,after:{integrated_lufs:NaN}},lang})),/NaN|undefined/);}
 console.log('PASS overview uses real localized measurements, missing-value fallback and honestly labeled artwork');
+const overviewCss=fs.readFileSync('app/master-overview.css','utf8');assert.doesNotMatch(overviewCss,/overflow-y:\s*(auto|scroll)|scrollbar-width/);assert.match(overviewCss,/max-height:\s*none/);assert.match(overviewCss,/@media\(max-height:850px\)/);assert.match(fs.readFileSync('components/MasterSignatureArtwork.tsx','utf8'),/MasteringSonicCore/);assert.match(fs.readFileSync('components/MasterOverview.tsx','utf8'),/MasterSignatureArtwork/);
+console.log('PASS open sound sculpture reuses visibility-safe animation; no nested scrollbar or viewport height cap');
 const reports=[];let sent=false;
 const events=['preparing','dc','gain_skipped','eq_skipped','deesser_skipped','compression_skipped','ms_skipped','saturation_skipped','final_eq_skipped','bus_compression_skipped','limiting','dithering_skipped','codec_verify','post_analysis','complete'];
 const payload=events.map((step,index)=>'data: '+JSON.stringify({step,progress:index*6,master_id:'fixture'})+'\n\n').join('');

@@ -7,5 +7,6 @@
 - Datum und Texte vor dem tatsächlichen Deployment prüfen. Die neue Nummer wird erst mit dem neuen Build öffentlich; bei einem fehlgeschlagenen Deploy bleibt die bisherige Live-Version gültig.
 - Nur umgesetzte Verbesserungen aufnehmen. Kurze, verständliche deutsche und englische Texte schreiben: Was kann der Nutzer nun besser machen, was funktioniert zuverlässiger?
 - Keine internen Infrastrukturdetails, unbelegten Qualitätsversprechen oder erfundenen Veröffentlichungstermine.
+- Öffentliche Historie: ausschließlich verständliche, für Endnutzer relevante Änderungen. Keine Adminfunktionen, internen Statistiken, Deploy-/Testdetails oder technische Umsetzungsschritte. Reine Admin-Releases nicht als eigene öffentliche Verbesserung führen; technische und administrative Details gehören in interne Release-Dokumente.
 - Alte Einträge 0.3.0 bis 0.8.0 sind rückwirkend nummerierte Entwicklungsmeilensteine aus dem Git-Verlauf, keine damaligen offiziellen Versionsnummern. Dies wird auf der öffentlichen Seite erklärt.
 - Nach Änderungen Tests und Build prüfen. Nach autorisiertem Deployment Logo, `/versionen`, `/en/updates` und Kernfunktionen live prüfen. Keine automatische Deployment-Autorisierung aus dieser Datei ableiten.

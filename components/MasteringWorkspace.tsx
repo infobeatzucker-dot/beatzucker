@@ -102,6 +102,7 @@ interface Props {
 export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   const { data: session, status: sessionStatus } = useSession();
   const [dailyUsed, setDailyUsed] = useState<number | null>(null);
+  const [dailyLimit, setDailyLimit] = useState(DAILY_MASTER_LIMIT);
   const [appState,         setAppState]         = useState<AppState>("idle");
   const [uploadedFile,     setUploadedFile]     = useState<UploadedFile | null>(null);
   const [uploadCycle, setUploadCycle] = useState(0);
@@ -129,13 +130,18 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
 
   // Fetch today's usage count when authenticated
   useEffect(() => {
-    if (sessionStatus !== "authenticated") return;
-    fetch("/api/account")
-      .then(r => r.json())
-      .then(d => {
-        if (typeof d.dailyUsed === "number") setDailyUsed(d.dailyUsed);
-      })
-      .catch(() => {});
+    if (sessionStatus !== "authenticated") { setDailyUsed(null); setDailyLimit(DAILY_MASTER_LIMIT); return; }
+    let active = true, controller: AbortController | null = null;
+    const refresh = () => {
+      if (document.hidden) return;
+      controller?.abort(); controller = new AbortController();
+      fetch("/api/account", { cache: "no-store", signal: controller.signal })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (!active || !d) return; if (typeof d.dailyUsed === "number") setDailyUsed(d.dailyUsed); if (typeof d.dailyLimit === "number") setDailyLimit(d.dailyLimit); })
+        .catch(() => {});
+    };
+    refresh(); window.addEventListener("focus", refresh); window.addEventListener("beatzucker-account-updated", refresh); document.addEventListener("visibilitychange", refresh);
+    return () => { active = false; controller?.abort(); window.removeEventListener("focus", refresh); window.removeEventListener("beatzucker-account-updated", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [sessionStatus, session?.user?.id]);
 
   // Fetch saved reference library
@@ -221,7 +227,8 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     setAppState("done");
     setCurrentProgress(null);
     setMasteringError(null);
-    setDailyUsed((used) => used === null ? null : Math.min(DAILY_MASTER_LIMIT, used + 1));
+    setDailyUsed((used) => used === null ? null : used + 1);
+    window.dispatchEvent(new Event("beatzucker-account-updated"));
   }, []);
 
   const handleMasteringError = useCallback((message: string) => {
@@ -230,6 +237,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     setAppState(masterData ? "done" : "analyzed");
     setCurrentProgress(null);
     setMasteringError(message);
+    window.dispatchEvent(new Event("beatzucker-account-updated"));
   }, [masterData]);
 
   const handleReset = useCallback(() => {
@@ -363,20 +371,20 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
                 marginBottom: "1rem",
                 padding: "0.55rem 0.9rem",
                 borderRadius: "8px",
-                background: dailyUsed >= DAILY_MASTER_LIMIT
+                background: dailyUsed >= dailyLimit
                   ? "rgba(239,68,68,0.08)"
-                  : dailyUsed >= DAILY_MASTER_LIMIT - 1
+                  : dailyUsed >= dailyLimit - 1
                   ? "rgba(245,158,11,0.08)"
                   : "rgba(139,92,246,0.07)",
-                border: `1px solid ${dailyUsed >= DAILY_MASTER_LIMIT ? "rgba(239,68,68,0.25)" : dailyUsed >= DAILY_MASTER_LIMIT - 1 ? "rgba(245,158,11,0.25)" : "rgba(139,92,246,0.2)"}`,
+                border: `1px solid ${dailyUsed >= dailyLimit ? "rgba(239,68,68,0.25)" : dailyUsed >= dailyLimit - 1 ? "rgba(245,158,11,0.25)" : "rgba(139,92,246,0.2)"}`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 flexWrap: "wrap",
                 gap: "0.5rem",
               }}>
-                <span style={{ fontSize: "0.8rem", color: dailyUsed >= DAILY_MASTER_LIMIT ? "#f87171" : dailyUsed >= DAILY_MASTER_LIMIT - 1 ? "#fbbf24" : "var(--text-secondary)" }}>
-                  {T.free_limit[lang](dailyUsed, DAILY_MASTER_LIMIT)}
+                <span style={{ fontSize: "0.8rem", color: dailyUsed >= dailyLimit ? "#f87171" : dailyUsed >= dailyLimit - 1 ? "#fbbf24" : "var(--text-secondary)" }}>
+                  {T.free_limit[lang](dailyUsed, dailyLimit)}
                 </span>
               </div>
             )}

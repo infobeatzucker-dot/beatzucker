@@ -8,7 +8,7 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rateLimit";
 import { sendMasteringErrorEmail } from "@/lib/email";
 import { sendMasteringCompleteEmail } from "@/lib/email";
-import { DAILY_MASTER_LIMIT } from "@/lib/constants";
+import { dailyMasterLimit, startOfMasteringDay, usedDailyMasters } from "@/lib/masterQuota";
 import { normalizeAnalysis, normalizeReferenceAnalysis, verifyAnalysis } from "@/lib/analysisValidation";
 import { verifyUpload } from "@/lib/uploadAuthorization";
 import { findExistingMasterFormats, removeMasterFiles } from "@/lib/storage";
@@ -113,19 +113,16 @@ export async function POST(req: NextRequest) {
   // Reserve the run together with the quota check. Keeping both operations in
   // one serializable transaction prevents parallel requests from all observing
   // the same old count and exceeding the daily limit.
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
+  const startOfDay = startOfMasteringDay();
   const reservedMaster = await db.$transaction(async (tx) => {
+    const quotaUser = await tx.user.findUnique({ where: { id: userId }, select: { dailyMasterLimit: true } });
+    if (!quotaUser) return { reason: "missing" as const };
+    const limit = dailyMasterLimit(quotaUser.dailyMasterLimit);
+    await tx.dailyMasterCharge.deleteMany({ where: { day: { lt: startOfDay } } });
     const activeCount = await tx.master.count({ where: { userId, status: "processing" } });
     if (activeCount > 0) return { reason: "active" as const };
-    const todayCount = await tx.master.count({
-      where: {
-        userId,
-        status: { in: ["done", "processing"] },
-        createdAt: { gte: startOfDay },
-      },
-    });
-    if (todayCount >= DAILY_MASTER_LIMIT) return { reason: "daily" as const };
+    const todayCount = await usedDailyMasters(tx, userId, startOfDay);
+    if (todayCount >= limit) return { reason: "daily" as const, used: todayCount, limit };
     const master = await tx.master.create({
       data: {
         userId,
@@ -137,9 +134,11 @@ export async function POST(req: NextRequest) {
         preAnalysis: analysis ? JSON.stringify(analysis) : null,
       },
     });
+    await tx.dailyMasterCharge.create({ data: { id: master.id, masterId: master.id, userId, day: startOfDay } });
     return { master };
   });
   if ("reason" in reservedMaster) {
+    if (reservedMaster.reason === "missing") return Response.json({ error: "Bitte erneut anmelden. / Please sign in again." }, { status: 401 });
     if (reservedMaster.reason === "active") {
       return Response.json({
         error: "Für dieses Konto läuft bereits ein Mastering. Bitte warte, bis es abgeschlossen ist.",
@@ -147,9 +146,9 @@ export async function POST(req: NextRequest) {
     }
     return new Response(
       JSON.stringify({
-        error: `Tageslimit erreicht (${DAILY_MASTER_LIMIT} Masters/Tag). Bitte versuche es morgen wieder.`,
-        used: DAILY_MASTER_LIMIT,
-        limit: DAILY_MASTER_LIMIT,
+        error: `Tageslimit erreicht (${reservedMaster.limit} Masters/Tag).`,
+        used: reservedMaster.used,
+        limit: reservedMaster.limit,
       }),
       { status: 429, headers: { "Content-Type": "application/json" } }
     );

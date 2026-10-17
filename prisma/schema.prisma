@@ -23,12 +23,14 @@ model User {
   termsAcceptedAt      DateTime?
   termsVersion         String?
   termsLanguage        String?
+  dailyMasterLimit     Int?      // null inherits the global default; 0 blocks new masters
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
   accounts         Account[]
   sessions         Session[]
   masters          Master[]
+  dailyCharges     DailyMasterCharge[]
   savedReferences  SavedReference[]
   registrationNotification RegistrationNotification?
 }
@@ -143,6 +145,7 @@ model ToolUsage {
 }
 
 model Master {
+  dailyCharge  DailyMasterCharge?
   id           String   @id @default(cuid())
   userId       String?
   fileId       String
@@ -173,4 +176,22 @@ model Master {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
+}
+
+// Minimal quota receipt survives removal of a history entry, never account erasure.
+model DailyMasterCharge {
+  id       String @id
+  userId   String
+  masterId String? @unique
+  day      DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  master Master? @relation(fields: [masterId], references: [id], onDelete: SetNull)
+  @@index([userId, day])
+}
+
+model ShowcasePublication {
+  id String @id
+  revision Int @default(0)
+  tracksJson String
+  updatedAt DateTime @updatedAt
 }

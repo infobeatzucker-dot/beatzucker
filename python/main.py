@@ -32,6 +32,7 @@ from codec_preview import render_codec, meter_audio
 from audio_limits import validate_full_dsp_audio
 from control_preview import render_control
 from preview_section import read_preview_section
+from showcase_prepare import prepare_showcase
 
 
 # ─── Cleanup job on startup ────────────────────────────────────────────────────
@@ -79,7 +80,7 @@ app.add_middleware(
 )
 
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
-PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview", "/preview-section"}
+PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview", "/preview-section", "/showcase-prepare"}
 # Full-track DSP temporarily allocates several arrays per stage. The small
 # production host must not run two such allocations on top of each other.
 # Larger installations can still explicitly opt into a higher capacity.
@@ -249,6 +250,27 @@ async def analyze(req: AnalyzeRequest, request: Request = None):
         logger.exception("Error in /analyze")
         raise HTTPException(500, "Analysis failed")
 
+
+class ShowcasePrepareRequest(BaseModel):
+    original: str
+    master: str
+    start: float
+    asset_id: str
+
+@app.post("/showcase-prepare")
+async def showcase_prepare(req: ShowcasePrepareRequest):
+    original, master = validate_file_path(req.original), validate_file_path(req.master)
+    permit = await acquire_dsp_slot()
+    lease = DspLease(permit)
+    try:
+        return await lease.run(prepare_showcase, original, master, req.start, req.asset_id)
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+    except Exception:
+        logger.exception("Showcase preparation failed")
+        raise HTTPException(500, "Could not prepare listening examples")
+    finally:
+        lease.release_when_done()
 
 @app.post("/meter")
 async def meter(req: FilePathRequest):

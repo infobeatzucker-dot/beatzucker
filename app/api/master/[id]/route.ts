@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
 import { removeMasterFiles } from "@/lib/storage";
+import { startOfMasteringDay } from "@/lib/masterQuota";
 
 // PATCH /api/master/:id — update notes for a master
 export async function PATCH(
@@ -45,16 +46,19 @@ export async function DELETE(
   if (!session?.user?.id)
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
 
-  // Verify ownership
-  const master = await db.master.findUnique({
-    where: { id },
-    select: { userId: true },
+  const result = await db.$transaction(async tx => {
+    const master = await tx.master.findUnique({ where: { id }, select: { userId: true, status: true, createdAt: true } });
+    if (!master || master.userId !== session.user.id) return 404;
+    if (["pending", "processing"].includes(master.status)) return 409;
+    if (master.status === "done" && master.createdAt >= startOfMasteringDay()) {
+      await tx.dailyMasterCharge.upsert({ where: { id }, update: {}, create: { id, masterId: id, userId: session.user.id, day: startOfMasteringDay(master.createdAt) } });
+    } else if (master.status !== "done") {
+      await tx.dailyMasterCharge.deleteMany({ where: { masterId: id } });
+    }
+    await tx.master.delete({ where: { id } });
+    return 200;
   });
-
-  if (!master || master.userId !== session.user.id)
-    return NextResponse.json({ error: "Nicht gefunden" }, { status: 404 });
-
-  await db.master.delete({ where: { id } });
+  if (result !== 200) return NextResponse.json({ error: result === 409 ? "Bitte laufendes Mastering abwarten. / Please wait for mastering to finish." : "Nicht gefunden / Not found" }, { status: result });
   await removeMasterFiles(id);
   return NextResponse.json({ ok: true });
 }

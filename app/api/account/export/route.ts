@@ -21,6 +21,10 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
         select: { id: true, name: true, analysisJson: true, createdAt: true },
       },
+      dailyCharges: {
+        orderBy: { day: "desc" },
+        select: { id: true, masterId: true, day: true },
+      },
       masters: {
         orderBy: { createdAt: "desc" },
         select: {
@@ -43,6 +47,7 @@ export async function GET() {
       image:     user.image,
       emailVerified: user.emailVerified,
       twoFactorEnabled: user.twoFactorEnabled,
+      dailyMasterLimit: user.dailyMasterLimit,
       termsAcceptedAt: user.termsAcceptedAt,
       termsVersion: user.termsVersion,
       termsLanguage: user.termsLanguage,
@@ -52,6 +57,7 @@ export async function GET() {
     linkedAccounts: user.accounts,
     masters: user.masters,
     savedReferences: user.savedReferences,
+    dailyQuotaReceipts: user.dailyCharges,
     omittedSecurityData: [
       "password hash", "password-reset token", "one-time login code", "active session token",
     ],
@@ -63,6 +69,7 @@ export async function GET() {
   return new Response(json, {
     headers: {
       "Content-Type": "application/json",
+      "Cache-Control": "no-store",
       "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });

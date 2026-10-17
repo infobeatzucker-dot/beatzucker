@@ -18,12 +18,14 @@ export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
   const ref               = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!session) return;
-    fetch("/api/account")
-      .then(r => r.json())
-      .then(d => setInfo({ dailyUsed: d.dailyUsed ?? 0, dailyLimit: d.dailyLimit ?? 0 }))
+    if (!session) { setInfo(null); return; }
+    const controller = new AbortController();
+    fetch("/api/account", { cache: "no-store", signal: controller.signal })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (!controller.signal.aborted && d) setInfo({ dailyUsed: d.dailyUsed ?? 0, dailyLimit: d.dailyLimit ?? 0 }); })
       .catch(() => {});
-  }, [session]);
+    return () => controller.abort();
+  }, [session, open]);
 
   // Close on outside click
   useEffect(() => {
@@ -38,8 +40,8 @@ export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
 
   const user      = session.user;
   const initial   = (user.name ?? user.email ?? "U")[0].toUpperCase();
-  const hasLimit  = info && info.dailyLimit > 0;
-  const pct       = hasLimit ? Math.min(100, Math.round((info!.dailyUsed / info!.dailyLimit) * 100)) : 0;
+  const hasLimit  = info !== null;
+  const pct       = info ? (info.dailyLimit === 0 ? 100 : Math.min(100, Math.round((info.dailyUsed / info.dailyLimit) * 100))) : 0;
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
