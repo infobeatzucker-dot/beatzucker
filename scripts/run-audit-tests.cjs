@@ -12,6 +12,7 @@ try {
   run(process.execPath, ['scripts/withdrawal-db-test.cjs']);
   run(process.execPath, ['scripts/registration-db-tests.cjs']);
   run(process.execPath, ['scripts/tool-usage-tests.cjs']);
+  run(process.execPath, ['scripts/mastering-quality-tests.cjs']);
   const venv = path.join(root, 'python', 'venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
   const python = fs.existsSync(venv) ? venv : process.platform === 'win32' ? 'python' : 'python3';
   run(python, ['-m', 'unittest', 'discover', '-s', 'python/tests']);

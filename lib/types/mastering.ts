@@ -28,6 +28,8 @@ export interface AnalysisData {
   sample_rate:        number;
   bit_depth:          number;
   channels:           number;
+  bass_correlation?:  number;
+  bass_side_ratio?:   number;
   /** Server signature binding this analysis to its uploaded file. */
   analysis_token?:    string;
 }

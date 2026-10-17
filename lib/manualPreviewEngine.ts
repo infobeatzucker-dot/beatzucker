@@ -1,15 +1,6 @@
 import type { ParamValues } from "@/lib/masteringParams";
 import { normalizeLoopRegion } from "./manualLoop";
 
-type BandName = "sub" | "low" | "mid" | "high";
-
-const BAND_KEYS: Record<BandName, { threshold: keyof ParamValues; ratio: keyof ParamValues }> = {
-  sub:  { threshold: "mb_sub_threshold",  ratio: "mb_sub_ratio" },
-  low:  { threshold: "mb_low_threshold",  ratio: "mb_low_ratio" },
-  mid:  { threshold: "mb_mid_threshold",  ratio: "mb_mid_ratio" },
-  high: { threshold: "mb_high_threshold", ratio: "mb_high_ratio" },
-};
-
 /**
  * Lokale, latenzarme Näherung der Python-Mastering-Kette.
  * Der endgültige Export bleibt bewusst beim serverseitigen DSP; diese Engine
@@ -17,16 +8,24 @@ const BAND_KEYS: Record<BandName, { threshold: keyof ParamValues; ratio: keyof P
  */
 export class ManualPreviewEngine {
   readonly analyser: AnalyserNode;
+  readonly ready: Promise<void>;
 
   private readonly ctx: AudioContext;
   private readonly audio: HTMLAudioElement;
   private readonly source: MediaElementAudioSourceNode;
   private readonly input: GainNode;
   private readonly eq: Record<"hp" | "low" | "mid" | "presence" | "air", BiquadFilterNode>;
-  private readonly bandCompressors: Record<BandName, DynamicsCompressorNode>;
-  private readonly stereoGains: GainNode[];
   private readonly shaper: WaveShaperNode;
-  private readonly bus: DynamicsCompressorNode;
+  private bands: AudioWorkletNode | null = null;
+  private bus: AudioWorkletNode | null = null;
+  private reduction = 0;
+  private latestValues: ParamValues;
+  private readonly contextParams: Record<string, unknown>;
+  private readonly finalAir: BiquadFilterNode;
+  private readonly saturationWet: GainNode;
+  private readonly saturationDry: GainNode;
+  private readonly wet: GainNode;
+  private readonly dry: GainNode;
   private readonly output: GainNode;
   private loopStart = 0;
   private loopEnd = 8;
@@ -35,7 +34,8 @@ export class ManualPreviewEngine {
   private looping = false;
   private stateListener: ((playing: boolean) => void) | null = null;
 
-  constructor(url: string, values: ParamValues, inputLufs = -18, inputTruePeak = -6) {
+  constructor(url: string, values: ParamValues, inputLufs = -18, inputTruePeak = -6, contextParams: Record<string, unknown> = {}) {
+    this.latestValues = values; this.contextParams = contextParams;
     this.ctx = new AudioContext({ latencyHint: "interactive" });
     this.audio = new Audio(url);
     this.audio.preload = "auto";
@@ -48,68 +48,27 @@ export class ManualPreviewEngine {
 
     const hp = this.ctx.createBiquadFilter(); hp.type = "highpass"; hp.Q.value = 0.707;
     const low = this.ctx.createBiquadFilter(); low.type = "lowshelf"; low.frequency.value = 80;
-    const mid = this.ctx.createBiquadFilter(); mid.type = "peaking"; mid.frequency.value = 280; mid.Q.value = 1.05;
-    const presence = this.ctx.createBiquadFilter(); presence.type = "peaking"; presence.frequency.value = 3000; presence.Q.value = 0.8;
+    const mid = this.ctx.createBiquadFilter(); mid.type = "peaking"; mid.frequency.value = Number(contextParams.mid_notch_freq ?? 280); mid.Q.value = Number(contextParams.mid_notch_q ?? 2);
+    const presence = this.ctx.createBiquadFilter(); presence.type = "peaking"; presence.frequency.value = Number(contextParams.presence_freq ?? 3000); presence.Q.value = 1.2;
     const air = this.ctx.createBiquadFilter(); air.type = "highshelf"; air.frequency.value = 12000;
     this.eq = { hp, low, mid, presence, air };
     this.source.connect(this.input).connect(hp).connect(low).connect(mid).connect(presence).connect(air);
 
-    const sum = this.ctx.createGain();
-    const createBand = (name: BandName, filters: Array<[BiquadFilterType, number]>) => {
-      let previous: AudioNode = air;
-      for (const [type, frequency] of filters) {
-        // Zwei Filter pro Flanke ergeben eine ruhigere, näherungsweise
-        // Linkwitz-Riley-artige Trennung ohne zusätzliches AudioWorklet.
-        for (let pass = 0; pass < 2; pass++) {
-          const filter = this.ctx.createBiquadFilter();
-          filter.type = type;
-          filter.frequency.value = frequency;
-          filter.Q.value = 0.707;
-          previous.connect(filter);
-          previous = filter;
-        }
-      }
-      const compressor = this.ctx.createDynamicsCompressor();
-      compressor.knee.value = 0;
-      compressor.attack.value = name === "high" ? 0.008 : name === "mid" ? 0.015 : 0.03;
-      compressor.release.value = name === "sub" ? 0.16 : 0.1;
-      previous.connect(compressor).connect(sum);
-      return compressor;
-    };
-
-    this.bandCompressors = {
-      sub: createBand("sub", [["lowpass", 80]]),
-      low: createBand("low", [["highpass", 80], ["lowpass", 500]]),
-      mid: createBand("mid", [["highpass", 500], ["lowpass", 5000]]),
-      high: createBand("high", [["highpass", 5000]]),
-    };
-
-    const splitter = this.ctx.createChannelSplitter(2);
-    const merger = this.ctx.createChannelMerger(2);
-    sum.connect(splitter);
-    this.stereoGains = Array.from({ length: 8 }, () => this.ctx.createGain());
-    // L' = .5L + .5R + .5wL - .5wR
-    // R' = .5L + .5R - .5wL + .5wR
-    const inputChannels = [0, 1, 0, 1, 0, 1, 0, 1];
-    const outputChannels = [0, 0, 0, 0, 1, 1, 1, 1];
-    this.stereoGains.forEach((gain, index) => {
-      splitter.connect(gain, inputChannels[index]);
-      gain.connect(merger, 0, outputChannels[index]);
-    });
-
     this.shaper = this.ctx.createWaveShaper();
-    this.shaper.oversample = "4x";
-    this.bus = this.ctx.createDynamicsCompressor();
-    this.bus.knee.value = 0;
-    this.bus.attack.value = 0.05;
-    this.bus.release.value = 0.1;
+    this.shaper.oversample = "2x";
+    this.finalAir = this.ctx.createBiquadFilter(); this.finalAir.type = "highshelf";
+    this.finalAir.frequency.value = Math.min(12000, this.ctx.sampleRate * .45);
+    this.finalAir.gain.value = Number(contextParams.final_air_gain ?? 0);
+    this.wet = this.ctx.createGain(); this.dry = this.ctx.createGain();
 
     const limiter = this.ctx.createDynamicsCompressor();
-    limiter.threshold.value = -1;
+    limiter.threshold.value = Number(contextParams.true_peak_ceiling ?? -1);
     limiter.knee.value = 0;
     limiter.ratio.value = 20;
     limiter.attack.value = 0.002;
     limiter.release.value = 0.08;
+    this.input.connect(this.dry).connect(limiter);
+    this.wet.connect(limiter);
 
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 1024;
@@ -124,9 +83,27 @@ export class ManualPreviewEngine {
     const satHigh1 = this.ctx.createBiquadFilter(); satHigh1.type = "highpass"; satHigh1.frequency.value = 5000; satHigh1.Q.value = 0.707;
     const satHigh2 = this.ctx.createBiquadFilter(); satHigh2.type = "highpass"; satHigh2.frequency.value = 5000; satHigh2.Q.value = 0.707;
     const satSum = this.ctx.createGain();
-    merger.connect(satLow1).connect(satLow2).connect(this.shaper).connect(satSum);
-    merger.connect(satHigh1).connect(satHigh2).connect(satSum);
-    satSum.connect(this.bus).connect(limiter).connect(this.analyser).connect(this.output).connect(this.ctx.destination);
+    this.saturationWet = this.ctx.createGain(); this.saturationDry = this.ctx.createGain();
+    satLow1.connect(satLow2).connect(this.shaper).connect(satSum);
+    satHigh1.connect(satHigh2).connect(satSum);
+    satSum.connect(this.saturationWet).connect(this.finalAir);
+    this.saturationDry.connect(this.finalAir);
+    limiter.connect(this.analyser).connect(this.output).connect(this.ctx.destination);
+
+    this.ready = Promise.resolve().then(async () => {
+      if (!this.ctx.audioWorklet) throw Error("AudioWorklet is required for live preview");
+      await this.ctx.audioWorklet.addModule("/audio/mastering-dynamics.js?v=0.14.0");
+      if (this.destroyed) return;
+      const params = { ...this.contextParams, ...this.latestValues };
+      this.bands = new AudioWorkletNode(this.ctx, "beatzucker-mastering-dynamics", { outputChannelCount: [2], processorOptions: { mode: "bands", params } });
+      this.bus = new AudioWorkletNode(this.ctx, "beatzucker-mastering-dynamics", { outputChannelCount: [2], processorOptions: { mode: "bus", params } });
+      this.bus.port.onmessage = event => { if (Number.isFinite(event.data?.reduction)) this.reduction = event.data.reduction; };
+      air.connect(this.bands); this.bands.connect(satLow1); this.bands.connect(satHigh1);
+      this.bands.connect(this.saturationDry);
+      this.finalAir.connect(this.bus).connect(this.wet);
+    });
+    // Handle load rejection even if the user closes before pressing Play.
+    void this.ready.catch(() => {});
 
     this.audio.addEventListener("play", this.handlePlay);
     this.audio.addEventListener("pause", this.handlePause);
@@ -162,7 +139,7 @@ export class ManualPreviewEngine {
   get currentTime() { return this.audio.currentTime || 0; }
   get duration() { return Number.isFinite(this.audio.duration) ? this.audio.duration : 0; }
   get paused() { return this.audio.paused; }
-  get busReduction() { return Math.abs(this.bus.reduction || 0); }
+  get busReduction() { return this.reduction; }
 
   setRegion(start: number, end: number) {
     const duration = this.duration || Math.max(1, Number.isFinite(end) ? end : 8);
@@ -175,6 +152,8 @@ export class ManualPreviewEngine {
   }
 
   async toggle(start: number, end: number) {
+    await this.ready;
+    if (this.destroyed) return;
     this.setRegion(start, end);
     if (!this.audio.paused) {
       this.looping = false;
@@ -204,22 +183,15 @@ export class ManualPreviewEngine {
     set(this.eq.presence.gain, values.presence_gain ?? 0);
     set(this.eq.air.gain, values.air_gain ?? 0);
 
-    (Object.keys(BAND_KEYS) as BandName[]).forEach((name) => {
-      const keys = BAND_KEYS[name];
-      set(this.bandCompressors[name].threshold, Number(values[keys.threshold] ?? -18));
-      set(this.bandCompressors[name].ratio, Number(values[keys.ratio] ?? 2));
-    });
-
-    const width = values.stereo_width ?? 1;
-    const stereo = [.5 + .5 * width, .5 - .5 * width, 0, 0, .5 - .5 * width, .5 + .5 * width, 0, 0];
-    // Die vier nicht benötigten Matrixpfade bleiben auf 0; die ersten beiden
-    // pro Ausgang tragen bereits Mid- und Side-Anteil kombiniert.
-    stereo.forEach((value, index) => set(this.stereoGains[index].gain, value));
+    this.latestValues = values;
+    const active = Number(this.contextParams.processing_intensity ?? 65) > 0 || Object.entries(values).some(([key, value]) => typeof this.contextParams[key] === "number" && Math.abs(Number(value) - Number(this.contextParams[key])) > 1e-6);
+    set(this.wet.gain, active ? 1 : 0); set(this.dry.gain, active ? 0 : 1);
+    const params = { ...this.contextParams, ...values };
+    this.bands?.port.postMessage({ params }); this.bus?.port.postMessage({ params });
 
     const drive = values.saturation_amount ?? 0;
     this.shaper.curve = this.makeSaturationCurve(drive);
-    set(this.bus.threshold, values.bus_comp_threshold ?? -24);
-    set(this.bus.ratio, values.bus_comp_ratio ?? 1.4);
+    set(this.saturationWet.gain, drive >= .01 ? 1 : 0); set(this.saturationDry.gain, drive >= .01 ? 0 : 1);
   }
 
   private makeSaturationCurve(amount: number) {

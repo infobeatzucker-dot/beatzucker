@@ -248,10 +248,10 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing,
             <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
               {lang === "de"
                 ? (preAnalysis.mono_compatibility < 0.5
-                  ? `Mono-Kompatibilität: ${preAnalysis.mono_compatibility.toFixed(2)} — starke Phasenauslöschung möglich. Mastering fügt automatisch einen Subbass-Monofilter (< 120 Hz) hinzu.`
+                  ? `Mono-Kompatibilität: ${preAnalysis.mono_compatibility.toFixed(2)} — starke Phasenauslöschung möglich. Prüfe den Mix in Mono. Bass-Bündelung wird nur bei gemessenem Tieftonproblem eingesetzt und ersetzt keine Mix-Korrektur.`
                   : `Mono-Kompatibilität: ${preAnalysis.mono_compatibility.toFixed(2)} — auf Mono-Geräten klingen Bässe eventuell dünner. Der Subbass wird beim Mastering automatisch mono gestellt.`)
                 : (preAnalysis.mono_compatibility < 0.5
-                  ? `Mono compatibility: ${preAnalysis.mono_compatibility.toFixed(2)} — strong phase cancellation is possible. Mastering automatically adds a sub-bass mono filter below 120 Hz.`
+                  ? `Mono compatibility: ${preAnalysis.mono_compatibility.toFixed(2)} — strong phase cancellation is possible. Check the mix in mono. Bass narrowing is used only for a measured low-frequency issue and cannot replace a mix correction.`
                   : `Mono compatibility: ${preAnalysis.mono_compatibility.toFixed(2)} — bass may sound thinner on mono devices. Sub-bass is automatically made mono during mastering.`)
               }
             </div>

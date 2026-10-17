@@ -20,6 +20,7 @@ export type ParamKey =
   | "mb_mid_threshold"  | "mb_mid_ratio"
   | "mb_high_threshold" | "mb_high_ratio"
   | "stereo_width"
+  | "bass_mono_amount"
   | "saturation_amount"
   | "bus_comp_threshold" | "bus_comp_ratio";
 
@@ -58,6 +59,7 @@ export const PARAM_DEFS: ParamDef[] = [
 
   // ── Stereo / Sättigung / Bus ────────────────────────────────────────────────
   { key: "stereo_width",       tab: "ms",  label: { de: "Breite",   en: "Width"     }, unit: { de: "× Seitensignal", en: "× side signal" }, min: 0.5, max: 2.0, step: 0.01, decimals: 2, neutral: 1 },
+  { key: "bass_mono_amount", tab: "ms", label: { de: "Bass bündeln", en: "Bass narrowing" }, unit: { de: "0 = erhalten · 1 = Mono", en: "0 = preserve · 1 = mono" }, min: 0, max: 1, step: 0.01, decimals: 2, neutral: 0 },
   { key: "saturation_amount",  tab: "sat", label: { de: "Sättigung",en: "Saturation"}, unit: { de: "Drive", en: "Drive" }, min: 0, max: 0.5, step: 0.01, decimals: 2, neutral: 0 },
   { key: "bus_comp_threshold", tab: "bus", label: { de: "Bus Thr",  en: "Bus thr"   }, unit: { de: "dB", en: "dB" }, min: -32, max: -10, step: 0.5, decimals: 1 },
   { key: "bus_comp_ratio",     tab: "bus", label: { de: "Bus Ratio",en: "Bus ratio" }, unit: { de: ": 1", en: ": 1" }, min: 1, max: 3, step: 0.01, decimals: 2, neutral: 1 },
@@ -103,6 +105,7 @@ const FALLBACKS: Record<ParamKey, number> = {
   mb_mid_threshold: -22,  mb_mid_ratio: 1.65,
   mb_high_threshold: -24, mb_high_ratio: 1.52,
   stereo_width: 1.13,
+  bass_mono_amount: 0,
   saturation_amount: 0.13,
   bus_comp_threshold: -24.5,
   bus_comp_ratio: 1.39,

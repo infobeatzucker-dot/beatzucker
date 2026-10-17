@@ -120,7 +120,7 @@ function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null
 
 const emptyBars = Array.from({ length: 240 }, () => .08);
 
-export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, uploadToken, filename, durationSec, analysis, serverParams, onApply }: Props) {
+export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, uploadToken, filename, durationSec, analysis, referenceAnalysis, platform, preset, intensity, serverParams, onApply }: Props) {
   const base = useMemo(() => seedValues(serverParams), [serverParams]);
   const [values, setValues] = useState<ParamValues>(base), valuesRef = useRef(values); valuesRef.current = values;
   const [tab, setTab] = useState<TabId>("eq");
@@ -134,6 +134,8 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   const [engineBusy, setEngineBusy] = useState(false), [previewError, setPreviewError] = useState<string | null>(null);
   const [waveBars, setWaveBars] = useState(emptyBars), [waveLoading, setWaveLoading] = useState(false);
   const [auditionBase, setAuditionBase] = useState(false), auditionBaseRef = useRef(false);
+  const [controlUrl, setControlUrl] = useState(""), [controlBusy, setControlBusy] = useState(false), [controlError, setControlError] = useState("");
+  const controlAbort = useRef<AbortController | null>(null), controlAudio = useRef<HTMLAudioElement | null>(null);
   const sourceUrl = useMemo(
     () => `/api/preview?file_id=${encodeURIComponent(fileId)}&upload_token=${encodeURIComponent(uploadToken)}`,
     [fileId, uploadToken],
@@ -144,6 +146,28 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   );
   const startSec = region.start, endSec = Math.min(dur, region.start + region.len);
   const dirty = useMemo(() => Object.keys(changedOnly(values, base)).length, [values, base]);
+  const controlKey = JSON.stringify([values, startSec, endSec, fileId, platform, preset, intensity]);
+  useEffect(() => {
+    controlAbort.current?.abort(); controlAudio.current?.pause();
+    setControlUrl(""); setControlError(""); setControlBusy(false);
+    return () => { controlAbort.current?.abort(); controlAudio.current?.pause(); };
+  }, [controlKey, open]);
+  useEffect(() => () => { if (controlUrl) URL.revokeObjectURL(controlUrl); }, [controlUrl]);
+  const renderControl = async () => {
+    controlAbort.current?.abort(); const controller = new AbortController(); controlAbort.current = controller;
+    engineRef.current?.pause(); controlAudio.current?.pause(); stopGlobalAudio(); setControlBusy(true); setControlError(""); setControlUrl("");
+    try {
+      const response = await fetch("/api/control-preview", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
+        body: JSON.stringify({ file_id: fileId, upload_token: uploadToken, start: startSec, end: endSec, analysis, reference_analysis: referenceAnalysis, platform, preset, intensity, target_lufs: serverParams?.target_lufs, overrides: values }) });
+      if (!response.ok) throw Error(String(response.status));
+      const blob = await response.blob(); if (controller.signal.aborted) return;
+      setControlUrl(URL.createObjectURL(blob));
+    } catch (error) {
+      if (!controller.signal.aborted) setControlError(error instanceof Error && error.message === "429"
+        ? (lang === "en" ? "Please wait before rendering another section." : "Bitte kurz warten, bevor du einen weiteren Ausschnitt renderst.")
+        : (lang === "en" ? "Control render unavailable. The service may be busy or your upload has expired. Your settings are preserved." : "Kontrollrender nicht verfügbar. Der Dienst ist möglicherweise ausgelastet oder dein Upload ist abgelaufen. Deine Einstellungen bleiben erhalten."));
+    } finally { if (controlAbort.current === controller) setControlBusy(false); }
+  };
   const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
   const destroyEngine = useCallback(() => {
@@ -202,12 +226,13 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         valuesRef.current,
         analysis?.integrated_lufs ?? -18,
         analysis?.true_peak ?? -6,
+        serverParams ?? {},
       );
       engine.onState(setPlaying);
       engine.setRegion(regionRef.current.start, regionRef.current.start + regionRef.current.len); engineRef.current = engine; setAnalyser(engine.analyser);
     }
     return engineRef.current;
-  }, [sourceUrl, analysis?.integrated_lufs, analysis?.true_peak]);
+  }, [sourceUrl, analysis?.integrated_lufs, analysis?.true_peak, serverParams]);
   const setParam = useCallback((key: ParamKey, value: number) => setValues((previous) => {
     const next = { ...previous, [key]: value }; if (!auditionBaseRef.current) engineRef.current?.update(next); return next;
   }), []);
@@ -287,6 +312,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   }, [open, waveBars, dur, playing, region]);
 
   const togglePlay = useCallback(async () => {
+    controlAudio.current?.pause();
     setEngineBusy(true); setPreviewError(null); stopGlobalAudio();
     try { const engine = ensureEngine(); engine.update(auditionBaseRef.current ? base : valuesRef.current); await engine.toggle(regionRef.current.start, regionRef.current.start + regionRef.current.len); }
     catch { setPreviewError(lang === "en" ? "Live preview could not be started." : "Die Live-Vorschau konnte nicht gestartet werden."); }
@@ -304,8 +330,8 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
       <section className="adjust-wave"><div className="adjust-wave-bar"><div className="adjust-transport">
         <button type="button" className="adjust-play" onClick={() => void togglePlay()} disabled={engineBusy} aria-label={playing ? (lang === "en" ? "Pause live preview" : "Live-Vorschau pausieren") : (lang === "en" ? "Play live preview" : "Live-Vorschau abspielen")}>{engineBusy ? <Loader2 size={15} className="adjust-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}</button>
         <span className="adjust-range-chip"><span ref={chipTimeRef}>{fmtTime(startSec)}–{fmtTime(endSec)}</span>{playing && " · LOOP"}</span>
-        <div className="adjust-ab" aria-label={lang === "en" ? "Compare server master and manual changes" : "Server-Master und manuelle Änderungen vergleichen"}>
-          <button className={auditionBase ? "is-active" : ""} onClick={() => { if (!auditionBase) toggleAudition(); }} disabled={!dirty}>A <span>{lang === "en" ? "Master" : "Master"}</span></button>
+        <div className="adjust-ab" aria-label={lang === "en" ? "Compare base settings and manual changes in live preview" : "Ausgangseinstellungen und Änderungen in der Live-Vorschau vergleichen"}>
+          <button className={auditionBase ? "is-active" : ""} onClick={() => { if (!auditionBase) toggleAudition(); }} disabled={!dirty}>A <span>{lang === "en" ? "Base settings" : "Ausgangswerte"}</span></button>
           <button className={!auditionBase ? "is-active" : ""} onClick={() => { if (auditionBase) toggleAudition(); }} disabled={!dirty}>B <span>{lang === "en" ? "Changes" : "Änderungen"}</span></button>
         </div>
         <button className="adjust-loudest" onClick={locateLoudest} disabled={waveLoading}><LocateFixed size={12} />{lang === "en" ? "Loudest part" : "Lauteste Stelle"}</button>
@@ -323,6 +349,13 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         {tab === "sat" && <SaturationScope drive={values.saturation_amount ?? 0} lang={lang} analyser={analyser} playing={playing} />}
         {tab === "bus" && <GainReductionScope threshold={values.bus_comp_threshold ?? -24} ratio={values.bus_comp_ratio ?? 1.4} lang={lang} analyser={analyser} playing={playing} getReduction={() => engineRef.current?.busReduction ?? 0} />}
       </div>
+      <section className="adjust-control-render" aria-label={lang === "en" ? "Server control render" : "Server-Kontrollrender"}>
+        <div><button className="adjust-ghost" disabled={controlBusy || !analysis || endSec - startSec < .4} onClick={() => void renderControl()}>{controlBusy ? <Loader2 size={13} className="adjust-spin"/> : <Play size={13}/>} {lang === "en" ? "Render section on server" : "Ausschnitt auf Server prüfen"}</button>
+          {controlBusy && <button className="adjust-ghost" onClick={() => { controlAbort.current?.abort(); setControlBusy(false); }}>{lang === "en" ? "Cancel" : "Abbrechen"}</button>}</div>
+        <p>{lang === "en" ? "Same processing chain as export · up to 20 seconds · no master quota used. Section loudness and boundary context differ from a full-track export; this is a control render, not an identical excerpt of the final master." : "Gleiche Bearbeitungskette wie beim Export · bis 20 Sekunden · verbraucht kein Master-Kontingent. Abschnittslautheit und Randkontext unterscheiden sich vom Gesamttrack; dies ist ein Kontrollrender, kein identischer Ausschnitt des fertigen Masters."}</p>
+        <div role="status" aria-live="polite">{controlError || (controlBusy ? (lang === "en" ? "Rendering selected section …" : "Ausgewählter Ausschnitt wird gerendert …") : "")}</div>
+        {controlUrl && <audio ref={controlAudio} controls preload="metadata" src={controlUrl} onPlay={() => { engineRef.current?.pause(); stopGlobalAudio(); }}/>}
+      </section>
       <footer className="adjust-foot"><button className="adjust-ghost" disabled={!dirty} onClick={() => { setValues(base); setAuditionBase(false); auditionBaseRef.current = false; engineRef.current?.update(base); }}><RotateCcw size={13} />{lang === "en" ? "Reset" : "Zurücksetzen"}</button>
         <div className="adjust-live-note"><span />{lang === "en" ? "Instant Web Audio preview · final export uses the full mastering engine" : "Sofortige Web-Audio-Vorschau · finaler Export nutzt die vollständige Mastering-Engine"}</div>
         <button className="adjust-commit" disabled={!dirty} onClick={() => onApply(changedOnly(values, base))}>{lang === "en" ? "Create new master" : "Neuen Master erstellen"}</button></footer>

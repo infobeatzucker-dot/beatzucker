@@ -54,6 +54,29 @@ class AudioAnalysis:
     sample_rate: int
     bit_depth: int
     channels: int
+    bass_correlation: float = 1.0
+    bass_side_ratio: float = 0.0
+
+
+def measure_bass_stereo(audio: np.ndarray, sr: int) -> tuple[float, float]:
+    """120 Hz correlation/side balance, bounded to six ten-second windows."""
+    if audio.ndim != 2 or audio.shape[0] < 2:
+        return 1.0, 0.0
+    length = audio.shape[-1]
+    window = min(length, sr * 10)
+    starts = np.linspace(0, max(0, length - window), min(6, max(1, length // max(1, window))), dtype=int)
+    sos = scipy_signal.butter(2, min(120, sr * .45), fs=sr, output="sos")
+    ll = rr = lr = mid = side = 0.0
+    for start in starts:
+        low = scipy_signal.sosfilt(sos, audio[:2, start:start + window], axis=-1)
+        low = low[:, min(sr // 10, max(0, low.shape[-1] // 4)):]
+        left, right = low
+        ll += float(np.sum(left * left)); rr += float(np.sum(right * right)); lr += float(np.sum(left * right))
+        mid += float(np.sum((left + right) ** 2)); side += float(np.sum((left - right) ** 2))
+    if ll + rr < 1e-12:
+        return 1.0, 0.0
+    corr = float(np.clip(lr / max(np.sqrt(ll * rr), 1e-12), -1, 1))
+    return corr, float(min(20.0, np.sqrt(side / max(mid, 1e-12))))
 
 
 def rms_band(audio: np.ndarray, sr: int, low_hz: float, high_hz: float) -> float:
@@ -380,6 +403,7 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
     channel_dc = np.atleast_1d(np.mean(y, axis=-1))
     dc_offset = float(channel_dc[int(np.argmax(np.abs(channel_dc)))])
 
+    bass_correlation, bass_side_ratio = measure_bass_stereo(y, sr)
     return AudioAnalysis(
         integrated_lufs=integrated_lufs,
         true_peak=true_peak,
@@ -405,6 +429,8 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
         sample_rate=sr,
         bit_depth=_parse_bit_depth(info.subtype),
         channels=2 if is_stereo else 1,
+        bass_correlation=bass_correlation,
+        bass_side_ratio=bass_side_ratio,
     )
 
 

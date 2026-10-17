@@ -10,6 +10,15 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.14.0",
+  date: "2026-10-17",
+  title: { de: "Gezielter bearbeiten. Genauer vorhören.", en: "More focused processing. Closer previews." },
+  summary: { de: "Die Frequenzaufteilung wurde korrigiert. Die Automatik beurteilt Klangbalance unabhängig vom Dateipegel und behandelt bereits dichte Mischungen zurückhaltender.", en: "Frequency splitting has been corrected. Automatic decisions use tonal balance independently of file level and treat already dense mixes more gently." },
+  improvements: {
+    de: ["Bass-Trennung und das Zusammenfügen der Frequenzbänder wurden korrigiert, damit keine unbeabsichtigten Pegelsenken entstehen.", "Referenzvergleich und zusätzliche Höhenkorrektur orientieren sich an relativer Klangbalance statt an der Lautstärke des Uploads.", "Kompression setzt sanfter ein. Bereits dichte Mischungen werden zurückhaltender bearbeitet; die Erholungszeiten richten sich nach der gemessenen Dynamik.", "Das Bass-Stereobild bleibt ohne gemessenes Tieftonproblem erhalten. Bei der manuellen Bearbeitung kannst du die Bass-Bündelung selbst einstellen.", "Die Live-Vorschau übernimmt mehr Eigenschaften der Export-Kette. Ein optionaler Server-Kontrollrender prüft bis zu 20 Sekunden ohne Master-Kontingent; Abschnittslautheit und Randkontext können vom vollständigen Export abweichen."],
+    en: ["Bass splitting and frequency-band recombination have been corrected to avoid unintended level dips.", "Reference comparison and additional treble correction use relative tonal balance rather than upload loudness.", "Compression starts more gradually. Already dense mixes receive less processing, with recovery times based on measured dynamics.", "Bass stereo is preserved unless a low-frequency problem is measured. Manual adjustments now include a bass-narrowing control.", "Live preview shares more properties with the export chain. An optional server control render checks up to 20 seconds without using master quota; section loudness and boundary context can differ from the full export."],
+  },
+}, {
   version: "0.13.0",
   date: "2026-10-14",
   title: { de: "Audio-Tools im Blick.", en: "Keeping track of audio tools." },

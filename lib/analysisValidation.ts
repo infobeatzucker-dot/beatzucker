@@ -3,7 +3,7 @@ import type { AnalysisData } from "@/lib/types/mastering";
 
 type NumericRule = readonly [min: number, max: number];
 
-const NUMERIC_RULES: Record<Exclude<keyof AnalysisData, "key" | "clipping_detected" | "analysis_token">, NumericRule> = {
+const NUMERIC_RULES: Record<Exclude<keyof AnalysisData, "key" | "clipping_detected" | "analysis_token" | "bass_correlation" | "bass_side_ratio">, NumericRule> = {
   integrated_lufs: [-100, 10], true_peak: [-160, 20], dr_value: [0, 60],
   crest_factor: [0, 80], lra: [0, 80], rms_sub: [-160, 20], rms_low: [-160, 20],
   rms_mid: [-160, 20], rms_high: [-160, 20], rms_air: [-160, 20],
@@ -13,6 +13,7 @@ const NUMERIC_RULES: Record<Exclude<keyof AnalysisData, "key" | "clipping_detect
   duration_seconds: [0, 24 * 60 * 60], sample_rate: [4000, 768000],
   bit_depth: [0, 64], channels: [1, 32],
 };
+const OPTIONAL_RULES: Record<string, NumericRule> = { bass_correlation: [-1, 1], bass_side_ratio: [0, 20] };
 
 export function normalizeAnalysis(value: unknown): AnalysisData | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -27,6 +28,12 @@ export function normalizeAnalysis(value: unknown): AnalysisData | null {
   if (typeof input.clipping_detected !== "boolean") return null;
   output.key = input.key;
   output.clipping_detected = input.clipping_detected;
+  for (const [key, [min, max]] of Object.entries(OPTIONAL_RULES)) {
+    if (input[key] === undefined) continue;
+    const value = input[key];
+    if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max) return null;
+    output[key] = value;
+  }
   return output as unknown as AnalysisData;
 }
 
@@ -35,6 +42,9 @@ function canonicalAnalysis(analysis: AnalysisData): string {
   for (const key of Object.keys(NUMERIC_RULES)) ordered[key] = analysis[key as keyof AnalysisData];
   ordered.key = analysis.key;
   ordered.clipping_detected = analysis.clipping_detected;
+  for (const key of Object.keys(OPTIONAL_RULES)) {
+    if (analysis[key as keyof AnalysisData] !== undefined) ordered[key] = analysis[key as keyof AnalysisData];
+  }
   return JSON.stringify(ordered);
 }
 

@@ -40,7 +40,12 @@ class MasteringParams:
     # mastering.compress_band(). The stage is additionally capped at 2 dB GR.
     bus_comp_threshold: float = -20.5
     bus_comp_ratio: float = 2.0
+    bass_mono_amount: float = 0.0
+    final_air_gain: float = 0.0
+    release_scale: float = 1.0
+    comp_knee_db: float = 4.0
     processing_intensity: int = 65
+    manual_active: bool = False
     notes: str = ""
 
 
@@ -74,6 +79,8 @@ def apply_intensity_scaling(params: MasteringParams, intensity: int) -> Masterin
     params.mid_notch_gain *= t
     params.presence_gain  *= t
     params.air_gain       *= t
+    params.final_air_gain *= t
+    params.bass_mono_amount *= t
 
     # Compression ratios — blend from 1.0 (unity) toward AI-selected ratio
     params.mb_sub_ratio   = 1.0 + (params.mb_sub_ratio  - 1.0) * t
@@ -118,6 +125,7 @@ OVERRIDE_RANGES: dict = {
     "mb_high_threshold": (-30.0,   0.0),
     "mb_high_ratio":       (1.0,   8.0),
     "stereo_width":        (0.5,   2.0),
+    "bass_mono_amount":    (0.0,   1.0),
     "saturation_amount":   (0.0,   0.5),
     "bus_comp_threshold":(-32.0, -10.0),
     "bus_comp_ratio":      (1.0,   3.0),
@@ -137,6 +145,7 @@ def apply_overrides(params: MasteringParams, overrides: Optional[dict]) -> Maste
         return params
 
     applied = []
+    changed = False
     for key, value in overrides.items():
         if key not in OVERRIDE_RANGES:
             continue  # unbekanntes Feld — ignorieren statt vertrauen
@@ -148,10 +157,13 @@ def apply_overrides(params: MasteringParams, overrides: Optional[dict]) -> Maste
             continue  # NaN/Inf abweisen
         lo, hi = OVERRIDE_RANGES[key]
         v = max(lo, min(hi, v))
-        setattr(params, key, int(round(v)) if key in INT_OVERRIDE_FIELDS else v)
+        final_value = int(round(v)) if key in INT_OVERRIDE_FIELDS else v
+        changed = changed or abs(float(getattr(params, key)) - final_value) > 1e-6
+        setattr(params, key, final_value)
         applied.append(key)
 
     if applied:
+        params.manual_active = changed
         params.notes += f" Manuell angepasst: {len(applied)} Parameter."
     return params
 
@@ -248,7 +260,7 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
     params.notes = f"Adaptive rules for {preset} preset targeting {platform} at {params.target_lufs} LUFS."
     params.genre = preset if preset != "auto" else "Adaptive"
 
-    # Basic reference-matching adjustments (used when Claude API unavailable)
+    # Conservative reference matching from measured, relative features.
     if reference_analysis:
         src_centroid = analysis.get("spectral_centroid", 2000.0)
         ref_centroid = reference_analysis.get("spectral_centroid", 2000.0)
@@ -272,19 +284,22 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
         if src_width > 0.01 and ref_width > 0.0:
             params.stereo_width = float(max(0.5, min(2.0, ref_width / src_width)))
 
-        # Sub bass: if reference has less sub, tighten compression
+        # Relative sub/mid balance, never absolute file gain.
         ref_rms_sub = reference_analysis.get("rms_sub", -24.0)
         src_rms_sub = analysis.get("rms_sub", -24.0)
-        if src_rms_sub > ref_rms_sub + 3:          # source has significantly more sub
+        ref_sub_balance = ref_rms_sub - reference_analysis.get("rms_mid", ref_rms_sub)
+        src_sub_balance = src_rms_sub - analysis.get("rms_mid", src_rms_sub)
+        if "rms_mid" in reference_analysis and "rms_mid" in analysis and src_sub_balance > ref_sub_balance + 3:
             params.mb_sub_ratio = min(6.0, params.mb_sub_ratio + 1.0)
-            params.mb_sub_threshold = max(-20.0, params.mb_sub_threshold + 2.0)
+            params.mb_sub_threshold = max(-30.0, params.mb_sub_threshold - 1.0)
 
         # Match low/mid balance with a small shelf move. Comparing each band to
         # its own mid band makes this independent of reference file loudness.
         src_low_balance = analysis.get("rms_low", -24.0) - analysis.get("rms_mid", -24.0)
         ref_low_balance = reference_analysis.get("rms_low", -24.0) - reference_analysis.get("rms_mid", -24.0)
-        params.low_shelf_gain = float(max(-3.0, min(3.0,
-            params.low_shelf_gain + (ref_low_balance - src_low_balance) * 0.25)))
+        if all(key in reference_analysis and key in analysis for key in ("rms_low", "rms_mid")):
+            params.low_shelf_gain = float(max(-3.0, min(3.0,
+                params.low_shelf_gain + (ref_low_balance - src_low_balance) * 0.25)))
 
         # Dynamics matching remains deliberately conservative. It nudges glue
         # compression but never changes the limiter ceiling or platform target.
@@ -305,6 +320,32 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
             params.stereo_width = min(params.stereo_width, 1.0)
 
         params.notes += " Reference track used for tonal, stereo and dynamics matching."
+
+    # A quiet export is not a dark mix: decide from air/high balance only.
+    air_balance = analysis.get("rms_air", -80.0) - analysis.get("rms_high", -80.0)
+    if air_balance < -16.0 and centroid < 4500:
+        params.final_air_gain = 0.4
+
+    # Limit already dense material instead of adding a second layer of squeeze.
+    dense = crest < 7.5 or lra < 4.0
+    balanced = 1600 <= centroid <= 4500 and -6 <= rms_low - rms_mid <= 4
+    restraint = 0.4 if dense else 0.65 if balanced and preset == "auto" and not reference_analysis else 1.0
+    for key in ("mb_sub_ratio", "mb_low_ratio", "mb_mid_ratio", "mb_high_ratio", "bus_comp_ratio"):
+        setattr(params, key, 1.0 + (getattr(params, key) - 1.0) * restraint)
+    params.saturation_amount *= restraint
+    if balanced and preset == "auto" and not reference_analysis:
+        for key in ("low_shelf_gain", "mid_notch_gain", "presence_gain", "air_gain", "final_air_gain"):
+            setattr(params, key, getattr(params, key) * 0.5)
+    # Slower recovery on dense programmes, faster on transient-rich material.
+    params.release_scale = 1.25 if dense else 0.85 if crest > 13 else 1.0
+    # No automatic bass narrowing without a measured low-band issue. Missing
+    # metrics from older analyses preserve the image, not a guess of mono bass.
+    bass_corr = analysis.get("bass_correlation", 1.0)
+    bass_side = analysis.get("bass_side_ratio", 0.0)
+    if bass_corr < 0.0 and bass_side > 0.65:
+        params.bass_mono_amount = min(0.75, max(0.25, -bass_corr * 0.75))
+    if dense:
+        params.notes += " Dense source: restrained compression and saturation."
 
     # Manuelle Overrides ganz zuletzt — sie sind bereits Endwerte, siehe
     # apply_overrides(). Alles davor ist die automatische Herleitung, die der

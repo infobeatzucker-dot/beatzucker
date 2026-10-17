@@ -19,7 +19,7 @@ async function main() {
   function param() { return { value: 0, cancelScheduledValues() {}, setValueAtTime() {}, setTargetAtTime() {} }; }
   function node() { return { gain:param(), frequency:param(), Q:param(), knee:param(), attack:param(), release:param(), threshold:param(), ratio:param(), connect(next){return next;} }; }
   class AudioContext {
-    constructor(){this.currentTime=0;this.state='running';this.destination=node();}
+    constructor(){this.currentTime=0;this.sampleRate=48000;this.state='running';this.destination=node();this.audioWorklet={addModule:async()=>{}};}
     createMediaElementSource(){return node();} createGain(){return node();} createBiquadFilter(){return node();}
     createDynamicsCompressor(){return node();} createChannelSplitter(){return node();} createChannelMerger(){return node();}
     createWaveShaper(){return node();} createAnalyser(){return node();} async close(){} async resume(){}
@@ -31,7 +31,8 @@ async function main() {
     async play(){this.playCount++;this.paused=false;this.events.play?.();}
     pause(){this.paused=true;this.events.pause?.();} removeAttribute(){} load(){}
   }
-  const {ManualPreviewEngine} = load('lib/manualPreviewEngine.ts', {'./manualLoop':loop}, {AudioContext, Audio, requestAnimationFrame:()=>1,cancelAnimationFrame(){} });
+  class AudioWorkletNode { constructor(){Object.assign(this,node());this.port={postMessage(){}};} }
+  const {ManualPreviewEngine} = load('lib/manualPreviewEngine.ts', {'./manualLoop':loop}, {AudioContext, AudioWorkletNode, Audio, requestAnimationFrame:()=>1,cancelAnimationFrame(){} });
   const engine = new ManualPreviewEngine('fixture', {});
   await engine.toggle(2,8);
   assert.equal(audio.currentTime,0); assert.equal(audio.paused,false);

@@ -142,7 +142,8 @@ def linkwitz_riley_crossover(audio: np.ndarray, sr: int, crossover_hz: float, or
     sosfilt = numerically stable SOS form + single-pass (low RAM, no overflow).
     """
     nyq = sr / 2
-    norm_freq = float(np.clip(crossover_hz / nyq, 0.01, 0.99))
+    # Clamp in Hz, not at 1% of Nyquist (which turned 80 Hz into 240 Hz at 48k).
+    norm_freq = float(np.clip(crossover_hz, 1.0, nyq * 0.98) / nyq)
 
     # True LR: cascade two identical Butterworth filters of order/2 each.
     # Both LP and HP are –6 dB at crossover; LP + HP = 0 dB (flat sum).
@@ -157,6 +158,29 @@ def linkwitz_riley_crossover(audio: np.ndarray, sr: int, crossover_hz: float, or
         high = scipy_signal.sosfilt(sos_high, scipy_signal.sosfilt(sos_high, audio)).astype(np.float32)
 
     return low, high
+
+
+def crossover_allpass(audio: np.ndarray, sr: int, frequency: float) -> np.ndarray:
+    """Phase of an LR4 low+high sum, without changing its magnitude.
+
+    Later splits rotate only the later branches. Earlier branches must receive
+    the same allpass phase before recombination. LR4's sum is a second-order
+    allpass with the reversed Butterworth denominator as its numerator.
+    """
+    cutoff = float(np.clip(frequency, 1.0, sr * 0.49))
+    _, a = scipy_signal.butter(2, cutoff, fs=sr)
+    sos = scipy_signal.tf2sos(a[::-1], a)
+    return scipy_signal.sosfilt(sos, audio, axis=-1).astype(np.float32)
+
+
+def split_mastering_bands(audio: np.ndarray, sr: int):
+    """Four phase-aligned LR4 bands; their unprocessed sum has unity magnitude."""
+    sub, rest = linkwitz_riley_crossover(audio, sr, 80)
+    low, rest = linkwitz_riley_crossover(rest, sr, 500)
+    mid, high = linkwitz_riley_crossover(rest, sr, 5000)
+    sub = crossover_allpass(crossover_allpass(sub, sr, 500), sr, 5000)
+    low = crossover_allpass(low, sr, 5000)
+    return sub, low, mid, high
 
 
 @jit(nopython=True, cache=True)
@@ -179,7 +203,7 @@ def _follow_envelope(level: np.ndarray, attack_coeff: float,
 
 def compress_band(audio: np.ndarray, sr: int, threshold_db: float, ratio: float,
                   attack_ms: float = 20, release_ms: float = 100,
-                  max_reduction_db: float = 4.0) -> np.ndarray:
+                  max_reduction_db: float = 4.0, knee_db: float = 4.0) -> np.ndarray:
     """Stereo-linked feed-forward compressor with bounded gain reduction.
 
     The louder channel drives one stateful detector for both channels, which
@@ -190,7 +214,6 @@ def compress_band(audio: np.ndarray, sr: int, threshold_db: float, ratio: float,
     if ratio <= 1.0001 or max_reduction_db <= 0:
         return audio.astype(np.float32, copy=True)
 
-    threshold = db_to_linear(threshold_db)
     attack_coeff = float(np.exp(-1.0 / max(1.0, sr * attack_ms / 1000)))
     release_coeff = float(np.exp(-1.0 / max(1.0, sr * release_ms / 1000)))
 
@@ -203,13 +226,14 @@ def compress_band(audio: np.ndarray, sr: int, threshold_db: float, ratio: float,
     envelope = _follow_envelope(level, attack_coeff, release_coeff)
     del level
 
-    gain = np.ones(len(envelope), dtype=np.float32)
-    over = envelope > threshold
-    if np.any(over):
-        gain[over] = (threshold * (envelope[over] / threshold) ** (1.0 / ratio)
-                      / envelope[over])
-        np.maximum(gain, db_to_linear(-abs(max_reduction_db)), out=gain)
-    del envelope, over
+    over_db = 20.0 * np.log10(np.maximum(envelope, 1e-10)) - threshold_db
+    slope = 1.0 - 1.0 / ratio
+    reduction = np.maximum(over_db, 0.0) * slope
+    if knee_db > 0:
+        inside = np.abs(over_db) < knee_db * 0.5
+        reduction[inside] = slope * (over_db[inside] + knee_db * 0.5) ** 2 / (2 * knee_db)
+    gain = np.power(10.0, -np.minimum(reduction, abs(max_reduction_db)) / 20).astype(np.float32)
+    del envelope, over_db, reduction
 
     return (audio * gain).astype(np.float32)
 
@@ -218,11 +242,7 @@ def apply_multiband_compression(audio: np.ndarray, sr: int, params: MasteringPar
     """4-band multiband compression – frees intermediate arrays to keep RAM low."""
     import gc
 
-    sub,  rest1 = linkwitz_riley_crossover(audio, sr, 80)
-    low,  rest2 = linkwitz_riley_crossover(rest1, sr, 500)
-    del rest1; gc.collect()
-    mid,  high  = linkwitz_riley_crossover(rest2, sr, 5000)
-    del rest2; gc.collect()
+    sub, low, mid, high = split_mastering_bands(audio, sr)
 
     # Use params for sub (fully parametric).
     # Low/Mid/High: derive attack from AI ratio — tighter ratio → faster attack
@@ -230,23 +250,23 @@ def apply_multiband_compression(audio: np.ndarray, sr: int, params: MasteringPar
     def _band_atk(base_ms: float, ratio: float) -> float:
         return max(5.0, base_ms * (2.0 / max(ratio, 1.0)))
     def _band_rel(base_ms: float, ratio: float) -> float:
-        return max(40.0, base_ms * (2.0 / max(ratio, 1.0)))
+        return max(40.0, base_ms * (2.0 / max(ratio, 1.0))) * params.release_scale
 
     sub_c = compress_band(sub, sr, params.mb_sub_threshold, params.mb_sub_ratio,
-                          params.mb_sub_attack, params.mb_sub_release,
-                          max_reduction_db=4.0)
+                          params.mb_sub_attack, params.mb_sub_release * params.release_scale,
+                          max_reduction_db=4.0, knee_db=params.comp_knee_db)
     del sub; gc.collect()
     low_c = compress_band(low, sr, params.mb_low_threshold, params.mb_low_ratio,
                           _band_atk(30, params.mb_low_ratio), _band_rel(120, params.mb_low_ratio),
-                          max_reduction_db=3.5)
+                          max_reduction_db=3.5, knee_db=params.comp_knee_db)
     del low; gc.collect()
     mid_c = compress_band(mid, sr, params.mb_mid_threshold, params.mb_mid_ratio,
                           _band_atk(15, params.mb_mid_ratio), _band_rel(80, params.mb_mid_ratio),
-                          max_reduction_db=3.0)
+                          max_reduction_db=3.0, knee_db=params.comp_knee_db)
     del mid; gc.collect()
     high_c = compress_band(high, sr, params.mb_high_threshold, params.mb_high_ratio,
                            _band_atk(8, params.mb_high_ratio), _band_rel(40, params.mb_high_ratio),
-                           max_reduction_db=2.5)
+                           max_reduction_db=2.5, knee_db=params.comp_knee_db)
     del high; gc.collect()
 
     result = (sub_c + low_c + mid_c + high_c).astype(np.float32)
@@ -273,6 +293,7 @@ def apply_deesser(audio: np.ndarray, sr: int,
     below, above_low = linkwitz_riley_crossover(stereo, sr, low_hz)
     sibilance, above_high = linkwitz_riley_crossover(above_low, sr, high_hz)
     del above_low
+    below = crossover_allpass(below, sr, high_hz)
 
     sibilance_c = compress_band(sibilance, sr, threshold_db, ratio,
                                 attack_ms=2.0, release_ms=60.0,
@@ -298,7 +319,7 @@ def decode_ms(mid: np.ndarray, side: np.ndarray):
 
 
 def apply_ms_processing(audio: np.ndarray, sr: int, params: MasteringParams) -> np.ndarray:
-    """Mid/Side processing with mono-below-120Hz."""
+    """Preserve bass stereo unless analysis or an explicit control requests narrowing."""
     if audio.ndim != 2:
         return audio
 
@@ -308,10 +329,11 @@ def apply_ms_processing(audio: np.ndarray, sr: int, params: MasteringParams) -> 
     # Apply stereo width to side channel
     side *= params.stereo_width
 
-    # Mono below 120 Hz (cut side below 120Hz)
-    nyq = sr / 2
-    sos_high = scipy_signal.butter(4, 120 / nyq, btype="high", output="sos")
-    side = scipy_signal.sosfilt(sos_high, side).astype(np.float32)
+    amount = float(np.clip(params.bass_mono_amount, 0, 1))
+    if amount > 0:
+        bass, highs = linkwitz_riley_crossover(side, sr, 120)
+        side = highs + bass * (1.0 - amount)
+        mid = crossover_allpass(mid, sr, 120)
 
     left_out, right_out = decode_ms(mid, side)
 
@@ -360,8 +382,8 @@ def apply_bus_compression(audio: np.ndarray, sr: int, params: MasteringParams) -
                          params.bus_comp_threshold,
                          params.bus_comp_ratio,
                          attack_ms=50.0,
-                         release_ms=100.0,
-                         max_reduction_db=2.0)
+                         release_ms=100.0 * params.release_scale,
+                         max_reduction_db=2.0, knee_db=params.comp_knee_db)
 
 
 # ─── 11. LIMITING ──────────────────────────────────────────────────────────────
@@ -840,6 +862,41 @@ def _quick_post_analysis(audio: np.ndarray, sr: int, params: "MasteringParams",
 
 # ─── MAIN MASTERING FUNCTION ───────────────────────────────────────────────────
 
+def process_mastering_audio(audio: np.ndarray, sr: int, params: MasteringParams,
+                            progress_callback=None) -> np.ndarray:
+    """One processing implementation for full export and bounded control renders."""
+    emit = progress_callback or (lambda *_: None)
+    if audio.ndim == 1:
+        audio = np.stack([audio, audio])
+    elif audio.shape[0] == 1:
+        audio = np.repeat(audio, 2, axis=0)
+    audio = remove_dc_simple(audio.copy())
+    intensity = max(0.0, min(1.0, params.processing_intensity / 100.0))
+    active = intensity > 0.0 or params.manual_active
+    if active:
+        audio = normalize_to_reference_lufs(audio, sr)
+    emit("eq", 20)
+    if active:
+        audio = apply_correction_eq(audio, sr, params)
+        audio = apply_deesser(audio, sr, ratio=1.0 + 1.5 * intensity)
+    emit("compression", 38)
+    if active:
+        audio = apply_multiband_compression(audio, sr, params)
+    emit("ms", 52)
+    if active:
+        audio = apply_ms_processing(audio, sr, params)
+    emit("saturation", 65)
+    if active:
+        audio = apply_saturation(audio, sr, params.saturation_amount)
+    if active and abs(params.final_air_gain) > 0.001:
+        board = Pedalboard([HighShelfFilter(cutoff_frequency_hz=min(12000, sr * .45), gain_db=params.final_air_gain, q=0.707)])
+        audio = np.stack([board(audio[ch:ch + 1].T, sr).T[0] for ch in range(audio.shape[0])])
+    emit("limiting", 74)
+    if active:
+        audio = apply_bus_compression(audio, sr, params)
+    return apply_true_peak_limiter(audio, sr, params.true_peak_ceiling, params.target_lufs)
+
+
 def master_audio(
     file_path: str,
     params: MasteringParams,
@@ -866,63 +923,7 @@ def master_audio(
     source_info = sf.info(file_path)
     validate_full_dsp_audio(source_info)
     audio, sr = librosa.load(file_path, sr=None, mono=False)
-    if audio.ndim == 1:
-        audio = np.stack([audio, audio])  # Mono to stereo
-
-    # 1b. Remove DC offset
-    audio = remove_dc_simple(audio)
-
-    intensity = max(0.0, min(1.0, params.processing_intensity / 100.0))
-
-    # Gain-stage to a fixed reference so absolute detector thresholds behave
-    # consistently. At exactly 0% all creative stages are bypassed; the output
-    # limiter still performs platform normalization and ceiling protection.
-    if intensity > 0.0:
-        audio = normalize_to_reference_lufs(audio, sr)
-
-    emit("eq", 20)
-
-    if intensity > 0.0:
-        # 4. Correction EQ
-        audio = apply_correction_eq(audio, sr, params)
-
-        # 4b. De-esser. Its ratio follows intensity instead of being a hidden,
-        # fixed-strength processor at every setting.
-        audio = apply_deesser(audio, sr, ratio=1.0 + 1.5 * intensity)
-
-    emit("compression", 38)
-
-    if intensity > 0.0:
-        audio = apply_multiband_compression(audio, sr, params)
-
-    emit("ms", 52)
-
-    if intensity > 0.0:
-        audio = apply_ms_processing(audio, sr, params)
-
-    emit("saturation", 65)
-
-    if intensity > 0.0:
-        audio = apply_saturation(audio, sr, params.saturation_amount)
-
-    # 9. Final EQ (gentle air shelf — only when mix is thin above 12 kHz)
-    air_rms = float(pre_analysis.get("rms_air", -80.0)) if pre_analysis else -80.0
-    if intensity > 0.0 and air_rms < -26.0:
-        final_board = Pedalboard([
-            HighShelfFilter(cutoff_frequency_hz=12000, gain_db=0.8 * intensity, q=0.707),
-        ])
-        audio = np.stack([
-            final_board(audio[0:1].T, sr).T[0],
-            final_board(audio[1:2].T, sr).T[0],
-        ])
-
-    emit("limiting", 74)
-
-    if intensity > 0.0:
-        audio = apply_bus_compression(audio, sr, params)
-
-    # 11. True Peak limiting + LUFS normalization
-    audio = apply_true_peak_limiter(audio, sr, params.true_peak_ceiling, params.target_lufs)
+    audio = process_mastering_audio(audio, sr, params, emit)
 
     emit("rendering", 88)
 
