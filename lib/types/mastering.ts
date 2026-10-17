@@ -69,6 +69,7 @@ export interface UploadedFile {
 }
 
 export interface ProgressStep {
+  skippedSteps?: string[];
   step:     string;
   label:    string;
   progress: number;

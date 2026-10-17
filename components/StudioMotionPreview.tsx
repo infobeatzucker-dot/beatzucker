@@ -6,11 +6,16 @@ import ABPlayer from "@/components/ABPlayer";
 import { AudioEngineProvider } from "@/contexts/AudioEngineContext";
 import type { Lang } from "@/lib/types/mastering";
 import DownloadJumpButton from "@/components/DownloadJumpButton";
+import MasterOverview from "@/components/MasterOverview";
+import showcase from "@/public/audio/showcase/manifest.json";
 /** Development-only parent route. Upload states are illustrations, audio is a real public excerpt. */
 export default function StudioMotionPreview({ lang }: { lang: Lang }) {
   const downloadHeading = useRef<HTMLHeadingElement>(null), downloadHeadingId = useId();
   const [upload, setUpload] = useState("idle"), [reveal, setReveal] = useState(0);
-  return <div style={{ maxWidth: 780, margin: "75px auto 30px" }}>
+  const track = showcase.tracks.find(track => track.id === "on-tour")!;
+  return <div className="studio-overview-preview" style={{ maxWidth: 1200, margin: "75px auto 30px" }}>
+    <div><p style={{ color: "#aab4cd", fontSize: 12 }}>Übersicht mit gemessenen Werten der öffentlichen Hörprobe.</p><MasterOverview lang={lang} result={{ filename: "On Tour · öffentliche Hörprobe", before: { integrated_lufs: track.original.metrics.lufs }, after: { integrated_lufs: track.master.metrics.lufs, true_peak: track.master.metrics.truePeak } }} /></div>
+    <div>
     <p style={{ color: "#aab4cd", fontSize: 13, marginBottom: 20 }}>Designvorschau: Upload-Zustände ohne Upload. Der A/B-Player nutzt die vorhandene öffentliche Hörprobe „On Tour“.</p>
     <div className={`upload-zone studio-upload-zone ${upload === "drag" ? "drag-over" : ""}`} style={{ padding: 24, textAlign: "center", marginBottom: 16 }}>
       <UploadSignal dragging={upload === "drag"} phase={upload === "received" ? "received" : upload === "uploading" ? "uploading" : "idle"} progress={58} />
@@ -29,5 +34,6 @@ export default function StudioMotionPreview({ lang }: { lang: Lang }) {
       <p style={{ color: "#aab4cd", fontSize: 13, margin: "12px 0" }}>{lang === "de" ? "Nur Designvorschau: Dies ist die öffentliche On-Tour-Hörprobe, kein vollständiger Master. In deinem echten Ergebnis stehen hier die erzeugten Downloadformate." : "Design preview only: this is the public On Tour excerpt, not a full master. Your actual result lists the generated download formats here."}</p>
       <a href="/audio/showcase/on-tour-master-487537959d6f.mp3" download="beatzucker_on-tour_hoerprobe.mp3" className="studio-download-jump">{lang === "de" ? "Hörprobe als MP3 herunterladen ↓" : "Download MP3 excerpt ↓"}</a>
     </section>
+    </div>
   </div>;
 }

@@ -19,6 +19,18 @@
 .sonic-progress-bar { height: 4px; overflow: hidden; border-radius: 4px; background: #ffffff0b; }
 .sonic-progress-bar > div { height: 100%; border-radius: inherit; background: linear-gradient(90deg,#719edf,#af8ade,#c39be4); transition: width .5s ease-out; }
 .sonic-progress-steps { list-style: none; display: flex; gap: 7px; padding: 0; margin: 22px 0; }
+.sonic-chain-title { font-size: .65rem; color: #aab2c7; margin-top: 18px; }
+.sonic-chain-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin: 10px 0 18px; }
+.sonic-progress-steps.sonic-chain-grid li { display: flex; gap: 7px; align-items: center; text-align: left; min-height: 32px; border: 1px solid #ffffff0b; border-radius: 7px; padding: 6px; font-size: 9px !important; line-height: 1.3; }
+.sonic-chain-grid li > span { min-width: 0; overflow-wrap: anywhere; }
+@media(max-width:480px) { .sonic-progress-steps.sonic-chain-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+.sonic-chain-grid li b { flex: 0 0 17px; font: 9px monospace; color: #8b98b4; }
+.sonic-chain-grid li small { display: block; font-size: 8px; color: #929bb1; margin-top: 2px; }
+.sonic-chain-grid .is-active { border-color: #a88dde70; background: #a88dde0c; }
+.sonic-chain-grid .is-active b { color: #dac9ff; }
+.sonic-chain-grid .is-done { color: #a5bbca; }
+.sonic-chain-grid .is-done b { color: #8ad7c9; }
+.sonic-chain-grid .is-skipped { border-style: dashed; color: #8c94a9; }
 .sonic-progress-steps li { flex: 1; min-width: 0; color: #818aa2; text-align: center; font-size: 8px; }
 .sonic-progress-steps i { display: block; height: 2px; margin-bottom: 8px; border-radius: 2px; background: #ffffff12; }
 .sonic-progress-steps .is-active { color: #c5b4ec; }

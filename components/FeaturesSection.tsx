@@ -2,6 +2,7 @@
 
 import { Brain, Settings2, Package, type LucideIcon } from "lucide-react";
 import ManualMasteringExplainer from "@/components/ManualMasteringExplainer";
+import { MASTERING_STAGES } from "@/lib/masteringStages";
 
 type Lang = "de" | "en";
 
@@ -57,36 +58,7 @@ const FEATURES: {
   },
 ];
 
-const CHAIN_STEPS = {
-  de: [
-    "DC-Offset-Entfernung",
-    "Vor-Analyse",
-    "Adaptive Parameter",
-    "Korrektur-EQ",
-    "De-Esser",
-    "Multiband-Comp",
-    "M/S-Processing",
-    "Sättigung",
-    "Final-EQ",
-    "Bus-Kompression",
-    "True-Peak-Limiter",
-    "Dithering + Export",
-  ],
-  en: [
-    "DC Offset Removal",
-    "Pre-Analysis",
-    "Adaptive Parameters",
-    "Correction EQ",
-    "De-Esser",
-    "Multiband Comp",
-    "M/S Processing",
-    "Saturation",
-    "Final EQ",
-    "Bus Compression",
-    "True Peak Limiter",
-    "Dithering + Export",
-  ],
-};
+const CHAIN_STEPS = { de: MASTERING_STAGES.map(stage => stage.de), en: MASTERING_STAGES.map(stage => stage.en) };
 
 const T = {
   how_it_works: { de: "Ablauf", en: "The Process" },

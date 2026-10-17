@@ -21,6 +21,7 @@ import { AudioEngineProvider, useAudioEngine } from "@/contexts/AudioEngineConte
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AnalysisNextSteps from "@/components/AnalysisNextSteps";
 import { DAILY_MASTER_LIMIT } from "@/lib/constants";
+import type { MasterOverviewData } from "@/components/MasterOverview";
 import type {
   AppState, Platform, Preset, AnalysisData, MasterData, UploadedFile, ProgressStep, Lang,
 } from "@/lib/types/mastering";
@@ -95,9 +96,10 @@ const FORMAT_OPTIONS = [
 
 interface Props {
   lang: Lang;
+  onResultChange?: (result: MasterOverviewData | null) => void;
 }
 
-export default function MasteringWorkspace({ lang }: Props) {
+export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   const { data: session, status: sessionStatus } = useSession();
   const [dailyUsed, setDailyUsed] = useState<number | null>(null);
   const [appState,         setAppState]         = useState<AppState>("idle");
@@ -105,6 +107,9 @@ export default function MasteringWorkspace({ lang }: Props) {
   const [uploadCycle, setUploadCycle] = useState(0);
   const [analysis,         setAnalysis]         = useState<AnalysisData | null>(null);
   const [masterData,       setMasterData]       = useState<MasterData | null>(null);
+  useEffect(() => {
+    onResultChange?.(appState === "done" && masterData && analysis && uploadedFile ? { filename: uploadedFile.filename, before: analysis, after: masterData.post_analysis } : null);
+  }, [appState, masterData, analysis, uploadedFile, onResultChange]);
   const [platform,         setPlatform]         = useState<Platform>("spotify");
   const [customLufs,       setCustomLufs]       = useState<number>(-14);
   const [preset,           setPreset]           = useState<Preset>("auto");

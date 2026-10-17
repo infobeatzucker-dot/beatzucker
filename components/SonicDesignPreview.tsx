@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import MasteringProgressModal from "@/components/MasteringProgressModal";
 import StudioMotionPreview from "@/components/StudioMotionPreview";
-const stages = ["waiting", "analyzing", "eq", "compression", "ms", "saturation", "limiting", "rendering"];
+const stages = ["waiting", "analyzing", "preparing", "dc", "gain", "eq", "deesser", "compression", "ms", "saturation", "final_eq", "bus_compression", "limiting", "dithering", "codec_verify", "post_analysis"];
 export default function SonicDesignPreview() {
   const [index, setIndex] = useState(2), [lang, setLang] = useState<"de" | "en">("de"), [open, setOpen] = useState(true);
   useEffect(() => {
@@ -17,6 +17,6 @@ export default function SonicDesignPreview() {
     <p style={{ position: "fixed", zIndex: 90, top: 8, left: 12, fontSize: 12, background: "#070918", padding: 8 }}>Nur Designvorschau · ← / → Phase · L Sprache · Enter Abschluss und Upload-/Player-Vorschau</p>
     <button onClick={() => setOpen(true)}>Vorschau öffnen</button>
     {!open && <StudioMotionPreview lang={lang} />}
-    <MasteringProgressModal isOpen={open} completed={!open} lang={lang} step={{ step: stages[index], progress: Math.max(0, index * 13), label: `${lang === "de" ? "Designvorschau" : "Design preview"} · ${stages[index]}` }} />
+    <MasteringProgressModal isOpen={open} completed={!open} lang={lang} step={{ step: stages[index], progress: Math.round(index / (stages.length - 1) * 96), label: `${lang === "de" ? "Designvorschau" : "Design preview"} · ${stages[index]}` }} />
   </main>;
 }

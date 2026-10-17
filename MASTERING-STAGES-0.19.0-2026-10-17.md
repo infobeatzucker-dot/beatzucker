@@ -1,0 +1,15 @@
+# 0.19.0 – vollständige Fortschrittsanzeige und Master-Übersicht
+
+Noch nicht deployed. Zwölf Stufen entsprechen der tatsächlich ausgeführten Kette: DC-Entfernung, Gain-Staging, Korrektur-EQ, De-Esser, Multiband-Kompression, M/S, Sättigung, Final-EQ, Bus-Kompression, True-Peak-Limiter, Dithering/Export und Codec-Prüfung. Analyse, Parameterwahl, Laden und Nachmessung bleiben zusätzliche Statusmeldungen außerhalb dieser zwölf Stufen.
+
+Prüfungen bestanden: Produktionsbuild einschließlich TypeScript; sämtliche Node-Audit-Suiten; 88 Python-Tests; DSP-Selbsttest für Analyse, Mastering, WAV24, True Peak, MP3 und AAC. Zusätzlich direkter Vergleich mit `6edcee7` (live 0.18.0): Die DSP-Ausgabe ist bei fünf Einstellungen samplegenau identisch (Standard, Intensität 0, Final-Air 1,5 dB, Sättigung 0 mit Ziel −9 LUFS sowie manuellem Low-Shelf bei Intensität 0). Neue SSE-Tests sichern übersprungene Stufen auch bei mehreren Ereignissen in einem Paket ab. Lokale Designvorschau HTTP 200. Automatische Browser-Sichtprüfung nicht verfügbar; visuelle Freigabe über die bestehende lokale Vorschau.
+
+Neue Fortschrittsaufrufe stehen direkt vor den vorhandenen Operationen. Es wurden keine DSP-Parameter, Reihenfolgen, Limitergrenzen oder Exportschleifen verändert. Ein Test vergleicht die verarbeiteten Audiosamples mit und ohne Fortschrittsmeldungen exakt. Keine künstliche Verzögerung zum Vorführen der Animationen.
+
+Nicht angewendete Stufen erhalten ein `_skipped`-Ereignis. Der Client sammelt diese Ereignisse pro Auftrag in einem Set und übergibt stets eine vollständige Kopie; dadurch gehen sie bei zusammengefassten React-Updates nicht verloren. Dithering wird ausschließlich für WAV 16 als angewendet gemeldet; für andere Formate läuft an dieser Stelle der Export weiter. Die Codec-Prüfung wird erst vor tatsächlichem Decodieren/Nachmessen gemeldet; mögliche Sicherheitskorrekturen bleiben Teil dieser Stufe.
+
+Alle Stufen haben eine passende Canvas-Darstellung. Bei nicht angewendeten Stufen bleibt sie ruhig. Bestehende Begrenzung auf 24 Bilder/s, Sichtbarkeitspause und reduzierte Bewegung bleiben erhalten. Die Grafik ist weiterhin keine Audiomessung.
+
+Homepage: Nach erfolgreichem Mastering erhält die linke Spalte eine Übersicht mit Dateiname, Original-/Master-LUFS, True Peak und Lautheitsumfang aus den vorhandenen Analysewerten. Fehlende Messwerte erscheinen als Gedankenstrich, nicht als erfundene Zahlen. Das Klangmotiv ist ausdrücklich dekorativ. Auf breiten Bildschirmen bleibt die kompaktere Spalte beim Scrollen sichtbar; auf mobilen Geräten bleibt sie im normalen Dokumentfluss. Neuer Track oder neuer Mastering-Vorgang löscht die bisherige Übersicht. Audio, Autostart und Downloadfunktionen bleiben unangetastet.
+
+Designvorschau: bestehende Route `/design-preview/mastering`, Pfeile für alle Stufen; Enter zeigt die Master-Übersicht neben dem Player. Dort stammen Werte aus dem Manifest der öffentlichen On-Tour-Hörprobe, nicht aus einem erfundenen Master. Nicht verfügbare LRA wird als Gedankenstrich angezeigt.

@@ -399,6 +399,11 @@ async def master(req: MasterRequest, request: Request = None):
     # Real progress labels, keyed by the step names master_audio() actually emits
     # (see the emit() calls throughout mastering.py's master_audio()).
     STEP_LABELS = {
+        "preparing": "Preparing mastering settings…",
+        "dc": "Removing DC offset…", "gain": "Setting working level…",
+        "deesser": "De-essing…", "final_eq": "Final EQ…",
+        "bus_compression": "Bus compression…", "dithering": "Dithering and export…",
+        "codec_verify": "Verifying output file and true peak…", "post_analysis": "Measuring finished master…",
         "analyzing":   "Analyzing track…",
         "loading":     "Loading track…",
         "eq":          "Applying EQ correction…",
@@ -427,7 +432,7 @@ async def master(req: MasterRequest, request: Request = None):
                 analysis_obj = await lease.run(analyze_audio, req.file_path)
                 analysis_dict = analysis_to_dict(analysis_obj)
 
-            yield encode({"step": "eq", "progress": 18, "label": "Getting mastering parameters…"})
+            yield encode({"step": "preparing", "progress": 18, "label": "Getting mastering parameters…"})
 
             # Rule-based mastering params — pure in-process computation, no external API.
             params = await lease.run(
@@ -458,7 +463,7 @@ async def master(req: MasterRequest, request: Request = None):
             # The heartbeat re-sends the *last real* step/progress rather than a
             # guessed higher number — a fabricated "97% rendering" would visibly
             # jump backward once the actual next stage (e.g. "ms" at 52%) arrives.
-            last_step, last_progress = "eq", 18
+            last_step, last_progress = "preparing", 18
             while not mastering_task.done():
                 try:
                     step, progress = await asyncio.wait_for(progress_queue.get(), timeout=2.0)

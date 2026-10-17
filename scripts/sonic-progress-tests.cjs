@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 function load(file,requireMock=()=>({}),extra={}){const mod={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module:mod,exports:mod.exports,require:requireMock,...extra});return mod.exports;}
 const {sonicStage,drawSonicCore}=load('lib/sonicCore.ts');
 assert.equal(sonicStage('loading'),'analyzing');assert.equal(sonicStage(),'analyzing');
-const stages=['waiting','analyzing','eq','compression','ms','saturation','limiting','rendering','complete'];
+const stages=['waiting','analyzing','dc','gain','eq','deesser','compression','ms','saturation','final_eq','bus_compression','limiting','dithering','codec_verify','rendering','complete'];
 const profiles=new Map();
 for(const [w,h] of [[280,150],[560,234],[920,300],[0,0]])for(const stage of stages)for(const finish of [0,1]){
  let points=[];const ctx={clearRect(){},fillRect(){},beginPath(){},stroke(){},fill(){},createRadialGradient:()=>({addColorStop(){}}),createLinearGradient:()=>({addColorStop(){}}),moveTo:record,lineTo:record,arc:record};
@@ -10,7 +10,9 @@ for(const [w,h] of [[280,150],[560,234],[920,300],[0,0]])for(const stage of stag
  drawSonicCore(ctx,w,h,4200,stage,finish);assert.ok(points.length<2200,'bounded geometry');
  if(w===560&&finish===0)profiles.set(stage,JSON.stringify(points));
 }
-for(const stage of ['waiting','eq','compression','ms','limiting'])assert.notEqual(profiles.get(stage),profiles.get('analyzing'),stage+' distinct geometry');
+for(const stage of ['waiting','dc','gain','eq','deesser','compression','ms','final_eq','bus_compression','limiting','dithering','codec_verify'])assert.notEqual(profiles.get(stage),profiles.get('analyzing'),stage+' distinct geometry');
+for(const stage of stages)assert.equal(sonicStage(stage),stage);
+assert.equal(sonicStage('final_eq_skipped'),'waiting');
 console.log('PASS all stages, completion and narrow/large canvases have finite bounded geometry');
 let refs=[],cursor=0,effects=[],callback,options,stops=0,invalidations=0;const commands=[];
 const element={width:0,height:0,getBoundingClientRect:()=>({width:560,height:234}),getContext:()=>({setTransform(...args){commands.push(args);}})};

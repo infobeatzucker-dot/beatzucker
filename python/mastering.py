@@ -870,35 +870,41 @@ def process_mastering_audio(audio: np.ndarray, sr: int, params: MasteringParams,
         audio = np.stack([audio, audio])
     elif audio.shape[0] == 1:
         audio = np.repeat(audio, 2, axis=0)
+    emit("dc", 20)
     audio = remove_dc_simple(audio.copy())
     intensity = max(0.0, min(1.0, params.processing_intensity / 100.0))
     active = intensity > 0.0 or params.manual_active
+    emit("gain" if active else "gain_skipped", 22)
     if active:
         audio = normalize_to_reference_lufs(audio, sr)
-    emit("eq", 20)
+    emit("eq" if active else "eq_skipped", 27)
     if active:
         audio = apply_correction_eq(audio, sr, params)
+    emit("deesser" if active else "deesser_skipped", 32)
+    if active:
         audio = apply_deesser(audio, sr, ratio=1.0 + 1.5 * intensity)
-    emit("compression", 38)
+    emit("compression" if active else "compression_skipped", 38)
     if active:
         audio = apply_multiband_compression(audio, sr, params)
-    emit("ms", 52)
+    emit("ms" if active else "ms_skipped", 52)
     if active:
         audio = apply_ms_processing(audio, sr, params)
-    emit("saturation", 65)
+    emit("saturation" if active and params.saturation_amount >= 0.01 else "saturation_skipped", 62)
     if active:
         audio = apply_saturation(audio, sr, params.saturation_amount)
+    emit("final_eq" if active and abs(params.final_air_gain) > 0.001 else "final_eq_skipped", 67)
     if active and abs(params.final_air_gain) > 0.001:
         board = Pedalboard([HighShelfFilter(cutoff_frequency_hz=min(12000, sr * .45), gain_db=params.final_air_gain, q=0.707)])
         audio = np.stack([board(audio[ch:ch + 1].T, sr).T[0] for ch in range(audio.shape[0])])
-    emit("limiting", 74)
+    emit("bus_compression" if active else "bus_compression_skipped", 71)
     if active:
         audio = apply_bus_compression(audio, sr, params)
+    emit("limiting", 76)
     return apply_true_peak_limiter(audio, sr, params.true_peak_ceiling, params.target_lufs)
 
 
 def export_peak_safe(audio: np.ndarray, sr: int, output_dir: str, master_id: str,
-                     selected_format: str, ceiling_db: float):
+                     selected_format: str, ceiling_db: float, progress_callback=None):
     """Verify the delivered codec; bounded level-only corrections, never re-DSP.
 
     Lossy encoding is not perfectly scale invariant. One predicted trim can
@@ -912,6 +918,8 @@ def export_peak_safe(audio: np.ndarray, sr: int, output_dir: str, master_id: str
         selected_path = paths.get(selected_format)
         if not selected_path:
             raise RuntimeError(f"Selected {selected_format} export was not produced")
+        if progress_callback:
+            progress_callback("codec_verify", 91)
         post_audio, post_sr = load_and_verify_export(selected_path, selected_format, sr)
         delivered_tp = float(compute_true_peak(post_audio, post_sr, oversample=4))
         if not np.isfinite(delivered_tp):
@@ -962,18 +970,19 @@ def master_audio(
     audio, sr = librosa.load(file_path, sr=None, mono=False)
     audio = process_mastering_audio(audio, sr, params, emit)
 
-    emit("rendering", 88)
+    emit("dithering" if selected_format == "wav16" else "dithering_skipped", 88)
 
     # 12. Export the selected format plus preview; generate an ID only for direct calls.
     if not master_id:
         master_id = str(uuid.uuid4())
     paths, post_audio, post_sr, codec_trim_db, safety_passes = export_peak_safe(
-        audio, sr, output_dir, master_id, selected_format, params.true_peak_ceiling
+        audio, sr, output_dir, master_id, selected_format, params.true_peak_ceiling, emit
     )
     del audio  # Post-analysis needs delivered audio only, not a second full PCM copy.
     if safety_passes:
         params.notes += f" Codec safety trim: {codec_trim_db:.2f} dB ({safety_passes} passes)."
 
+    emit("post_analysis", 96)
     # Post-analysis — lightweight in-memory measurement (skip BPM/key, they don't change)
     pre_bpm = float(pre_analysis.get("bpm", 0.0)) if pre_analysis else 0.0
     pre_key = str(pre_analysis.get("key", "Unknown")) if pre_analysis else "Unknown"

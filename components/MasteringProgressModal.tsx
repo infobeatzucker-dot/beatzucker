@@ -4,10 +4,9 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import type { ProgressStep, Lang } from "@/lib/types/mastering";
 import { sonicStage } from "@/lib/sonicCore";
 import MasteringSonicCore from "@/components/MasteringSonicCore";
+import { MASTERING_STAGES, masteringStageState } from "@/lib/masteringStages";
 
 interface Props { isOpen: boolean; step: ProgressStep | null; lang?: Lang; completed?: boolean }
-const STEPS = ["analyzing", "eq", "compression", "ms", "saturation", "limiting", "rendering"];
-const LABELS = { de: ["Analyse", "EQ", "Kompression", "Stereo", "Sättigung", "Limiting", "Export"], en: ["Analysis", "EQ", "Compression", "Stereo", "Saturation", "Limiting", "Export"] };
 
 export default function MasteringProgressModal({ isOpen, step, lang = "de", completed = false }: Props) {
   const reduced = useReducedMotion(), titleId = useId(), descriptionId = useId(), dialog = useRef<HTMLDivElement>(null);
@@ -22,7 +21,7 @@ export default function MasteringProgressModal({ isOpen, step, lang = "de", comp
       if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
     };
   }, [isOpen]);
-  const stage = sonicStage(step?.step), index = STEPS.indexOf(stage);
+  const stage = sonicStage(step?.step);
   const progress = Number.isFinite(step?.progress) ? Math.round(Math.min(100, Math.max(0, step!.progress))) : 0;
   const label = step?.label || (lang === "de" ? "Mastering wird vorbereitet…" : "Preparing mastering…");
   return <AnimatePresence>
@@ -39,7 +38,12 @@ export default function MasteringProgressModal({ isOpen, step, lang = "de", comp
           <div className="sonic-progress-heading"><div><span className="sonic-progress-eyebrow">{lang === "de" ? "DEIN SOUND. IM FOKUS." : "YOUR SOUND. IN FOCUS."}</span><h2 id={titleId}>{lang === "de" ? "Dein Master entsteht." : "Your master is taking shape."}</h2></div><span className="sonic-progress-percentage" aria-hidden="true">{progress}<small>%</small></span></div>
           <p className="sonic-progress-status" role="status" aria-live="polite" aria-atomic="true">{label}</p>
           <div className="sonic-progress-bar" role="progressbar" aria-label={lang === "de" ? "Mastering-Fortschritt" : "Mastering progress"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-valuetext={`${label} ${progress}%`}><div style={{ width: `${progress}%` }} /></div>
-          <ol className="sonic-progress-steps" aria-label={lang === "de" ? "Arbeitsschritte" : "Processing stages"}>{STEPS.map((key, i) => <li key={key} className={i === index ? "is-active" : index > i ? "is-done" : ""} aria-current={i === index ? "step" : undefined}><i /><span>{LABELS[lang][i]}</span></li>)}</ol>
+          <div className="sonic-chain-title">{lang === "de" ? "Deine 12 Verarbeitungsstufen" : "Your 12 processing stages"}</div>
+          <ol className="sonic-progress-steps sonic-chain-grid" aria-label={lang === "de" ? "Arbeitsschritte" : "Processing stages"}>{MASTERING_STAGES.map((item, i) => {
+            const state = masteringStageState(item.key, step?.step, step?.skippedSteps);
+            const status = state === "skipped" ? (lang === "de" ? "Nicht angewendet" : "Not applied") : state === "done" ? (lang === "de" ? "Abgeschlossen" : "Complete") : state === "active" ? (lang === "de" ? "In Bearbeitung" : "Processing") : (lang === "de" ? "Ausstehend" : "Pending");
+            return <li key={item.key} className={`is-${state}`} title={`${item[lang]} · ${status}`} aria-label={`${i + 1}. ${item[lang]}: ${status}`} aria-current={state === "active" ? "step" : undefined}><b aria-hidden="true">{state === "done" ? "✓" : state === "skipped" ? "–" : String(i + 1).padStart(2, "0")}</b><span>{item[lang]}{state === "skipped" && <small>{lang === "de" ? "nicht angewendet" : "not applied"}</small>}</span></li>;
+          })}</ol>
           <p id={descriptionId} className="sonic-progress-note">{lang === "de" ? "Visualisierung der Arbeitsschritte · kein Live-Analyzer" : "Processing-stage visualization · not a live analyzer"}</p>
           <p className="sonic-progress-patience">{lang === "de" ? "Die Dauer hängt von Tracklänge und Auslastung ab. Bitte lass diese Seite geöffnet." : "Timing depends on track length and server load. Please keep this page open."}</p>
         </div>

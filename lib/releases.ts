@@ -10,6 +10,15 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.19.0",
+  date: "2026-10-17",
+  title: { de: "Die ganze Kette im Blick.", en: "See the complete chain." },
+  summary: { de: "Das Mastering-Fenster zeigt alle zwölf Verarbeitungsstufen mit passenden Animationen. Nach dem Mastering ergänzt eine kompakte Übersicht den linken Seitenbereich.", en: "The mastering window shows all twelve processing stages with matching animations. A compact overview fills the left-hand area after mastering." },
+  improvements: {
+    de: ["Alle zwölf Stufen werden anhand des tatsächlichen Ablaufs angezeigt. Nicht angewendete Stufen sind klar gekennzeichnet; schnelle Schritte werden nicht künstlich verlängert.", "Gain-Staging, De-Esser, Final-EQ, Bus-Kompression, Dithering und Codec-Prüfung haben eigene visuelle Motive. Die Klangbearbeitung bleibt unverändert.", "Nach dem Mastering zeigt die linke Spalte den Track und gemessene Original-/Master-Lautheit, Spitzenpegel und Lautheitsumfang. Auf großen Bildschirmen bleibt die Übersicht beim Scrollen im Blick."],
+    en: ["All twelve stages follow actual processing events. Stages that are not applied are clearly marked; fast steps are not artificially prolonged.", "Gain staging, de-essing, final EQ, bus compression, dithering and codec verification have distinct visual motifs. Audio processing remains unchanged.", "After mastering, the left column shows the track and measured original/master loudness, true peak and loudness range. On large screens, the overview stays visible while scrolling."],
+  },
+}, {
   version: "0.18.0",
   date: "2026-10-17",
   title: { de: "Dein Master nimmt Gestalt an.", en: "Watch your master take shape." },

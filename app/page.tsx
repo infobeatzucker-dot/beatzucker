@@ -13,6 +13,7 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import ScrollToTop from "@/components/ScrollToTop";
 import PromoPopup from "@/components/PromoPopup";
 import MasteringJsonLd from "@/components/MasteringJsonLd";
+import MasterOverview, { type MasterOverviewData } from "@/components/MasterOverview";
 
 type Lang = "de" | "en";
 
@@ -49,6 +50,7 @@ const USPS = [
 
 export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
   const [lang, setLang] = useState<Lang>(initialLang);
+  const [masterOverview, setMasterOverview] = useState<MasterOverviewData | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
       <Header lang={lang} />
 
       <main>
-        <section className="hero-section" aria-labelledby="hero-title">
+        <section className={`hero-section ${masterOverview ? "has-master-overview" : ""}`} aria-labelledby="hero-title">
           <div className="hero-aurora" aria-hidden="true" />
           <div className="hero-layout">
             <motion.div
@@ -114,6 +116,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
                   </div>
                 ))}
               </div>
+              {masterOverview && <MasterOverview result={masterOverview} lang={lang} />}
             </motion.div>
 
             <motion.div
@@ -123,7 +126,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.75, delay: 0.1, ease: "easeOut" }}
             >
-              <MasteringWorkspace lang={lang} />
+              <MasteringWorkspace lang={lang} onResultChange={setMasterOverview} />
             </motion.div>
           </div>
         </section>

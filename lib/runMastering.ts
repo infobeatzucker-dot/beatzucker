@@ -3,8 +3,21 @@ import type {
 } from "@/lib/types/mastering";
 import type { ParamValues } from "@/lib/masteringParams";
 
+const BYPASS_NAMES: Record<string, [string, string]> = {
+  gain: ["Gain-Staging", "Gain staging"], eq: ["Korrektur-EQ", "Correction EQ"],
+  deesser: ["De-Esser", "De-esser"], compression: ["Multiband-Kompression", "Multiband compression"],
+  ms: ["M/S-Stereo", "M/S stereo"], saturation: ["Sättigung", "Saturation"],
+  final_eq: ["Final-EQ", "Final EQ"], bus_compression: ["Bus-Kompression", "Bus compression"],
+  dithering: ["Dithering", "Dithering"],
+};
+
 const STEP_LABELS: Record<string, string> = {
   waiting: "Warte auf freien Rechenplatz…",
+  preparing: "Mastering-Einstellungen werden vorbereitet…",
+  dc: "DC-Offset wird entfernt…", gain: "Arbeitspegel wird eingestellt…",
+  deesser: "De-Esser…", final_eq: "Final-EQ…", bus_compression: "Bus-Kompression…",
+  dithering: "Dithering und Export…", codec_verify: "Ausgabedatei und True Peak werden geprüft…",
+  post_analysis: "Fertiger Master wird nachgemessen…",
   analyzing:   "Track wird analysiert…",
   loading:     "Track wird geladen…",
   eq:          "EQ-Korrektur wird angewendet…",
@@ -18,6 +31,11 @@ const STEP_LABELS: Record<string, string> = {
 
 const STEP_LABELS_EN: Record<string, string> = {
   waiting: "Waiting for processing capacity…",
+  preparing: "Preparing mastering settings…",
+  dc: "Removing DC offset…", gain: "Setting working level…",
+  deesser: "De-essing…", final_eq: "Final EQ…", bus_compression: "Bus compression…",
+  dithering: "Dithering and export…", codec_verify: "Verifying output file and true peak…",
+  post_analysis: "Measuring the finished master…",
   analyzing: "Analyzing track…", loading: "Loading track…",
   eq: "Applying EQ correction…", compression: "Multiband compression…",
   ms: "M/S processing…", saturation: "Harmonic saturation…",
@@ -106,6 +124,7 @@ export async function runMastering({
     const decoder = new TextDecoder();
     let buffer = "";
     const labels = lang === "de" ? STEP_LABELS : STEP_LABELS_EN;
+    const skipped = new Set<string>();
 
     const processChunk = (chunk: string): boolean => {
       const line = chunk.trim();
@@ -127,9 +146,13 @@ export async function runMastering({
           onError(message + reference);
           return true;
         }
+        const base = typeof data.step === "string" ? data.step.replace(/_skipped$/, "") : "";
+        const isSkipped = typeof data.step === "string" && data.step.endsWith("_skipped") && !!labels[base];
+        if (isSkipped) skipped.add(base);
         onProgress({
           step: data.step,
-          label: labels[data.step] || data.label || data.step,
+          skippedSteps: [...skipped],
+          label: isSkipped ? `${BYPASS_NAMES[base]?.[lang === "de" ? 0 : 1] || base} · ${lang === "de" ? "nicht angewendet" : "not applied"}${base === "dithering" ? (lang === "de" ? " – Export läuft…" : " – exporting…") : ""}` : labels[data.step] || data.label || data.step,
           progress: data.progress ?? 0,
         });
       return false;
