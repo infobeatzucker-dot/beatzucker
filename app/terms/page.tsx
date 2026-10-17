@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata: Metadata = { title: { absolute: "Terms of Service – Beatzucker" }, description: "Terms for Beatzucker mastering, audio tools, user accounts, uploads, fair use and liability.", alternates: { canonical: "https://beatzucker.de/terms", languages: { "de-DE": "https://beatzucker.de/agb", en: "https://beatzucker.de/terms", "x-default": "https://beatzucker.de/agb" } } };
+export const metadata: Metadata = pageMetadata({ title: { absolute: "Terms of Service – Beatzucker" }, description: "Terms for Beatzucker mastering, audio tools, user accounts, uploads, fair use and liability.", alternates: { canonical: "https://beatzucker.de/terms", languages: { "de-DE": "https://beatzucker.de/agb", en: "https://beatzucker.de/terms", "x-default": "https://beatzucker.de/agb" } } });
 const SECTIONS = [{ id: "scope", label: "§ 1 Scope" }, { id: "services", label: "§ 2 Services" }, { id: "account", label: "§ 3 User account" }, { id: "content", label: "§ 4 Uploads and rights" }, { id: "fair-use", label: "§ 5 Fair use" }, { id: "files", label: "§ 6 Files and results" }, { id: "privacy", label: "§ 7 Privacy" }, { id: "conformity", label: "§ 8 Availability and defects" }, { id: "liability", label: "§ 9 Liability" }, { id: "law", label: "§ 10 Law and disputes" }, { id: "changes", label: "§ 11 Changes" }];
 
 export default function TermsPage() { return <LegalLayout title="Terms of Service" activePage="terms" sections={SECTIONS} lang="en">

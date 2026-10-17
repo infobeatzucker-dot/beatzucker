@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: { absolute: "Legal Notice – Beatzucker" },
   description: "Provider identification and legal information for the Beatzucker online audio mastering service.",
   robots: { index: true, follow: true },
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
       "x-default": "https://beatzucker.de/impressum",
     },
   },
-};
+});
 
 export default function LegalNoticePage() {
   return (

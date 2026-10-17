@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata: Metadata = { title:{absolute:"Datenschutzerklärung – Beatzucker"}, description:"Datenschutzerklärung von Beatzucker zu Audioverarbeitung, Nutzerkonten, Login, E-Mail-Versand und Speicherdauer.", alternates:{canonical:"https://beatzucker.de/datenschutz",languages:{"de-DE":"https://beatzucker.de/datenschutz",en:"https://beatzucker.de/privacy","x-default":"https://beatzucker.de/datenschutz"}} };
+export const metadata: Metadata = pageMetadata({ title:{absolute:"Datenschutzerklärung – Beatzucker"}, description:"Datenschutzerklärung von Beatzucker zu Audioverarbeitung, Nutzerkonten, Login, E-Mail-Versand und Speicherdauer.", alternates:{canonical:"https://beatzucker.de/datenschutz",languages:{"de-DE":"https://beatzucker.de/datenschutz",en:"https://beatzucker.de/privacy","x-default":"https://beatzucker.de/datenschutz"}} });
 const SECTIONS=[
   {id:"verantwortlicher",label:"1. Verantwortlicher"},{id:"dienst",label:"2. Dienst- und Audiodaten"},{id:"konto",label:"3. Konto und Anmeldung"},{id:"email",label:"4. E-Mail-Versand"},{id:"hosting",label:"5. Hosting und Serverlogs"},{id:"speicher",label:"6. Cookies und lokaler Speicher"},{id:"empfaenger",label:"7. Empfänger und Drittländer"},{id:"dauer",label:"8. Speicherdauer"},{id:"rechte",label:"9. Betroffenenrechte"},{id:"entscheidungen",label:"10. Automatisierte Entscheidungen"},
 ];

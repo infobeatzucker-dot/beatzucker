@@ -1,6 +1,7 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Hilfe & FAQ – Audio Mastering Support",
   description:
     "Antworten auf alle Fragen zu Beatzucker: Quickstart, Mastering-Pipeline, A/B-Player, Plattform-Presets, Funktionen, Tastaturkürzel und technische Details.",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
       "Frequently asked questions about Beatzucker audio mastering. Quickstart guide, platform presets, features, keyboard shortcuts and more.",
     url: "https://beatzucker.de/help",
   },
-};
+});
 
 /* ── FAQ JSON-LD for Google Rich Results ──────────────────────────────────── */
 const faqJsonLd = {

@@ -1,3 +1,4 @@
+import { MANUAL_MASTERING_ARTICLE } from "./manualMasteringArticle";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type ArticleCategory = "Grundlagen" | "Technik" | "Tipps" | "Plattformen";
@@ -1008,93 +1009,6 @@ export const ARTICLES: RessourceArticle[] = [
     },
   },
 
-  // ── 15 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "re-beatz-online-mastering-mit-kontrolle",
-    category: "Grundlagen",
-    categoryColor: "var(--accent-purple)",
-    publishedAt: "2025-03-20",
-    heroIcon: "Sliders",
-    readingTimeMinutes: 8,
-    title: {
-      de: "re-beatz.com: Wenn du beim Mastering selbst das Steuer übernehmen willst",
-      en: "re-beatz.com: For When You Want to Steer the Mastering Yourself",
-    },
-    metaTitle: {
-      de: "re-beatz.com – Mastering mit manueller Kontrolle | Beatzucker",
-      en: "re-beatz.com – Mastering With Hands-On Control | Beatzucker",
-    },
-    metaDescription: {
-      de: "re-beatz.com bietet Online-Mastering mit echten Eingriffsmöglichkeiten: eigene LUFS-Ziele, EQ-Vorgaben und Referenztracks für Produzenten mit klaren Vorstellungen.",
-      en: "re-beatz.com delivers online mastering with real hands-on options: custom LUFS targets, EQ preferences, and reference-track matching for producers who know what they want.",
-    },
-    keywords: {
-      de: ["re-beatz.com mastering", "manuelle kontrolle mastering online", "eigene lufs werte einstellen", "referenztrack mastering online", "re-beatz erfahrung"],
-      en: ["re-beatz.com mastering", "manual control online mastering", "custom lufs target setting", "reference track mastering online", "re-beatz review"],
-    },
-    teaser: {
-      de: "Nicht jeder will das Mastering komplett der KI überlassen. re-beatz.com, das Schwesterprojekt von Beatzucker, gibt dir die Zügel für Lautstärke, Klang und Dynamik zurück in die Hand.",
-      en: "Not everyone wants to hand mastering entirely over to an algorithm. re-beatz.com, Beatzucker's sister platform, puts the reins for loudness, tone, and dynamics back in your hands.",
-    },
-    relatedSlugs: ["beatzucker-vs-andere-mastering-plattformen", "was-ist-audio-mastering", "mix-fuer-mastering-vorbereiten"],
-    content: {
-      intro: {
-        de: "Manche Produzenten wollen keine KI, die sämtliche Mastering-Entscheidungen für sie trifft. Sie haben klare Vorstellungen von Lautstärke, Klangfarbe und Dynamik und möchten diese Vorstellungen aktiv in den Prozess einbringen können. Genau für diese Zielgruppe gibt es re-beatz.com.\n\nDer Service bietet spürbar mehr direkte Eingriffsmöglichkeiten als ein vollautomatisches System wie Beatzucker. Er richtet sich an erfahrenere Produzenten, denen der Unterschied zwischen einem guten und einem wirklich passgenauen Master wichtig genug ist, um selbst Hand anzulegen.",
-        en: "Some producers don't want an algorithm making every mastering decision for them. They know exactly what loudness, tone, and dynamics they're after, and they want a way to actively shape those decisions rather than just accept them. That's exactly the audience re-beatz.com serves.\n\nThe service offers noticeably more hands-on control than a fully automated system like Beatzucker. It's built for more experienced producers who care enough about the gap between a good master and a precisely dialed-in one to get involved themselves.",
-      },
-      sections: [
-        {
-          h2: { de: "re-beatz.com kurz vorgestellt", en: "What Exactly Is re-beatz.com?" },
-          body: {
-            de: "re-beatz.com ist ein weiterer Online-Mastering-Service desselben Entwicklers, der auch hinter Beatzucker steht. Während Beatzucker konsequent auf Automatisierung setzt — Upload, KI-Analyse, fertiges Mastering innerhalb von Sekunden — verfolgt re-beatz.com eine ergänzende Idee: mehr Steuerungsmöglichkeiten in der Hand des Nutzers.\n\nDamit richtet sich der Service besonders an Produzenten und Mixing Engineers, die Erfahrung mitbringen und nicht alles der Automatik überlassen wollen — sowie an Artists mit einem sehr präzisen Klangziel.",
-            en: "re-beatz.com is another online mastering service from the same developer behind Beatzucker. Where Beatzucker is built around automation — upload, AI analysis, a finished master in seconds — re-beatz.com follows a complementary idea: put more of the steering wheel in the user's hands.\n\nThat makes it a natural fit for producers and mixing engineers who bring real experience and don't want to hand everything over to automation, as well as for artists chasing a very specific sonic target.",
-          },
-        },
-        {
-          h2: { de: "Was 'mehr Kontrolle' konkret bedeutet", en: "What 'More Control' Actually Looks Like" },
-          body: {
-            de: "Der entscheidende Unterschied zu Beatzucker: Bei re-beatz.com greifst du selbst aktiv in den Mastering-Prozess ein.\n\nEigene Ziel-LUFS: Statt des plattformseitigen Standardwerts legst du selbst fest, auf welche Lautheit gemastert wird — wichtig etwa für Club-Systeme (−6 LUFS) oder Broadcast-Vorgaben (−23 LUFS).\n\nEQ-Vorgaben: Du kannst dem System mitteilen, welche Frequenzbereiche bevorzugt behandelt werden sollen — mehr Wärme im Bassbereich, mehr Luft in den Höhen, ganz wie du es brauchst.\n\nDynamik-Steuerung: Du bestimmst, ob der Track stark komprimiert und laut ausfällt oder eher mehr Atemraum behält.\n\nReferenztrack-Mastering: Lade einen Referenztrack hoch, und das System gleicht den Klangcharakter deines Masters daran an.",
-            en: "The key difference from Beatzucker: with re-beatz.com, you actively steer the mastering process yourself.\n\nCustom target LUFS: instead of a platform default, you decide how loud the master should end up — essential for club systems (−6 LUFS) or broadcast specs (−23 LUFS), for example.\n\nEQ preferences: tell the system which frequency ranges deserve extra attention — more warmth down low, more air up top, whatever the track calls for.\n\nDynamics control: decide whether the track should be pushed hard and loud, or keep more breathing room intact.\n\nReference track mastering: upload a reference, and the system matches your master's tonal character to it.",
-          },
-        },
-        {
-          h2: { de: "re-beatz.com oder Beatzucker: was passt wann?", en: "re-beatz.com or Beatzucker: Which One Fits Your Situation?" },
-          body: {
-            de: "Beide Plattformen haben ihre feste Rolle im Produktions-Workflow:",
-            en: "Both platforms earn their place in a production workflow — just in different situations:",
-          },
-          table: {
-            headers: [
-              { de: "Situation", en: "Situation" },
-              { de: "Empfehlung", en: "Recommendation" },
-            ],
-            rows: [
-              [{ de: "Schnelles Mastering für Upload, Demo oder Feedback", en: "Quick turnaround for uploads, demos, or feedback" }, { de: "Beatzucker", en: "Beatzucker" }],
-              [{ de: "Streaming-Release mit dem Standard-Zielwert der Plattform", en: "Streaming release using the platform's standard target" }, { de: "Beatzucker", en: "Beatzucker" }],
-              [{ de: "Mastering mit einem selbst festgelegten LUFS-Ziel", en: "Mastering to a self-defined LUFS target" }, { de: "re-beatz.com", en: "re-beatz.com" }],
-              [{ de: "Club-Master mit maximaler Lautheit", en: "Club master pushed to maximum loudness" }, { de: "re-beatz.com", en: "re-beatz.com" }],
-              [{ de: "Batch-Mastering für mehrere Tracks gleichzeitig", en: "Batch mastering across multiple tracks" }, { de: "Beatzucker", en: "Beatzucker" }],
-              [{ de: "Erste Gehversuche ohne technisches Vorwissen", en: "First steps, no technical background needed" }, { de: "Beatzucker", en: "Beatzucker" }],
-              [{ de: "Erfahrener Produzent mit eigenen technischen Vorgaben", en: "Experienced producer with specific technical requirements" }, { de: "re-beatz.com", en: "re-beatz.com" }],
-            ],
-          },
-        },
-        {
-          h2: { de: "Was re-beatz.com stark macht", en: "Where re-beatz.com Really Shines" },
-          body: {
-            de: "re-beatz.com hat sich über mehrere Jahre hinweg als verlässliche Online-Mastering-Plattform bewährt. Ein paar Stärken im Überblick:\n\nErfahrung und Stabilität: Der Service läuft seit Jahren zuverlässig und hat eine große Zahl an Mastering-Jobs über unzählige Genres hinweg erfolgreich verarbeitet.\n\nMehr Spielraum bei Formaten und Länge: re-beatz.com ist besonders stark bei längeren Files — typisch für Electronic-Sets, DJ-Mixe oder Podcast-Folgen. Dateien bis zu 150 MB sind kein Problem.\n\nTransparenz beim Prozess: Genau wie Beatzucker zeigt auch re-beatz.com eine Vorher/Nachher-Analyse, damit du nachvollziehen kannst, was sich verändert hat.\n\nFaire Konditionen: kein Vertrag, keine Mindestlaufzeit, 300 kostenlose Previews im Monat — das Preismodell bleibt transparent.",
-            en: "re-beatz.com has proven itself as a dependable online mastering platform over several years. A few of its standout strengths:\n\nTrack record and stability: the service has run reliably for years and successfully processed a large volume of mastering jobs across countless genres.\n\nMore room for formats and length: re-beatz.com particularly excels with longer files — think electronic sets, DJ mixes, or podcast episodes. Files up to 150 MB aren't a problem.\n\nProcess transparency: just like Beatzucker, re-beatz.com shows a before/after analysis so you can see exactly what changed.\n\nFair terms: no contract, no minimum commitment, 300 free previews per month — the pricing stays straightforward.",
-          },
-        },
-        {
-          h2: { de: "Fazit: zwei Werkzeuge, kein Wettbewerb", en: "Bottom Line: Two Tools, Not Two Competitors" },
-          body: {
-            de: "Beatzucker und re-beatz.com sind zwei Werkzeuge für unterschiedliche Situationen:\n\nBeatzucker für schnelles, adaptives Mastering von Streaming-Releases mit einem frei wählbaren Zielformat.\n\nre-beatz.com, sobald mehr Kontrolle gefragt ist — etwa für Club-Sets, sehr spezifische Klangziele oder vollständig manuelle Workflows.",
-            en: "Beatzucker and re-beatz.com serve different situations:\n\nBeatzucker is for fast, adaptive mastering of streaming releases with a selectable delivery format.\n\nre-beatz.com is suited to workflows that need more control, such as club sets, highly specific sonic targets or fully manual processing.",
-          },
-        },
-      ],
-    },
-  },
-
+  // Keep the existing DE/EN article addresses; content now covers Beatzucker.
+  MANUAL_MASTERING_ARTICLE,
 ];

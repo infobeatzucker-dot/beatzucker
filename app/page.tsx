@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import ScrollToTop from "@/components/ScrollToTop";
 import PromoPopup from "@/components/PromoPopup";
+import MasteringJsonLd from "@/components/MasteringJsonLd";
 
 type Lang = "de" | "en";
 
@@ -63,6 +64,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
 
   return (
     <div className="min-h-screen site-shell">
+      <MasteringJsonLd lang={lang} />
       <Header lang={lang} />
 
       <main>
@@ -71,7 +73,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
           <div className="hero-layout">
             <motion.div
               className="hero-copy"
-              initial={{ opacity: 0, y: 24 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: "easeOut" }}
             >

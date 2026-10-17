@@ -1,6 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Seite nicht gefunden",
+  description: "Diese Seite existiert nicht oder wurde verschoben.",
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+};
 
 export default function NotFound() {
   return (

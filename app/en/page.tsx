@@ -1,9 +1,10 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import Home from "../page";
 
 const BASE_URL = "https://beatzucker.de";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: { absolute: "Beatzucker – Professional Online Audio Mastering" },
   description:
     "Master your track online in minutes. Adaptive 12-stage DSP chain, real-time manual fine-tuning and 7 export formats — free to start.",
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
     alternateLocale: ["de_DE"],
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Beatzucker online audio mastering" }],
   },
-};
+});
 
 export default function EnglishHomePage() {
   return <Home initialLang="en" />;

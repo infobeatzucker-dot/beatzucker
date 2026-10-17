@@ -56,7 +56,7 @@ async function test(name, fn) { await fn(); passed++; console.log('PASS ' + name
       assert.ok(fs.existsSync('app' + (pathname === '/' ? '' : pathname) + '/page.tsx') || articles.some(a => pathname.endsWith('/' + a.slug)), pathname);
     }
     assert.equal(sitemap.find(item => item.url.endsWith('/legal-notice')).lastModified.toISOString().slice(0, 10), '2026-08-23');
-    assert.equal(sitemap.find(item => item.url.endsWith('/tools/key-bpm')).lastModified.toISOString().slice(0, 10), '2026-10-12');
+    assert.equal(sitemap.find(item => item.url.endsWith('/tools/key-bpm')).lastModified.toISOString().slice(0, 10), '2026-10-17');
     for (const article of articles) assert.equal(sitemap.find(item => item.url.endsWith('/ressourcen/' + article.slug)).lastModified.toISOString().slice(0, 10), guides.articleContentDate(article));
   });
   const Journey = load('components/ToolJourney.tsx').default;

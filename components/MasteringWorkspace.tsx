@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,7 +8,6 @@ import { AlertCircle, RotateCcw, X } from "lucide-react";
 import UploadZone from "@/components/UploadZone";
 import AuthModal from "@/components/AuthModal";
 import MasterButton from "@/components/MasterButton";
-import DownloadPanel from "@/components/DownloadPanel";
 import PlatformTargets from "@/components/PlatformTargets";
 import PresetSelector from "@/components/PresetSelector";
 import MasteringIntensity from "@/components/MasteringIntensity";
@@ -27,6 +26,7 @@ import type {
 const AnalysisPanel = dynamic(() => import("@/components/AnalysisPanel"), { ssr: false });
 const ABPlayer = dynamic(() => import("@/components/ABPlayer"), { ssr: false });
 const ManualAdjustModal = dynamic(() => import("@/components/ManualAdjustModal"), { ssr: false });
+const DownloadPanel = lazy(() => import("@/components/DownloadPanel"));
 
 
 // ── Auto-play master after mastering completes ─────────────────────────────────
@@ -453,6 +453,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
+                  <Suspense fallback={<p role="status">{lang === "en" ? "Loading your result …" : "Dein Ergebnis wird geladen …"}</p>}>
                   <DownloadPanel
                     masterData={masterData}
                     fileId={uploadedFile?.file_id ?? ""}
@@ -466,6 +467,7 @@ export default function MasteringWorkspace({ lang }: Props) {
                     onManualAdjust={openManualAdjust}
                     lang={lang}
                   />
+                  </Suspense>
                 </motion.div>
               )}
             </AnimatePresence>

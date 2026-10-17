@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 type Lang = "de" | "en";
 interface Props { lang?: Lang; }
@@ -78,19 +78,6 @@ const TESTIMONIALS = [
 ];
 
 export default function TestimonialsSection({ lang = "de" }: Props) {
-  const [cols, setCols] = useState(3);
-
-  useEffect(() => {
-    function update() {
-      if (window.innerWidth < 600) setCols(1);
-      else if (window.innerWidth < 900) setCols(2);
-      else setCols(3);
-    }
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
   return (
     <section style={{ padding: "5rem 1.5rem 4rem", position: "relative" }}>
       {/* subtle bg accent */}
@@ -139,11 +126,7 @@ export default function TestimonialsSection({ lang = "de" }: Props) {
         </div>
 
         {/* Grid */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gap: "1.25rem",
-        }}>
+        <div className="testimonials-grid">
           {TESTIMONIALS.map((t) => (
             <TestimonialCard key={t.name} t={t} lang={lang} />
           ))}

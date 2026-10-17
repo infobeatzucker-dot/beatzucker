@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import HelpPage from "@/app/help/page";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: { absolute: "Help & FAQ – Audio Mastering Support | Beatzucker" },
   description:
     "Answers about Beatzucker's workflow, DSP chain, A/B player, platform presets, manual fine-tuning, downloads and audio-file privacy.",
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     url: "https://beatzucker.de/en/help",
     locale: "en_US",
   },
-};
+});
 
 const faqJsonLd = {
   "@context": "https://schema.org",

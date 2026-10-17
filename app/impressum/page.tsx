@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: { absolute: "Impressum – Beatzucker" },
   description: "Impressum und Anbieterkennzeichnung von Beatzucker gemäß § 5 DDG mit Anbieter, Kontakt und rechtlichen Hinweisen.",
   robots: { index: true, follow: true },
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
       "x-default": "https://beatzucker.de/impressum",
     },
   },
-};
+});
 
 export default function ImpressumPage() {
   return (

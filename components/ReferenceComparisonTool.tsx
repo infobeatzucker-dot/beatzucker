@@ -62,7 +62,7 @@ export default function ReferenceComparisonTool({ lang }: { lang: Lang }) {
 
   return <section className="stream-tool">
     <ToolLanguageNav lang={lang}/><Link href={en ? "/en/tools" : "/tools"} className="tool-back"><ArrowLeft size={15} />{en ? "All tools" : "Alle Tools"}</Link>
-    <div className="stream-hero"><span><GitCompareArrows size={14} /> REFERENCE LAB</span><h1>{en ? <>Compare tracks with <em>measured facts.</em></> : <>Vergleiche Tracks mit <em>echten Messwerten.</em></>}</h1><p>{en ? "See how loudness, dynamics, tone and stereo image differ." : "Erkenne Unterschiede bei Lautheit, Dynamik, Klangfarbe und Stereobild."}</p></div>
+    <div className="stream-hero"><span><GitCompareArrows size={14} /> REFERENCE LAB</span><h1>{en ? <>Compare your mix <em>with a reference track.</em></> : <>Deinen Mix <em>mit einer Referenz vergleichen.</em></>}</h1><p>{en ? "See how loudness, dynamics, tone and stereo image differ." : "Erkenne Unterschiede bei Lautheit, Dynamik, Klangfarbe und Stereobild."}</p></div>
     <div className="stem-grid"><Upload slot={a} set={setA} inputRef={aRef} label={en ? "YOUR TRACK" : "DEIN TRACK"} /><div className="stem-versus">VS</div><Upload slot={b} set={setB} inputRef={bRef} label={en ? "REFERENCE" : "REFERENZ"} /></div>
     {!metrics.length && <button className="conflict-run" disabled={!a.file || !b.file || busy} onClick={() => void run()}>{busy ? <Loader2 className="mixcheck-spin" /> : <GitCompareArrows size={18} />} {busy ? progress : (en ? "Compare tracks" : "Tracks vergleichen")}</button>}
     {busy&&<button className="tool-back" onClick={()=>{job.cancel();setBusy(false);setStep(0);}}>{en?"Cancel":"Abbrechen"}</button>}

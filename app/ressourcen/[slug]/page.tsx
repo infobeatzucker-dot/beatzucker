@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import { articleContentDate } from "@/lib/toolGuidance";
 import { notFound } from "next/navigation";
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = getArticleBySlug(slug);
   if (!article) return {};
 
-  return {
+  return pageMetadata({
     title: { absolute: article.metaTitle.de },
     description: article.metaDescription.de,
     keywords: article.keywords.de,
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: "de_DE",
       images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: article.title.de }],
     },
-  };
+  });
 }
 
 const categoryColors: Record<string, string> = {
@@ -134,6 +135,7 @@ export default async function ArticlePage({ params }: Props) {
               </span>
               <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>
                 {publishedDate}
+                {article.updatedAt && <> · Aktualisiert: {new Date(article.updatedAt).toLocaleDateString("de-DE", { year: "numeric", month: "long", day: "numeric" })}</>}
               </span>
             </div>
 

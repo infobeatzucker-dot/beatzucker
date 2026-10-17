@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata:Metadata={title:{absolute:"AGB – Beatzucker"},description:"Nutzungsbedingungen für Beatzucker: Mastering, Audio-Tools, Nutzerkonto, Uploadregeln, Fair Use und Haftung.",alternates:{canonical:"https://beatzucker.de/agb",languages:{"de-DE":"https://beatzucker.de/agb",en:"https://beatzucker.de/terms","x-default":"https://beatzucker.de/agb"}}};
+export const metadata:Metadata=pageMetadata({title:{absolute:"AGB – Beatzucker"},description:"Nutzungsbedingungen für Beatzucker: Mastering, Audio-Tools, Nutzerkonto, Uploadregeln, Fair Use und Haftung.",alternates:{canonical:"https://beatzucker.de/agb",languages:{"de-DE":"https://beatzucker.de/agb",en:"https://beatzucker.de/terms","x-default":"https://beatzucker.de/agb"}}});
 const SECTIONS=[{id:"geltung",label:"§ 1 Geltung"},{id:"leistung",label:"§ 2 Leistungen"},{id:"konto",label:"§ 3 Nutzerkonto"},{id:"inhalte",label:"§ 4 Uploads und Rechte"},{id:"fairuse",label:"§ 5 Fair Use"},{id:"dateien",label:"§ 6 Dateien und Ergebnisse"},{id:"datenschutz",label:"§ 7 Datenschutz"},{id:"maengel",label:"§ 8 Verfügbarkeit und Mängel"},{id:"haftung",label:"§ 9 Haftung"},{id:"recht",label:"§ 10 Recht und Streitbeilegung"},{id:"aenderungen",label:"§ 11 Änderungen"}];
 
 export default function AGBPage(){return <LegalLayout title="Allgemeine Geschäftsbedingungen" activePage="agb" sections={SECTIONS}>

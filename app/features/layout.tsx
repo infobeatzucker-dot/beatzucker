@@ -1,6 +1,7 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Features – Professionelles adaptives Audio-Mastering",
   description:
     "12-stufige DSP-Pipeline, adaptive Parameterauswahl, A/B-Vergleichsplayer, 7 Exportformate und Echtzeit-Visualizer. Alle Features von Beatzucker im Überblick.",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
       "12-stage DSP pipeline, adaptive parameter selection, A/B comparison player, 7 export formats. Professional mastering for every platform.",
     url: "https://beatzucker.de/features",
   },
-};
+});
 
 export default function FeaturesLayout({
   children,

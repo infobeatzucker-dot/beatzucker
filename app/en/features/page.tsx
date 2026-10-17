@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import FeaturesPage from "@/app/features/page";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: { absolute: "Features – Professional Adaptive Audio Mastering | Beatzucker" },
   description:
     "Explore Beatzucker's adaptive 12-stage DSP pipeline, real-time manual fine-tuning, A/B player, visual analysis and 7 delivery formats.",
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     url: "https://beatzucker.de/en/features",
     locale: "en_US",
   },
-};
+});
 
 export default function EnglishFeaturesPage() {
   return <FeaturesPage initialLang="en" />;

@@ -1,8 +1,9 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 import WithdrawalForm from "@/components/WithdrawalForm";
 
-export const metadata: Metadata = { title: { absolute: "Cancellation Policy and online cancellation function – Beatzucker" }, description: "Information about Beatzucker's precautionary cancellation right and electronic cancellation function.", robots: { index: true, follow: true }, alternates: { canonical: "https://beatzucker.de/cancellation-policy", languages: { "de-DE": "https://beatzucker.de/widerruf", en: "https://beatzucker.de/cancellation-policy", "x-default": "https://beatzucker.de/widerruf" } } };
+export const metadata: Metadata = pageMetadata({ title: { absolute: "Cancellation Policy and online cancellation function – Beatzucker" }, description: "Information about Beatzucker's precautionary cancellation right and electronic cancellation function.", robots: { index: true, follow: true }, alternates: { canonical: "https://beatzucker.de/cancellation-policy", languages: { "de-DE": "https://beatzucker.de/widerruf", en: "https://beatzucker.de/cancellation-policy", "x-default": "https://beatzucker.de/widerruf" } } });
 const SECTIONS = [{ id: "right", label: "Right to cancel" }, { id: "effects", label: "Effects" }, { id: "function", label: "Cancel online" }, { id: "model", label: "Model statement" }];
 
 export default function CancellationPolicyPage() { return <LegalLayout title="Cancellation Policy" activePage="cancellation-policy" sections={SECTIONS} lang="en">

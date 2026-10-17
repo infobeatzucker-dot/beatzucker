@@ -118,7 +118,7 @@ export default function SilenceNormalizerTool({ lang }: { lang: Lang }) {
     <Link href={en ? "/en/tools" : "/tools"} className="tool-back"><ArrowLeft size={15}/>{en ? "All tools" : "Alle Tools"}</Link>
     <div className="stream-hero">
       <span><Scissors size={14}/> CLEAN START</span>
-      <h1>{en ? <>Trim silence. Set loudness. <em>Keep control.</em></> : <>Stille kürzen. Lautheit setzen. <em>Kontrolle behalten.</em></>}</h1>
+      <h1>{en ? <>Trim silence and <em>normalize LUFS.</em></> : <>Stille kürzen und <em>LUFS normalisieren.</em></>}</h1>
       <p>{en ? "Choose a section. Its loudness is measured after the cut and fades, then the actual 24-bit WAV is verified." : "Wähle einen Ausschnitt. Seine Lautheit wird nach Schnitt und Fades gemessen; anschließend wird die fertige 24-Bit-WAV geprüft."}</p>
     </div>
     <input ref={input} hidden type="file" accept="audio/wav,audio/flac,audio/mpeg,audio/aiff,.wav,.flac,.mp3,.aiff,.aif" disabled={busy} onChange={e => { const f = e.target.files?.[0]; if (f) void load(f); e.target.value = ""; }}/>

@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -18,7 +19,7 @@ const BASE_URL = "https://beatzucker.de";
 // correctly without waiting for React hydration.
 const documentLanguageScript = `(()=>{const p=location.pathname;const en=/^\\/en(?:\\/|$)/.test(p)||["/privacy","/terms","/legal-notice","/cancellation-policy"].includes(p);document.documentElement.lang=en?"en":"de"})()`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   metadataBase: new URL(BASE_URL),
 
   title: {
@@ -93,7 +94,7 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-};
+});
 
 /* ── JSON-LD Structured Data ──────────────────────────────────────────────── */
 const jsonLd = {
@@ -123,39 +124,6 @@ const jsonLd = {
       description: "Adaptive Professional Audio Mastering",
       publisher: { "@id": `${BASE_URL}/#organization` },
       inLanguage: ["de-DE", "en-US"],
-    },
-    {
-      "@type": "SoftwareApplication",
-      "@id": `${BASE_URL}/#app`,
-      name: "Beatzucker Audio Mastering",
-      applicationCategory: "MusicApplication",
-      applicationSubCategory: "Audio Mastering",
-      operatingSystem: "Web",
-      url: BASE_URL,
-      description:
-        "Professional automated audio mastering service. 12-stage DSP signal chain, adaptive parameter selection, 7 export formats, 11 platform targets.",
-      offers: [
-        {
-          "@type": "Offer",
-          name: "Free",
-          price: "0",
-          priceCurrency: "EUR",
-          description: "Full DSP mastering pipeline, adaptive parameter selection, reference track matching, 7 selectable export formats, 24h download window — completely free, fair daily usage limit per account",
-        },
-      ],
-      featureList: [
-        "12-stage DSP mastering pipeline",
-        "Adaptive parameter selection",
-        "7 export formats (WAV 32/24/16, FLAC, MP3 320/128, AAC 256)",
-        "11 platform targets (Spotify, Apple Music, YouTube, Club, …)",
-        "Real-time A/B comparison player",
-        "Spectrum analyzer, LUFS meter, stereo field visualizer",
-        "Reference track matching",
-        "LUFS normalization, oversampled True Peak limiting",
-        "De-essing, noise-shaped dithering",
-      ],
-      screenshot: `${BASE_URL}/opengraph-image`,
-      publisher: { "@id": `${BASE_URL}/#organization` },
     },
   ],
 };

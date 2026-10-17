@@ -10,6 +10,15 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "0.15.0",
+  date: "2026-10-17",
+  title: { de: "Echte Hörproben. Klare Vergleiche.", en: "Real audio. Clear comparisons." },
+  summary: { de: "Zwei echte Tracks lassen sich auf der Startseite vor und nach dem Mastering anhören – mit wählbarem Lautheitsabgleich. Aktuelle Ratgeber und passendere Linkvorschauen ergänzen das Update.", en: "Listen to two real tracks before and after mastering on the homepage, with optional loudness matching. Updated guidance and more relevant link previews complete the update." },
+  improvements: {
+    de: ["Auf der Startseite kannst du Xplore Belgium und Back to My Acid als Original und Beatzucker-Master anhören. A/B wechselt an derselben Position; Lautheitsabgleich ist wählbar.", "Echte Wellenformen, ein Live-Frequenzbild und gemessene Werte ersetzen die bisherige Beispielanimation. Die Hörproben werden erst beim Start geladen.", "Der bisherige re-beatz-Ratgeber erklärt jetzt Auto-Master, manuelle Vorschau, Kontrollrender und neuen Export. Bestehende Artikeladressen bleiben erreichbar.", "Linkvorschauen nutzen die jeweilige Seitenadresse und Sprache statt pauschal die Startseite.", "Suchmaschinen erhalten passendere Angaben zur Mastering-Anwendung. Überarbeitete Ratgeber zeigen ihr Aktualisierungsdatum.", "Die Tool-Überschriften benennen ihre Funktion deutlicher – auf Deutsch und Englisch.", "Startseitentext ist sofort sichtbar. Der Downloadbereich wird erst bei einem fertigen Ergebnis geladen; das Community-Raster passt sich ohne nachträgliche JavaScript-Umschaltung an.", "Nicht vorhandene Seiten erhalten eindeutige Hinweise, nicht in Suchergebnissen zu erscheinen."],
+    en: ["Listen to Xplore Belgium and Back to My Acid as original and Beatzucker master on the homepage. A/B switches at the same position, with optional loudness matching.", "Real waveforms, a live frequency view and measured values replace the illustrative animation. Audio excerpts load only when playback starts.", "The former re-beatz guide now explains automatic mastering, manual preview, control renders and new exports. Existing article addresses remain accessible.", "Link previews use each page’s address and language instead of generic homepage details.", "Search engines receive more relevant mastering app information. Revised guides show their update date.", "Tool headings describe their purpose more clearly in German and English.", "Homepage text is immediately visible. The download panel loads only when a result is ready; the community grid adapts without a later JavaScript layout switch.", "Missing pages receive consistent instructions to stay out of search results."],
+  },
+}, {
   version: "0.14.1",
   date: "2026-10-17",
   title: { de: "Flüssiger manuell vorhören.", en: "Smoother manual previews." },

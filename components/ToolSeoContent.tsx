@@ -16,7 +16,7 @@ const RELATED_TITLES:Record<string,{de:string;en:string}>={
   "mastering-plattformen-lufs":{de:"LUFS-Ziele der Streaming-Plattformen",en:"Streaming platform LUFS targets"},
   "true-peak-rms-lufs":{de:"True Peak, RMS und LUFS",en:"True peak, RMS and LUFS"},
   "song-klingt-leise-spotify":{de:"Warum klingt mein Song auf Spotify leise?",en:"Why does my song sound quiet on Spotify?"},
-  "re-beatz-online-mastering-mit-kontrolle":{de:"Online-Mastering mit Kontrolle",en:"Online mastering with control"},
+  "re-beatz-online-mastering-mit-kontrolle":{de:"Auto-Master manuell feinabstimmen",en:"Fine-tune an automatic master"},
   "stereo-breite-mastering":{de:"Stereobreite im Mastering",en:"Stereo width in mastering"},
 };
 const TOOLS:Record<string,Tool>={

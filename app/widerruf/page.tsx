@@ -1,8 +1,9 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 import WithdrawalForm from "@/components/WithdrawalForm";
 
-export const metadata:Metadata={title:{absolute:"Widerruf und Online-Widerrufsfunktion – Beatzucker"},description:"Information zum vorsorglich eingeräumten Widerrufsrecht und elektronische Widerrufsfunktion von Beatzucker.",robots:{index:true,follow:true},alternates:{canonical:"https://beatzucker.de/widerruf",languages:{"de-DE":"https://beatzucker.de/widerruf",en:"https://beatzucker.de/cancellation-policy","x-default":"https://beatzucker.de/widerruf"}}};
+export const metadata:Metadata=pageMetadata({title:{absolute:"Widerruf und Online-Widerrufsfunktion – Beatzucker"},description:"Information zum vorsorglich eingeräumten Widerrufsrecht und elektronische Widerrufsfunktion von Beatzucker.",robots:{index:true,follow:true},alternates:{canonical:"https://beatzucker.de/widerruf",languages:{"de-DE":"https://beatzucker.de/widerruf",en:"https://beatzucker.de/cancellation-policy","x-default":"https://beatzucker.de/widerruf"}}});
 const SECTIONS=[{id:"recht",label:"Widerrufsrecht"},{id:"folgen",label:"Folgen des Widerrufs"},{id:"funktion",label:"Online widerrufen"},{id:"muster",label:"Mustererklärung"}];
 
 export default function WiderrufPage(){return <LegalLayout title="Widerrufsinformation" activePage="widerruf" sections={SECTIONS}>

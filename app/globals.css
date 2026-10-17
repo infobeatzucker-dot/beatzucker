@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Stable before hydration: do not rearrange cards after a JS width check. */
+.testimonials-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+@media (max-width: 899px) { .testimonials-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 599px) { .testimonials-grid { grid-template-columns: minmax(0, 1fr); } }
+
 /* Public release history — shares the mastering console's visual language. */
 .release-page { min-height: 100vh; background: radial-gradient(ellipse at 12% 8%, #8b5cf617, transparent 45%), radial-gradient(ellipse at 90% 32%, #38bdf80c, transparent 40%), var(--bg-primary, #050816); }
 .brand-with-version { position: relative; }

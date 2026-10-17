@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -6,7 +7,7 @@ import ArticleGrid from "@/components/ressourcen/ArticleGrid";
 import { PracticeHub } from "@/components/ToolPractice";
 import { ARTICLES } from "@/app/data/ressourcen";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: { absolute: "Audio Mastering Knowledge – Guides, Tips & Technology | Beatzucker" },
   description:
     "Learn audio mastering: LUFS, mastering vs mixing, adaptive mastering, platform loudness targets, home-recording mistakes and practical release advice.",
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     url: "https://beatzucker.de/en/knowledge",
     locale: "en_US",
   },
-};
+});
 
 const collectionJsonLd = {
   "@context": "https://schema.org",

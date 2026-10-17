@@ -50,7 +50,7 @@ export default function AlbumConsistencyTool({lang}:{lang:Lang}) {
   function cancel(){job.cancel();setBusy(false);}
   return <section className="stream-tool album-tool">
     <Link href={en?"/en/tools":"/tools"} className="tool-back"><ArrowLeft size={15}/>{en?"All tools":"Alle Tools"}</Link><ToolLanguageNav lang={lang}/>
-    <div className="stream-hero"><span><Disc3 size={14}/> RELEASE SEQUENCE</span><h1>{en?<>Does your album feel <em>like one record?</em></>:<>Klingt dein Album <em>wie ein Werk?</em></>}</h1><p>{en?"Compare loudness, dynamics and tonal indicators across two to eight tracks.":"Vergleiche Lautheit, Dynamik und Klanghinweise von zwei bis acht Tracks."}</p></div>
+    <div className="stream-hero"><span><Disc3 size={14}/> RELEASE SEQUENCE</span><h1>{en ? <>Check album and EP <em>consistency.</em></> : <>Album und EP <em>auf Konsistenz prüfen.</em></>}</h1><p>{en?"Compare loudness, dynamics and tonal indicators across two to eight tracks.":"Vergleiche Lautheit, Dynamik und Klanghinweise von zwei bis acht Tracks."}</p></div>
     <button className="album-drop" disabled={busy||tracks.length>=8} onClick={()=>input.current?.click()}><FilePlus2/><span><strong>{en?"Add album or EP tracks":"Album- oder EP-Tracks hinzufügen"}</strong><small>{en?"WAV, FLAC, MP3, AIFF · 40 MB each · 2–8 tracks":"WAV, FLAC, MP3, AIFF · je 40 MB · 2–8 Tracks"}</small></span></button>
     <input ref={input} hidden multiple disabled={busy} type="file" accept={TOOL_AUDIO_ACCEPT} onChange={e=>add(e.target.files)}/>
 

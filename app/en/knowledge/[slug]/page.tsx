@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import { articleContentDate } from "@/lib/toolGuidance";
 import { notFound } from "next/navigation";
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!article) return {};
   const deUrl = `https://beatzucker.de/ressourcen/${article.slug}`;
   const enUrl = `https://beatzucker.de/en/knowledge/${article.slug}`;
-  return {
+  return pageMetadata({
     title: { absolute: article.metaTitle.en },
     description: article.metaDescription.en,
     keywords: article.keywords.en,
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       modifiedTime: articleContentDate(article),
       images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: article.title.en }],
     },
-  };
+  });
 }
 
 const categoryColors: Record<string, string> = {
@@ -84,7 +85,7 @@ export default async function EnglishArticlePage({ params }: Props) {
                 {categoryNames[article.category] ?? article.category}
               </span>
               <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>{article.readingTimeMinutes} min read</span>
-              <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>{publishedDate}</span>
+              <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>{publishedDate}{article.updatedAt && <> · Updated: {new Date(article.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</>}</span>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", marginBottom: "1rem" }}>
               <span style={{ display: "flex", paddingTop: "0.3rem" }}><HeroIcon name={article.heroIcon} size={38} strokeWidth={1.6} color={color} /></span>

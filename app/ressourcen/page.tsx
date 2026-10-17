@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -6,7 +7,7 @@ import ArticleGrid from "@/components/ressourcen/ArticleGrid";
 import { PracticeHub } from "@/components/ToolPractice";
 import { ARTICLES } from "@/app/data/ressourcen";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: { absolute: "Audio Mastering Wissen – Guides, Tipps & Technik | Beatzucker" },
   description:
     "Alles über Audio Mastering: LUFS erklärt, Mastering vs. Mixing, KI-Mastering, Plattform-Lautstärken, Home-Recording-Fehler und mehr. Kostenlose Guides für Produzenten.",
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     description: "Kostenlose Mastering-Guides, LUFS-Erklärungen, Plattform-Zielwerte und mehr.",
     url: "https://beatzucker.de/ressourcen",
   },
-};
+});
 
 const collectionJsonLd = {
   "@context": "https://schema.org",

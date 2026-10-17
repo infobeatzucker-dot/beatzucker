@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/pageMetadata";
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/LegalLayout";
 
-export const metadata:Metadata={title:{absolute:"Privacy Policy – Beatzucker"},description:"Beatzucker privacy information for audio processing, user accounts, sign-in, transactional email and retention.",alternates:{canonical:"https://beatzucker.de/privacy",languages:{"de-DE":"https://beatzucker.de/datenschutz",en:"https://beatzucker.de/privacy","x-default":"https://beatzucker.de/datenschutz"}}};
+export const metadata:Metadata=pageMetadata({title:{absolute:"Privacy Policy – Beatzucker"},description:"Beatzucker privacy information for audio processing, user accounts, sign-in, transactional email and retention.",alternates:{canonical:"https://beatzucker.de/privacy",languages:{"de-DE":"https://beatzucker.de/datenschutz",en:"https://beatzucker.de/privacy","x-default":"https://beatzucker.de/datenschutz"}}});
 const SECTIONS=[{id:"controller",label:"1. Controller"},{id:"service",label:"2. Service and audio data"},{id:"account",label:"3. Account and sign-in"},{id:"email",label:"4. Transactional email"},{id:"hosting",label:"5. Hosting and logs"},{id:"storage",label:"6. Cookies and local storage"},{id:"recipients",label:"7. Recipients and transfers"},{id:"retention",label:"8. Retention"},{id:"rights",label:"9. Your rights"},{id:"decisions",label:"10. Automated decisions"}];
 
 export default function PrivacyPage(){return <LegalLayout title="Privacy Policy" activePage="privacy" sections={SECTIONS} lang="en">
