@@ -4,6 +4,27 @@ type Text = Record<Lang, string>;
 type Guide = { title: Text; situation: Text; action: Text; interpretation: Text; articles: string[]; next: string[] };
 export const GUIDANCE_UPDATED = "2026-10-12";
 export const TOOL_GUIDES: Record<string, Guide> = {
+  "speech-cleaner": {
+    title: {de:"Podcast- & Sprachbereiniger",en:"Podcast & Voice Cleaner"},
+    situation: {de:"Deine Sprachaufnahme hat gleichmäßiges Hintergrundrauschen und wechselnden Pegel.",en:"Your voice recording has steady background hiss and uneven levels."},
+    action: {de:"Beginne mit Sanft. Schalte Rumpelfilter und Pegelausgleich nach Bedarf zu. Vergleiche leise Silben und Pausen vor dem WAV-Download.",en:"Start with Gentle. Enable rumble filtering and level adjustment as needed. Compare quiet syllables and pauses before downloading the WAV."},
+    interpretation: {de:"Metallischer Klang bedeutet: weniger reduzieren. Hall, Musik und andere Sprecher lassen sich damit nicht zuverlässig entfernen. Bewahre die Originalaufnahme auf.",en:"Metallic sound means: reduce the strength. This cannot reliably remove echo, music or other speakers. Keep your original recording."},
+    articles:["home-recording-fehler","lufs-erklaert","audioformate-vergleich"],next:["audio-cutter","wav-to-mp3"],
+  },
+  "wav-to-mp3": {
+    title: { de: "WAV zu MP3", en: "WAV to MP3" },
+    situation: { de: "Du möchtest eine WAV als kleinere Hördatei teilen.", en: "You want to share a WAV as a smaller listening file." },
+    action: { de: "Wähle 320 kbit/s für die höhere Qualität oder 128 kbit/s für eine kleinere Datei. Höre die MP3 vor und lade sie herunter.", en: "Choose 320 kbit/s for higher quality or 128 kbit/s for a smaller file. Audition and download the MP3." },
+    interpretation: { de: "MP3 ist verlustbehaftet. Bewahre deine WAV für Archiv und weitere Bearbeitung auf; eine höhere Bitrate ersetzt keine bessere Quelle.", en: "MP3 is lossy. Keep your WAV for archiving and further work; a higher bitrate cannot improve the source." },
+    articles: ["audioformate-vergleich", "sample-rate-bit-depth"], next: ["audio-cutter", "streaming-preview"],
+  },
+  "audio-cutter": {
+    title: { de: "Audio-Cutter", en: "Audio Cutter" },
+    situation: { de: "Du brauchst einen bestimmten Songabschnitt als eigenständige Datei.", en: "You need a specific song section as a separate file." },
+    action: { de: "Setze A und B in der Wellenform, höre den Ausschnitt vor und exportiere eine neue WAV. Kurze Randfades können Schnittklicks reduzieren.", en: "Set A and B on the waveform, audition the selection and export a new WAV. Short edge fades can reduce cut clicks." },
+    interpretation: { de: "Prüfe Anfänge und Ausklänge mit dem Gehör. Das Tool schneidet nur einen zusammenhängenden Abschnitt; es normalisiert nicht und verbindet keine Dateien.", en: "Check attacks and tails by ear. This tool keeps one continuous section; it does not normalize or join files." },
+    articles: ["audioformate-vergleich", "mix-fuer-mastering-vorbereiten"], next: ["audio-converter", "wav-to-mp3"],
+  },
   "mix-check": {
     title: { de: "Mix-Check", en: "Mix Check" },
     situation: { de: "Dein Mix klingt fertig, aber du bist unsicher, ob er fürs Mastering geeignet ist.", en: "Your mix sounds finished, but you are unsure whether it is ready for mastering." },
@@ -82,6 +103,7 @@ export function toolHref(slug: string, lang: Lang) {
 
 export function articleContentDate(article: { slug: string; publishedAt: string; updatedAt?: string }) {
   const original = article.updatedAt ?? article.publishedAt;
+  if (["speech-cleaner","wav-to-mp3","audio-cutter"].some(slug => TOOL_GUIDES[slug].articles.includes(article.slug)) && original < "2026-10-18") return "2026-10-18";
   return Object.values(TOOL_GUIDES).some(guide => guide.articles.includes(article.slug)) && original < GUIDANCE_UPDATED
     ? GUIDANCE_UPDATED : original;
 }

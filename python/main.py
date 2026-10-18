@@ -29,6 +29,7 @@ from dsp_lease import DspLease
 from dsp_admission import acquire_budget
 from silence_normalizer import normalize_section
 from codec_preview import render_codec, meter_audio
+from speech_cleaner import clean_speech
 from audio_limits import validate_full_dsp_audio
 from control_preview import render_control
 from preview_section import read_preview_section
@@ -80,7 +81,7 @@ app.add_middleware(
 )
 
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
-PROTECTED_PATHS = {"/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview", "/preview-section", "/showcase-prepare"}
+PROTECTED_PATHS = {"/speech-clean", "/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview", "/preview-section", "/showcase-prepare"}
 # Full-track DSP temporarily allocates several arrays per stage. The small
 # production host must not run two such allocations on top of each other.
 # Larger installations can still explicitly opt into a higher capacity.
@@ -125,9 +126,17 @@ class TrimNormalizeRequest(BaseModel):
     target: float
 
 
+class SpeechCleanRequest(BaseModel):
+    file_path: str
+    strength: str = "gentle"
+    low_cut: bool = True
+    level: bool = True
+
+
 class CodecPreviewRequest(BaseModel):
     file_path: str
     codec: str
+    mp3_export: bool = False
 
 
 class WaveformRequest(BaseModel):
@@ -288,6 +297,25 @@ async def meter(req: FilePathRequest):
         lease.release_when_done()
 
 
+@app.post("/speech-clean")
+async def speech_clean(req: SpeechCleanRequest):
+    req.file_path = validate_file_path(req.file_path)
+    if req.strength not in {"gentle", "balanced", "strong"}:
+        raise HTTPException(400, "Invalid cleanup strength")
+    permit = await acquire_dsp_slot()
+    lease = DspLease(permit)
+    try:
+        audio, report = await lease.run(clean_speech, req.file_path, req.strength, req.low_cut, req.level)
+        return Response(audio, media_type="audio/wav", headers={"Cache-Control": "no-store", "X-Speech-Report": json.dumps(report, allow_nan=False)})
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+    except Exception:
+        logger.exception("Error in /speech-clean")
+        raise HTTPException(500, "Speech cleanup failed")
+    finally:
+        lease.release_when_done()
+
+
 @app.post("/codec-preview")
 async def codec_preview(req: CodecPreviewRequest):
     req.file_path = validate_file_path(req.file_path)
@@ -296,7 +324,10 @@ async def codec_preview(req: CodecPreviewRequest):
     permit = await acquire_dsp_slot()
     lease = DspLease(permit)
     try:
-        audio, mime, measurements = await lease.run(render_codec, req.file_path, req.codec)
+        if req.mp3_export:
+            audio, mime, measurements = await lease.run(render_codec, req.file_path, req.codec, True)
+        else:
+            audio, mime, measurements = await lease.run(render_codec, req.file_path, req.codec)
         headers = {"Cache-Control": "no-store", "X-Codec-Format": req.codec}
         for field, header in [("true_peak", "X-Encoded-True-Peak"), ("integrated_lufs", "X-Encoded-LUFS")]:
             if measurements.get(field) is not None:

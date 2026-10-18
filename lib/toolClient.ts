@@ -2,6 +2,8 @@ import type { AnalysisData, Lang } from "./types/mastering";
 
 export const TOOL_AUDIO_ACCEPT = ".wav,.flac,.mp3,.aiff,.aif,audio/wav,audio/flac,audio/mpeg,audio/aiff";
 const messages: Record<string, [string,string]> = {
+  CUT_RANGE: ["Bitte mindestens 0,05 Sekunden auswählen; die Datei muss mindestens 0,1 Sekunden lang sein.", "Select at least 0.05 seconds; the file must be at least 0.1 seconds long."],
+  CUT_FADE: ["Ein- und Ausblendung müssen zwischen 0 und 5 Sekunden liegen.", "Fade-in and fade-out must be between 0 and 5 seconds."],
   SIZE: ["Die Datei ist leer oder zu groß. Maximal 40 MB für die Serveranalyse.", "The file is empty or too large. Server analysis supports up to 40 MB."],
   LOCAL_SIZE: ["Die Datei ist leer oder zu groß. Die lokale Verarbeitung unterstützt bis zu 80 MB.", "The file is empty or too large. Local processing supports up to 80 MB."],
   CHANNELS: ["Bitte eine Mono- oder Stereo-Datei verwenden. Mehrkanal-Audio wird nicht unterstützt.", "Please use mono or stereo audio. Multichannel audio is not supported."],

@@ -106,12 +106,21 @@ def meter_audio(file_path, deadline=None, validate=True):
     return parse_meter_report(log)
 
 
-def render_codec(file_path, codec):
+def render_codec(file_path, codec, mp3_export=False):
     if codec not in FORMATS:
         raise ValueError("Unsupported codec.")
+    if mp3_export and codec not in {"mp3128", "mp3320"}:
+        raise ValueError("MP3 export requires an MP3 codec.")
     validate_audio(file_path)
     deadline = time.monotonic() + 140
     extension, mime, arguments = FORMATS[codec]
+    if mp3_export:
+        # MPEG-1 sample rates support the advertised 128/320 kbit/s. Without
+        # this, low-rate WAV input can silently clamp a 320k request to 160k.
+        # Opt-in for the new converter ONLY; existing previews are unchanged.
+        source_rate = sf.info(file_path).samplerate
+        target_rate = min((32000,44100,48000), key=lambda rate: abs(rate-source_rate))
+        arguments = [*arguments, "-ar", str(target_rate)]
     ffmpeg = os.environ.get("FFMPEG_BINARY", "ffmpeg")
     with tempfile.TemporaryDirectory(prefix="beatzucker-codec-") as directory:
         output = Path(directory) / f"preview.{extension}"

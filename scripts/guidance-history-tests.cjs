@@ -21,8 +21,8 @@ let passed = 0;
 async function test(name, fn) { await fn(); passed++; console.log('PASS ' + name); }
 (async () => {
   const guides = load('lib/toolGuidance.ts'), articles = load('app/data/ressourcen.ts').ARTICLES;
-  await test('all ten tools have bilingual examples and real, reciprocal learning links', () => {
-    assert.equal(Object.keys(guides.TOOL_GUIDES).length, 10);
+  await test('all thirteen tools have bilingual examples and real, reciprocal learning links', () => {
+    assert.equal(Object.keys(guides.TOOL_GUIDES).length, 13);
     for (const [slug, guide] of Object.entries(guides.TOOL_GUIDES)) {
       for (const lang of ['de', 'en']) {
         for (const key of ['title', 'situation', 'action', 'interpretation']) assert.ok(guide[key][lang].length > 5);

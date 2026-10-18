@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 
-export const USAGE_TOOLS = ["mix-check", "streaming-preview", "kick-bass-conflict", "key-bpm", "silence-normalizer", "reference-comparison", "stereo-phase", "album-consistency", "audio-converter", "vocal-chain"] as const;
+export const USAGE_TOOLS = ["speech-cleaner", "wav-to-mp3", "audio-cutter", "mix-check", "streaming-preview", "kick-bass-conflict", "key-bpm", "silence-normalizer", "reference-comparison", "stereo-phase", "album-consistency", "audio-converter", "vocal-chain"] as const;
 export const USAGE_OUTCOMES = ["started", "completed", "partial", "error", "cancelled"] as const;
 export function usageDay(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);

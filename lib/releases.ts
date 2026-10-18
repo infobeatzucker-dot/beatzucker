@@ -10,6 +10,14 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "1.4.0", date: "2026-10-18",
+  title: { de: "Dein Audio. Passend geschnitten und geteilt.", en: "Your audio. Cut and ready to share." },
+  summary: { de: "Drei neue kostenlose Tools helfen dir beim Bereinigen von Sprache, Zuschneiden und Weitergeben deiner Audiodateien – mit Vorschau und vollständigen Downloads.", en: "Three new free tools help you clean up voice recordings, trim and share audio, with audition playback and complete downloads." },
+  improvements: {
+    de: ["Podcast- und Sprachaufnahmen von gleichmäßigem Rauschen bereinigen, den Pegel ausgleichen und Original sowie Ergebnis vergleichen.", "WAV-Dateien ohne Anmeldung in MP3 mit 128 oder 320 kbit/s umwandeln, vorhören und herunterladen.", "Im Audio-Cutter Start und Ende an der Wellenform setzen oder genaue Zeiten eingeben und die Auswahl vorhören.", "Optional Ein-/Ausblendungen wählen und den geschnittenen Abschnitt lokal als WAV exportieren. Das Original bleibt unverändert.", "Alle drei Tools sind auf Deutsch und Englisch verfügbar und mit passenden Audio-Ratgebern verknüpft."],
+    en: ["Reduce steady noise in podcast and voice recordings, even out levels and compare original and cleaned audio.", "Convert WAV files to 128 or 320 kbit/s MP3 without signing in, audition and download.", "Set start/end markers on the Audio Cutter waveform or enter precise times, then audition your selection.", "Add optional fades and export the cut section locally as WAV. Your original remains unchanged.", "All three tools are available in German and English and linked to relevant audio guides."],
+  },
+}, {
   version: "1.3.0", date: "2026-10-18",
   title: { de: "Klare Antworten. Ergebnisse mit Profil.", en: "Clear answers. Results in focus." },
   summary: { de: "Ein neuer Überblick erklärt kostenloses Mastering und passende nächste Schritte. Die Audio-Tools stellen ihre Ergebnisse übersichtlicher dar.", en: "A new overview explains free mastering and useful next steps. Audio tools present their results more clearly." },

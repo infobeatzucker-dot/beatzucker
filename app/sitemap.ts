@@ -23,10 +23,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...pair("/versionen", "/en/updates", RELEASE_DATE, 0.5),
     ...pair("/hoervergleich", "/en/mastering-examples", "2026-10-18", 0.8),
     ...pair("/mix-check", "/en/mix-check", GUIDANCE_UPDATED, 0.9),
-    ...pair("/tools", "/en/tools", GUIDANCE_UPDATED, 0.9),
+    ...pair("/tools", "/en/tools", "2026-10-18", 0.9),
     ...["vocal-remover", "stem-separation"].flatMap(slug => pair(`/tools/${slug}`, `/en/tools/${slug}`, "2026-10-18", 0.6)),
     ...Object.keys(TOOL_GUIDES).filter(slug => slug !== "mix-check").flatMap(slug =>
-      pair(`/tools/${slug}`, `/en/tools/${slug}`, slug === "stereo-phase" ? "2026-10-18" : "2026-10-17", 0.8)),
+      pair(`/tools/${slug}`, `/en/tools/${slug}`, ["speech-cleaner","stereo-phase","wav-to-mp3","audio-cutter"].includes(slug) ? "2026-10-18" : "2026-10-17", 0.8)),
     ...pair("/ressourcen", "/en/knowledge", GUIDANCE_UPDATED, 0.8),
     ...ARTICLES.flatMap(article => pair(`/ressourcen/${article.slug}`, `/en/knowledge/${article.slug}`, articleContentDate(article), 0.7)),
     ...pair("/impressum", "/legal-notice", "2026-08-23", 0.2),

@@ -7,9 +7,9 @@ const pushed=spawnSync(process.execPath,['node_modules/prisma/build/index.js','d
 const {PrismaClient}=require('@prisma/client'),db=new PrismaClient({datasources:{db:{url}}});
 (async()=>{
  const usage=load('lib/toolUsage.ts',{'@/lib/db':{db}});
- assert.equal(usage.USAGE_TOOLS.length,10);assert.equal(usage.usageDay(new Date('2026-10-13T23:30:00Z')),'2026-10-14');assert.equal(usage.usageCutoff(7,new Date('2026-10-13T23:30:00Z')),'2026-10-08');
+ assert.equal(usage.USAGE_TOOLS.length,13);assert.equal(usage.usageDay(new Date('2026-10-13T23:30:00Z')),'2026-10-14');assert.equal(usage.usageCutoff(7,new Date('2026-10-13T23:30:00Z')),'2026-10-08');
  const id=require('node:crypto').randomUUID();assert.ok(usage.validUsage({id,tool:'mix-check',outcome:'started'}));assert.ok(!usage.validUsage({id,tool:'unknown',outcome:'started'}));assert.ok(!usage.validUsage({id:'bad',tool:'mix-check',outcome:'error'}));
- console.log('PASS ten tools, bounded allowlists and Berlin day boundaries');
+ console.log('PASS thirteen tools, bounded allowlists and Berlin day boundaries');
  await db.toolUsage.create({data:{id:require('node:crypto').randomUUID(),day:'2000-01-01',tool:'mix-check',outcome:'started'}});
  await usage.recordToolUsage(id,'mix-check','started');await usage.recordToolUsage(id,'mix-check','started');assert.equal(await db.toolUsage.count(),1);
  await usage.recordToolUsage(id,'key-bpm','error');assert.equal((await db.toolUsage.findUnique({where:{id}})).outcome,'started');
@@ -49,7 +49,7 @@ const {PrismaClient}=require('@prisma/client'),db=new PrismaClient({datasources:
    return renderToStaticMarkup(React.createElement(module.exports.default));
  }
  const fixture=[{day:'2026-10-14',tool:'mix-check',outcome:'completed',count:2},{day:'2026-10-14',tool:'mix-check',outcome:'error',count:1}];
- for(const lang of ['de','en']){const markup=renderPanel(lang,fixture);assert.ok(!markup.includes('NaN'));assert.match(markup,/2026-10-08/);assert.equal((markup.match(/scope="row"/g)||[]).length,10);assert.match(markup,/<td>3<\/td><td>2<\/td><td>0<\/td><td>1<\/td>/);assert.match(renderPanel(lang,[]),lang==='de'?/noch keine Vorgänge/:/No reported operations/);assert.match(renderPanel(lang,[],false,'Unavailable'),/Unavailable/);assert.ok(!renderPanel(lang,fixture,true).includes('<table>'));}
- console.log('PASS DE/EN admin rendering, ten tool rows, totals, zero days, loading and error states');
+ for(const lang of ['de','en']){const markup=renderPanel(lang,fixture);assert.ok(!markup.includes('NaN'));assert.match(markup,/2026-10-08/);assert.equal((markup.match(/scope="row"/g)||[]).length,13);assert.match(markup,/<td>3<\/td><td>2<\/td><td>0<\/td><td>1<\/td>/);assert.match(renderPanel(lang,[]),lang==='de'?/noch keine Vorgänge/:/No reported operations/);assert.match(renderPanel(lang,[],false,'Unavailable'),/Unavailable/);assert.ok(!renderPanel(lang,fixture,true).includes('<table>'));}
+ console.log('PASS DE/EN admin rendering, thirteen tool rows, totals, zero days, loading and error states');
  console.log('7 tool usage checks passed; isolated SQLite only, no production requests.');
 })().catch(error=>{console.error(error);process.exitCode=1}).finally(()=>db.$disconnect());

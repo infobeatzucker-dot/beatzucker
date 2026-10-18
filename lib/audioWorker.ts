@@ -26,8 +26,8 @@ async function run(buffer: AudioBuffer, task: Task, signal?: AbortSignal): Promi
     } catch { finish(Error("Audio worker could not start")); }
   });
 }
-export async function encodeWavAsync(buffer: AudioBuffer, depth: WavDepth = "24", dither = true): Promise<Blob> {
-  const result = await run(buffer, { kind: "wav", depth, dither });
+export async function encodeWavAsync(buffer: AudioBuffer, depth: WavDepth = "24", dither = true, signal?: AbortSignal): Promise<Blob> {
+  const result = await run(buffer, { kind: "wav", depth, dither }, signal);
   if (!(result instanceof Blob) || result.size < 44) throw Error("Invalid WAV export");
   return result;
 }
@@ -43,6 +43,6 @@ export async function analyzeSpectrumAsync(buffer: AudioBuffer, signal?: AbortSi
 export async function inspectStereoAsync(buffer: AudioBuffer, signal?: AbortSignal): Promise<StereoResult> {
   return await run(buffer, { kind: "stereo" }, signal) as StereoResult;
 }
-export async function waveformPeaksAsync(buffer: AudioBuffer): Promise<Float32Array> {
-  return await run(buffer, { kind: "waveform" }) as Float32Array;
+export async function waveformPeaksAsync(buffer: AudioBuffer, signal?: AbortSignal): Promise<Float32Array> {
+  return await run(buffer, { kind: "waveform" }, signal) as Float32Array;
 }
