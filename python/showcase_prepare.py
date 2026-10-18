@@ -26,6 +26,58 @@ def _anchor(a,b,center):
     scores=correlation/np.sqrt(np.maximum(energy*np.sum(anchor**2),1e-20));index=int(np.argmax(scores))
     return index*8-radius,float(scores[index])
 
+
+def _content_similarity(a, b, first, offset):
+    """Corroborate content without requiring matching mastering phase.
+
+    Log-energy envelopes are centered within each band: a similar genre or
+    static tonal balance alone cannot establish a match. Analysis only; these
+    filtered/spectral representations are NEVER written to the excerpts.
+    """
+    features, energies = [], []
+    for audio, shift in ((a, 0), (b, offset)):
+        begin = first + shift
+        if begin < 0 or begin + SECONDS*RATE > len(audio):
+            return 0.0
+        frequencies, _, spectrum = signal.stft(audio[begin:begin+SECONDS*RATE], fs=RATE,
+            nperseg=2048, noverlap=1024, boundary=None, padded=False)
+        power = np.abs(spectrum)**2
+        bands = np.stack([np.mean(power[(frequencies >= lo) & (frequencies < hi)], axis=0)
+            for lo, hi in ((80,160),(160,320),(320,640),(640,1280),(1280,2560),(2560,5120),(5120,10000))])
+        features.append(np.log(np.maximum(bands, 1e-15)))
+        energies.append(np.mean(bands, axis=1))
+    centered = [values-values.mean(axis=1, keepdims=True) for values in features]
+    active = np.ones(7, dtype=bool)
+    for values, energy in zip(features, energies):
+        active &= (values.std(axis=1) > .08) & (energy > max(float(np.max(energy))*1e-5, 1e-15))
+    if np.count_nonzero(active) < 4:
+        return 0.0
+    scores = np.sum(centered[0]*centered[1], axis=1) / np.sqrt(
+        np.maximum(np.sum(centered[0]**2, axis=1)*np.sum(centered[1]**2, axis=1), 1e-20))
+    valid = scores[active]
+    return float(np.median(valid)) if np.count_nonzero(valid >= .75) >= 4 else 0.0
+
+
+def _find_offset(mono, local_start):
+    offset, confidence = _anchor(*mono, local_start+8*RATE)
+    if confidence >= .65:
+        return offset
+    low = [signal.sosfiltfilt(signal.butter(4,1000,fs=RATE,output='sos'), audio) for audio in mono]
+    anchors = [_anchor(*low, local_start+at*RATE) for at in (8,16)]
+    if min(score for _,score in anchors) >= .65 and abs(anchors[0][0]-anchors[1][0]) <= RATE*.002:
+        return int(round(float(np.median([lag for lag,_ in anchors]))))
+    # A mastered mix may have strongly altered phase above the bass region.
+    # Require FOUR consistent bass anchors AND independent multi-band temporal
+    # content agreement; do not simply lower the existing confidence threshold.
+    bass = [signal.sosfiltfilt(signal.butter(4,250,fs=RATE,output='sos'), audio) for audio in mono]
+    anchors = [_anchor(*bass, local_start+at*RATE) for at in (4,8,12,16)]
+    lags = [lag for lag,_ in anchors]
+    offset = int(round(float(np.median(lags))))
+    if (min(score for _,score in anchors) >= .65 and max(lags)-min(lags) <= RATE*.002
+            and _content_similarity(*mono, local_start, offset) >= .8):
+        return offset
+    raise ValueError('Original und Master lassen sich nicht sicher zeitlich ausrichten. Bitte denselben Songabschnitt ohne andere Schnittfassung verwenden oder einen anderen Ausschnitt wählen. / Original and master cannot be aligned reliably. Use the same section without a different edit, or choose another excerpt.')
+
 def prepare_showcase(original,master,start,asset_id):
     if not re.fullmatch(r'[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}',asset_id): raise ValueError('Invalid asset ID')
     if not np.isfinite(start) or not 0<=start<=600: raise ValueError('Start muss zwischen 0 und 600 Sekunden liegen. / Start must be between 0 and 600 seconds.')
@@ -35,12 +87,7 @@ def prepare_showcase(original,master,start,asset_id):
     arrays=[_decode(file,read_start,26) for file in (original,master)]
     if min(map(len,arrays))<local_start+SECONDS*RATE: raise ValueError('Beide Dateien müssen den kompletten 24-Sekunden-Ausschnitt enthalten. / Both files must contain the full 24-second excerpt.')
     mono=[audio.mean(axis=1) for audio in arrays]
-    offset,confidence=_anchor(*mono,local_start+8*RATE)
-    if confidence<.65:
-        sos=signal.butter(4,1000,fs=RATE,output='sos');low=[signal.sosfiltfilt(sos,a) for a in mono]
-        anchors=[_anchor(*low,local_start+at*RATE) for at in (8,16)]
-        if min(score for _,score in anchors)<.65 or abs(anchors[0][0]-anchors[1][0])>RATE*.002: raise ValueError('Original und Master lassen sich nicht sicher zeitlich ausrichten. / Original and master cannot be aligned reliably.')
-        offset=int(round(float(np.median([lag for lag,_ in anchors]))))
+    offset=_find_offset(mono,local_start)
     targets=[];result={'sourceStart':start,'duration':SECONDS}
     try:
         for side,audio,shift in zip(('original','master'),arrays,(0,offset)):

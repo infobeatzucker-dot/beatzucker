@@ -46,6 +46,29 @@ class ShowcaseTests(unittest.TestCase):
         # No loudness normalization in stored samples: source gain survives preparation.
         self.assertAlmostEqual(result['master']['metrics']['lufs']-result['original']['metrics']['lufs'], 20*np.log10(1.6), delta=.2)
 
+    def test_phase_tolerant_fallback_still_requires_matching_content(self):
+        rng = np.random.default_rng(128)
+        source = rng.normal(0, .05, 26*showcase.RATE).astype(np.float32)
+        delayed = np.concatenate([np.zeros(40,dtype=np.float32), source[:-40]])*1.5
+        # Exercise the final fallback even when waveform tests are inconclusive.
+        candidates = [(0,.2)]*3+[(40,.9)]*4
+        with patch.object(showcase, '_anchor', side_effect=candidates):
+            self.assertEqual(showcase._find_offset([source,delayed], showcase.RATE//2),40)
+        unrelated = rng.normal(0,.05,len(source)).astype(np.float32)
+        with patch.object(showcase, '_anchor', side_effect=candidates):
+            with self.assertRaisesRegex(ValueError, 'cannot be aligned'):
+                showcase._find_offset([source,unrelated], showcase.RATE//2)
+
+    def test_unstable_bass_offsets_cannot_override_alignment_failure(self):
+        source = np.random.default_rng(129).normal(0,.05,26*showcase.RATE).astype(np.float32)
+        with patch.object(showcase, '_anchor', side_effect=[(0,.2)]*3+[(0,.9),(0,.9),(400,.9),(0,.9)]):
+            with self.assertRaisesRegex(ValueError, 'cannot be aligned'):
+                showcase._find_offset([source,source], showcase.RATE//2)
+
+    def test_silent_content_has_no_alignment_confidence(self):
+        silence = np.zeros(26*showcase.RATE,dtype=np.float32)
+        self.assertEqual(showcase._content_similarity(silence,silence,showcase.RATE//2,0),0)
+
     def test_preexisting_assets_are_never_overwritten_or_removed(self):
         folder = self.folder/'existing'; folder.mkdir()
         asset = '22222222-2222-4333-8444-555555555555'
