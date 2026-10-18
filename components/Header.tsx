@@ -85,7 +85,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
                 textDecoration: "none",
               }}
             >
-              <span className="hidden sm:inline">BETA · </span>v{APP_VERSION}
+              v{APP_VERSION}
             </Link>
           </div>
 

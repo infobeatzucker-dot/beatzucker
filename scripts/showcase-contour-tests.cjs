@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const mod={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/showcaseContourMotion.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:mod,exports:mod.exports});
+const {updateContourEnergies:update}=mod.exports,levels=new Float32Array(8),bins=new Uint8Array(128);
+update(bins,levels,true,false);assert.ok(levels.every(x=>x===0),'Silence must not invent motion');
+bins[1]=255;update(bins,levels,true,false);assert.ok(levels[0]>.5);assert.ok(levels.slice(1).every(x=>x===0),'Bass must not move unrelated bands');
+bins.fill(0);bins.fill(255,65);update(bins,levels,true,false);assert.ok(levels[7]>.5);assert.ok(levels[0]<.65,'Bass release follows the real spectrum');
+const peak=levels[7];update(new Uint8Array(128),levels,true,false);assert.ok(levels[7]>0&&levels[7]<peak,'Smooth release, not synthetic oscillation');
+update(bins,levels,false,false);assert.ok(levels.every(x=>x===0),'Pause clears motion immediately');
+update(bins,levels,true,true);assert.ok(levels.every(x=>x===0),'Reduced motion is static');
+for(let i=0;i<200;i++)update(new Uint8Array(128).fill(255),levels,true,false);assert.ok(levels.every(x=>Number.isFinite(x)&&x>=0&&x<=1));
+update(new Uint8Array(0),levels,true,false);assert.ok(levels.every(Number.isFinite));
+const view=fs.readFileSync('components/MasteringListeningShowcase.tsx','utf8'),css=fs.readFileSync('components/showcase-gallery.css','utf8');
+assert.ok(view.includes('startVisibleAnimation(deck.current ?? element'),'Visibility must include the gallery, not just the lower canvas');
+assert.ok(view.includes('analyser.getByteFrequencyData(frequency)'));assert.ok(view.includes('playing && !!analyser, reducedMotion.matches'));
+assert.ok(view.includes('resetContours();'));assert.ok(!css.includes('gallery-orbit'));assert.ok(css.includes('var(--energy)'));assert.ok(css.includes('prefers-reduced-motion'));
+console.log('PASS real spectral bands, silence/pause/reduced-motion reset, bounded attack/release, shared analyzer and gallery visibility lifecycle');

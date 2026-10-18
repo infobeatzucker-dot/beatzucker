@@ -23,11 +23,11 @@ export const metadata: Metadata = pageMetadata({
   metadataBase: new URL(BASE_URL),
 
   title: {
-    default: "Beatzucker – Professionelles Online Audio Mastering",
+    default: "Online Mastering kostenlos – mit Live-Feinabstimmung | Beatzucker",
     template: "%s | Beatzucker",
   },
   description:
-    "Mastere deinen Track online in wenigen Minuten. Adaptive 12-stufige DSP-Kette, manuelle Live-Feinabstimmung und 7 Exportformate – kostenlos starten.",
+    "Online Mastering kostenlos: Song automatisch mastern, live feinabstimmen und als WAV oder MP3 herunterladen. Ohne Abo, mit Anmeldung und Tageskontingent.",
   keywords: [
     "audio mastering",
     "AI mastering",
@@ -61,7 +61,7 @@ export const metadata: Metadata = pageMetadata({
     type: "website",
     url: BASE_URL,
     siteName: "Beatzucker",
-    title: "Beatzucker – Professionelles Online Audio Mastering",
+    title: "Online Mastering kostenlos – mit Live-Feinabstimmung | Beatzucker",
     description:
       "Mastere deinen Track online in wenigen Minuten – mit adaptiver DSP-Kette, Live-Feinabstimmung und 7 Exportformaten.",
     images: [

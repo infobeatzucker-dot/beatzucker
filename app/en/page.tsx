@@ -5,9 +5,9 @@ import Home from "../page";
 const BASE_URL = "https://beatzucker.de";
 
 export const metadata: Metadata = pageMetadata({
-  title: { absolute: "Beatzucker – Professional Online Audio Mastering" },
+  title: { absolute: "Free Online Mastering – with Live Fine-Tuning | Beatzucker" },
   description:
-    "Master your track online in minutes. Adaptive 12-stage DSP chain, real-time manual fine-tuning and 7 export formats — free to start.",
+    "Free online mastering: master your song, fine-tune it live and download WAV or MP3. No subscription. Sign-in and a daily account allowance apply.",
   alternates: {
     canonical: `${BASE_URL}/en`,
     languages: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = pageMetadata({
     type: "website",
     url: `${BASE_URL}/en`,
     siteName: "Beatzucker",
-    title: "Beatzucker – Professional Online Audio Mastering",
+    title: "Free Online Mastering – with Live Fine-Tuning | Beatzucker",
     description:
       "Master your track online in minutes with adaptive DSP, real-time fine-tuning and 7 export formats.",
     locale: "en_US",

@@ -26,6 +26,9 @@ try {
   run(process.execPath, ['scripts/showcase-admin-tests.cjs']);
   run(process.execPath, ['scripts/release-audience-tests.cjs']);
   run(process.execPath, ['scripts/mastering-examples-tests.cjs']);
+  run(process.execPath, ['scripts/full-release-guidance-tests.cjs']);
+  run(process.execPath, ['scripts/showcase-gallery-tests.cjs']);
+  run(process.execPath, ['scripts/showcase-contour-tests.cjs']);
   const venv = path.join(root, 'python', 'venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
   const python = fs.existsSync(venv) ? venv : process.platform === 'win32' ? 'python' : 'python3';
   run(python, ['-m', 'unittest', 'discover', '-s', 'python/tests']);

@@ -14,7 +14,7 @@ export default function ReleaseHistory({ lang }: { lang: Lang }) {
         <span className="release-eyebrow"><History size={15} /> {en ? "BEATZUCKER UPDATES" : "BEATZUCKER UPDATES"}</span>
         <h1>{en ? "Good sound." : "Guter Sound."}<br /><em>{en ? "Always improving." : "Immer besser."}</em></h1>
         <p>{en ? "What has changed? Here are the improvements that matter to you — clearly explained, without the jargon." : "Was hat sich verändert? Hier findest du die Verbesserungen, die für dich wichtig sind – verständlich erklärt, ohne Fachchinesisch."}</p>
-        <div className="release-current"><Sparkles size={16} /><span>{en ? "Current version" : "Aktuelle Version"}</span><strong>Beta · v{APP_VERSION}</strong></div>
+        <div className="release-current"><Sparkles size={16} /><span>{en ? "Current version" : "Aktuelle Version"}</span><strong>v{APP_VERSION}</strong></div>
         <Link className="release-language" href={en ? "/versionen" : "/en/updates"} lang={en ? "de" : "en"}>{en ? "Auf Deutsch lesen" : "Read in English"} <ArrowRight size={14} /></Link>
       </div>
       <div className="release-timeline">

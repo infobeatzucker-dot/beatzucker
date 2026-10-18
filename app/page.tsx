@@ -20,12 +20,12 @@ type Lang = "de" | "en";
 const COPY = {
   eyebrow: { de: "ADAPTIVES AUDIO-MASTERING", en: "ADAPTIVE AUDIO MASTERING" },
   title: {
-    de: <>Professionelles<br />Mastering für alle.</>,
-    en: <>Professional<br />mastering for everyone.</>,
+    de: <>Online Mastering.<br />Kostenlos. Dein Sound.</>,
+    en: <>Free online<br />mastering. Your sound.</>,
   },
   intro: {
-    de: <>Mit <strong>Beatzucker</strong>: Schnell, kostenlos, Studio-Qualität.</>,
-    en: <>With <strong>Beatzucker</strong>: Fast, free, studio quality.</>,
+    de: <>Mit <strong>Beatzucker</strong>: automatisch mastern, live feinabstimmen und deinen Master herunterladen.</>,
+    en: <>With <strong>Beatzucker</strong>: master automatically, fine-tune live and download your finished master.</>,
   },
   cta: { de: "Jetzt mastern", en: "Master now" },
 };
@@ -99,6 +99,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
               </div>
               <h1 id="hero-title">{COPY.title[lang]}</h1>
               <p className="hero-intro">{COPY.intro[lang]}</p>
+              <p style={{color:"var(--text-secondary)",fontSize:12,lineHeight:1.7,margin:"12px 0 0"}}>{lang === "de" ? "Ohne Abo. Anmeldung erforderlich; es gilt dein tägliches Mastering-Kontingent." : "No subscription. Sign-in required; your daily mastering allowance applies."}</p>
 
               <a className="neon-cta hero-cta" href="#mastering">
                 {COPY.cta[lang]}

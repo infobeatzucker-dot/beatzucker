@@ -1,4 +1,5 @@
 import { MANUAL_MASTERING_ARTICLE } from "./manualMasteringArticle";
+import { LUFS_ARTICLE, SAMPLE_RATE_ARTICLE } from "./audioBasicsArticles";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type ArticleCategory = "Grundlagen" | "Technik" | "Tipps" | "Plattformen";
@@ -128,92 +129,7 @@ export const ARTICLES: RessourceArticle[] = [
   },
 
   // ── 2 ──────────────────────────────────────────────────────────────────────
-  {
-    slug: "lufs-erklaert",
-    category: "Technik",
-    categoryColor: "var(--accent-cyan)",
-    publishedAt: "2025-01-15",
-    heroIcon: "BarChart3",
-    readingTimeMinutes: 7,
-    title: { de: "LUFS verstehen: Lautheit für Spotify & Co.", en: "Understanding LUFS: Loudness for the Streaming Era" },
-    metaTitle: { de: "LUFS erklärt: Lautheit für Spotify, YouTube & Co. | Beatzucker", en: "LUFS Explained: Loudness Basics for Streaming | Beatzucker" },
-    metaDescription: {
-      de: "LUFS einfach erklärt: der Unterschied zu dB und RMS, alle Zielwerte der großen Plattformen und weshalb diese Einheit beim Mastering über allem steht.",
-      en: "A clear guide to LUFS: how it differs from dB and RMS, target values across major platforms, and why it's the loudness unit that matters most in mastering.",
-    },
-    keywords: {
-      de: ["lufs erklärt", "was ist lufs", "lufs spotify wert", "integrated lufs bedeutung", "streaming lautheit normalisierung", "lufs messen"],
-      en: ["lufs explained", "what does lufs mean", "lufs target spotify", "integrated lufs meaning", "streaming loudness normalization", "how to measure lufs"],
-    },
-    teaser: {
-      de: "Kaum ein Kürzel taucht beim Mastering so häufig auf wie LUFS. Wir erklären, was dahintersteckt, welche Zielwerte zählen und wie Streaming-Dienste damit umgehen.",
-      en: "Few abbreviations show up as often in mastering discussions as LUFS. Here's what it actually measures, which target numbers matter, and how streaming platforms use them.",
-    },
-    relatedSlugs: ["mastering-plattformen-lufs", "true-peak-rms-lufs", "song-klingt-leise-spotify"],
-    content: {
-      intro: {
-        de: "Spätestens beim Mastern deines ersten Tracks läufst du dem Begriff LUFS über den Weg. Die Abkürzung steht für Loudness Units relative to Full Scale und hat sich zum weltweiten Standard für Lautheitsmessung in Broadcast und Streaming entwickelt. Ignorierst du LUFS, landet dein Track auf Spotify entweder zu leise im Player oder wird von der Plattform automatisch heruntergedreht — beides kostet Energie.",
-        en: "Master your first track and sooner or later you'll run into the term LUFS. It stands for Loudness Units relative to Full Scale, and it's become the global standard for measuring loudness across broadcast and streaming. Ignore it, and your track either sits too quiet in the player or gets automatically pulled down by the platform — either way, you lose energy.",
-      },
-      sections: [
-        {
-          h2: { de: "LUFS — was steckt hinter dem Begriff?", en: "What LUFS Actually Measures" },
-          body: {
-            de: "LUFS (Loudness Units relative to Full Scale) misst nicht den Spitzenpegel, sondern die wahrgenommene Lautstärke eines Signals über die Zeit hinweg — also näherungsweise das, was unser Ohr tatsächlich hört. Ein reiner dB-Peak-Wert erfasst dagegen nur den lautesten Moment, nicht den Gesamteindruck.\n\nFestgelegt wurde der Standard in der EBU R128 (European Broadcasting Union) sowie in ITU-R BS.1770. Damit hat LUFS das ältere RMS-Verfahren praktisch abgelöst und einen fairen, plattformübergreifenden Vergleich der Lautheit ermöglicht.",
-            en: "LUFS (Loudness Units relative to Full Scale) doesn't track peak level — it tracks perceived loudness over time, which lines up much more closely with what your ears register. A plain dB peak reading, by contrast, only tells you about the single loudest instant, not the overall impression.\n\nThe standard comes from EBU R128 (European Broadcasting Union) and ITU-R BS.1770. It has effectively replaced the older RMS method and made fair, cross-platform loudness comparisons possible.",
-          },
-        },
-        {
-          h2: { de: "LUFS, dB und RMS im Vergleich", en: "LUFS vs. dB vs. RMS: The Real Difference" },
-          body: {
-            de: "Diese drei Begriffe geraten schnell durcheinander. So grenzen sie sich sauber voneinander ab:",
-            en: "These three terms get mixed up constantly. Here's a clean breakdown of each:",
-          },
-          table: {
-            headers: [
-              { de: "Maßeinheit", en: "Unit" },
-              { de: "Was sie misst", en: "What It Measures" },
-              { de: "Typischer Einsatz", en: "Typical Use" },
-            ],
-            rows: [
-              [{ de: "dB (Peak)", en: "dB (Peak)" }, { de: "Höchster Momentanpegel", en: "Highest instantaneous level" }, { de: "Clipping im Blick behalten", en: "Watching for clipping" }],
-              [{ de: "RMS", en: "RMS" }, { de: "Quadratisches Mittel des Signals", en: "Root mean square of the signal" }, { de: "Klassische, ältere DAW-Analyse", en: "Legacy DAW metering" }],
-              [{ de: "LUFS (integrated)", en: "LUFS (integrated)" }, { de: "Wahrgenommene Gesamtlautheit", en: "Overall perceived loudness" }, { de: "Mastering fürs Streaming", en: "Mastering for streaming" }],
-              [{ de: "Short-Term LUFS", en: "Short-Term LUFS" }, { de: "Lautheit der letzten 3 Sekunden", en: "Loudness over the last 3 seconds" }, { de: "Dynamikverlauf beobachten", en: "Tracking dynamic movement" }],
-              [{ de: "True Peak", en: "True Peak" }, { de: "Rekonstruierter Spitzenpegel", en: "Reconstructed peak level" }, { de: "Clipping-Kontrolle auf Plattformen", en: "Clipping checks on platforms" }],
-            ],
-          },
-        },
-        {
-          h2: { de: "Die Zielwerte der großen Streaming-Dienste", en: "Target Loudness Across Major Platforms" },
-          body: {
-            de: "Jeder Dienst normalisiert auf seinen eigenen LUFS-Zielwert. Liegst du darüber, wird runtergeregelt — liegst du darunter, bleibt es leise, denn hochgeregelt wird nicht. Am besten peilst du deshalb den jeweiligen Zielwert möglichst genau an:",
-            en: "Every platform normalizes to its own LUFS target. Come in above it and you get turned down; come in below it and it just stays quiet — platforms don't turn tracks up. So aim to land as close to the target as you reasonably can:",
-          },
-          list: [
-            { de: "Spotify: −14 LUFS integriert, True Peak bis maximal −1 dBTP", en: "Spotify: −14 LUFS integrated, True Peak capped at −1 dBTP" },
-            { de: "Apple Music: −16 LUFS, True Peak bis maximal −1 dBTP", en: "Apple Music: −16 LUFS, True Peak capped at −1 dBTP" },
-            { de: "YouTube: −14 LUFS, True Peak bis maximal −1 dBTP", en: "YouTube: −14 LUFS, True Peak capped at −1 dBTP" },
-            { de: "TikTok: −14 LUFS", en: "TikTok: −14 LUFS" },
-            { de: "Amazon Music: −14 LUFS", en: "Amazon Music: −14 LUFS" },
-            { de: "SoundCloud: −11 LUFS, hier wird nicht automatisch normalisiert", en: "SoundCloud: −11 LUFS, no automatic normalization applied" },
-            { de: "Club-System / DJ-Set: −6 LUFS für maximale Lautheit", en: "Club system / DJ set: −6 LUFS for maximum loudness" },
-          ],
-        },
-        {
-          h2: { de: "So misst du LUFS in der eigenen DAW", en: "Measuring LUFS Inside Your DAW" },
-          body: {
-            de: "Die meisten aktuellen DAWs bringen ein LUFS-Meter mit, alternativ greifst du zu einem Plugin. Beliebte kostenlose Optionen sind der Youlean Loudness Meter oder das Meter in iZotope Ozone. Beatzucker übernimmt die Analyse automatisch und zeigt dir die LUFS-Werte direkt im Analyse-Panel — vor und nach dem Mastering.\n\nEine einfache Faustregel: Schau immer auf den integrierten LUFS-Wert über den kompletten Track, nicht nur auf einen kurzen Ausschnitt. Für Spotify heißt das Ziel: −14 LUFS integrated bei maximal −1 dBTP True Peak.",
-            en: "Most current DAWs ship with a built-in LUFS meter, or you can add a plugin. Popular free options include the Youlean Loudness Meter or the meter built into iZotope Ozone. Beatzucker handles this automatically and shows you the LUFS reading right in the analysis panel — both before and after mastering.\n\nSimple rule of thumb: always check the integrated LUFS value across the whole track, not just a short snippet. For Spotify, that means targeting −14 LUFS integrated with a True Peak ceiling of −1 dBTP.",
-          },
-        },
-      ],
-      conclusion: {
-        de: "LUFS ist kein trockenes Nischenthema für Techniker — es ist schlicht die Sprache, in der Streaming-Plattformen über Lautstärke sprechen. Wer sie beherrscht und danach mastert, sorgt dafür, dass der Song überall so klingt, wie er gemeint war.",
-        en: "LUFS isn't some dry technical footnote — it's simply the language streaming platforms use to talk about loudness. Get comfortable with it and master accordingly, and your song ends up sounding the way you intended it, on every platform.",
-      },
-    },
-  },
+  LUFS_ARTICLE,
 
   // ── 3 ──────────────────────────────────────────────────────────────────────
   {
@@ -841,73 +757,7 @@ export const ARTICLES: RessourceArticle[] = [
   },
 
   // ── 13 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "sample-rate-bit-depth",
-    category: "Technik",
-    categoryColor: "var(--accent-purple)",
-    publishedAt: "2025-03-10",
-    heroIcon: "Binary",
-    readingTimeMinutes: 6,
-    title: { de: "Sample Rate und Bit-Tiefe verständlich erklärt: 44.1 kHz, 48 kHz, 16-Bit, 24-Bit", en: "Sample Rate and Bit Depth, Demystified: 44.1 kHz, 48 kHz, 16-Bit, 24-Bit" },
-    metaTitle: { de: "Sample Rate & Bit-Tiefe verständlich erklärt | Beatzucker", en: "Sample Rate & Bit Depth, Clearly Explained | Beatzucker" },
-    metaDescription: {
-      de: "44.1 kHz oder 48 kHz? 16-Bit oder 24-Bit? So funktionieren Sample Rate und Bit-Tiefe wirklich — verständlich erklärt für Produktion und Mastering.",
-      en: "44.1 kHz or 48 kHz? 16-bit or 24-bit? How sample rate and bit depth actually work, explained clearly for production and mastering.",
-    },
-    keywords: {
-      de: ["44.1 khz oder 48 khz", "bit tiefe erklärung", "sample rate mastering", "16 bit 24 bit unterschied", "abtastrate audio"],
-      en: ["44.1khz or 48khz", "bit depth explained", "sample rate for mastering", "16-bit vs 24-bit difference", "audio sample rate"],
-    },
-    teaser: {
-      de: "Beim Anlegen eines neuen Projekts fragt dich jede DAW nach Sample Rate und Bit-Tiefe — und die wenigsten wissen wirklich, was sie da auswählen. Hier kommt die klare Antwort.",
-      en: "Every DAW asks for a sample rate and bit depth when you start a new project — and hardly anyone actually knows what they're picking. Here's the plain-English answer.",
-    },
-    relatedSlugs: ["audioformate-vergleich", "mix-fuer-mastering-vorbereiten", "true-peak-rms-lufs"],
-    content: {
-      intro: {
-        de: "Neues Projekt, neue DAW-Abfrage: Sample Rate und Bit-Tiefe. Die meisten Produzenten klicken sich hier einfach durch die vorausgewählten Optionen, ohne zu wissen, was dahintersteckt. Dabei bestimmen genau diese beiden Werte, wie viel klangliche Substanz dein Master am Ende tatsächlich hat.",
-        en: "New project, same old DAW prompt: sample rate and bit depth. Most producers just click through whatever's pre-selected without knowing what it actually controls. Yet these two numbers directly shape how much sonic substance your finished master has.",
-      },
-      sections: [
-        {
-          h2: { de: "Sample Rate: wie oft wird gemessen?", en: "Sample Rate: How Often Do We Take a Snapshot?" },
-          body: {
-            de: "Die Sample Rate gibt an, wie viele Momentaufnahmen des Audiosignals pro Sekunde gespeichert werden. Nach dem Nyquist-Shannon-Theorem muss sie mindestens doppelt so hoch sein wie die höchste Frequenz, die erfasst werden soll.\n\nDa das menschliche Ohr Frequenzen bis rund 20.000 Hz wahrnimmt, reicht eine Sample Rate von 44.100 Hz (44.1 kHz) völlig aus, um den gesamten hörbaren Bereich abzudecken.\n\n44.1 kHz: der Musik-Standard — CD-Standard seit 1982 und zugleich Standard für Streaming. Jede Musikplattform unterstützt 44.1 kHz nativ.\n\n48 kHz: der Standard für Video und Broadcast. Produzierst du für Film, TV oder YouTube, ist 48 kHz die bessere Wahl — so vermeidest du zusätzliche Samplerate-Konvertierungen in der Postproduktion.\n\n96 kHz / 192 kHz: kommen bei High-Res-Produktionen zum Einsatz. Für Streaming bringt das keinen hörbaren Vorteil, gibt dir aber mehr Spielraum bei intensiver DSP-Bearbeitung.",
-            en: "Sample rate describes how many snapshots of the audio signal get captured every second. According to the Nyquist-Shannon theorem, it needs to be at least double the highest frequency you want to record.\n\nSince human hearing tops out around 20,000 Hz, a sample rate of 44,100 Hz (44.1 kHz) is already enough to cover the entire audible spectrum.\n\n44.1 kHz: the music standard — it's been the CD standard since 1982 and is also the streaming standard. Every music platform supports 44.1 kHz natively.\n\n48 kHz: the standard for video and broadcast. If you're producing for film, TV, or YouTube, 48 kHz is the smarter pick — it skips an extra sample rate conversion step in post-production.\n\n96 kHz / 192 kHz: reserved for high-res productions. There's no audible benefit for streaming, but it does give you more headroom during heavy DSP processing.",
-          },
-        },
-        {
-          h2: { de: "Bit-Tiefe: wie fein wird die Lautstärke aufgelöst?", en: "Bit Depth: How Finely Is Loudness Resolved?" },
-          body: {
-            de: "Die Bit-Tiefe legt fest, wie fein das digitale System Lautstärkeunterschiede auflösen kann. Jedes zusätzliche Bit verdoppelt die Zahl der möglichen Lautstärkestufen.\n\n16-Bit: 65.536 Stufen, ungefähr 96 dB Dynamikumfang — der CD-Standard und völlig ausreichend für fertige Releases.\n\n24-Bit: 16.777.216 Stufen, ungefähr 144 dB Dynamikumfang — Standard in professioneller Produktion und Mastering. Der Vorteil: mehr Headroom nach unten, leise Passagen werden mit deutlich weniger Quantisierungsrauschen erfasst.\n\n32-Bit Float: praktisch unbegrenzter Dynamikumfang dank Floating-Point-Arithmetik. Wird intern in modernen DAWs genutzt und eignet sich am besten für Mastering-Archive.\n\nFaustregel: Produziere und mastere in 24-Bit, exportiere das fertige Release je nach Zweck in 16-Bit (mit Dithering) für CD oder in 24-Bit für Streaming.",
-            en: "Bit depth determines how finely the digital system can resolve loudness levels. Each additional bit doubles the number of possible loudness steps available.\n\n16-bit: 65,536 steps, roughly 96 dB of dynamic range — the CD standard, and plenty for a finished release.\n\n24-bit: 16,777,216 steps, roughly 144 dB of dynamic range — the standard in professional production and mastering. The payoff: more headroom at the bottom end, so quiet passages get captured with far less quantization noise.\n\n32-bit float: essentially unlimited dynamic range thanks to floating-point math. Used internally by modern DAWs and the best choice for mastering archives.\n\nRule of thumb: produce and master in 24-bit, then export the finished release as 16-bit with dithering for CD, or 24-bit for streaming.",
-          },
-        },
-        {
-          h2: { de: "Was solltest du in der Praxis wählen?", en: "So What Should You Actually Pick?" },
-          body: { de: "Eine kurze Orientierung nach Anwendungsfall:", en: "A quick reference by use case:" },
-          table: {
-            headers: [
-              { de: "Zweck", en: "Purpose" },
-              { de: "Sample Rate", en: "Sample Rate" },
-              { de: "Bit-Tiefe", en: "Bit Depth" },
-            ],
-            rows: [
-              [{ de: "Musikproduktion im DAW-Projekt", en: "DAW project for music production" }, { de: "44.1 kHz", en: "44.1 kHz" }, { de: "24-Bit oder 32-Bit Float", en: "24-bit or 32-bit float" }],
-              [{ de: "Filmmusik / Video-Sound", en: "Film score / video sound" }, { de: "48 kHz", en: "48 kHz" }, { de: "24-Bit", en: "24-bit" }],
-              [{ de: "Export für Mastering (an Beatzucker)", en: "Export for mastering (to Beatzucker)" }, { de: "44.1 oder 48 kHz", en: "44.1 or 48 kHz" }, { de: "24-Bit", en: "24-bit" }],
-              [{ de: "Finales Streaming-Release", en: "Final streaming release" }, { de: "44.1 kHz", en: "44.1 kHz" }, { de: "16-Bit (mit Dithering)", en: "16-bit (with dithering)" }],
-              [{ de: "Archiv / Backup", en: "Archive / backup" }, { de: "44.1 oder 96 kHz", en: "44.1 or 96 kHz" }, { de: "32-Bit Float", en: "32-bit float" }],
-            ],
-          },
-        },
-      ],
-      conclusion: {
-        de: "Sample Rate und Bit-Tiefe sind kein Voodoo, sondern folgen klaren technischen Regeln. Für viele Produktionen gilt: 44,1 oder 48 kHz und 24-Bit während Produktion und Mastering. Beatzucker übernimmt die Sample Rate des Uploads und liefert den Master in dem von dir gewählten Zielformat aus.",
-        en: "Sample rate and bit depth aren't some mysterious black art — they follow clear, predictable rules. For most productions, the formula is simple: 44.1 kHz and 24-bit through production and mastering, then 44.1 kHz and 16-bit for the finished release. Beatzucker accepts WAV files in any common sample rate and bit depth, and hands your master back in 32-bit, 24-bit, and 16-bit at the same time.",
-      },
-    },
-  },
+  SAMPLE_RATE_ARTICLE,
 
   // ── 14 ─────────────────────────────────────────────────────────────────────
   {

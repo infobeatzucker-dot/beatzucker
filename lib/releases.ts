@@ -10,6 +10,14 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "1.0.0", date: "2026-10-18",
+  title: { de: "Beatzucker 1.0 – bereit für deine Musik.", en: "Beatzucker 1.0 – ready for your music." },
+  summary: { de: "Beatzucker verlässt die Beta-Phase. Verständlichere Ratgeber und gezielte Stereo-Hilfen begleiten dich vom Export bis zum nächsten Mixschritt.", en: "Beatzucker leaves beta. Clearer guides and focused stereo advice help you from export to your next mixing decision." },
+  improvements: {
+    de: ["Die erste Vollversion trägt die Versionsnummer 1.0.0 – ohne Beta-Zusatz.", "LUFS, Sample-Rate, Bittiefe und Dither mit konkreten Beispielen verstehen und direkt ausprobieren.", "Das Stereo-Labor erklärt deine Messwerte und schlägt passende Prüfungen im Mix vor – ohne pauschale Klangurteile.", "Die Hörbeispiele erhalten eigene Covermotive, direkte Original-/Master-Umschaltung und Hintergrundkonturen, die auf die abgespielte Musik reagieren."],
+    en: ["The first full release is version 1.0.0, without the beta label.", "Understand LUFS, sample rate, bit depth and dither with concrete examples and linked tools.", "The Stereo Lab explains your measurements and suggests relevant mix checks without blanket quality judgements.", "Listening examples gain original cover artwork, direct original/master switching and background contours that react to the music being played."],
+  },
+}, {
   version: "0.21.0", date: "2026-10-18",
   title: { de: "Hören. Vergleichen. Besser einordnen.", en: "Listen. Compare. Understand." },
   summary: { de: "Eine eigene Hörvergleichsseite verbindet echte Original-/Master-Hörproben mit verständlichen Erklärungen und Messwerten.", en: "A dedicated listening page brings real original/master excerpts together with clear explanations and measurements." },
