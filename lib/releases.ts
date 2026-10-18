@@ -10,6 +10,14 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "1.3.0", date: "2026-10-18",
+  title: { de: "Klare Antworten. Ergebnisse mit Profil.", en: "Clear answers. Results in focus." },
+  summary: { de: "Ein neuer Überblick erklärt kostenloses Mastering und passende nächste Schritte. Die Audio-Tools stellen ihre Ergebnisse übersichtlicher dar.", en: "A new overview explains free mastering and useful next steps. Audio tools present their results more clearly." },
+  improvements: {
+    de: ["Direkt auf der Startseite erfährst du, was kostenlos enthalten ist, welche Datei sich eignet und wie du nach dem Auto-Master weiterarbeitest.", "Mix-Check, Hörbeispiele und hilfreiche Ratgeber sind im neuen Überblick direkt erreichbar.", "Tool-Ergebnisse erhalten einen gemeinsamen Abschlussbereich, klarere Messwertkarten und dezente Übergänge, die reduzierte Bewegung respektieren."],
+    en: ["The homepage explains what is included for free, which files to use and how to continue after automatic mastering.", "The new overview links directly to Mix Check, listening examples and practical guides.", "Tool results gain a consistent completion overview, clearer metric cards and subtle transitions that respect reduced-motion preferences."],
+  },
+}, {
   version: "1.2.0", date: "2026-10-18",
   title: { de: "Stimmen und Instrumente neu entdecken.", en: "Rediscover voices and instruments." },
   summary: { de: "Zwei neue Tool-Seiten führen zur Stimm- und Instrumententrennung. Die Verarbeitung steht bereit, sobald der zusätzliche Trennungsdienst aktiviert ist.", en: "Two new tool pages introduce vocal and instrument separation. Processing becomes available when the additional separation service is activated." },

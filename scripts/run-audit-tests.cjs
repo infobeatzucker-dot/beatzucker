@@ -32,6 +32,7 @@ try {
   run(process.execPath, ['scripts/showcase-cover-pool-tests.cjs']);
   run(process.execPath, ['scripts/platform-comparison-tests.cjs']);
   run(process.execPath, ['scripts/stem-access-tests.cjs']);
+  run(process.execPath, ['scripts/seo-results-tests.cjs']);
   const venv = path.join(root, 'python', 'venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
   const python = fs.existsSync(venv) ? venv : process.platform === 'win32' ? 'python' : 'python3';
   run(python, ['-m', 'unittest', 'discover', '-s', 'python/tests']);

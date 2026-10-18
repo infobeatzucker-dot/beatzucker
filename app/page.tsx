@@ -14,6 +14,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import PromoPopup from "@/components/PromoPopup";
 import MasteringJsonLd from "@/components/MasteringJsonLd";
 import MasterOverview, { type MasterOverviewData } from "@/components/MasterOverview";
+import MasteringGuideSection from "@/components/MasteringGuideSection";
 
 type Lang = "de" | "en";
 
@@ -134,6 +135,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
 
         <FeaturesSection lang={lang} />
         <BeforeAfterShowcase lang={lang} />
+        <MasteringGuideSection lang={lang} />
         <TestimonialsSection lang={lang} />
       </main>
 
