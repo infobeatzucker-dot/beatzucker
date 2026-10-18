@@ -25,7 +25,7 @@ export class ShowcasePlayer {
   private context() {
     if (!this.ctx) {
       const ctx = this.ctx = new AudioContext({ sampleRate: 48000, latencyHint: "balanced" });
-      this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 256; this.analyser.smoothingTimeConstant = .8;
+      this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 2048; this.analyser.smoothingTimeConstant = .12;
       this.gains = { original: ctx.createGain(), master: ctx.createGain() };
       this.gains.original.connect(this.analyser); this.gains.master.connect(this.analyser); this.analyser.connect(ctx.destination);
       this.applyGains(true);

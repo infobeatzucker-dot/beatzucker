@@ -1,0 +1,7 @@
+demucs==4.1.0
+torch==2.10.0+cpu
+numpy==2.5.4
+soundfile==0.13.1
+fastapi==0.135.2
+uvicorn==0.42.0
+python-multipart==0.0.22

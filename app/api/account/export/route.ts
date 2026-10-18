@@ -48,6 +48,8 @@ export async function GET() {
       emailVerified: user.emailVerified,
       twoFactorEnabled: user.twoFactorEnabled,
       dailyMasterLimit: user.dailyMasterLimit,
+      vocalRemoverEnabled: user.vocalRemoverEnabled,
+      stemSeparationEnabled: user.stemSeparationEnabled,
       termsAcceptedAt: user.termsAcceptedAt,
       termsVersion: user.termsVersion,
       termsLanguage: user.termsLanguage,

@@ -1,0 +1,27 @@
+# Opt-in ONLY. Not referenced by the normal application deployment.
+services:
+  stems:
+    profiles: [separation]
+    build:
+      context: ..
+      dockerfile: stem-worker/Dockerfile
+    environment:
+      STEM_WORKER_SECRET: ${STEM_WORKER_SECRET:?Set a separate random secret of at least 32 characters}
+    volumes:
+      - stem-jobs:/data
+      - ${STEM_MODEL_CACHE:?Set the absolute path to the verified model cache}:/models:ro
+    ports:
+      - "127.0.0.1:8020:8020"
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: 2
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    stop_grace_period: 20s
+volumes:
+  stem-jobs:

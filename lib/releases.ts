@@ -10,6 +10,22 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version: "1.2.0", date: "2026-10-18",
+  title: { de: "Stimmen und Instrumente neu entdecken.", en: "Rediscover voices and instruments." },
+  summary: { de: "Zwei neue Tool-Seiten führen zur Stimm- und Instrumententrennung. Die Verarbeitung steht bereit, sobald der zusätzliche Trennungsdienst aktiviert ist.", en: "Two new tool pages introduce vocal and instrument separation. Processing becomes available when the additional separation service is activated." },
+  improvements: {
+    de: ["Vocal Remover und Stem Separation haben eigene Seiten auf Deutsch und Englisch mit klarer Verfügbarkeitsanzeige.", "Bei aktiviertem Dienst kannst du nach Anmeldung 20 Sekunden testen; vollständige Spuren und WAV-Downloads benötigen eine Freischaltung.", "Die Vorschau erklärt Grenzen der Trennung, Tageslimits und die Aufbewahrung deiner Ergebnisse."],
+    en: ["Vocal Remover and Stem Separation have dedicated German and English pages with clear availability information.", "When the service is active, signed-in users can try 20 seconds; full stems and WAV downloads require activation.", "The preview explains separation limitations, daily limits and how long your results remain available."],
+  },
+}, {
+  version: "1.1.0", date: "2026-10-18",
+  title: { de: "Mehr Rhythmus. Neue Perspektiven.", en: "More rhythm. Fresh perspectives." },
+  summary: { de: "Deutlichere Musikimpulse und wechselnde Cover bringen mehr Leben in die Hörbeispiele. Der Anbieter-Vergleich erklärt den heutigen Funktionsumfang.", en: "Stronger musical pulses and changing artwork bring the listening examples to life. The provider comparison explains today's feature set." },
+  improvements: {
+    de: ["Die Hintergrundringe schlagen auf kurze Musikimpulse deutlicher aus und klingen schnell wieder ab.", "Zehn Covermotive werden bei neuen Seitenaufrufen zufällig verteilt – auch für einen späteren fünften Hörbeispiel-Track.", "Der Vergleich mit anderen Mastering-Angeboten beschreibt jetzt Live-Feinabstimmung, Downloads und die aktuellen Audio-Tools auf Deutsch und Englisch."],
+    en: ["Background rings respond more clearly to short musical impulses and settle quickly afterwards.", "Ten cover designs are randomly assigned on new page visits, including support for a future fifth listening track.", "The comparison with other mastering services now covers live fine-tuning, downloads and current audio tools in German and English."],
+  },
+}, {
   version: "1.0.0", date: "2026-10-18",
   title: { de: "Beatzucker 1.0 – bereit für deine Musik.", en: "Beatzucker 1.0 – ready for your music." },
   summary: { de: "Beatzucker verlässt die Beta-Phase. Verständlichere Ratgeber und gezielte Stereo-Hilfen begleiten dich vom Export bis zum nächsten Mixschritt.", en: "Beatzucker leaves beta. Clearer guides and focused stereo advice help you from export to your next mixing decision." },

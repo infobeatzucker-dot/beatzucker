@@ -78,6 +78,8 @@ export async function GET() {
       createdAt: u.createdAt,
       mastersCount: u._count.masters,
       dailyMasterLimit: u.dailyMasterLimit,
+      vocalRemoverEnabled: u.vocalRemoverEnabled,
+      stemSeparationEnabled: u.stemSeparationEnabled,
       dailyLimit: dailyMasterLimit(u.dailyMasterLimit),
       dailyUsed: quotaByUser.get(u.id) ?? 0,
     })),

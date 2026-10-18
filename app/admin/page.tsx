@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import ToolUsageStats from "@/components/admin/ToolUsageStats";
 import UserDailyLimit from "@/components/admin/UserDailyLimit";
+import UserStemAccess from "@/components/admin/UserStemAccess";
 import ShowcaseManager from "@/components/admin/ShowcaseManager";
 import { useUiLanguage } from "@/lib/useUiLanguage";
 
@@ -18,6 +19,8 @@ interface Stats {
 
 interface AdminUser {
   dailyMasterLimit: number | null;
+  vocalRemoverEnabled: boolean;
+  stemSeparationEnabled: boolean;
   dailyLimit: number;
   dailyUsed: number;
   id: string;
@@ -532,7 +535,7 @@ export default function AdminPage() {
                       <td style={{ ...tdStyle, color: "var(--text-primary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</td>
                       <td style={tdStyle}>{u.name ?? "—"}</td>
                       <td style={{ ...tdStyle, textAlign: "center" }}>{u.mastersCount}</td>
-                      <td style={tdStyle}><UserDailyLimit lang={lang} userId={u.id} email={u.email} value={u.dailyMasterLimit} used={u.dailyUsed} onSaved={quota => setData(current => current ? { ...current, users: current.users.map(user => user.id === u.id ? { ...user, ...quota } : user) } : current)} /></td>
+                      <td style={tdStyle}><UserDailyLimit lang={lang} userId={u.id} email={u.email} value={u.dailyMasterLimit} used={u.dailyUsed} onSaved={quota => setData(current => current ? { ...current, users: current.users.map(user => user.id === u.id ? { ...user, ...quota } : user) } : current)} /><UserStemAccess userId={u.id} vocal={u.vocalRemoverEnabled} stems={u.stemSeparationEnabled} en={lang === "en"}/></td>
                       <td style={tdStyle}>{fmtDate(u.createdAt)}</td>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>
                         <button

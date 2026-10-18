@@ -9,7 +9,7 @@ export const TOOL_GUIDES: Record<string, Guide> = {
     situation: { de: "Dein Mix klingt fertig, aber du bist unsicher, ob er fürs Mastering geeignet ist.", en: "Your mix sounds finished, but you are unsure whether it is ready for mastering." },
     action: { de: "Prüfe den finalen Mix ohne zusätzlichen Lautmacher auf der Summe. Höre auffällige Stellen auch in Mono.", en: "Check the final mix without an extra loudness processor on the master bus. Audition flagged sections in mono too." },
     interpretation: { de: "Bei Clipping zuerst im Mix nacharbeiten. Ein guter technischer Score ersetzt keine Hörentscheidung.", en: "Fix clipping in the mix first. A good technical score cannot replace listening." },
-    articles: ["mix-fuer-mastering-vorbereiten", "home-recording-fehler"], next: ["reference-comparison", "streaming-preview"],
+    articles: ["mix-fuer-mastering-vorbereiten", "home-recording-fehler", "beatzucker-vs-andere-mastering-plattformen"], next: ["reference-comparison", "streaming-preview"],
   },
   "streaming-preview": {
     title: { de: "Streaming-Vorschau", en: "Streaming Preview" },

@@ -1,5 +1,6 @@
 import { MANUAL_MASTERING_ARTICLE } from "./manualMasteringArticle";
 import { LUFS_ARTICLE, SAMPLE_RATE_ARTICLE } from "./audioBasicsArticles";
+import { PLATFORM_COMPARISON_ARTICLE } from "./platformComparisonArticle";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type ArticleCategory = "Grundlagen" | "Technik" | "Tipps" | "Plattformen";
@@ -760,104 +761,7 @@ export const ARTICLES: RessourceArticle[] = [
   SAMPLE_RATE_ARTICLE,
 
   // ── 14 ─────────────────────────────────────────────────────────────────────
-  {
-    slug: "beatzucker-vs-andere-mastering-plattformen",
-    category: "Grundlagen",
-    categoryColor: "var(--accent-purple)",
-    publishedAt: "2025-03-15",
-    heroIcon: "Medal",
-    readingTimeMinutes: 9,
-    title: {
-      de: "Beatzucker im Vergleich: Das unterscheidet uns von LANDR, eMastered & Co.",
-      en: "How Beatzucker Stacks Up Against LANDR, eMastered & Other Platforms",
-    },
-    metaTitle: {
-      de: "Beatzucker im Vergleich zu LANDR & eMastered | Beatzucker",
-      en: "Beatzucker Compared to LANDR & eMastered | Beatzucker",
-    },
-    metaDescription: {
-      de: "Beatzucker gegenüber LANDR, eMastered und anderen Online-Mastering-Anbietern: DSGVO-Konformität, EU-Server, transparente DSP-Pipeline und faire Preise im Vergleich.",
-      en: "Beatzucker versus LANDR, eMastered, and other online mastering providers: GDPR compliance, EU servers, a transparent DSP pipeline, and fair pricing compared.",
-    },
-    keywords: {
-      de: ["online mastering anbieter vergleich", "landr alternative deutschland", "eu server mastering plattform", "dsgvo mastering tool", "bestes online mastering 2025"],
-      en: ["comparing online mastering providers", "landr alternative", "eu-based mastering platform", "gdpr compliant mastering tool", "best online mastering 2025"],
-    },
-    teaser: {
-      de: "LANDR, eMastered, Matchering — es gibt viele Wege, deinen Track online mastern zu lassen. Wir zeigen ehrlich, wo Beatzucker technisch, rechtlich und preislich anders tickt.",
-      en: "LANDR, eMastered, Matchering — there's no shortage of online mastering options. Here's an honest look at where Beatzucker takes a different technical, legal, and pricing approach.",
-    },
-    relatedSlugs: ["ki-mastering-wie-funktioniert-es", "was-ist-audio-mastering", "re-beatz-online-mastering-mit-kontrolle"],
-    content: {
-      intro: {
-        de: "Die Auswahl an Online-Mastering-Diensten ist mittlerweile groß. LANDR gilt als Platzhirsch, eMastered punktet mit Einfachheit, Matchering setzt auf einen Open-Source-Gedanken. Wer vor der Entscheidung steht, fragt sich zu Recht: Wo liegen die tatsächlichen Unterschiede — und warum Beatzucker?\n\nWir beantworten das ohne Marketing-Floskeln: mit harten technischen Fakten, rechtlichen Unterschieden und einem ehrlichen Blick hinter die Kulissen.",
-        en: "The online mastering space has gotten crowded. LANDR is the household name, eMastered leans on simplicity, and Matchering builds its pitch around an open-source approach. Anyone weighing these options is right to ask: what actually separates them — and why pick Beatzucker?\n\nHere's our answer, minus the marketing spin: real technical facts, real legal distinctions, and an honest look at what's happening behind the scenes.",
-      },
-      sections: [
-        {
-          h2: { de: "EU-Server und keine Datenweitergabe: der DSGVO-Faktor", en: "EU Servers, No Data Sharing: The GDPR Factor" },
-          body: {
-            de: "Das ist vermutlich der Unterschied, der in klassischen Marketing-Texten am seltensten offen angesprochen wird:\n\nLANDR, eMastered, CloudBounce und die meisten Wettbewerber sind US-Unternehmen und betreiben ihre Server in den USA oder Kanada. Lädst du deinen Track dort hoch, verlässt er die EU — deine Musikdaten werden nach US-amerikanischem Datenschutzrecht verarbeitet, nicht nach DSGVO.\n\nWas heißt das konkret? US-Behörden wie die NSA können unter bestimmten Voraussetzungen auf dort gespeicherte Daten zugreifen. Der EU-US Data Privacy Framework (DPF) schränkt das zwar ein, steht aber politisch auf wackligen Beinen — sein Vorgänger, der Privacy Shield, wurde 2020 vom EuGH gekippt.\n\nManche Plattformen behalten sich sogar ausdrücklich vor, hochgeladene Audiodateien für das Training eigener KI-Modelle zu verwenden. Deine noch unveröffentlichte Musik könnte also Teil eines Trainingsdatensatzes werden.\n\nBeatzucker läuft ausschließlich auf einem EU-Server. Deine Dateien verlassen die EU nicht, wir nutzen sie nicht für KI-Training, und nach dem Download werden die Originale automatisch gelöscht — spätestens nach 60 Minuten. Was gar nicht erst gespeichert bleibt, kann auch nicht zweckentfremdet werden.",
-            en: "This is probably the difference that gets talked about least in typical marketing copy:\n\nLANDR, eMastered, CloudBounce, and most competitors are US companies running servers in the United States or Canada. Upload your track there and it leaves the EU — your music gets processed under US data protection law, not GDPR.\n\nWhat does that actually mean? Under US law, agencies like the NSA can access data stored on those servers under certain conditions. The EU-US Data Privacy Framework (DPF) puts some limits on that, but it rests on shaky political ground — its predecessor, the Privacy Shield, was struck down by the ECJ back in 2020.\n\nSome platforms go further and explicitly reserve the right to use your uploaded audio to train their own AI models. Your unreleased music could end up as training data without you realizing it.\n\nBeatzucker runs exclusively on an EU server. Your files never leave the EU, we don't use them to train AI, and originals are deleted automatically after download — within 60 minutes at the latest. Data that isn't kept around can't be misused.",
-          },
-        },
-        {
-          h2: { de: "Privacy by Design: keine Werbe-Cookies, kein Tracking", en: "Privacy by Design: No Advertising Cookies, No Tracking" },
-          body: {
-            de: "Beatzucker arbeitet ohne Tracking-Cookies — kein Google Analytics, kein Facebook Pixel, kein Hotjar und keine Retargeting-Skripte. Technisch notwendige Sitzungs-Cookies halten angemeldete Nutzer sicher eingeloggt; ein lokaler Hinweis speichert, dass die Cookie-Information gelesen wurde.\n\nWas das praktisch bedeutet: Dein Verhalten wird nicht zu Werbeprofilen zusammengeführt, und du wirst nicht mit Retargeting-Anzeigen verfolgt, nur weil du Beatzucker verwendet hast.\n\nExterne Dienste werden nur für klar benannte Funktionen eingesetzt, etwa den optionalen Google-Login und den Versand notwendiger E-Mails. Einzelheiten stehen transparent in der Datenschutzerklärung.",
-            en: "Beatzucker runs without tracking cookies — no Google Analytics, Facebook Pixel, Hotjar or retargeting scripts. Strictly necessary session cookies keep signed-in users secure, while a local notice flag remembers that the cookie information was read.\n\nIn practice, your activity is not combined into advertising profiles and you are not followed by retargeting ads merely because you used Beatzucker.\n\nExternal services are used only for clearly identified functions such as optional Google sign-in and required service emails. The Privacy Policy explains those services transparently.",
-          },
-        },
-        {
-          h2: { de: "Die DSP-Pipeline im technischen Vergleich", en: "Comparing the DSP Pipeline, Technically" },
-          body: {
-            de: "Viele Online-Mastering-Dienste sprechen pauschal von 'KI', ohne die technische Grundlage offenzulegen. Beatzucker beschreibt seine Arbeitsweise bewusst präzise:\n\nJeder Track durchläuft eine dokumentierte 12-stufige DSP-Pipeline mit Gain-Staging, Korrektur-EQ, De-Esser, Multiband-Kompression, Mid/Side-Processing, Sättigung, Glue-Kompression, oversampled True-Peak-Limiter, Dithering und Codec-Verifikation.\n\nVorab misst die Engine LUFS, True Peak, Loudness Range, Spektralverteilung, Dynamik und Stereofeld. Transparente adaptive Regeln leiten daraus Parameter ab, abgestimmt auf das gewählte Preset und die Zielplattform. Eine Dynamik-Absicherung begrenzt zusätzliche Verdichtung.",
-            en: "Many online mastering services use the term 'AI' without disclosing the technical basis. Beatzucker describes its operation precisely:\n\nEvery track runs through a documented 12-stage DSP pipeline with gain staging, correction EQ, de-essing, multiband compression, mid/side processing, saturation, glue compression, oversampled true peak limiting, dithering and codec verification.\n\nBefore processing, the engine measures LUFS, true peak, loudness range, spectral distribution, dynamics and stereo image. Transparent adaptive rules derive parameters for the selected preset and target platform, while dynamics guardrails limit additional density.",
-          },
-        },
-        {
-          h2: { de: "Sieben wählbare Exportformate", en: "Seven Selectable Export Formats" },
-          body: {
-            de: "Beatzucker bietet sieben Zielformate: WAV 32-Bit, WAV 24-Bit, WAV 16-Bit, FLAC 24-Bit, MP3 320, MP3 128 und AAC 256. Vor dem Mastering wählst du das passende Format; zusätzlich erzeugt die Engine eine MP3-Vorschau, sofern der Encoder verfügbar ist.\n\nSo wird nur das gerendert, was du wirklich brauchst, und ein Exportfehler kann eindeutig dem betroffenen Codec zugeordnet werden.",
-            en: "Beatzucker offers seven delivery formats: WAV 32-bit, WAV 24-bit, WAV 16-bit, FLAC 24-bit, MP3 320, MP3 128 and AAC 256. You choose the desired format before mastering; the engine also creates an MP3 preview when the encoder is available.\n\nThis renders only what you need and makes codec export failures explicit.",
-          },
-        },
-        {
-          h2: { de: "Vorher/Nachher-Analyse in Echtzeit", en: "Real-Time Before/After Analysis" },
-          body: {
-            de: "Nach dem Mastering zeigt Beatzucker eine Vorher/Nachher-Auswertung mit Integrated LUFS, True Peak, DR-Wert, Crest Factor, LRA, Stereobreite, Mono-Kompatibilität, Frequenzband-Energie, BPM, Tonart, Clipping-Check, DC-Offset, Sample Rate und der Bit-Tiefe des gewählten Ausgabeformats.\n\nDie Nachher-Werte werden aus der tatsächlich ausgelieferten Datei gemessen — bei MP3 und AAC also nach dem Codec.",
-            en: "After mastering, Beatzucker shows a before/after breakdown with integrated LUFS, true peak, DR, crest factor, LRA, stereo width, mono compatibility, frequency-band energy, BPM, key, clipping check, DC offset, sample rate and the selected output format's bit depth.\n\nPost values are measured from the file actually delivered, including after MP3 or AAC encoding.",
-          },
-        },
-        {
-          h2: { de: "Preise im direkten Vergleich", en: "Pricing, Side by Side" },
-          body: {
-            de: "Preise von Online-Mastering-Diensten lassen sich nicht immer auf den ersten Blick vergleichen. Hier die wichtigsten Eckdaten:",
-            en: "Online mastering pricing isn't always straightforward to compare at a glance. Here are the key numbers side by side:",
-          },
-          table: {
-            headers: [
-              { de: "Plattform", en: "Platform" },
-              { de: "Kostenlos-Test", en: "Free trial" },
-              { de: "Basis-Abo", en: "Base subscription" },
-              { de: "Exportformate", en: "Export formats" },
-              { de: "EU-Server", en: "EU server" },
-            ],
-            rows: [
-              [{ de: "Beatzucker", en: "Beatzucker" }, { de: "Ja, mit Tageslimit", en: "Yes, daily limit" }, { de: "Kostenlos", en: "Free" }, { de: "7 wählbar", en: "7 selectable" }, { de: "✓ EU", en: "✓ EU" }],
-              [{ de: "LANDR", en: "LANDR" }, { de: "Eingeschränkt", en: "Limited" }, { de: "ab $11.99/Monat", en: "from $11.99/month" }, { de: "Teils extra", en: "Partly extra" }, { de: "✗ USA/CA", en: "✗ USA/CA" }],
-              [{ de: "eMastered", en: "eMastered" }, { de: "Eingeschränkt", en: "Limited" }, { de: "ab $9.99/Monat", en: "from $9.99/month" }, { de: "Teils extra", en: "Partly extra" }, { de: "✗ USA", en: "✗ USA" }],
-              [{ de: "CloudBounce", en: "CloudBounce" }, { de: "Preview", en: "Preview" }, { de: "ab $9.99/Monat", en: "from $9.99/month" }, { de: "Basis", en: "Basic" }, { de: "Unklar", en: "Unclear" }],
-            ],
-          },
-        },
-      ],
-      conclusion: {
-        de: "Es gibt beim Online-Mastering nicht die eine Lösung, die für alle passt. Beatzucker positioniert sich bewusst dort, wo Datenschutz, technische Offenheit und faire Konditionen für unabhängige Produzenten zusammenkommen. Wenn dir deine Daten und deine unveröffentlichte Musik wichtig sind, ist das mehr als nur ein Marketing-Argument.",
-        en: "There's no single online mastering solution that fits everyone. Beatzucker deliberately positions itself at the intersection of privacy, technical transparency, and fair terms for independent producers. If your data and your unreleased music matter to you, that's more than just a marketing line.",
-      },
-    },
-  },
+  PLATFORM_COMPARISON_ARTICLE,
 
   // Keep the existing DE/EN article addresses; content now covers Beatzucker.
   MANUAL_MASTERING_ARTICLE,
