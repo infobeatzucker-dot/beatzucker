@@ -120,7 +120,8 @@ async function main() {
     "@/lib/authRequest": { readAuthRequest: req => req.json(), AuthRequestError: class extends Error {} },
     "@/lib/rateLimit": { rateLimit: () => true },
     "@/lib/withdrawalQueue": { deliverWithdrawal: async () => { throw new Error("offline test"); } },
-    "@/lib/db": { db: { withdrawalReceipt: {
+    "@/lib/withdrawalProtection": { checkWithdrawalChallenge:()=>"ok",withdrawalClientKey:()=>null },
+    "@/lib/db": { db: { $transaction: async fn=>fn({withdrawalReceipt:{count:async()=>0,create:async ({data})=>{createCount++;withdrawalStore.set(data.submissionKey,data);return data}}}), withdrawalReceipt: {
       findUnique: async ({ where }) => withdrawalStore.get(where.submissionKey),
       create: async ({ data }) => { createCount++; withdrawalStore.set(data.submissionKey, data); return data; },
     } } },

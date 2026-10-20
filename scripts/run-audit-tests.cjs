@@ -36,6 +36,7 @@ try {
   run(process.execPath, ['scripts/audio-utilities-tests.cjs']);
   run(process.execPath, ['scripts/mp3-converter-tests.cjs']);
   run(process.execPath, ['scripts/speech-cleaner-tests.cjs']);
+  run(process.execPath, ['scripts/withdrawal-spam-tests.cjs']);
   const venv = path.join(root, 'python', 'venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
   const python = fs.existsSync(venv) ? venv : process.platform === 'win32' ? 'python' : 'python3';
   run(python, ['-m', 'unittest', 'discover', '-s', 'python/tests']);

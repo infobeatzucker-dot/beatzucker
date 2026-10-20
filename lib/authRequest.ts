@@ -6,13 +6,13 @@ export class AuthRequestError extends Error {
 }
 
 /** Bound actual bytes, including requests without Content-Length. */
-export async function readAuthRequest(req: NextRequest): Promise<Record<string, unknown>> {
+export async function readAuthRequest(req: NextRequest, budgetKey = "auth:requests"): Promise<Record<string, unknown>> {
   const origin = req.headers.get("origin");
   if (origin && origin !== new URL(process.env.NEXTAUTH_URL ?? "https://beatzucker.de").origin) {
     throw new AuthRequestError("Forbidden", 403);
   }
   // Global ceiling is deliberate: client-supplied proxy headers must not bypass it.
-  if (!rateLimit("auth:requests", 120, 60_000)) {
+  if (!rateLimit(budgetKey, 120, 60_000)) {
     throw new AuthRequestError("Too many requests. Please try again later.", 429);
   }
   const reader = req.body?.getReader();

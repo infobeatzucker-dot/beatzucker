@@ -10,6 +10,11 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"1.4.1", date:"2026-10-20",
+  title:{de:"Besser geschütztes Widerrufsformular",en:"Better-protected withdrawal form"},
+  summary:{de:"Das Widerrufsformular prüft automatisierte Anfragen vor dem Speichern und E-Mail-Versand, ohne externen CAPTCHA-Dienst.",en:"The withdrawal form checks automated requests before saving and sending email, without an external CAPTCHA service."},
+  improvements:{de:["Eine kurze automatische Formularprüfung und zusätzliche Versandlimits erschweren Spam.","Bei Problemen mit dem Formular ist die alternative E-Mail-Adresse direkt sichtbar. Eingangsbestätigung und sichere Wiederholung bleiben erhalten."],en:["A brief automatic form check and additional submission limits help reduce spam.","An alternative email address is shown directly if the form is unavailable. Receipts and safe retries remain available."]},
+}, {
   version: "1.4.0", date: "2026-10-18",
   title: { de: "Dein Audio. Passend geschnitten und geteilt.", en: "Your audio. Cut and ready to share." },
   summary: { de: "Drei neue kostenlose Tools helfen dir beim Bereinigen von Sprache, Zuschneiden und Weitergeben deiner Audiodateien – mit Vorschau und vollständigen Downloads.", en: "Three new free tools help you clean up voice recordings, trim and share audio, with audition playback and complete downloads." },
