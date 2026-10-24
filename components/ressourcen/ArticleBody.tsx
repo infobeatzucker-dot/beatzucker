@@ -159,6 +159,7 @@ export default function ArticleBody({ article, initialLang = "de" }: Props) {
       ))}
 
       <KnowledgeTools article={article.slug} lang={lang}/>
+      {article.sources?.length&&<aside className="glass-panel p-5 mb-6"><h2 className="text-sm font-semibold mb-3">{lang==='en'?'Sources and further reading':'Quellen und weiterführende Informationen'}</h2>{article.sources.map(source=><p key={source.href} className="text-sm"><a href={source.href} target="_blank" rel="noopener noreferrer">{source.label[lang]} ↗</a></p>)}</aside>}
       {/* Conclusion */}
       {article.content.conclusion && (
         <div

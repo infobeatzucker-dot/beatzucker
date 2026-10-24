@@ -3,7 +3,44 @@
  * the server remains responsible for final loudness and true-peak limiting. */
 const NAMES = ["sub", "low", "mid", "high"], ATTACK = [0, 30, 15, 8], RELEASE = [0, 120, 80, 40], CAPS = [4, 3.5, 3, 2.5];
 const THRESHOLDS = NAMES.map(name => `mb_${name}_threshold`), RATIOS = NAMES.map(name => `mb_${name}_ratio`);
-const KEYS = [...THRESHOLDS, ...RATIOS, "release_scale", "comp_knee_db", "bus_comp_threshold", "bus_comp_ratio", "processing_intensity", "mb_sub_attack", "mb_sub_release", "stereo_width", "bass_mono_amount"];
+const KEYS = [...THRESHOLDS, ...RATIOS, "release_scale", "comp_knee_db", "bus_comp_threshold", "bus_comp_ratio", "processing_intensity", "mb_sub_attack", "mb_sub_release", "stereo_width", "bass_mono_amount", "dynamic_eq_amount"];
+const SECTION_STRENGTH={quiet:.55,steady:1,dense:.8};
+export function sectionStrength(plan,time){
+  const s=plan?.segments;if(!Array.isArray(s)||!s.length||s.length>64)return 1;
+  let lo=0,hi=s.length-1;while(lo<hi){const mid=(lo+hi)>>1;if(time<s[mid].end)hi=mid;else lo=mid+1;}const index=lo;
+  const current=s[index],value=SECTION_STRENGTH[current.kind]??1;
+  if(index>0){const prev=s[index-1],fade=Math.min(.75,(prev.end-prev.start)/2,(current.end-current.start)/2);if(fade>0&&time<current.start+fade){const t=Math.max(0,Math.min(1,(time-current.start+fade)/(fade*2)));return (SECTION_STRENGTH[prev.kind]??1)*(1-t)+value*t;}}
+  if(index<s.length-1){const next=s[index+1],fade=Math.min(.75,(next.end-next.start)/2,(current.end-current.start)/2);if(fade>0&&time>current.end-fade){const t=Math.max(0,Math.min(1,(time-current.end+fade)/(fade*2)));return value*(1-t)+(SECTION_STRENGTH[next.kind]??1)*t;}}
+  return value;
+}
+// Mirrors dynamic_eq.py: fixed bandpasses, shared detector, cut-only residual.
+class DynamicTonalControl {
+  constructor(rate) {
+    this.fast = Math.exp(-1 / (.02 * rate)); this.history = Math.exp(-1 / (2 * rate));
+    this.attack = Math.exp(-1 / (.04 * rate)); this.release = Math.exp(-1 / (.2 * rate)); this.warmup = Math.floor(.25 * rate); this.frames = 0;
+    this.filters = [[280,1.25],[3200,1.4]].filter(([f])=>f<rate*.42).map(([f,q])=>{
+      const w=2*Math.PI*f/rate,a=Math.sin(w)/(2*q),d=1+a;
+      return {b0:a/d,b2:-a/d,a1:-2*Math.cos(w)/d,a2:(1-a)/d,z1:[0,0],z2:[0,0],bp:0,fp:0,baseline:.01,reduction:0};
+    });
+    this.value = new Float64Array(2);
+  }
+  tick(l,r,amount) {
+    if(amount>0)for(const f of this.filters){
+      const yl=f.b0*l+f.z1[0],yr=f.b0*r+f.z1[1];
+      f.z1[0]=-f.a1*yl+f.z2[0]; f.z2[0]=f.b2*l-f.a2*yl;
+      f.z1[1]=-f.a1*yr+f.z2[1]; f.z2[1]=f.b2*r-f.a2*yr;
+      f.bp=this.fast*f.bp+(1-this.fast)*Math.max(yl*yl,yr*yr);
+      f.fp=this.fast*f.fp+(1-this.fast)*Math.max(l*l,r*r);
+      const ratio=Math.min(1,f.bp/Math.max(f.fp,1e-12));
+      if(f.fp>3.162277660168379e-6){const c=this.frames<this.warmup?this.fast:this.history;f.baseline=c*f.baseline+(1-c)*ratio;}
+      let target=0;
+      if(this.frames>=this.warmup&&f.fp>3.162277660168379e-6)target=Math.min(1.5*amount,Math.max(0,10*Math.log10(Math.max(ratio,1e-12)/Math.max(.18,f.baseline*2))*.5*amount));
+      const c=target>f.reduction?this.attack:this.release;f.reduction=c*f.reduction+(1-c)*target;
+      const subtract=1-Math.pow(10,-f.reduction/20);l-=subtract*yl;r-=subtract*yr;
+    }
+    this.frames++;this.value[0]=l;this.value[1]=r;return this.value;
+  }
+}
 class Biquad {
   constructor(rate, frequency, kind = "low") {
     const w = 2 * Math.PI * Math.min(Math.max(1, frequency), rate * .49) / rate;
@@ -47,8 +84,11 @@ export class MasteringDynamics {
     this.subPhase1 = new Biquad(rate, 500, "allpass"); this.subPhase2 = new Biquad(rate, 5000, "allpass"); this.lowPhase = new Biquad(rate, 5000, "allpass");
     this.bassSide = new Split(rate, 120); this.bassMid = new Biquad(rate, 120, "allpass");
     this.params = {}; this.target = {}; this.ramping = false;
+    this.dynamic = mode === "dynamic" ? new DynamicTonalControl(rate) : null;
+    this.sections=null;this.timeline=null;this.processedFrames=0;
   }
   configure(params, immediate = false) {
+    if(params.section_plan?.version===1&&Array.isArray(params.section_plan.segments)&&params.section_plan.segments.length<=64)this.sections=params.section_plan;
     for (const key of KEYS) if (Number.isFinite(params[key])) this.target[key] = params[key];
     if (immediate || !Object.keys(this.params).length) this.params = { ...this.target };
     this.ramping = true;
@@ -77,6 +117,11 @@ export class MasteringDynamics {
         if (p[key] !== this.target[key]) this.ramping = true;
       }
     }
+    if(this.dynamic){
+      const amount=Math.max(0,Math.min(1,read("dynamic_eq_amount",0)));
+      for(let i=0;i<frames;i++){const v=this.dynamic.tick(inputs[0]?.[i]||0,inputs[1]?.[i]??inputs[0]?.[i]??0,amount);outputs[0][i]=v[0];if(outputs[1])outputs[1][i]=v[1];}
+      return;
+    }
     const scale = read("release_scale", 1), knee = read("comp_knee_db", 4), intensity = read("processing_intensity", 65) / 100;
     const width = read("stereo_width", 1), amount = read("bass_mono_amount", 0);
     const ratios = this.ratios || (this.ratios = new Float64Array(4)), thresholds = this.thresholds || (this.thresholds = new Float64Array(4));
@@ -87,10 +132,15 @@ export class MasteringDynamics {
       releases[band] = (band === 0 ? read("mb_sub_release", 200) : Math.max(40, RELEASE[band] * 2 / Math.max(1, ratio))) * scale;
     }
     const busThreshold = read("bus_comp_threshold", -20.5), busRatio = read("bus_comp_ratio", 1);
+    const clock=typeof currentTime==="number"?currentTime:this.processedFrames/this.rate;
+    this.processedFrames+=frames;
     for (let i = 0; i < frames; i++) {
       let l = inputs[0]?.[i] || 0, r = inputs[1]?.[i] ?? l;
       if (this.mode === "bus") {
-        const gain = this.gain(5, Math.max(Math.abs(l), Math.abs(r)), busThreshold, busRatio, 50, 100 * scale, 2, knee);
+        let gain = this.gain(5, Math.max(Math.abs(l), Math.abs(r)), busThreshold, busRatio, 50, 100 * scale, 2, knee);
+        let time=clock+i/this.rate;
+        if(this.timeline){const t=this.timeline;time=t.start+Math.max(0,time-t.contextStart)%(t.end-t.start);}
+        gain=1-(1-gain)*sectionStrength(this.sections,time);
         outputs[0][i] = l * gain; if (outputs[1]) outputs[1][i] = r * gain; continue;
       }
       if (intensity > 0) {
@@ -121,7 +171,7 @@ if (typeof registerProcessor === "function") {
     constructor(options) {
       super(); this.dsp = new MasteringDynamics(sampleRate, options.processorOptions?.mode);
       this.dsp.configure(options.processorOptions?.params || {}, true); this.frames = 0;
-      this.port.onmessage = event => { if (event.data?.params) this.dsp.configure(event.data.params); };
+      this.port.onmessage = event => { if (event.data?.params) this.dsp.configure(event.data.params);const t=event.data?.timeline;if(t&&[t.start,t.end,t.contextStart].every(Number.isFinite)&&t.start>=0&&t.end>t.start&&t.contextStart>=0)this.dsp.timeline=t; };
     }
     process(inputs, outputs) {
       if (outputs[0]?.length) this.dsp.process(inputs[0] || [], outputs[0]);

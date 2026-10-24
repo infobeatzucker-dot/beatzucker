@@ -11,14 +11,15 @@ import {
 import { GoniometerScope, SaturationScope, GainReductionScope, MultibandScope } from "@/components/manual/AdjustScopes";
 import { ManualPreviewEngine } from "@/lib/manualPreviewEngine";
 import { stopGlobalAudio } from "@/lib/globalAudio";
-import type { AnalysisData, Lang, Platform, Preset } from "@/lib/types/mastering";
+import type { AnalysisData, ReferenceInput, Lang, Platform, Preset } from "@/lib/types/mastering";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import { normalizeLoopRegion } from "@/lib/manualLoop";
 
 interface Props {
   open: boolean; onClose: () => void; lang?: Lang; fileId: string; uploadToken: string; filename: string;
+  character?: number;
   durationSec: number; platform: Platform; preset: Preset; intensity: number;
-  analysis: AnalysisData | null; referenceAnalysis?: AnalysisData | null;
+  analysis: AnalysisData | null; referenceAnalysis?: ReferenceInput | null;
   serverParams?: Record<string, unknown> | null;
   onApply: (overrides: ParamValues) => void;
 }
@@ -120,7 +121,7 @@ function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null
 
 const emptyBars = Array.from({ length: 240 }, () => .08);
 
-export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, uploadToken, filename, durationSec, analysis, referenceAnalysis, platform, preset, intensity, serverParams, onApply }: Props) {
+export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, uploadToken, filename, durationSec, analysis, referenceAnalysis, platform, preset, intensity, character = .5, serverParams, onApply }: Props) {
   const base = useMemo(() => seedValues(serverParams), [serverParams]);
   const [values, setValues] = useState<ParamValues>(base), valuesRef = useRef(values); valuesRef.current = values;
   const [tab, setTab] = useState<TabId>("eq");
@@ -146,7 +147,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   );
   const startSec = region.start, endSec = Math.min(dur, region.start + region.len);
   const dirty = useMemo(() => Object.keys(changedOnly(values, base)).length, [values, base]);
-  const controlKey = JSON.stringify([values, startSec, endSec, fileId, platform, preset, intensity]);
+  const controlKey = JSON.stringify([values, startSec, endSec, fileId, platform, preset, intensity, character, referenceAnalysis]);
   useEffect(() => {
     controlAbort.current?.abort(); controlAudio.current?.pause();
     setControlUrl(""); setControlError(""); setControlBusy(false);
@@ -158,7 +159,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     engineRef.current?.pause(); controlAudio.current?.pause(); stopGlobalAudio(); setControlBusy(true); setControlError(""); setControlUrl("");
     try {
       const response = await fetch("/api/control-preview", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
-        body: JSON.stringify({ file_id: fileId, upload_token: uploadToken, start: startSec, end: endSec, analysis, reference_analysis: referenceAnalysis, platform, preset, intensity, target_lufs: serverParams?.target_lufs, overrides: values }) });
+        body: JSON.stringify({ file_id: fileId, upload_token: uploadToken, start: startSec, end: endSec, analysis, reference_analysis: referenceAnalysis, platform, preset, intensity, character, target_lufs: serverParams?.target_lufs, overrides: values }) });
       if (!response.ok) throw Error(String(response.status));
       const blob = await response.blob(); if (controller.signal.aborted) return;
       setControlUrl(URL.createObjectURL(blob));

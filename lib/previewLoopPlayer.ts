@@ -15,10 +15,12 @@ export class PreviewLoopPlayer {
   private stateListener: (playing: boolean) => void = () => {};
   private loadingListener: (loading: boolean) => void = () => {};
   private errorListener: () => void = () => {};
+  private scheduleListener: (start:number,end:number,contextStart:number)=>void = () => {};
   constructor(private ctx: AudioContext, private destination: AudioNode, private url: string, private fullDuration: number) {}
   onState(fn: (playing: boolean) => void) { this.stateListener = fn; }
   onLoading(fn: (loading: boolean) => void) { this.loadingListener = fn; }
   onError(fn: () => void) { this.errorListener = fn; }
+  onSchedule(fn:(start:number,end:number,contextStart:number)=>void){this.scheduleListener=fn;}
   get paused() { return !this.wanted; }
   get duration() { return this.fullDuration; }
   get currentTime() { return this.source ? this.start + (Math.max(0, this.ctx.currentTime - this.startedAt) % (this.end - this.start)) : this.start; }
@@ -74,6 +76,7 @@ export class PreviewLoopPlayer {
     if (!this.wanted || this.destroyed || generation !== this.generation) return;
     const source = this.ctx.createBufferSource(); source.buffer = buffer; source.loop = true; source.loopStart = 0; source.loopEnd = buffer.duration;
     source.connect(this.destination); this.source = source; this.startedAt = this.ctx.currentTime;
+    this.scheduleListener(this.start,this.start+buffer.duration,this.startedAt);
     source.start(); this.stateListener(true);
   }
   async toggle(start: number, end: number) {

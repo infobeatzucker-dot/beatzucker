@@ -130,7 +130,8 @@ def apply_correction_eq(audio: np.ndarray, sr: int, params: MasteringParams) -> 
     else:
         processed = board(audio.reshape(1, -1).T, sr).T[0]
 
-    return processed
+    from reference_matching import apply_reference_eq
+    return apply_reference_eq(processed, sr, params.reference_eq)
 
 
 # ─── 5. MULTIBAND COMPRESSION ──────────────────────────────────────────────────
@@ -378,12 +379,19 @@ def apply_saturation(audio: np.ndarray, sr: int, amount: float) -> np.ndarray:
 
 def apply_bus_compression(audio: np.ndarray, sr: int, params: MasteringParams) -> np.ndarray:
     """Stereo bus compressor — glue compression (2:1, slow attack)."""
-    return compress_band(audio, sr,
+    processed = compress_band(audio, sr,
                          params.bus_comp_threshold,
                          params.bus_comp_ratio,
                          attack_ms=50.0,
                          release_ms=100.0 * params.release_scale,
                          max_reduction_db=2.0, knee_db=params.comp_knee_db)
+    from song_sections import section_strength
+    strength = section_strength(params.section_plan, audio.shape[-1], sr, params.section_offset)
+    if strength is not None:
+        processed -= audio
+        processed *= strength
+        processed += audio
+    return processed
 
 
 # ─── 11. LIMITING ──────────────────────────────────────────────────────────────
@@ -455,7 +463,7 @@ def _true_peak_envelope(audio: np.ndarray, sr: int, oversample: int = 4,
 
 def _limit_to_ceiling(audio: np.ndarray, sr: int, ceiling_db: float) -> np.ndarray:
     """True-peak ceiling limiting only (no LUFS normalization) — lookahead
-    gain-reduction + hard safety clip. Factored out of apply_true_peak_limiter()
+    gain reduction + measured global safety trim. Factored out of apply_true_peak_limiter()
     so it can be re-run for the loudness-correction passes below without
     re-measuring/re-applying the initial LUFS gain each time.
     """
@@ -464,56 +472,18 @@ def _limit_to_ceiling(audio: np.ndarray, sr: int, ceiling_db: float) -> np.ndarr
     # ── True-peak envelope (4x oversampled) ──────────────────────────────────
     peak_sig = _true_peak_envelope(audio, sr, oversample=4)
 
-    # ── 5 ms forward lookahead with scipy (O(n), no Python loop) ────────────
-    lookahead = max(1, int(sr * 0.005))  # 5 ms in samples
-    # maximum_filter1d with a left-shifted origin sees future samples
-    peak_ahead = maximum_filter1d(peak_sig, size=lookahead + 1, origin=-(lookahead // 2))
+    # Full-rate gain covers sparse peaks and the final partial block.
+    # Stereo channels share the worst-case true-peak envelope.
+    from limiter_envelope import limiter_gain
+    # Retain peak hold across bass cycles, plus a smooth pre-attack (at most
+    # 10 ms total future context). Release alone must not track every half-wave.
+    lookahead = max(1, int(sr * .005))
+    peak_ahead = maximum_filter1d(peak_sig, size=2 * lookahead + 1)
+    required = np.minimum(1.0, ceiling_lin / np.maximum(peak_ahead, 1e-8)).astype(np.float32)
+    gain = limiter_gain(required, sr)
+    audio = (audio * gain).astype(np.float32)
 
-    # Desired gain at each sample (≤ 1.0)
-    desired_gain = np.where(
-        peak_ahead > ceiling_lin,
-        ceiling_lin / np.maximum(peak_ahead, 1e-8),
-        1.0,
-    ).astype(np.float32)
-
-    # ── Smooth gain at ~1 kHz (instant attack / IIR release) ────────────────
-    # Gain dynamics live at the release timescale (50 ms), not per-sample.
-    # Downsampling reduces the Python loop from ~10 M to ~240 iterations
-    # for a 4-minute track at 44.1 kHz — a ~44× speedup with no audible loss.
-    n_full = len(desired_gain)
-    ds     = max(1, sr // 1000)      # downsample factor (≈ 44 at 44.1 kHz)
-    n_ds   = n_full // ds
-
-    if n_ds == 0:
-        # Very short diagnostic/test signals: avoid empty interpolation arrays.
-        reduction = float(np.min(desired_gain)) if n_full else 1.0
-        return (audio * reduction).astype(np.float32)
-
-    # Peak-hold downsample: worst-case (minimum) gain per block
-    gain_ds = desired_gain[:n_ds * ds].reshape(n_ds, ds).min(axis=1)
-
-    sr_ds      = sr / ds
-    release_ds = float(np.exp(-1.0 / (sr_ds * 0.05)))  # 50 ms τ at ds rate
-    smoothed_ds = np.empty(n_ds, dtype=np.float64)
-    g = 1.0
-    for i in range(n_ds):
-        d = float(gain_ds[i])
-        if d < g:
-            g = d                                          # instant attack
-        else:
-            g = release_ds * g + (1.0 - release_ds) * d  # IIR release
-        smoothed_ds[i] = g
-
-    # ── Upsample gain to full rate (linear interpolation) ────────────────────
-    xs_ds   = np.arange(n_ds, dtype=np.float64) * ds + ds * 0.5
-    xs_full = np.arange(n_full, dtype=np.float64)
-    smoothed = np.interp(xs_full, xs_ds, smoothed_ds).astype(np.float32)
-
-    # ── Apply gain + sample-domain safety guard ───────────────────────────────
-    audio = (audio * smoothed).astype(np.float32)
-    np.clip(audio, -ceiling_lin, ceiling_lin, out=audio)
-
-    # Interpolation/smoothing can leave a small reconstructed-signal overshoot.
+    # Time-varying gain can leave a small reconstructed-signal overshoot.
     # A final global trim preserves waveform shape and guarantees the requested
     # true-peak ceiling without adding a second hard-clipping stage.
     final_envelope = _true_peak_envelope(audio, sr, oversample=4)
@@ -531,9 +501,9 @@ def apply_true_peak_limiter(audio: np.ndarray, sr: int, ceiling_db: float,
 
     Pipeline:
       1. LUFS normalization (ITU-R BS.1770-4 via pyloudnorm)
-      2. True-peak detection via 4x oversampling + 5 ms forward lookahead
-      3. Smooth gain reduction: instant attack, 50 ms release (IIR)
-      4. Hard safety clip as final guard
+      2. True-peak detection via 4x oversampling + bounded 10 ms future context
+      3. Full-rate linked gain with program-dependent 35–160 ms recovery
+      4. Re-measured, shape-preserving safety trim (no hard clipping)
       5. A maximum-gain-reduction guardrail. If loudness and dynamics conflict,
          the result may land below the nominal LUFS target instead of being
          repeatedly driven into the limiter.
@@ -880,6 +850,8 @@ def process_mastering_audio(audio: np.ndarray, sr: int, params: MasteringParams,
     emit("eq" if active else "eq_skipped", 27)
     if active:
         audio = apply_correction_eq(audio, sr, params)
+        from dynamic_eq import apply_dynamic_eq
+        audio = apply_dynamic_eq(audio, sr, params.dynamic_eq_amount)
     emit("deesser" if active else "deesser_skipped", 32)
     if active:
         audio = apply_deesser(audio, sr, ratio=1.0 + 1.5 * intensity)

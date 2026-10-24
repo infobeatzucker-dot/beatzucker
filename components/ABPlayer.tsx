@@ -318,7 +318,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
         <ABModeSwitch mode={mode} onChange={engine.setMode} available={!masterUnavailable && !!masteredUrl} lang={lang} />
       </div>
 
-      {/* A fair mastering comparison must not reward the louder source. */}
+      {/* Optional level matching; original levels are the default. */}
       <div className="flex items-center justify-between gap-3 px-5 pb-3">
         <button
           type="button"

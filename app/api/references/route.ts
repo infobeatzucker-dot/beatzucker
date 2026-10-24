@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
+import { normalizeTonalProfile } from "@/lib/analysisValidation";
+import { readBoundedJson, JsonBodyError } from "@/lib/boundedJson";
 
 const REQUIRED_FIELDS = [
   "integrated_lufs", "true_peak", "spectral_centroid",
@@ -41,7 +43,8 @@ export async function POST(req: NextRequest) {
   const user = await getAuthedUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json();
+  let body:Record<string,unknown>;
+  try{body=await readBoundedJson(req,16384);}catch(error){return NextResponse.json({error:"Invalid reference request"},{status:error instanceof JsonBodyError?error.status:400});}
   const { name, analysis } = body as { name?: string; analysis?: Record<string, unknown> };
 
   // Validate name
@@ -69,7 +72,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Store the tonal core plus optional dynamics/stereo values used by matching.
-  const safeAnalysis: Record<string, number> = {};
+  const safeAnalysis: Record<string, unknown> = {};
+  if(analysis.tonal_profile!==undefined){const profile=normalizeTonalProfile(analysis.tonal_profile);if(!profile)return NextResponse.json({error:"Invalid tonal profile"},{status:400});safeAnalysis.tonal_profile=profile;}
   for (const field of REQUIRED_FIELDS) {
     safeAnalysis[field] = analysis[field] as number;
   }

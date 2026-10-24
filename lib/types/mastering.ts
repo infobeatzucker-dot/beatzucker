@@ -3,7 +3,12 @@ export type AppState = "idle" | "uploaded" | "analyzing" | "analyzed" | "masteri
 export type Platform  = "spotify" | "apple" | "youtube" | "club" | "tidal" | "amazon" | "deezer" | "tiktok" | "soundcloud" | "broadcast" | "custom";
 export type Preset    = "auto" | "electronic" | "hiphop" | "rock" | "pop" | "jazz" | "classical" | "podcast" | "metal" | "rnb" | "ambient" | "lofi" | "country" | "trap" | "latin" | "dance" | "techno" | "edm";
 
+export interface TonalProfile {version:1;bands:(number|null)[];active_fraction:number}
+export interface ReferenceBundle {references:Record<string,unknown>[];weights:number[];settings:{amount:number;bass:number;brightness:number;smoothing:number}}
+export type ReferenceInput = AnalysisData | ReferenceBundle;
 export interface AnalysisData {
+  sections?: SongSections;
+  tonal_profile?: TonalProfile;
   integrated_lufs:    number;
   true_peak:          number;
   dr_value:           number;
@@ -33,6 +38,8 @@ export interface AnalysisData {
   /** Server signature binding this analysis to its uploaded file. */
   analysis_token?:    string;
 }
+
+export interface SongSections { version:1;duration:number;segments:{start:number;end:number;kind:"quiet"|"steady"|"dense";level_db:number;crest_db:number}[] }
 
 export interface MasterData {
   master_id: string;

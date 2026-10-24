@@ -17,7 +17,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import soundfile as sf
 import librosa
 
@@ -150,6 +150,7 @@ class MasterRequest(BaseModel):
     target_lufs: Optional[float] = None
     preset: str = "auto"
     intensity: int = 65
+    character: float = Field(default=.5, ge=0, le=1, allow_inf_nan=False)
     format: str = "mp3128"
     output_dir: str = "./uploads/masters"
     master_id: Optional[str] = None             # DB record ID — used as output filename prefix
@@ -415,7 +416,7 @@ async def control_preview(req: ControlPreviewRequest, request: Request):
         if await request.is_disconnected():
             raise HTTPException(499, "Client disconnected")
         data = await lease.run(render_control, req.file_path, req.start, req.end, req.analysis,
-                               req.platform, req.preset, req.intensity, req.target_lufs, req.reference_analysis, req.overrides)
+                               req.platform, req.preset, req.intensity, req.target_lufs, req.reference_analysis, req.overrides, req.character)
         return Response(data, media_type="audio/wav", headers={"Cache-Control": "no-store"})
     except ValueError as error:
         raise HTTPException(422, str(error))
@@ -494,6 +495,7 @@ async def master(req: MasterRequest, request: Request = None):
                     target_lufs=req.target_lufs,
                     reference_analysis=req.reference_analysis,
                     overrides=req.overrides,
+                    character=req.character,
                 )
             )
 

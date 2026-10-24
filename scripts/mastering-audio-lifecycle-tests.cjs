@@ -11,7 +11,7 @@ function render(a,b){cursor=0;const view=moduleRef.exports.AudioEngineProvider({
 function respond(request){request.resolve({ok:true,arrayBuffer:async()=>new ArrayBuffer(8),blob:async()=>({source:request.url})});}
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 (async()=>{
- render('/old-a','/old-b');const old=requests.splice(0);assert.equal(old.length,3);
+ const initial=render('/old-a','/old-b');assert.equal(initial.loudnessMatched,false);const old=requests.splice(0);assert.equal(old.length,3);initial.setLoudnessMatched(true);assert.equal(render('/old-a','/old-b').loudnessMatched,true);initial.setLoudnessMatched(false);assert.equal(render('/old-a','/old-b').loudnessMatched,false);
  render('/new-a','/new-b');assert.ok(old.every(r=>r.signal.aborted));const current=requests.splice(0);assert.equal(current.length,3);
  for(const r of old)respond(r);await tick();assert.equal(created,0);assert.equal(urls.length,0);
  for(const r of current)respond(r);await tick();assert.equal(urls.length,1);assert.equal(urls[0].source,'/new-b');assert.equal(created,2);assert.equal(closed,2);

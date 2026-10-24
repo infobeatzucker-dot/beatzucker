@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useId } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import {RECENT_MASTERING_FAQS} from '@/lib/masteringLearning';
+import CurrentMasteringGuide from '@/components/CurrentMasteringGuide';
 import { Music, Disc, Play } from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────── */
@@ -330,6 +332,7 @@ const VISUALIZERS = [
 
 /* ─── FAQ Data ─────────────────────────────────────────────── */
 const FAQ_CATEGORIES = [
+  {id:'current-controls',color:'var(--accent-cyan)',icon:<Music size={14}/>,titleDe:'Klangkontrolle & neue Audio-Tools',titleEn:'Sound controls & audio tools',items:RECENT_MASTERING_FAQS},
   {
     id: "start",
     color: "var(--accent-purple)",
@@ -344,20 +347,20 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Wie läuft das Mastering bei Beatzucker ab?",
         qEn: "What actually happens when I master a track here?",
-        aDe: "Du lädst deine WAV- oder MP3-Datei hoch, legst Zielplattform und Genre-Preset fest und regelst die Mastering-Intensität. Ein Klick auf Mastern (oder die Taste M) genügt: Die Engine analysiert dein Audio, leitet passende Parameter ab und schickt den Track durch eine 12-stufige DSP-Pipeline.",
-        aEn: "Upload a WAV or MP3, pick a target platform and genre preset, and dial in the mastering intensity. One click on Master (or a tap of M) starts the engine: it measures your audio, derives suitable parameters, and runs the track through a 12-stage DSP pipeline.",
+        aDe: "Nach Anmeldung und Upload prüfst du die Analyse, wählst Plattform, Genre, Intensität und Character. Optional kombinierst du bis zu drei Referenzen. Mastern startet die echte Verarbeitung mit nachvollziehbarem Fortschritt. Danach kannst du A/B hören, manuell nachjustieren, einen neuen Master berechnen und das gewählte Format samt PDF-Bericht herunterladen.",
+        aEn: "After signing in and uploading, review analysis and choose platform, genre, intensity and character. Optionally combine up to three references. Master starts real processing with stage progress. Then compare A/B, fine-tune manually, rerender and download your chosen format plus a PDF report.",
       },
       {
         qDe: "Welche Formate kann ich hoch- und runterladen?",
         qEn: "Which formats does upload and export support?",
-        aDe: "Hochladen kannst du WAV (jede Bit-Tiefe), MP3, FLAC und AIFF. Für den Download stehen dir WAV 32-bit Float, WAV 24-bit, WAV 16-bit (mit Dither), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps und AAC 256 kbps zur Verfügung.",
-        aEn: "You can upload WAV (any bit depth), MP3, FLAC, or AIFF. On the way out, choose from WAV 32-bit Float, WAV 24-bit, WAV 16-bit (dithered), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps, or AAC 256 kbps.",
+        aDe: "Mastering-Uploads unterstützen WAV, MP3, FLAC, AIFF, OGG und M4A bei gültigem Codec, Mono/Stereo und 8–192 kHz. Es gelten 200 MB und das angezeigte Speicher-/Dauerbudget. Wähle pro Durchlauf ein Ausgabeformat; zusätzlich entsteht eine MP3-Vorschau. Zur Wahl stehen WAV 32-bit Float, WAV 24-bit, WAV 16-bit (mit Dither), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps und AAC 256 kbps zur Verfügung.",
+        aEn: "Mastering uploads support WAV, MP3, FLAC, AIFF, OGG and M4A with a valid codec, mono/stereo and 8–192 kHz. The 200 MB and displayed memory/duration limits apply. Choose one output format per run; an MP3 preview is added. Options include WAV 32-bit Float, WAV 24-bit, WAV 16-bit (dithered), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps, or AAC 256 kbps.",
       },
       {
         qDe: "Wie lange muss ich aufs Mastering warten?",
         qEn: "How long does the process take?",
-        aDe: "Die Analyse selbst ist nach 5–10 Sekunden durch. Das komplette Mastering — inklusive DSP-Pipeline und aller Exportformate — braucht je nach Tracklänge zwischen 30 Sekunden und 3 Minuten, mit Fortschrittsanzeige in Echtzeit.",
-        aEn: "Analysis wraps up in about 5–10 seconds. The full run — DSP pipeline plus every export format — takes anywhere from 30 seconds to 3 minutes depending on how long your track is, with a live progress indicator the whole time.",
+        aDe: "Das hängt von Tracklänge, Samplerate, Ausgabeformat und Serverauslastung ab. Die Anzeige folgt den tatsächlichen Arbeitsschritten; ein ausgelassener Schritt ist nicht automatisch ein Fehler. Gerendert werden das gewählte Format und eine MP3-Vorschau, nicht pauschal alle sieben Formate. Bei hoher Last kann Wartezeit entstehen.",
+        aEn: "It depends on duration, sample rate, output format and server load. Progress follows actual processing stages; bypassed stages are not automatically errors. The selected format and an MP3 preview are rendered, not all seven formats on every run. Busy periods may involve waiting.",
       },
       {
         qDe: "Kostet mich das Ganze wirklich nichts?",
@@ -380,8 +383,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Wofür ist der Intensity-Regler gut?",
         qEn: "What does the intensity control actually change?",
-        aDe: "Der Regler (0–100 %) bestimmt, wie kräftig bearbeitet wird: bei 0 % passiert kaum etwas, bei 100 % greifen volle Kompression, deutliche EQ-Eingriffe und starke Sättigung. Für die meisten Tracks empfiehlt sich ein Startwert um 65 %.",
-        aEn: "The slider (0–100%) sets how hard the processing hits: near 0% it barely touches the signal, at 100% you get full compression, heavy EQ moves, and full saturation. 65% is a solid starting point for most tracks.",
+        aDe: "Intensität skaliert die automatische Bearbeitung. Bei 0 % bleiben die entsprechenden EQ-, Dynamik-, Sättigungs- und Character-Eingriffe aus; DC-Entfernung, Lautheitsziel und Ausgabeschutz bleiben Teil des Ablaufs. Beginne ausgewogen und erhöhe nur bei Bedarf. Ein hoher Wert garantiert keinen besseren Klang.",
+        aEn: "Intensity scales automatic processing. At zero, the corresponding EQ, dynamics, saturation and character processing is bypassed; DC removal, loudness targeting and output protection remain. Start balanced and increase only when useful. A higher value does not guarantee better sound.",
       },
       {
         qDe: "Was steckt hinter den Plattform-Presets?",
@@ -392,14 +395,14 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Wie funktioniert das Mastering nach Referenz-Track?",
         qEn: "How does reference-track mastering work?",
-        aDe: "Du lädst einen Track hoch, dessen Sound dir gefällt. Beatzucker analysiert dessen Spektralbalance, Loudness, Dynamik und Stereobreite und richtet dein Mastering danach aus — ein Prinzip, das auch professionelle Studios nutzen. Diese Funktion ist für alle kostenlos.",
-        aEn: "Upload a track whose sound you want to chase. Beatzucker reads its spectral balance, loudness, dynamics, and stereo width, then steers your mastering toward that target — the same principle pro studios use. It's free for everyone.",
+        aDe: "Bis zu drei Referenzen liefern ein gewichtetes Klangziel für Klangbalance, Dynamik und Stereo. Aktuelle Analysen erlauben ein feineres Profil; die Anpassungen bleiben begrenzt. Die Lautheit der Referenz wird nicht kopiert: Das Plattformziel bleibt separat. Der Referenzvergleich unter Tools analysiert dagegen nur Unterschiede und verändert keine Datei.",
+        aEn: "Up to three references provide weighted tonal, dynamics and stereo guidance. Current analyses enable finer profiles with bounded corrections. Reference loudness is not copied: platform loudness stays separate. Reference Comparison under Tools only analyzes differences and does not alter files.",
       },
       {
         qDe: "Was macht das M/S-Processing genau?",
         qEn: "What is Mid/Side processing doing under the hood?",
-        aDe: "Beim Mid/Side-Processing wird das Stereosignal in eine Mitte (Mid = L+R) und eine Seite (Side = L–R) aufgeteilt, sodass Breite und Tiefe getrennt voneinander bearbeitet werden können. Beatzucker filtert zusätzlich automatisch Frequenzen unter 120 Hz aus dem Seitenkanal, damit der Track auch im Club sauber klingt.",
-        aEn: "Mid/Side processing splits the stereo signal into a centre component (Mid = L+R) and a side component (Side = L–R), so width and depth can be shaped independently. Beatzucker also strips frequencies below 120 Hz from the side channel automatically, keeping things tight for club playback.",
+        aDe: "Mid/Side trennt mittige und seitliche Signalanteile, damit die Breite angepasst werden kann. Bass wird nicht grundsätzlich mono gemacht: Automatische Bass-Bündelung benötigt einen gemessenen Anlass bei tiefen Frequenzen. In der manuellen Feinabstimmung lässt sich der Umfang gezielt ändern. Prüfe das Ergebnis auch in Mono.",
+        aEn: "Mid/Side separates central and lateral components so width can be adjusted. Bass is not unconditionally made mono: automatic narrowing requires a measured low-frequency concern. Manual fine-tuning lets you adjust its amount. Check the result in mono too.",
       },
       {
         qDe: "Warum ist Mono-Kompatibilität wichtig?",
@@ -423,14 +426,14 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Was genau vergleicht der A/B-Player?",
         qEn: "What is the A/B player comparing?",
-        aDe: "A spielt dein hochgeladenes Original, B den fertigen Master. Du kannst jederzeit zwischen beiden hin- und herschalten, ohne dass die Wiedergabe stoppt. Sämtliche Visualisierungen — Spektrum, Wellenform, Stereofeld, LUFS, Spectrogram — folgen dabei in Echtzeit der aktuellen Quelle.",
-        aEn: "A is your original upload, B is the finished master. Flip between them whenever you like — playback never pauses. Every visualisation (spectrum, waveform, stereo field, LUFS, spectrogram) updates in real time to whichever one is playing.",
+        aDe: "A spielt dein hochgeladenes Original, B den fertigen Master. Du kannst jederzeit zwischen beiden hin- und herschalten, ohne dass die Wiedergabe stoppt. Live-Visualisierungen wie Spektrum und Stereofeld folgen der aktuellen Quelle; integrierte Vorher-/Nachher-Messwerte stammen aus der jeweiligen Dateianalyse. Der optionale Lautheitsabgleich ist zunächst aus.",
+        aEn: "A is your original upload, B is the finished master. Flip between them whenever you like — playback never pauses. Live visualizations such as spectrum and stereo field follow the active source; integrated before/after values come from each file analysis. Optional loudness matching starts off.",
       },
       {
         qDe: "Wofür stehen die roten Markierungen in der Wellenform?",
         qEn: "What do the red markers on the waveform mean?",
-        aDe: "Sie kennzeichnen Stellen, an denen der Peak-Pegel 0.98 (–0.17 dBFS) überschreitet — mögliche Clipping-Zonen im Originalmaterial. Nach dem Mastering sollte davon dank True Peak Limiter nichts mehr übrig sein.",
-        aEn: "They flag spots where the peak level crosses 0.98 (–0.17 dBFS) — potential clipping in the original file. Once mastering runs, the True Peak Limiter should have cleaned all of that up.",
+        aDe: "Sie markieren hohe Sample-Spitzen und mögliche Übersteuerungszonen im Original. Der Limiter schützt den neuen Ausgangspegel, stellt aber keine bereits abgeschnittene Wellenform wieder her. Ist das Original verzerrt, sollte der Mix möglichst ohne Clipping neu exportiert werden.",
+        aEn: "They mark high sample peaks and possible overload in the source. Limiting protects the new output level but cannot reconstruct a previously clipped waveform. If the original is distorted, re-export the mix without clipping where possible.",
       },
       {
         qDe: "Wie liest man den Spectrogram Waterfall?",
@@ -441,8 +444,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Was genau misst LUFS?",
         qEn: "What is LUFS actually measuring?",
-        aDe: "LUFS steht für Loudness Units Full Scale, der gängige Maßstab für Lautheit auf Streaming-Plattformen. Spotify normalisiert beispielsweise auf –14 LUFS und dreht lautere Tracks automatisch leiser. Beatzucker bringt deinen Track direkt auf den passenden LUFS-Zielwert.",
-        aEn: "LUFS — Loudness Units Full Scale — is the standard loudness metric streaming platforms use. Spotify, for instance, normalises to –14 LUFS and quietly turns down anything louder. Beatzucker lands your track right on the target LUFS value up front.",
+        aDe: "LUFS beschreibt wahrgenommene Lautheit über einen Messzeitraum. Plattform-Presets geben Beatzucker ein Ziel, keine Garantie identischer Wiedergabe in jedem Player. Peak- und Dynamikschutz können ein leiseres Ergebnis sinnvoll machen. Prüfe die tatsächliche Nachher-Messung und nutze bei Bedarf die Streaming-/Codec-Vorschau.",
+        aEn: "LUFS describes perceived loudness over a measurement interval. Platform presets give Beatzucker a target, not a guarantee of identical playback in every player. Peak and dynamics protection may justify quieter output. Check actual output measurements and use Streaming/Codec Preview when useful.",
       },
     ],
   },
@@ -460,14 +463,14 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Was passiert mit meinen hochgeladenen Dateien?",
         qEn: "What happens to the files I upload?",
-        aDe: "Deine hochgeladenen Original-Dateien werden gelöscht, sobald die Verarbeitung abgeschlossen ist — spätestens nach 60 Minuten. Die fertigen Mastering-Ergebnisse bleiben 24 Stunden verfügbar und werden danach automatisch entfernt. Es gibt keine dauerhafte Speicherung und keine Weitergabe an Dritte.",
-        aEn: "Your original uploads are removed as soon as processing finishes — within 60 minutes at the latest. Finished masters stick around for 24 hours before being deleted automatically. Nothing is stored long-term, and nothing is shared with third parties.",
+        aDe: "Inaktive Original-Uploads werden zeitlich begrenzt bereinigt; aktive Verarbeitung ist vor Löschung geschützt. Unter normalem Betrieb liegt das Fenster für Originale bei etwa 60 Minuten, fertige Master sind 24 Stunden ab Fertigstellung abrufbar. Sichere Downloads rechtzeitig. Bibliotheks-Metadaten können länger bestehen; öffentliche Hörbeispiele sind davon getrennt. Die Datenschutzerklärung beschreibt die Verarbeitung genauer.",
+        aEn: "Inactive original uploads are cleaned up on a limited schedule; active processing is protected from deletion. Under normal operation originals have an approximately 60-minute window, and finished masters are downloadable for 24 hours after completion. Save downloads in time. Library metadata may remain longer; public listening examples are separate. The privacy policy describes processing in more detail.",
       },
       {
         qDe: "Läuft Beatzucker in jedem Browser?",
         qEn: "Does Beatzucker work in any browser?",
-        aDe: "In allen gängigen aktuellen Browsern: Chrome ab 90, Firefox ab 88, Safari ab 14, Edge ab 90. Die Visualisierungen brauchen die Web Audio API, die in all diesen Browsern vorhanden ist.",
-        aEn: "Yes, in any current mainstream browser: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+. The visualisations rely on the Web Audio API, which all of those support out of the box.",
+        aDe: "Nutze einen aktuellen Chrome, Edge, Firefox oder Safari. Live-Vorschau und Visualisierung benötigen Web Audio und AudioWorklet; einzelne Geräte oder ältere Browser können Einschränkungen haben. Ein größerer Bildschirm erleichtert die manuelle Feinabstimmung. Bei Problemen Browser aktualisieren und den endgültigen Download separat prüfen.",
+        aEn: "Use a current Chrome, Edge, Firefox or Safari. Live preview and visualization need Web Audio and AudioWorklet; individual devices or older browsers may have limitations. A larger screen helps manual fine-tuning. If needed, update the browser and check the final download separately.",
       },
       {
         qDe: "Wozu dient die Taste M?",
@@ -502,6 +505,7 @@ function FaqItem({ qDe, qEn, aDe, aEn, color, lang }: {
   qDe: string; qEn: string; aDe: string; aEn: string; color: string; lang: Lang;
 }) {
   const [open, setOpen] = useState(false);
+  const answerId=useId();
   return (
     <div
       style={{
@@ -514,6 +518,8 @@ function FaqItem({ qDe, qEn, aDe, aEn, color, lang }: {
     >
       <button
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-controls={answerId}
         style={{
           width: "100%", padding: "1.1rem 1.5rem",
           display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -530,11 +536,7 @@ function FaqItem({ qDe, qEn, aDe, aEn, color, lang }: {
           display: "inline-block",
         }}>+</span>
       </button>
-      <div style={{
-        maxHeight: open ? 400 : 0,
-        overflow: "hidden",
-        transition: "max-height 0.3s ease",
-      }}>
+      <div id={answerId} hidden={!open}>
         <div style={{
           padding: "0 1.5rem 1.25rem",
           color: "var(--text-secondary)",
@@ -726,6 +728,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
           </section>
         )}
 
+        {!search && <div style={{marginBottom:'4rem'}}><CurrentMasteringGuide lang={lang}/></div>}
         {/* ── Keyboard Shortcuts ── */}
         {!search && (
           <section style={{ marginBottom: "4rem" }}>

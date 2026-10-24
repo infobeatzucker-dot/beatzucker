@@ -77,7 +77,7 @@ export function AudioEngineProvider({
   const rafRef            = useRef<number>(0);
   const masteredBlobRef   = useRef<string>("");   // Blob URL for reliable B seeking
   const modeRef           = useRef<"A" | "B">("A");
-  const loudnessMatchedRef = useRef(true);
+  const loudnessMatchedRef = useRef(false);
 
   const [analyserMono, setAnalyserMono] = useState<AnalyserNode | null>(null);
   const [analyserL,    setAnalyserL]    = useState<AnalyserNode | null>(null);
@@ -88,7 +88,7 @@ export function AudioEngineProvider({
   const [duration,          setDuration]          = useState(0);
   const [mode,              setModeState]         = useState<"A" | "B">("A");
   const [masterUnavailable, setMasterUnavailable] = useState(false);
-  const [loudnessMatched,   setLoudnessMatchedState] = useState(true);
+  const [loudnessMatched,   setLoudnessMatchedState] = useState(false);
 
   const [staticWaveform,  setStaticWaveform]  = useState<Float32Array | null>(null);
   const [peakWaveform,    setPeakWaveform]    = useState<Float32Array | null>(null);

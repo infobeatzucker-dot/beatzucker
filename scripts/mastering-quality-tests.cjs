@@ -68,6 +68,9 @@ let passed=0;async function test(name,fn){await fn();console.log('PASS '+name);p
    const response=await sendClip();assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/);assert.equal((await response.arrayBuffer()).byteLength,4);assert.equal(clipCalls,1);
    assert.ok(!fs.readFileSync('app/api/preview-section/route.ts','utf8').includes('db.master.create'));
  });
+ await test('invalid character is rejected before any DSP control request',async()=>{
+   for(const character of [-1,2,'0.5',null])assert.equal((await send({...valid,character})).status,400);
+ });
  if(previous===undefined)delete process.env.ANALYSIS_SIGNING_SECRET;else process.env.ANALYSIS_SIGNING_SECRET=previous;
  console.log(passed+' mastering request/preview checks passed; no production requests.');
 })().catch(error=>{console.error(error);process.exitCode=1});

@@ -48,6 +48,8 @@ export async function POST(req: NextRequest) {
   const presetRaw = (body.preset as string) || "auto";
   const formatRaw = (body.format as string) || "mp3128";
   const intensityRaw = Number(body.intensity ?? 65);
+  const character = body.character === undefined ? .5 : body.character;
+  if(typeof character!=="number"||!Number.isFinite(character)||character<0||character>1)return Response.json({error:"Invalid character / Ungültiger Klangcharakter"},{status:400});
   const intensity = Number.isFinite(intensityRaw) ? Math.min(100, Math.max(0, intensityRaw)) : 65;
   const targetLufsRaw = Number(body.target_lufs);
   const targetLufs = platformRaw === "custom" && Number.isFinite(targetLufsRaw)
@@ -213,6 +215,7 @@ export async function POST(req: NextRequest) {
             master_id: masterId,
             output_dir: path.resolve(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, "masters")),
             ...(analysis          ? { analysis }                               : {}),
+            character,
             ...(referenceAnalysis ? { reference_analysis: referenceAnalysis } : {}),
             ...(overrides         ? { overrides }                              : {}),
           }),

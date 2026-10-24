@@ -1,5 +1,5 @@
 import type {
-  AnalysisData, Lang, MasterData, Platform, Preset, ProgressStep,
+  AnalysisData, ReferenceInput, Lang, MasterData, Platform, Preset, ProgressStep,
 } from "@/lib/types/mastering";
 import type { ParamValues } from "@/lib/masteringParams";
 
@@ -51,9 +51,10 @@ export interface RunMasteringArgs {
   targetLufs?: number;
   preset: Preset;
   intensity: number;
+  character?: number;
   selectedFormat: string;
   analysis?: AnalysisData;
-  referenceAnalysis?: AnalysisData;
+  referenceAnalysis?: ReferenceInput;
   overrides?: ParamValues;
   lang?: Lang;
   signal?: AbortSignal;
@@ -73,7 +74,7 @@ export interface RunMasteringArgs {
  */
 export async function runMastering({
   fileId, uploadToken, originalName, platform, targetLufs, preset, intensity, selectedFormat,
-  analysis, referenceAnalysis, overrides, lang = "de", signal,
+  analysis, referenceAnalysis, overrides, character = .5, lang = "de", signal,
   onProgress, onComplete, onError,
 }: RunMasteringArgs): Promise<void> {
   const fallbackError = lang === "de"
@@ -88,7 +89,7 @@ export async function runMastering({
         file_id: fileId,
         upload_token: uploadToken,
         original_name: originalName,
-        platform, preset, intensity,
+        platform, preset, intensity, character,
         ...(platform === "custom" && Number.isFinite(targetLufs) ? { target_lufs: targetLufs } : {}),
         format: selectedFormat,
         analysis,

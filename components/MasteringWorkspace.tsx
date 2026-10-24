@@ -13,7 +13,9 @@ import { stopGlobalAudio } from "@/lib/globalAudio";
 import PlatformTargets from "@/components/PlatformTargets";
 import PresetSelector from "@/components/PresetSelector";
 import MasteringIntensity from "@/components/MasteringIntensity";
-import ReferenceTrack, { type SavedRef, type ReferenceAnalysis as RefAnalysis } from "@/components/ReferenceTrack";
+import { type SavedRef, type ReferenceAnalysis as RefAnalysis } from "@/components/ReferenceTrack";
+import CharacterDial from "@/components/CharacterDial";
+import ReferenceMastering from "@/components/ReferenceMastering";
 import MasteringProgressModal from "@/components/MasteringProgressModal";
 import type { ParamValues } from "@/lib/masteringParams";
 import { runMastering } from "@/lib/runMastering";
@@ -23,7 +25,7 @@ import AnalysisNextSteps from "@/components/AnalysisNextSteps";
 import { DAILY_MASTER_LIMIT } from "@/lib/constants";
 import type { MasterOverviewData } from "@/components/MasterOverview";
 import type {
-  AppState, Platform, Preset, AnalysisData, MasterData, UploadedFile, ProgressStep, Lang,
+  AppState, Platform, Preset, AnalysisData, ReferenceInput, MasterData, UploadedFile, ProgressStep, Lang,
 } from "@/lib/types/mastering";
 
 const AnalysisPanel = dynamic(() => import("@/components/AnalysisPanel"), { ssr: false });
@@ -114,10 +116,12 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   const [platform,         setPlatform]         = useState<Platform>("spotify");
   const [customLufs,       setCustomLufs]       = useState<number>(-14);
   const [preset,           setPreset]           = useState<Preset>("auto");
+  const [character, setCharacter] = useState(.5);
   const [intensity,        setIntensity]        = useState<number>(65);
   const [currentProgress,  setCurrentProgress]  = useState<ProgressStep | null>(null);
   const [selectedFormat,   setSelectedFormat]   = useState<string>("mp3128");
-  const [referenceAnalysis, setReferenceAnalysis] = useState<AnalysisData | null>(null);
+  const [referenceAnalysis, setReferenceAnalysis] = useState<ReferenceInput | null>(null);
+  const [masterReference, setMasterReference] = useState<ReferenceInput | null>(null);
   const [savedRefs, setSavedRefs] = useState<SavedRef[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
@@ -197,6 +201,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   }, []);
 
   const handleUploadComplete   = useCallback((file: UploadedFile) => {
+    setMasterReference(null);
     stopGlobalAudio();
     masteringRun.current.reset();
     isMasteringRef.current = false;
@@ -273,6 +278,10 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
    */
   const handleRun = useCallback(async (overrides?: ParamValues) => {
     if (!uploadedFile) return;
+    // Manual adjustments start from the completed master's reference context,
+    // not changed selectors that are waiting for the next automatic run.
+    const renderReference = overrides !== undefined && masterData ? masterReference : referenceAnalysis;
+    const renderCharacter = overrides !== undefined && masterData ? Number(masterData.params?.character ?? .5) : character;
     const run = masteringRun.current.start();
     if (!run) return; // Synchronous protection against double clicks and shortcuts.
     setAdjustOpen(false);
@@ -281,19 +290,19 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
       fileId: uploadedFile.file_id,
       uploadToken: uploadedFile.upload_token,
       originalName: uploadedFile.filename,
-      platform, targetLufs: customLufs, preset, intensity,
+      platform, targetLufs: customLufs, preset, intensity, character:renderCharacter,
       selectedFormat,
       analysis: analysis ?? undefined,
-      referenceAnalysis: referenceAnalysis ?? undefined,
+      referenceAnalysis: renderReference ?? undefined,
       overrides,
       lang,
       signal: run.signal,
       onProgress: step => { if (run.current()) handleProgressUpdate(step); },
-      onComplete: data => { if (run.current()) handleMasteringComplete(data); },
+      onComplete: data => { if (run.current()) { setMasterReference(renderReference);handleMasteringComplete(data); } },
       onError: message => { if (run.current()) handleMasteringError(message); },
     }); } finally { run.finish(); }
   }, [uploadedFile, platform, customLufs, preset, intensity, selectedFormat, analysis,
-      referenceAnalysis, lang, handleMasteringStart, handleProgressUpdate,
+      referenceAnalysis, masterReference, masterData, character, lang, handleMasteringStart, handleProgressUpdate,
       handleMasteringComplete, handleMasteringError]);
 
   // Audio engine URLs
@@ -430,8 +439,9 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
 
             <div className="dashboard-secondary-grid">
               <MasteringIntensity value={intensity} onChange={setIntensity} lang={lang} />
-              <ReferenceTrack
-                onReference={(a) => setReferenceAnalysis(a as AnalysisData | null)}
+              <CharacterDial value={character} onChange={setCharacter} lang={lang} sections={analysis?.sections}/>
+              <ReferenceMastering
+                value={referenceAnalysis} onChange={setReferenceAnalysis} sourceHasProfile={!!analysis?.tonal_profile}
                 savedRefs={savedRefs}
                 onSaveRef={handleSaveRef}
                 onDeleteRef={handleDeleteRef}
@@ -603,7 +613,8 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
           preset={preset}
           intensity={intensity}
           analysis={analysis}
-          referenceAnalysis={referenceAnalysis}
+          character={masterData ? Number(masterData.params?.character ?? .5) : character}
+          referenceAnalysis={masterData ? masterReference : referenceAnalysis}
           serverParams={masterData?.params ?? null}
           onApply={handleRun}
         />

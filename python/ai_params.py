@@ -4,8 +4,9 @@ Takes audio analysis data and returns professional mastering parameters
 based on genre presets, spectral/dynamic analysis, and reference-track matching.
 """
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Optional
+from reference_matching import resolve_reference, reference_curve, bound_curve, profiles_compatible
 
 
 @dataclass
@@ -46,6 +47,11 @@ class MasteringParams:
     comp_knee_db: float = 4.0
     processing_intensity: int = 65
     manual_active: bool = False
+    reference_eq: list = field(default_factory=list)
+    dynamic_eq_amount: float = 0.0  # old saved parameter sets remain unchanged
+    section_plan: Optional[dict] = None
+    section_offset: float = 0.0
+    character: float = .5
     notes: str = ""
 
 
@@ -81,6 +87,8 @@ def apply_intensity_scaling(params: MasteringParams, intensity: int) -> Masterin
     params.air_gain       *= t
     params.final_air_gain *= t
     params.bass_mono_amount *= t
+    params.reference_eq = [{**item,"gain":item["gain"]*t} for item in params.reference_eq] if t else []
+    params.dynamic_eq_amount *= t
 
     # Compression ratios — blend from 1.0 (unity) toward AI-selected ratio
     params.mb_sub_ratio   = 1.0 + (params.mb_sub_ratio  - 1.0) * t
@@ -176,17 +184,24 @@ def get_mastering_params(
     target_lufs: Optional[float] = None,
     reference_analysis: Optional[dict] = None,
     overrides: Optional[dict] = None,
+    character: float = .5,
 ) -> MasteringParams:
     """Rule-based mastering parameters from genre presets + audio analysis."""
-    return get_default_params(analysis, platform, preset, intensity, target_lufs, reference_analysis, overrides)
+    return get_default_params(analysis, platform, preset, intensity, target_lufs, reference_analysis, overrides, character)
 
 
 def get_default_params(analysis: dict, platform: str, preset: str, intensity: int = 65,
                        target_lufs: Optional[float] = None,
                        reference_analysis: Optional[dict] = None,
-                       overrides: Optional[dict] = None) -> MasteringParams:
+                       overrides: Optional[dict] = None, character: float = .5) -> MasteringParams:
     """Parameters based on preset and analysis."""
     params = MasteringParams()
+    import math
+    from song_sections import valid_sections
+    if isinstance(character,bool) or not isinstance(character,(int,float)) or not math.isfinite(character) or not 0<=character<=1:
+        raise ValueError("Invalid character")
+    params.character = float(character)
+    params.section_plan = analysis.get('sections') if valid_sections(analysis.get('sections')) else None
     params.target_lufs = PLATFORM_LUFS.get(platform, -14.0)
     if platform == "custom" and target_lufs is not None:
         params.target_lufs = float(max(-23.0, min(-6.0, target_lufs)))
@@ -260,14 +275,22 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
     params.notes = f"Adaptive rules for {preset} preset targeting {platform} at {params.target_lufs} LUFS."
     params.genre = preset if preset != "auto" else "Adaptive"
 
-    # Conservative reference matching from measured, relative features.
-    if reference_analysis:
+    # Single legacy references remain compatible; new bundles have independent controls.
+    reference_analysis = resolve_reference(reference_analysis)
+    settings = reference_analysis.get("_settings", {"amount":1,"bass":0,"brightness":0,"smoothing":.65}) if reference_analysis else {}
+    if reference_analysis and settings.get("amount",1)>0:
+        before_reference = {key:getattr(params,key) for key in ("air_gain","presence_gain","stereo_width","mb_sub_ratio","mb_sub_threshold","low_shelf_gain","bus_comp_threshold","bus_comp_ratio")}
+        params.reference_eq = bound_curve(reference_curve(analysis.get("tonal_profile"),reference_analysis))
+        fine_reference = profiles_compatible(analysis.get("tonal_profile"),reference_analysis)
         src_centroid = analysis.get("spectral_centroid", 2000.0)
         ref_centroid = reference_analysis.get("spectral_centroid", 2000.0)
         centroid_diff = ref_centroid - src_centroid
         # Brighter reference → add air/presence; darker → reduce
         params.air_gain      = float(max(-3.0, min(4.0, params.air_gain      + centroid_diff / 2000.0 * 2.0)))
         params.presence_gain = float(max(-2.0, min(4.0, params.presence_gain + centroid_diff / 2000.0 * 1.0)))
+        if fine_reference:
+            params.air_gain = before_reference["air_gain"]
+            params.presence_gain = before_reference["presence_gain"]
 
         # Stereo width match.
         # ACHTUNG: "stereo_width" bedeutet hier zweierlei. Als MESSWERT (aus der
@@ -320,6 +343,17 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
             params.stereo_width = min(params.stereo_width, 1.0)
 
         params.notes += " Reference track used for tonal, stereo and dynamics matching."
+        if fine_reference:
+            params.low_shelf_gain = before_reference["low_shelf_gain"]
+        for key,original in before_reference.items():
+            setattr(params,key,original+(getattr(params,key)-original)*settings.get("amount",1))
+        if not fine_reference:
+            params.low_shelf_gain += settings.get("bass",0)*settings.get("amount",1)
+            params.air_gain += settings.get("brightness",0)*settings.get("amount",1)
+        params.notes += f" References: {reference_analysis.get('_count',1)}; amount {settings.get('amount',1):.2f}; tonal matching: {'24-band active-frame profile, bounded 3 dB response' if fine_reference else 'legacy broad features'}."
+
+    if reference_analysis and settings.get("amount",1)==0:
+        reference_analysis = None  # exact no-reference restraint behaviour
 
     # A quiet export is not a dark mix: decide from air/high balance only.
     air_balance = analysis.get("rms_air", -80.0) - analysis.get("rms_high", -80.0)
@@ -333,6 +367,7 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
     for key in ("mb_sub_ratio", "mb_low_ratio", "mb_mid_ratio", "mb_high_ratio", "bus_comp_ratio"):
         setattr(params, key, 1.0 + (getattr(params, key) - 1.0) * restraint)
     params.saturation_amount *= restraint
+    params.dynamic_eq_amount = restraint
     if balanced and preset == "auto" and not reference_analysis:
         for key in ("low_shelf_gain", "mid_notch_gain", "presence_gain", "air_gain", "final_air_gain"):
             setattr(params, key, getattr(params, key) * 0.5)
@@ -350,4 +385,10 @@ def get_default_params(analysis: dict, platform: str, preset: str, intensity: in
     # Manuelle Overrides ganz zuletzt — sie sind bereits Endwerte, siehe
     # apply_overrides(). Alles davor ist die automatische Herleitung, die der
     # Nutzer mit seinen Reglern gezielt uebersteuert.
+    # Neutral is exactly the existing chain; never move platform/peak targets.
+    delta = (character-.5)*2
+    comp_scale = 1 + delta*(.25 if delta>=0 else .35)
+    for key in ("mb_sub_ratio","mb_low_ratio","mb_mid_ratio","mb_high_ratio","bus_comp_ratio"):
+        setattr(params,key,1+(getattr(params,key)-1)*comp_scale)
+    params.saturation_amount = min(.5, params.saturation_amount*(1+delta*.65))
     return apply_overrides(apply_intensity_scaling(params, intensity), overrides)

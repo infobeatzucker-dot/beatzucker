@@ -7,7 +7,7 @@ export const MANUAL_MASTERING_ARTICLE: RessourceArticle = {
   category: "Tipps",
   categoryColor: "var(--accent-purple)",
   publishedAt: "2025-03-20",
-  updatedAt: "2026-10-17",
+  updatedAt: "2026-10-24",
   heroIcon: "Sliders",
   readingTimeMinutes: 5,
   title: {
@@ -40,8 +40,8 @@ export const MANUAL_MASTERING_ARTICLE: RessourceArticle = {
       {
         h2: { de: "1. Erst hören, dann gezielt ändern", en: "1. Listen first, then make a focused change" },
         body: {
-          de: "Vergleiche Original und Auto-Master im Hauptplayer. Wähle eine Stelle, an der du das Problem tatsächlich hörst, zum Beispiel einen dichten Refrain oder einen hellen Gesangseinsatz. Ändere nicht vorsorglich jeden Regler.\n\nEin deutlich lauterer Vergleich wirkt oft zunächst besser. Vergleiche deshalb bei ähnlicher Abhörlautstärke und achte auf Klangbalance, Verständlichkeit und Anschläge statt nur auf Pegel.",
-          en: "Compare the original and automatic master in the main player. Choose a section where you actually hear the issue, such as a dense chorus or a bright vocal entry. There is no need to change every control.\n\nA much louder version can seem better at first. Compare at similar listening levels and focus on balance, clarity and attacks rather than volume alone.",
+          de: "Vergleiche Original und Auto-Master im Hauptplayer. A/B startet bei Originalpegeln; für einen fairen Klangvergleich kannst du den Lautheitsabgleich einschalten. Wähle eine Stelle, an der du das Problem tatsächlich hörst, zum Beispiel einen dichten Refrain oder einen hellen Gesangseinsatz. Ändere nicht vorsorglich jeden Regler.\n\nEin deutlich lauterer Vergleich wirkt oft zunächst besser. Vergleiche deshalb bei ähnlicher Abhörlautstärke und achte auf Klangbalance, Verständlichkeit und Anschläge statt nur auf Pegel.",
+          en: "Compare the original and automatic master in the main player. A/B starts at original levels; enable loudness matching for a fairer tonal comparison. Choose a section where you actually hear the issue, such as a dense chorus or a bright vocal entry. There is no need to change every control.\n\nA much louder version can seem better at first. Compare at similar listening levels and focus on balance, clarity and attacks rather than volume alone.",
         },
       },
       {
@@ -68,8 +68,8 @@ export const MANUAL_MASTERING_ARTICLE: RessourceArticle = {
       {
         h2: { de: "5. Neuen Master erstellen und vollständig prüfen", en: "5. Create and check a new master" },
         body: {
-          de: "Wenn deine Änderungen passen, wähle „Neuen Master erstellen“. Erst nach dieser vollständigen Berechnung steht der neue Export zum Download bereit. Anders als die Vorschau ist das ein regulärer Mastering-Vorgang mit dem geltenden Tageskontingent.\n\nHöre die neue Datei auch außerhalb des gewählten Loops durch und prüfe die gemessenen Nachher-Werte. Lade erst dann die gewünschte Ausgabe herunter. Falls das Problem schon im Mix steckt – etwa Clipping oder ein zu lautes Einzelinstrument –, ist eine Korrektur in der DAW oft die bessere Lösung.",
-          en: "When the changes work, choose “Create new master”. The new export is available to download after full processing completes. Unlike preview, this is a regular mastering operation subject to the current daily allowance.\n\nListen beyond the selected loop and review the measured output values before choosing your download. If the problem originates in the mix, such as clipping or an overly loud instrument, fixing it in your DAW is often the better option.",
+          de: "Referenz- und Character-Einstellungen bleiben beim Stand des abgeschlossenen Masters. Deine manuellen Reglerwerte haben Vorrang. Eine Änderung dieser Auswahl im Dashboard gilt erst für den nächsten automatischen Lauf.\n\nWenn deine Änderungen passen, wähle „Neuen Master erstellen“. Erst nach dieser vollständigen Berechnung steht der neue Export zum Download bereit. Anders als die Vorschau ist das ein regulärer Mastering-Vorgang mit dem geltenden Tageskontingent.\n\nHöre die neue Datei auch außerhalb des gewählten Loops durch und prüfe die gemessenen Nachher-Werte. Lade erst dann die gewünschte Ausgabe herunter. Falls das Problem schon im Mix steckt – etwa Clipping oder ein zu lautes Einzelinstrument –, ist eine Korrektur in der DAW oft die bessere Lösung.",
+          en: "Reference and character settings stay with the completed master. Your manual values take priority. Changing these selections in the dashboard applies to the next automatic run.\n\nWhen the changes work, choose “Create new master”. The new export is available to download after full processing completes. Unlike preview, this is a regular mastering operation subject to the current daily allowance.\n\nListen beyond the selected loop and review the measured output values before choosing your download. If the problem originates in the mix, such as clipping or an overly loud instrument, fixing it in your DAW is often the better option.",
         },
       },
     ],

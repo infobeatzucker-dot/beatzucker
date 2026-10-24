@@ -9,7 +9,7 @@ from audio_limits import validate_full_dsp_audio
 from mastering import process_mastering_audio
 
 
-def render_control(file_path, start, end, analysis, platform, preset, intensity, target_lufs, reference, overrides):
+def render_control(file_path, start, end, analysis, platform, preset, intensity, target_lufs, reference, overrides, character=.5):
     if not all(math.isfinite(v) for v in (start, end)) or start < 0 or not .4 <= end - start <= 20.01:
         raise ValueError("Select 0.4–20 seconds for the control render")
     info = sf.info(file_path)
@@ -22,7 +22,8 @@ def render_control(file_path, start, end, analysis, platform, preset, intensity,
     audio, sr = sf.read(file_path, start=first, stop=last, dtype="float32", always_2d=True)
     if not np.all(np.isfinite(audio)):
         raise ValueError("Invalid audio samples")
-    params = get_mastering_params(analysis, platform, preset, intensity, target_lufs, reference, overrides)
+    params = get_mastering_params(analysis, platform, preset, intensity, target_lufs, reference, overrides, character)
+    params.section_offset = first / sr
     rendered = process_mastering_audio(audio.T, sr, params)
     begin = int(start * sr) - first; count = min(int((end - start) * sr), rendered.shape[-1] - begin)
     rendered = rendered[:, begin:begin + count]

@@ -30,6 +30,8 @@ export async function POST(request: NextRequest) {
     const overrides = normalizeParamOverrides(body.overrides);
     const reference = body.reference_analysis == null ? undefined : normalizeReferenceAnalysis(body.reference_analysis);
     const { start, end, intensity, platform, preset, target_lufs: target } = body;
+    const character=body.character===undefined?.5:body.character;
+    if(typeof character!=="number"||!Number.isFinite(character)||character<0||character>1)return Response.json({error:"Invalid character"},{status:400});
     if (!analysis || !verifyAnalysis(id, analysis, token) || !overrides || reference === null || !platforms.has(String(platform)) || !presets.has(String(preset))
       || typeof intensity !== "number" || !Number.isFinite(intensity) || intensity < 0 || intensity > 100
       || typeof start !== "number" || !Number.isFinite(start) || start < 0 || typeof end !== "number" || !Number.isFinite(end) || end - start < .4 || end - start > 20.01 || end > analysis.duration_seconds + .02
@@ -43,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (relative.startsWith("..") || path.isAbsolute(relative)) return Response.json({ error: "Forbidden" }, { status: 403 });
     const result = await fetch(`${process.env.PYTHON_SERVICE_URL || "http://localhost:8001"}/control-preview`, {
       method: "POST", headers: pythonServiceHeaders(), signal: AbortSignal.any([request.signal, AbortSignal.timeout(55000)]),
-      body: JSON.stringify({ file_path: filePath, start, end, analysis, overrides, reference_analysis: reference, platform, preset, intensity, ...(platform === "custom" ? { target_lufs: target } : {}) }),
+      body: JSON.stringify({ file_path: filePath, start, end, analysis, overrides, character, reference_analysis: reference, platform, preset, intensity, ...(platform === "custom" ? { target_lufs: target } : {}) }),
     });
     if (!result.ok) return Response.json({ error: "Control render failed" }, { status: result.status === 503 ? 503 : 422 });
     return new Response(result.body, { headers: { "Content-Type": "audio/wav", "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });

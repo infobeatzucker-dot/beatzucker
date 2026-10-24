@@ -13,6 +13,8 @@ from scipy import signal as scipy_signal
 from dataclasses import dataclass, asdict
 from typing import Optional
 from audio_limits import validate_full_dsp_audio
+from reference_matching import tonal_profile
+from song_sections import detect_sections
 
 logger = logging.getLogger("mastering.analyzer")
 
@@ -56,6 +58,8 @@ class AudioAnalysis:
     channels: int
     bass_correlation: float = 1.0
     bass_side_ratio: float = 0.0
+    tonal_profile: Optional[dict] = None
+    sections: Optional[dict] = None
 
 
 def measure_bass_stereo(audio: np.ndarray, sr: int) -> tuple[float, float]:
@@ -431,6 +435,8 @@ def analyze_audio(file_path: str) -> AudioAnalysis:
         channels=2 if is_stereo else 1,
         bass_correlation=bass_correlation,
         bass_side_ratio=bass_side_ratio,
+        tonal_profile=tonal_profile(y, sr),
+        sections=detect_sections(y, sr),
     )
 
 
@@ -492,4 +498,8 @@ def analysis_to_dict(a: AudioAnalysis) -> dict:
     for key, default in FLOAT_DEFAULTS.items():
         if key in d:
             d[key] = _sanitize_float(d[key], default)
+    if d.get("tonal_profile") is None:
+        d.pop("tonal_profile", None)
+    if d.get("sections") is None:
+        d.pop("sections", None)
     return d

@@ -2,6 +2,7 @@
 
 import { Brain, Settings2, Package, type LucideIcon } from "lucide-react";
 import ManualMasteringExplainer from "@/components/ManualMasteringExplainer";
+import CurrentMasteringGuide from '@/components/CurrentMasteringGuide';
 import { MASTERING_STAGES } from "@/lib/masteringStages";
 
 type Lang = "de" | "en";
@@ -47,8 +48,8 @@ const FEATURES: {
     icon: Package,
     title: { de: "Formate für jeden Zweck", en: "A Format for Every Purpose" },
     desc: {
-      de: "Dein fertiger Master steht in jedem gängigen Profiformat bereit — WAV 32-bit Float zum Archivieren, MP3 zum Streamen oder FLAC für die Distribution.",
-      en: "Your finished master is ready in every common professional format — WAV 32-bit float for archiving, MP3 for streaming, or FLAC for distribution.",
+      de: "Wähle das gewünschte Exportformat pro Durchlauf: zum Beispiel WAV 32-bit Float, MP3 oder verlustfreies FLAC. Eine MP3-Vorschau ergänzt die gewählte Ausgabe.",
+      en: "Choose an output format per run, such as WAV 32-bit float, MP3 or lossless FLAC. An MP3 preview accompanies the selected output.",
     },
     details: {
       de: ["WAV 32/24/16 Bit", "FLAC verlustfrei", "MP3 320kbps", "AAC 256kbps"],
@@ -64,8 +65,8 @@ const T = {
   how_it_works: { de: "Ablauf", en: "The Process" },
   headline:     { de: "Studio-Ergebnis ganz ohne Vorbereitung.", en: "Studio results without the studio setup." },
   subtext:      {
-    de: "Die gleiche Signalkette, die auch in Profistudios läuft — nur einen Klick entfernt.",
-    en: "It's the same signal chain professional studios run, just one click away.",
+    de: "Messbasierte Automatik, Referenzen und Klangcharakter – mit optionaler manueller Feinabstimmung.",
+    en: "Measurement-based processing, references and character, with optional manual fine-tuning.",
   },
   mastering_chain: { de: "Die Kette im Überblick", en: "The Chain at a Glance" },
 };
@@ -115,6 +116,7 @@ export default function FeaturesSection({ lang = "de" }: Props) {
 
       {/* Processing Steps */}
       <ManualMasteringExplainer lang={lang} />
+      <CurrentMasteringGuide lang={lang}/>
       <div className="mt-12 glass-panel p-6">
         <div className="label mb-4 text-center">{T.mastering_chain[lang]}</div>
         <div className="flex flex-wrap gap-2 justify-center">

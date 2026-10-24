@@ -1,6 +1,7 @@
 import { MANUAL_MASTERING_ARTICLE } from "./manualMasteringArticle";
 import { LUFS_ARTICLE, SAMPLE_RATE_ARTICLE } from "./audioBasicsArticles";
 import { PLATFORM_COMPARISON_ARTICLE } from "./platformComparisonArticle";
+import {ADAPTIVE_MASTERING_ARTICLE, REFERENCE_CHARACTER_ARTICLE, STREAMING_LOUDNESS_ARTICLE} from './currentMasteringArticles';
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type ArticleCategory = "Grundlagen" | "Technik" | "Tipps" | "Plattformen";
@@ -23,6 +24,7 @@ export interface RessourceArticle {
   updatedAt?: string;
   heroIcon: string;
   readingTimeMinutes: number;
+  sources?: {label:LocalizedString;href:string}[];
   title: LocalizedString;
   metaTitle: LocalizedString;
   metaDescription: LocalizedString;
@@ -56,6 +58,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Grundlagen",
     categoryColor: "var(--accent-purple)",
     publishedAt: "2025-01-10",
+    updatedAt: "2026-10-24",
     heroIcon: "SlidersHorizontal",
     readingTimeMinutes: 6,
     title: {
@@ -110,15 +113,15 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Weshalb klingt ein gemasterter Song hochwertiger?", en: "Why a Mastered Track Simply Sounds Better" },
           body: {
-            de: "Im eigenen Homestudio klingt ein Mix oft schon richtig gut — das Problem: Kaum ein Homestudio ist akustisch neutral. Raumreflexionen und ungeeignete Monitore verleiten dazu, Mixentscheidungen zu treffen, die woanders plötzlich falsch klingen.\n\nGenau das gleicht Mastering aus. Ein routinierter Engineer — oder eine entsprechend trainierte KI — hört den Track auf kalibrierten Monitoren ab und behebt, was im Mix untergegangen ist. Gleichzeitig bringt das Mastering den Track auf die Lautheit und den Klangcharakter, den Streaming-Dienste und Labels voraussetzen.",
-            en: "A mix can sound great in your own home studio — the catch is, almost no home studio is acoustically neutral. Room reflections and imperfect monitors nudge you toward mix decisions that fall apart on other systems.\n\nMastering corrects for exactly that. A seasoned engineer — or a properly trained AI — evaluates the track on calibrated monitors and fixes what got missed during mixing. At the same time, mastering brings the track to the loudness and tonal character that streaming services and labels expect by default.",
+            de: "Im eigenen Homestudio klingt ein Mix oft schon richtig gut — das Problem: Kaum ein Homestudio ist akustisch neutral. Raumreflexionen und ungeeignete Monitore verleiten dazu, Mixentscheidungen zu treffen, die woanders plötzlich falsch klingen.\n\nGenau das gleicht Mastering aus. Ein Engineer beurteilt den Mix auf geeigneter Abhöre. Beatzucker arbeitet stattdessen mit Messungen und adaptiven Regeln; die Software hört nicht auf Studiomonitoren. Größere Mixprobleme sollten in den Einzelspuren korrigiert werden. Gleichzeitig bringt das Mastering den Track auf die Lautheit und den Klangcharakter, den Streaming-Dienste und Labels voraussetzen.",
+            en: "A mix can sound great in your own home studio — the catch is, almost no home studio is acoustically neutral. Room reflections and imperfect monitors nudge you toward mix decisions that fall apart on other systems.\n\nMastering corrects for exactly that. An engineer judges the mix on suitable monitoring. Beatzucker instead uses measurements and adaptive rules; the software does not listen through studio monitors. Fix major mix problems in the individual tracks. At the same time, mastering brings the track to the loudness and tonal character that streaming services and labels expect by default.",
           },
         },
         {
           h2: { de: "Ab wann ist Mastering Pflicht?", en: "When Do You Actually Need It?" },
           body: {
-            de: "Kurz gesagt: immer, sobald du veröffentlichen willst. Ob SoundCloud, Spotify, Bandcamp oder eine Demo fürs Label — ohne Mastering wirkt ein Track im direkten Vergleich schnell unfertig.\n\nUnd das gilt auch mit kleinem Budget: Moderne KI-Mastering-Tools wie Beatzucker liefern dir in Sekunden einen professionell klingenden Master — gratis und ganz ohne Vorwissen. Früher war dafür nur ein Profistudio für mehrere Hundert Euro die Adresse.",
-            en: "Short version: any time you're about to release something. SoundCloud upload, Spotify single, Bandcamp release, label demo — skip mastering and the track reads as unfinished next to anything properly produced.\n\nEven on a shoestring budget this isn't a problem anymore: AI mastering tools like Beatzucker hand you a professional-sounding master in seconds, for free, no technical background required. That used to mean a pro studio bill running into the hundreds of euros.",
+            de: "Kurz gesagt: immer, sobald du veröffentlichen willst. Ob SoundCloud, Spotify, Bandcamp oder eine Demo fürs Label — ohne Mastering wirkt ein Track im direkten Vergleich schnell unfertig.\n\nUnd das gilt auch mit kleinem Budget: Beatzucker bietet einen kostenlosen automatischen Ausgangspunkt mit optionaler manueller Feinabstimmung. Dauer und Ergebnis hängen von Quelle und Einstellungen ab. Vergleiche die fertige Datei und behalte nur Änderungen, die deiner Musik helfen.",
+            en: "Short version: any time you're about to release something. SoundCloud upload, Spotify single, Bandcamp release, label demo — skip mastering and the track reads as unfinished next to anything properly produced.\n\nEven on a shoestring budget this isn't a problem anymore: Beatzucker offers a free automatic starting point with optional manual fine-tuning. Duration and results depend on the source and settings. Compare the finished file and keep only changes that serve your music.",
           },
         },
       ],
@@ -205,119 +208,10 @@ export const ARTICLES: RessourceArticle[] = [
   },
 
   // ── 4 ──────────────────────────────────────────────────────────────────────
-  {
-    slug: "ki-mastering-wie-funktioniert-es",
-    category: "Technik",
-    categoryColor: "var(--accent-cyan)",
-    publishedAt: "2025-01-25",
-    heroIcon: "Bot",
-    readingTimeMinutes: 6,
-    title: { de: "So funktioniert KI-Mastering wirklich", en: "How AI Mastering Actually Works" },
-    metaTitle: { de: "KI-Mastering: So funktioniert AI Audio Mastering | Beatzucker", en: "How AI Audio Mastering Works, Explained | Beatzucker" },
-    metaDescription: {
-      de: "Wie erkennt eine KI, was ein Track braucht, und mastert ihn automatisch? Der komplette Ablauf von der Analyse bis zum fertigen Master — verständlich erklärt.",
-      en: "How does an AI figure out what a track needs and master it on its own? The full process from analysis to finished master, explained in plain terms.",
-    },
-    keywords: {
-      de: ["ki mastering funktionsweise", "ai audio mastering erklärt", "künstliche intelligenz beim mastering", "automatisches mastering online", "wie funktioniert ki mastering"],
-      en: ["how ai mastering works", "ai audio mastering explained", "artificial intelligence in mastering", "automatic online mastering", "ai mastering process"],
-    },
-    teaser: {
-      de: "Beatzucker misst Frequenzbild, Dynamik und Stereofeld und leitet daraus adaptive Mastering-Einstellungen ab. So läuft das im Detail ab.",
-      en: "Beatzucker measures spectral balance, dynamics and stereo image, then derives adaptive mastering settings. Here's the process in detail.",
-    },
-    relatedSlugs: ["was-ist-audio-mastering", "lufs-erklaert", "true-peak-rms-lufs"],
-    content: {
-      intro: {
-        de: "Hinter automatischem Mastering steckt keine Zauberei. Bei Beatzucker arbeiten standardisierte Audiomessungen, transparente adaptive Regeln und eine dokumentierte DSP-Kette zusammen. Doch was passiert dabei technisch genau?",
-        en: "There is no magic behind automatic mastering. Beatzucker combines standardized audio measurements, transparent adaptive rules and a documented DSP chain. But what actually happens under the hood?",
-      },
-      sections: [
-        {
-          h2: { de: "Schritt 1: Der Track wird analysiert", en: "Step 1: Analyzing the Track" },
-          body: {
-            de: "Bevor überhaupt etwas verändert wird, scannt die Analyse-Engine den Track gründlich durch. Beatzucker erfasst dabei unter anderem:\n\nLUFS integriert: Wie laut ist der Track insgesamt?\n\nTrue Peak: Wie dicht liegt der rekonstruierte Spitzenpegel an der digitalen Vollaussteuerung?\n\nSpektralanalyse: Wo liegen die Frequenzschwerpunkte?\n\nDynamik (Crest-Faktor, DR-Wert und LRA): Wie dynamisch ist der Track, oder ist er bereits stark komprimiert?\n\nStereofeld: Wie breit ist der Mix, gibt es Phasenprobleme?\n\nBPM und Tonart: zusätzliche Informationen für Analyse und Bericht.",
-            en: "Before touching anything, the analysis engine thoroughly scans the track. Beatzucker measures:\n\nIntegrated LUFS: how loud is the track overall?\n\nTrue Peak: how close is the reconstructed peak to digital full scale?\n\nSpectral analysis: where does the frequency energy sit?\n\nDynamics (crest factor, DR and LRA): how dynamic is the track, or is it already heavily compressed?\n\nStereo field: how wide is the mix, and are there phase concerns?\n\nBPM and key: additional information for analysis and reporting.",
-          },
-        },
-        {
-          h2: { de: "Schritt 2: Die Engine berechnet passende Parameter", en: "Step 2: Calculating Suitable Parameters" },
-          body: {
-            de: "Anhand der Analyse-Ergebnisse berechnet die Mastering-Engine die optimalen Einstellungen. Einbezogen werden dabei:\n\nDas gewählte Genre (Electronic, Hip-Hop, Rock, Jazz, Klassik u. a.) — jedes bringt eigene Klangcharakteristika und Lautheitsnormen mit.\n\nDie Zielplattform (Spotify, Apple Music, Club, Broadcast) — jede hat eigene LUFS-Zielwerte und True-Peak-Grenzen.\n\nDer aktuelle Zustand des Tracks — ein bereits stark komprimierter Mix braucht eine andere Herangehensweise als ein dynamischer.\n\nHeraus kommt ein konkreter Parametersatz: EQ-Kurven, Kompressionsverhältnisse, Werte für die Stereobreite, Limiter-Threshold und die Export-LUFS.",
-            en: "Based on that analysis, the mastering engine calculates the ideal settings, taking into account:\n\nThe genre you selected (Electronic, Hip-Hop, Rock, Jazz, Classical, and more) — each carries its own typical sonic traits and loudness norms.\n\nThe target platform (Spotify, Apple Music, Club, Broadcast) — each with its own LUFS targets and True Peak ceilings.\n\nThe track's current state — a mix that's already heavily compressed needs a different approach than a dynamic one.\n\nThe output is a concrete parameter set: EQ curves, compression ratios, stereo width values, limiter threshold, and export LUFS.",
-          },
-        },
-        {
-          h2: { de: "Schritt 3: Die DSP-Kette verarbeitet den Track", en: "Step 3: The DSP Chain Does the Work" },
-          body: {
-            de: "Die berechneten Parameter laufen jetzt durch eine mehrstufige DSP-Pipeline (Digital Signal Processing). Bei Beatzucker durchläuft jeder Track 12 Stufen:\n\n1. Input Gain: Eingangspegel normalisieren\n2. High-Pass Filter: Sub-Frequenzen unter 20 Hz entfernen\n3. Low Shelving EQ: Bassbereich formen\n4. Mid Parametric EQ: Mitten korrigieren\n5. High Shelving EQ: Höhen anheben oder absenken\n6. Multiband-Kompressor: Frequenzbänder getrennt komprimieren\n7. Stereo-Bearbeitung: Mid/Side-Processing für die Stereobreite\n8. Harmonic Exciter: Obertöne für Wärme und Präsenz anreichern\n9. Glue-Kompressor: Gesamtmix zusammenkleben\n10. Pre-Limiter EQ: Letzte Frequenzkorrektur vor dem Limiter\n11. True-Peak-Limiter: Ceiling auf −1 dBTP setzen\n12. Dithering: Quantisierungsrauschen beim Format-Export minimieren",
-            en: "Those calculated parameters now run through a multi-stage DSP pipeline (Digital Signal Processing). At Beatzucker, every track passes through 12 stages:\n\n1. Input Gain: normalizing input level\n2. High-Pass Filter: removing sub-frequencies below 20 Hz\n3. Low Shelving EQ: shaping the bass range\n4. Mid Parametric EQ: correcting the midrange\n5. High Shelving EQ: raising or cutting the highs\n6. Multiband Compressor: compressing frequency bands independently\n7. Stereo Processing: Mid/Side processing for stereo width\n8. Harmonic Exciter: adding overtones for warmth and presence\n9. Glue Compressor: gluing the overall mix together\n10. Pre-Limiter EQ: final frequency correction ahead of the limiter\n11. True-Peak Limiter: setting the ceiling to −1 dBTP\n12. Dithering: minimizing quantization noise during format export",
-          },
-        },
-        {
-          h2: { de: "KI-Mastering im Vergleich zum menschlichen Engineer", en: "AI Mastering vs. a Human Engineer" },
-          body: {
-            de: "Bei Hochbudget-Produktionen ersetzt KI-Mastering den menschlichen Engineer nicht. Für Independent-Artists, Demos, SoundCloud-Uploads und Streaming-Releases spielt es dagegen klare Stärken aus:\n\nTempo: Ein fertiger Master in 15–30 Sekunden statt ein bis zwei Tagen Wartezeit.\n\nKosten: Kostenlos statt 100–300 Euro pro Track.\n\nKonsistenz: Dieselbe Pipeline läuft bei jedem einzelnen Track.\n\nZugänglichkeit: Weder Fachwissen noch teure Hardware nötig.",
-            en: "For high-budget productions, AI mastering isn't a replacement for a human engineer. But for independent artists, demos, SoundCloud uploads, and streaming releases, it plays to some clear strengths:\n\nSpeed: a finished master in 15-30 seconds instead of a one- or two-day wait.\n\nCost: free, compared to €100-300 per track.\n\nConsistency: the same pipeline runs on every single track.\n\nAccessibility: no expertise and no expensive hardware required.",
-          },
-        },
-      ],
-    },
-  },
+  ADAPTIVE_MASTERING_ARTICLE,
 
   // ── 5 ──────────────────────────────────────────────────────────────────────
-  {
-    slug: "song-klingt-leise-spotify",
-    category: "Tipps",
-    categoryColor: "var(--accent-gold)",
-    publishedAt: "2025-02-01",
-    heroIcon: "VolumeX",
-    readingTimeMinutes: 5,
-    title: { de: "Warum dein Track auf Spotify leiser klingt als andere", en: "Why Your Track Sounds Quieter on Spotify Than Others" },
-    metaTitle: { de: "Song klingt leise auf Spotify? Ursache & Fix | Beatzucker", en: "Track Too Quiet on Spotify? Cause and Fix | Beatzucker" },
-    metaDescription: {
-      de: "Dein Track wirkt auf Spotify leiser als vergleichbare Songs? Wir erklären Spotifys Loudness Normalization und wie du deinen Master richtig darauf vorbereitest.",
-      en: "Notice your track sounds quieter on Spotify than similar songs? Here's how Spotify's loudness normalization works and how to master around it correctly.",
-    },
-    keywords: {
-      de: ["track klingt leise auf spotify", "spotify loudness normalization", "spotify lufs zielwert", "song zu leise streaming", "loudness war erklärt"],
-      en: ["track sounds quiet on spotify", "spotify loudness normalization", "spotify lufs target", "song too quiet on streaming", "loudness war explained"],
-    },
-    teaser: {
-      de: "Neben anderen Songs in deiner Playlist wirkt dein Track auf Spotify leiser? Schuld ist Spotifys Loudness Normalization. Hier erfährst du, wie du dagegen ansteuerst.",
-      en: "Your track sits noticeably quieter next to other songs in your Spotify playlist? That's Spotify's loudness normalization at work. Here's how to master around it.",
-    },
-    relatedSlugs: ["lufs-erklaert", "mastering-plattformen-lufs", "mix-fuer-mastering-vorbereiten"],
-    content: {
-      intro: {
-        de: "Du hast deinen Track hochgeladen, bist zufrieden — doch in der Playlist neben anderen Songs wirkt er merklich leiser und irgendwie kraftlos. Ein Klassiker unter den Frustrationen für Independent-Artists, und die Ursache ist klar benennbar: Spotifys Loudness Normalization.",
-        en: "You've uploaded the track, you're happy with it — but sitting in a playlist next to other songs, it comes across noticeably quieter and somehow flat. It's a classic frustration for independent artists, and the cause has a name: Spotify's loudness normalization.",
-      },
-      sections: [
-        {
-          h2: { de: "Was macht Spotifys Loudness Normalization eigentlich?", en: "What Spotify's Loudness Normalization Actually Does" },
-          body: {
-            de: "Spotify bringt jeden Track auf −14 LUFS (integriert). Liegt dein Master zum Beispiel bei −10 LUFS (also zu laut), zieht Spotify ihn um 4 dB zurück — Lautheit und Energie gehen verloren.\n\nUmgekehrt gilt aber: Liegt dein Track bei −18 LUFS (zu leise), hebt Spotify ihn NICHT an. Er bleibt schlicht leise. Die Folge: Im direkten Vergleich wirkt dein Song schlapper und weniger präsent als andere Tracks — selbst wenn der Mix an sich stimmt.",
-            en: "Spotify brings every track to −14 LUFS (integrated). Say your master sits at −10 LUFS (too loud) — Spotify pulls it back by 4 dB, and you lose loudness and energy in the process.\n\nThe reverse, though, doesn't work the same way: if your track sits at −18 LUFS (too quiet), Spotify will NOT boost it up. It just stays quiet. The result: next to other tracks, your song reads as weaker and less present — even when the mix itself is solid.",
-          },
-        },
-        {
-          h2: { de: "Der Loudness War und was er hinterlassen hat", en: "The Loudness War and Its Legacy" },
-          body: {
-            de: "Vor der Streaming-Ära tobte der sogenannte Loudness War: Labels und Produzenten pumpten ihre Tracks auf maximale Lautheit, um im Radio oder auf CD aufzufallen. Das Resultat waren hyperkomprimierte, dynamikarme Tracks — typischerweise zwischen −7 und −9 LUFS.\n\nStreaming-Plattformen haben diesem Wettrüsten mit ihrer Normalisierung ein Ende gesetzt. Tracks im alten Loudness-War-Stil klingen auf Spotify nicht mehr lauter, sie werden einfach heruntergeregelt. Trotzdem mastern viele Produzenten aus Gewohnheit immer noch zu laut, weil ihnen nicht klar ist, wie Normalisierung funktioniert.",
-            en: "Before streaming took over, there was the so-called Loudness War: labels and producers cranked their tracks to maximum loudness to stand out on radio or CD. What that left behind was a wave of hypercompressed, dynamics-starved tracks, typically sitting around −7 to −9 LUFS.\n\nStreaming platforms shut that arms race down through normalization. Tracks mastered in that old loudness-war style don't sound louder on Spotify anymore — they just get turned down. Even so, plenty of producers still master too hot out of habit, simply because they don't understand how normalization works.",
-          },
-        },
-        {
-          h2: { de: "Die Lösung: Sauber auf −14 LUFS mastern", en: "The Fix: Master Cleanly to −14 LUFS" },
-          body: {
-            de: "Die Lösung ist unkompliziert: Master deinen Track auf −14 LUFS (integriert) mit maximal −1 dBTP True Peak. Damit greift Spotifys Normalisierung praktisch nicht mehr ein — dein Track klingt exakt so, wie du ihn abgemischt hast.\n\nFaustregel fürs Streaming-Mastering:\n\n• Integrierter LUFS-Wert: −14 LUFS (Spotify), −16 LUFS (Apple Music)\n• True Peak: maximal −1 dBTP\n• Kein Limiter, der die Dynamic Range unter −3 LUFS drückt\n\nBeatzucker übernimmt das automatisch: Du wählst die Zielplattform, die KI berechnet den passenden Zielwert und mastert direkt darauf.",
-            en: "The fix is simple: master your track to −14 LUFS (integrated) with a True Peak no higher than −1 dBTP. Do that, and Spotify's normalization effectively has nothing left to adjust — your track plays back exactly the way you mastered it.\n\nRule of thumb for streaming mastering:\n\n• Integrated LUFS: −14 LUFS (Spotify), −16 LUFS (Apple Music)\n• True Peak: −1 dBTP maximum\n• Avoid limiting that pushes dynamic range below −3 LUFS\n\nBeatzucker handles this automatically: pick your target platform, and the AI calculates the right target value and masters straight to it.",
-          },
-        },
-      ],
-    },
-  },
+  STREAMING_LOUDNESS_ARTICLE,
 
   // ── 6 ──────────────────────────────────────────────────────────────────────
   {
@@ -519,6 +413,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Tipps",
     categoryColor: "var(--accent-gold)",
     publishedAt: "2025-02-20",
+    updatedAt: "2026-10-24",
     heroIcon: "Mic",
     readingTimeMinutes: 7,
     title: { de: "Warum dein Homestudio-Mix woanders anders klingt: 5 Fehlerquellen", en: "Why Your Home Studio Mix Sounds Different Elsewhere: 5 Culprits" },
@@ -566,8 +461,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Grund 4: Ohne Referenztrack im Blindflug", en: "Culprit 4: Mixing Blind Without a Reference" },
           body: {
-            de: "Wer stundenlang am selben Mix sitzt, verliert langsam die Objektivität — das Gehör gewöhnt sich an das, was gerade läuft, egal ob es tatsächlich passt. Probleme fallen einem irgendwann einfach nicht mehr auf, sie sind aber trotzdem noch da.\n\nDagegen hilft nur der ständige Abgleich: Zieh in regelmäßigen Abständen zwei, drei kommerzielle Tracks aus deinem Genre in die DAW und wechsle im direkten A/B zwischen deinem Mix und der Referenz. Beatzucker macht das sogar im Mastering nutzbar — du lädst einen Referenztrack hoch, und die KI orientiert sich beim Mastern am Klangcharakter genau dieses Songs.",
-            en: "Sit at the same mix for hours and objectivity slowly slips away — your ears adjust to whatever's playing, whether or not it actually works. Problems stop registering, but that doesn't mean they've gone anywhere.\n\nThe antidote is constant comparison: pull two or three commercial tracks from your genre into the DAW every so often and A/B directly against your own mix. Beatzucker even builds this into mastering itself — upload a reference track, and the AI shapes your master's sonic character around that specific song.",
+            de: "Wer stundenlang am selben Mix sitzt, verliert langsam die Objektivität — das Gehör gewöhnt sich an das, was gerade läuft, egal ob es tatsächlich passt. Probleme fallen einem irgendwann einfach nicht mehr auf, sie sind aber trotzdem noch da.\n\nDagegen hilft nur der ständige Abgleich: Zieh in regelmäßigen Abständen zwei, drei kommerzielle Tracks aus deinem Genre in die DAW und wechsle im direkten A/B zwischen deinem Mix und der Referenz. Beatzucker macht das sogar im Mastering nutzbar — du kannst bis zu drei passende Referenzen gewichten und ihren gemeinsamen Klangeinfluss einstellen. Die Plattform bestimmt weiterhin das Lautheitsziel.",
+            en: "Sit at the same mix for hours and objectivity slowly slips away — your ears adjust to whatever's playing, whether or not it actually works. Problems stop registering, but that doesn't mean they've gone anywhere.\n\nThe antidote is constant comparison: pull two or three commercial tracks from your genre into the DAW every so often and A/B directly against your own mix. Beatzucker even builds this into mastering itself — weight up to three suitable references and adjust their shared tonal influence, while the platform still determines loudness.",
           },
         },
         {
@@ -765,4 +660,5 @@ export const ARTICLES: RessourceArticle[] = [
 
   // Keep the existing DE/EN article addresses; content now covers Beatzucker.
   MANUAL_MASTERING_ARTICLE,
+  REFERENCE_CHARACTER_ARTICLE,
 ];

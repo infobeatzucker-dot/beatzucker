@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import ManualMasteringExplainer from "@/components/ManualMasteringExplainer";
+import CurrentMasteringGuide from '@/components/CurrentMasteringGuide';
 import {
   Zap, Sliders, Wrench, Sparkles, Mic2, SlidersHorizontal, Flame, Target, Octagon, BarChart3,
   Music, Disc, Play, Waves, ShoppingBag, Disc3, Smartphone, Cloud, Disc2, Radio, Settings2,
@@ -27,7 +28,7 @@ const T = {
     how_badge: "So läuft's ab",
     how_h2: "Dein Master in drei Schritten",
     step1_title: "Track rein",
-    step1_sub: "WAV, MP3, FLAC oder AIFF — bis zu 200 MB / 30 Minuten",
+    step1_sub: "WAV, MP3, FLAC oder AIFF — bis zu 200 MB; Dauer abhängig von Samplerate und Speicherbudget",
     step2_title: "Engine analysiert",
     step2_sub: "Spektrum, Lautheit und Dynamik werden komplett durchleuchtet",
     step3_title: "Master laden",
@@ -37,14 +38,14 @@ const T = {
     pipeline_sub: "Jeder Schritt ist fürs Mastering feinjustiert — vom DC-Offset ganz am Anfang bis zur LUFS-Normalisierung am Ende.",
     platform_badge: "Streaming-Targets",
     platform_h2: "Für jede Plattform richtig laut",
-    platform_sub: "Die Lautheit wird automatisch auf den Zielwert jedes großen Streaming-Diensts gebracht.",
+    platform_sub: "Die Plattform setzt das Lautheitsziel. Peak- und Dynamikschutz können ein leiseres Ergebnis erfordern.",
     format_badge: "Export",
     format_h2: "Das passende Exportformat",
     format_sub: "Wähle dein Zielformat; eine MP3-Vorschau wird zusätzlich erzeugt, sofern verfügbar.",
     features_badge: "Funktionsumfang",
     features_h2: "Das steckt in Beatzucker",
     cta_h2: "Lust auf deinen ersten automatischen Master?",
-    cta_sub: "Track hoch, 30 Sekunden warten, fertig.",
+    cta_sub: "Track analysieren, Einstellungen wählen und den fertigen Master vergleichen.",
     cta_btn: "Jetzt starten →",
   },
   en: {
@@ -59,7 +60,7 @@ const T = {
     how_badge: "The Process",
     how_h2: "Your Master in Three Steps",
     step1_title: "Drop It In",
-    step1_sub: "WAV, MP3, FLAC or AIFF — up to 200 MB / 30 minutes",
+    step1_sub: "WAV, MP3, FLAC or AIFF — up to 200 MB; duration depends on sample rate and memory budget",
     step2_title: "Engine Analyzes",
     step2_sub: "Spectrum, loudness and dynamics get fully scanned",
     step3_title: "Grab Your Master",
@@ -69,14 +70,14 @@ const T = {
     pipeline_sub: "Every stage is tuned for professional mastering, from the initial DC offset fix to the final LUFS normalization.",
     platform_badge: "Streaming Targets",
     platform_h2: "Tuned to Hit Every Platform",
-    platform_sub: "Loudness is automatically matched to the target value of each major streaming service.",
+    platform_sub: "Platform sets the loudness target. Peak and dynamics protection may require a quieter result.",
     format_badge: "Export",
     format_h2: "One Pass, Every File Format",
     format_sub: "Choose the delivery format; an MP3 preview is also created when available.",
     features_badge: "Feature Set",
     features_h2: "Everything Beatzucker Packs In",
     cta_h2: "Ready to run your first automatic master?",
-    cta_sub: "Upload your track, wait 30 seconds, done.",
+    cta_sub: "Analyze your track, choose settings and compare the finished master.",
     cta_btn: "Get Started →",
   },
 };
@@ -184,7 +185,7 @@ const FEATURES = [
     title: { de: "Manuelles Mastering mit Live-Vorschau", en: "Manual Mastering with Live Preview" },
     desc: {
       de: "Nach dem Auto-Master kannst du EQ, Multiband-Kompression, Stereobreite, Sättigung, Bus-Kompression und Limiter direkt nachjustieren. Ein frei positionierbarer Audioloop und der A/B-Vergleich machen jede Änderung nahezu in Echtzeit hörbar; anschließend rendert die vollständige DSP-Kette einen neuen Master.",
-      en: "After the automatic master, fine-tune EQ, multiband compression, stereo width, saturation, bus compression and limiting. A movable audio loop and instant A/B comparison make changes audible in near real time before the full DSP chain renders a new master.",
+      en: "After the automatic master, fine-tune EQ, multiband compression, stereo width, saturation, bus compression. A movable audio loop and instant A/B comparison make changes audible in near real time before the full DSP chain renders a new master.",
     },
     tags: ["Live Preview", "EQ", "Multiband", "A/B"],
     visual: "manual",
@@ -203,8 +204,8 @@ const FEATURES = [
     color: "var(--accent-purple)",
     title: { de: "Referenz-Matching", en: "Reference Matching" },
     desc: {
-      de: "Du lädst einen Track als Orientierung hoch — die Engine nähert Klangbalance, Dynamik und Stereobreite daran an, während das Plattformziel die Lautheit vorgibt.",
-      en: "Upload a reference track and the engine approaches its tonal balance, dynamics and stereo width while the platform target controls loudness.",
+      de: "Bis zu drei gewichtete Referenzen liefern ein Klangziel. Einfluss, Bass, Helligkeit und Glättung sind getrennt einstellbar; das Lautheitsziel bleibt unabhängig.",
+      en: "Up to three weighted references guide a shared tonal target. Influence, bass, brightness and smoothing are independent; loudness stays separate.",
     },
     tags: ["Adaptive Matching", "Reference", "Spectral", "Kostenlos"],
     visual: "reference",
@@ -720,6 +721,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
 
       <section style={{ maxWidth: "900px", margin: "0 auto", padding: "0 2rem 4rem" }}>
         <ManualMasteringExplainer lang={lang} />
+        <CurrentMasteringGuide lang={lang}/>
       </section>
 
       {/* ── DSP Pipeline ── */}

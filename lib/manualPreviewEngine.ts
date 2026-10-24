@@ -16,6 +16,7 @@ export class ManualPreviewEngine {
   private readonly eq: Record<"hp" | "low" | "mid" | "presence" | "air", BiquadFilterNode>;
   private readonly shaper: WaveShaperNode;
   private bands: AudioWorkletNode | null = null;
+  private dynamicEq: AudioWorkletNode | null = null;
   private bus: AudioWorkletNode | null = null;
   private reduction = 0;
   private latestValues: ParamValues;
@@ -35,6 +36,7 @@ export class ManualPreviewEngine {
     this.ctx = new AudioContext({ sampleRate: 48000, latencyHint: "balanced" });
     this.input = this.ctx.createGain();
     this.player = new PreviewLoopPlayer(this.ctx, this.input, url, duration);
+    this.player.onSchedule((start,end,contextStart)=>this.bus?.port.postMessage({timeline:{start,end,contextStart}}));
     const requestedGainDb = Math.max(-24, Math.min(24, -18 - inputLufs));
     const peakSafeGainDb = -0.18 - inputTruePeak;
     this.input.gain.value = Math.pow(10, Math.min(requestedGainDb, peakSafeGainDb) / 20);
@@ -45,7 +47,16 @@ export class ManualPreviewEngine {
     const presence = this.ctx.createBiquadFilter(); presence.type = "peaking"; presence.frequency.value = Number(contextParams.presence_freq ?? 3000); presence.Q.value = 1.2;
     const air = this.ctx.createBiquadFilter(); air.type = "highshelf"; air.frequency.value = 12000;
     this.eq = { hp, low, mid, presence, air };
-    this.input.connect(hp).connect(low).connect(mid).connect(presence).connect(air);
+    let referenceInput: AudioNode = this.input;
+    const referenceCurve = Array.isArray(contextParams.reference_eq) ? contextParams.reference_eq.slice(0,12) : [];
+    for(const raw of referenceCurve){
+      if(!raw||typeof raw!=="object")continue;
+      const item=raw as Record<string,unknown>,f=Number(item.frequency),g=Number(item.gain),q=Number(item.q);
+      if(!Number.isFinite(f)||!Number.isFinite(g)||!Number.isFinite(q)||f<40||f>=this.ctx.sampleRate*.42||Math.abs(g)>1.2||q<.5||q>2)continue;
+      const filter=this.ctx.createBiquadFilter();filter.type="peaking";filter.frequency.value=f;filter.gain.value=g;filter.Q.value=q;
+      referenceInput.connect(filter);referenceInput=filter;
+    }
+    referenceInput.connect(hp).connect(low).connect(mid).connect(presence).connect(air);
 
     this.shaper = this.ctx.createWaveShaper();
     this.shaper.oversample = "2x";
@@ -85,14 +96,15 @@ export class ManualPreviewEngine {
 
     this.ready = Promise.resolve().then(async () => {
       if (!this.ctx.audioWorklet) throw Error("AudioWorklet is required for live preview");
-      await this.ctx.audioWorklet.addModule("/audio/mastering-dynamics.js?v=0.14.1");
+      await this.ctx.audioWorklet.addModule("/audio/mastering-dynamics.js?v=1.5.0");
       if (this.destroyed) return;
       const params = { ...this.contextParams, ...this.latestValues };
+      this.dynamicEq = new AudioWorkletNode(this.ctx, "beatzucker-mastering-dynamics", { outputChannelCount: [2], processorOptions: { mode: "dynamic", params } });
       this.bands = new AudioWorkletNode(this.ctx, "beatzucker-mastering-dynamics", { outputChannelCount: [2], processorOptions: { mode: "bands", params } });
       this.bus = new AudioWorkletNode(this.ctx, "beatzucker-mastering-dynamics", { outputChannelCount: [2], processorOptions: { mode: "bus", params } });
-      this.bands.onprocessorerror = this.bus.onprocessorerror = () => { this.pause(); this.errorListener(); };
+      this.dynamicEq.onprocessorerror = this.bands.onprocessorerror = this.bus.onprocessorerror = () => { this.pause(); this.errorListener(); };
       this.bus.port.onmessage = event => { if (Number.isFinite(event.data?.reduction)) this.reduction = event.data.reduction; };
-      air.connect(this.bands); this.bands.connect(satLow1); this.bands.connect(satHigh1);
+      air.connect(this.dynamicEq).connect(this.bands); this.bands.connect(satLow1); this.bands.connect(satHigh1);
       this.bands.connect(this.saturationDry);
       this.finalAir.connect(this.bus).connect(this.wet);
     });
@@ -150,7 +162,7 @@ export class ManualPreviewEngine {
     const active = Number(this.contextParams.processing_intensity ?? 65) > 0 || Object.entries(values).some(([key, value]) => typeof this.contextParams[key] === "number" && Math.abs(Number(value) - Number(this.contextParams[key])) > 1e-6);
     set(this.wet.gain, active ? 1 : 0); set(this.dry.gain, active ? 0 : 1);
     const params = { ...this.contextParams, ...values };
-    this.bands?.port.postMessage({ params }); this.bus?.port.postMessage({ params });
+    this.dynamicEq?.port.postMessage({ params }); this.bands?.port.postMessage({ params }); this.bus?.port.postMessage({ params });
 
     const drive = values.saturation_amount ?? 0;
     this.shaper.curve = this.makeSaturationCurve(drive);
@@ -177,7 +189,7 @@ export class ManualPreviewEngine {
     this.destroyed = true;
     this.playGeneration++;
     this.player.destroy();
-    this.bands?.port.close(); this.bus?.port.close();
+    this.dynamicEq?.port.close(); this.bands?.port.close(); this.bus?.port.close();
     void this.ctx.close();
   }
 }

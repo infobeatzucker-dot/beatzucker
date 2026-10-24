@@ -2,16 +2,17 @@
 
 /**
  * ReferenceTrack — Upload a professional reference track.
- * The app will AI-match loudness, tonal balance and dynamics to it.
+ * The app uses its tonal balance and dynamics; the platform controls loudness.
  * Users can also save reference analyses to their library and reload
  * them later without re-uploading the audio file.
  */
 
 import { useRef, useState, useEffect } from "react";
 import { SlidersHorizontal, Save, BarChart3, Library } from "lucide-react";
-import type { Lang } from "@/lib/types/mastering";
+import type { Lang, TonalProfile } from "@/lib/types/mastering";
 
 export interface ReferenceAnalysis {
+  tonal_profile?: TonalProfile;
   integrated_lufs:   number;
   true_peak:         number;
   spectral_centroid: number;
@@ -196,7 +197,7 @@ function ReferencePopup({
           display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem",
         }}>
           <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-            {lang === "de" ? "KI gleicht Lautheit · Spektrum · Dynamik ab" : "AI matches loudness · spectrum · dynamics"}
+            {lang === "de" ? "Orientierung für Klangbalance und Dynamik · Lautheitsziel bleibt separat" : "Guidance for tonal balance and dynamics · loudness target stays separate"}
           </span>
           <div style={{ display: "flex", gap: "0.5rem" }}>
             {canSave && (
@@ -260,6 +261,8 @@ export default function ReferenceTrack({
   const [phase, setPhase]       = useState<"idle" | "upload" | "analyze">("idle");
   const [uploadPct, setUploadPct]   = useState(0);
   const [analyzePct, setAnalyzePct] = useState(0);
+  const job = useRef<AbortController|null>(null);
+  useEffect(()=>()=>job.current?.abort(),[]);
 
   // Library view toggle (only when canSaveRefs && savedRefs.length > 0)
   const [view, setView] = useState<"upload" | "library">("upload");
@@ -270,6 +273,7 @@ export default function ReferenceTrack({
   }, [savedRefs.length]);
 
   const handleFile = async (file: File) => {
+    job.current?.abort();const task=new AbortController();job.current=task;
     setError(null);
     setPhase("upload");
     setUploadPct(0);
@@ -281,12 +285,15 @@ export default function ReferenceTrack({
       form.append("file", file);
       const { file_id, upload_token } = await new Promise<{ file_id: string; upload_token: string }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        const abort=()=>xhr.abort();task.signal.addEventListener("abort",abort,{once:true});
+        xhr.onloadend=()=>task.signal.removeEventListener("abort",abort);
+        xhr.onabort=()=>reject(new Error("Cancelled"));
+        xhr.timeout=180000;xhr.ontimeout=()=>reject(new Error("Upload timeout"));
         xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) setUploadPct(Math.round((e.loaded / e.total) * 100));
+          if (job.current===task&&!task.signal.aborted&&e.lengthComputable) setUploadPct(Math.round((e.loaded / e.total) * 100));
         };
         xhr.onload = () => {
-          if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-          else reject(new Error(lang === "de" ? "Upload fehlgeschlagen" : "Upload failed"));
+          try{if(xhr.status===200)resolve(JSON.parse(xhr.responseText));else reject(new Error("Upload failed"));}catch(error){reject(error)}
         };
         xhr.onerror = () => reject(new Error(lang === "de" ? "Netzwerkfehler" : "Network error"));
         xhr.open("POST", "/api/upload");
@@ -295,16 +302,14 @@ export default function ReferenceTrack({
       setUploadPct(100);
 
       setPhase("analyze");
-      const analyzeTimer = setInterval(() => {
-        setAnalyzePct((p) => (p < 88 ? p + (88 - p) * 0.14 : p));
-      }, 250);
 
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ file_id, upload_token }),
+        signal: AbortSignal.any([task.signal,AbortSignal.timeout(175000)]),
       });
-      clearInterval(analyzeTimer);
+      if(job.current!==task||task.signal.aborted)return;
       if (!analyzeRes.ok) throw new Error(lang === "de" ? "Analyse fehlgeschlagen" : "Analysis failed");
       setAnalyzePct(100);
 
@@ -315,6 +320,7 @@ export default function ReferenceTrack({
       setPopupData({ analysis, filename: file.name });
       onReference(analysis, file.name);
     } catch (e) {
+      if(job.current!==task||task.signal.aborted)return;
       setError(lang === "de" ? "Referenztrack konnte nicht analysiert werden" : "Reference track could not be analyzed");
       setPhase("idle");
       console.warn(e);
@@ -463,7 +469,7 @@ export default function ReferenceTrack({
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
                 <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.07em", color: phase === "analyze" ? "var(--accent-cyan)" : "var(--text-muted)" }}>{lang === "de" ? "ANALYSE" : "ANALYSIS"}</span>
                 {phase === "analyze" && (
-                  <span style={{ fontSize: "0.65rem", color: "var(--accent-cyan)", fontVariantNumeric: "tabular-nums" }}>{Math.round(analyzePct)}%</span>
+                  <span style={{ fontSize: "0.65rem", color: "var(--accent-cyan)", fontVariantNumeric: "tabular-nums" }}>{lang==="de"?"läuft…":"working…"}</span>
                 )}
               </div>
               <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
