@@ -10,6 +10,11 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"1.5.1",date:"2026-10-24",
+  title:{de:"Referenz-Lab im Studio-Look",en:"Studio-style reference lab"},
+  summary:{de:"Plastische Drehregler und klare Anzeigen machen die Referenzeinstellungen übersichtlicher.",en:"Dimensional dials and clear readouts make reference settings easier to navigate."},
+  improvements:{de:["Großer Referenzeinfluss-Regler und drei kleinere Klangregler mit Prozentanzeigen, Tastaturbedienung und Zurücksetzen.","Referenztracks lassen sich mit schlanken Fadern gewichten. Klangberechnung und Einstellbereiche bleiben unverändert."],en:["Large reference influence dial and three smaller tonal controls with percentage readouts, keyboard support and reset.","Slim faders adjust reference weights. Audio processing and adjustment ranges remain unchanged."]},
+}, {
   version:"1.5.0",date:"2026-10-24",
   title:{de:"Dein Referenzsound. Feiner abgestimmt.",en:"Your reference sound. More finely matched."},
   summary:{de:"Bis zu drei Referenzen und feinere Klangprofile helfen dir, dein gewünschtes Klangbild gezielter anzusteuern.",en:"Up to three references and finer tonal profiles help you guide your master towards the sound you want."},
