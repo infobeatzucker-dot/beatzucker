@@ -1,0 +1,8 @@
+/* Read-only UI check against the isolated localhost production build. */
+const assert=require('node:assert/strict'),path=require('node:path');
+if(process.env.BEATZUCKER_ISOLATED_QA!=='1')throw Error('Isolated QA only');
+(async()=>{const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright'),browser=await chromium.launch({channel:'chrome',headless:true});try{
+ const base='http://127.0.0.1:3013',context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});await context.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());await context.addInitScript(()=>localStorage.setItem('beatzucker_cookie_consent','accepted'));const page=await context.newPage();
+ for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});await page.goto(base+'/');const entry=page.locator('#home-express-slot .express-launch');await entry.waitFor();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));if(width===1440){const button=await entry.boundingBox(),console=await page.locator('.mastering-dashboard').boundingBox();assert.ok(button.x+button.width<=console.x+1);assert.ok(button.y+button.height<1000,'desktop entry remains in first viewport');}await page.screenshot({path:path.resolve(`validation-output/express-assistant-1.6/00-home-left-${width}.png`)});await entry.click();await page.locator('dialog.express-dialog[open]').waitFor();await page.keyboard.press('Escape');await page.locator('dialog.express-dialog').waitFor({state:'hidden'});}
+ console.log('PASS final home entry: left of console and visible at desktop, 390/320px without overflow, popup opens/closes');
+}finally{await browser.close()}})().catch(error=>{console.error(error);process.exitCode=1});

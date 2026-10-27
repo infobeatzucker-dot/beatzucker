@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -129,6 +130,8 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [masteringError, setMasteringError] = useState<string | null>(null);
   const [expressOpen,setExpressOpen] = useState(false);
+  const [expressTarget,setExpressTarget] = useState<HTMLElement|null>(null);
+  useEffect(()=>{setExpressTarget(document.getElementById('home-express-slot') ?? document.getElementById('dashboard-express-slot'));},[]);
   const [expressStep,setExpressStep] = useState(0);
   const [expressReferenceBusy,setExpressReferenceBusy] = useState(false);
   const [uploadStatus,setUploadStatus] = useState<UploadStatus>({busy:false,error:null});
@@ -334,6 +337,12 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     mainPanelRef.current?.querySelector<HTMLElement>('.studio-download-target')?.focus({preventScroll:true});
   },50);};
 
+  const expressLauncher = (
+    <button type="button" className="express-launch" onClick={openExpress} disabled={appState==='mastering'} aria-label={lang==='en'?'Open assistant':'Assistent öffnen'}>
+      <span className="express-launch-art" aria-hidden="true"><span className="express-launch-orbit"/><Sparkles size={30}/><span className="express-launch-wave">{[14,26,38,22,32,16,25].map((height,index)=><i key={index} style={{height}}/>)}</span></span>
+      <span className="express-launch-copy"><small>{lang==='en'?'YOUR GUIDED MASTER':'DEIN BEGLEITETER MASTER'}</small><strong>{lang==='en'?'Express assistant':'Express-Assistent'}</strong><span>{lang==='en'?'Great sound. One easy step at a time.':'Großer Sound. Ganz einfach Schritt für Schritt.'}</span><b>{lang==='en'?'Open assistant':'Assistent öffnen'}<ArrowRight size={17} aria-hidden="true"/></b></span>
+    </button>
+  );
   return (
     <>
       <div ref={mainPanelRef}>
@@ -344,10 +353,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
           originalLufs={analysis?.integrated_lufs}
           masteredLufs={masterData?.post_analysis.integrated_lufs}
         >
-          <div className="express-launch">
-            <div className="express-launch-copy"><span><Sparkles size={22}/></span><div><h3>{lang==='en'?'A little guidance? Meet Express.':'Ein bisschen Unterstützung? Express hilft.'}</h3><p>{lang==='en'?'Step by step to your master. Your familiar console stays right here.':'Schritt für Schritt zu deinem Master. Deine gewohnte Konsole bleibt genau hier.'}</p></div></div>
-            <button type="button" className="express-primary" onClick={openExpress} disabled={appState==='mastering'}>{lang==='en'?'Open assistant':'Assistent öffnen'}<ArrowRight size={16}/></button>
-          </div>
+          {expressTarget ? <>{createPortal(expressLauncher,expressTarget)}{expressTarget.id==='dashboard-express-slot'&&<div className="express-mobile-entry">{expressLauncher}</div>}</> : <div className="express-inline-entry">{expressLauncher}</div>}
           <ExpressMasteringAssistant
             open={expressOpen} step={expressStep} onStep={setExpressStep} onClose={()=>setExpressOpen(false)} lang={lang}
             file={uploadedFile} analysis={analysis} upload={uploadStatus}

@@ -75,7 +75,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
           <div className="hero-aurora" aria-hidden="true" />
           <div className="hero-layout">
             <motion.div
-              className="hero-copy"
+              className="hero-copy hero-copy-with-express"
               initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: "easeOut" }}
@@ -107,6 +107,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
                 <ArrowRight size={20} aria-hidden="true" />
               </a>
 
+              <div id="home-express-slot" />
               <div className="hero-usps">
                 {USPS.map(({ icon: Icon, title, desc }) => (
                   <div className="hero-usp" key={title.de}>

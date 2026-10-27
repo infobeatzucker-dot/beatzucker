@@ -1,6 +1,6 @@
 {
   "name": "masterone",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "private": true,
   "scripts": {
     "test:audit": "node scripts/run-audit-tests.cjs",

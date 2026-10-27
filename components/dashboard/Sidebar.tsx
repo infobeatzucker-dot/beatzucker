@@ -84,6 +84,7 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
         <div className="dashboard-brand-sub px-2 mb-7"><Sparkles size={10} /> {en ? "ADAPTIVE MASTERING" : "ADAPTIVES MASTERING"}</div>
 
         <NavLinks pathname={effectivePathname} />
+        <div id="dashboard-express-slot" />
 
         <div style={{ marginTop: "auto", paddingTop: "1.5rem" }}>
           <div className="sidebar-free-card">

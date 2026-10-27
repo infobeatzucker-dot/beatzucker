@@ -10,6 +10,11 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"1.6.1",date:"2026-10-27",
+  title:{de:"Express: direkter vergleichen, mehr Platz im Studio",en:"Express: compare directly, more room in the studio"},
+  summary:{de:"Ein grafischer Express-Button links lässt der Konsole mehr Platz. Der Assistent zeigt die laufende Analyse und bietet den Hörvergleich direkt im Ergebnisfenster.",en:"A graphic Express button on the left gives the console more room. The assistant shows analysis activity and offers a comparison right in the result window."},
+  improvements:{de:["Original und Master direkt im Assistenten umschalten, pausieren und die Hörposition wählen. Der vorhandene Player und Autostart bleiben erhalten.","Leuchtende Ringe reagieren auf das abgespielte Audio; bei Pause ruhen sie. Reduzierte Bewegung wird berücksichtigt.","Während Upload und Analyse zeigt eine Animation die laufende Verarbeitung – ohne erfundene Prozentwerte."],en:["Switch between original and master, pause and seek directly in the assistant. Existing playback and autoplay remain available.","Glowing rings respond to the playing audio and rest when paused. Reduced-motion preferences are respected.","An animation shows processing activity during upload and analysis without invented percentages."]},
+}, {
   version:"1.6.0",date:"2026-10-27",
   title:{de:"Mit Express Schritt für Schritt zum Master",en:"Step by step to your master with Express"},
   summary:{de:"Der neue Express-Assistent begleitet dich im übersichtlichen Popup durch dein Mastering. Die gewohnte Konsole bleibt erhalten.",en:"The new Express assistant guides you through mastering in a clear popup. Your familiar console stays available."},
