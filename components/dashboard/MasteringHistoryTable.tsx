@@ -208,9 +208,9 @@ export default function MasteringHistoryTable() {
       <ToolFeedback lang={lang} state={loadError ? "error" : deleteBusy ? "working" : deleteFeedback ? deleteFeedback.error ? "error" : "success" : "idle"} detail={loadError ? t("Bibliothek konnte nicht geladen werden. Bitte lade die Seite erneut.", "Your library could not be loaded. Please reload the page.") : deleteBusy ? t("Ausgewählte Einträge werden gelöscht …", "Deleting selected entries …") : deleteFeedback?.text}/>
       {downloadError && (
         <div style={{
-          marginBottom: "1rem", background: "rgba(239,68,68,0.1)",
-          border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px",
-          padding: "0.6rem 1rem", color: "#f87171", fontSize: "0.82rem", fontWeight: 600,
+          marginBottom: "1rem", background: "rgba(var(--bz-paint-ef4444),0.1)",
+          border: "1px solid rgba(var(--bz-border-ef4444),0.3)", borderRadius: "8px",
+          padding: "0.6rem 1rem", color: "rgb(var(--bz-paint-f87171))", fontSize: "0.82rem", fontWeight: 600,
         }}>
           {downloadError}
         </div>
@@ -227,7 +227,7 @@ export default function MasteringHistoryTable() {
           </div>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
                 <th style={{ padding: "0.4rem 0.6rem" }}><input ref={selectAllRef} type="checkbox" className="history-select" checked={allSelected} disabled={deleteBusy || !selectable.length} aria-label={t("Alle löschbaren Einträge auswählen", "Select all deletable entries")} onChange={() => { setSelectedIds(allSelected ? new Set() : new Set(selectable.map(m => m.id))); setDeleteFeedback(null); }}/></th>
                 {[t("Datum", "Date"), t("Datei", "File"), t("Genre", "Genre"), t("LUFS vorher", "LUFS before"), t("LUFS nachher", "LUFS after"), "", "Download", ""].map((h, index) => (
                   <th key={index} style={{ padding: "0.4rem 0.6rem", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
@@ -246,7 +246,7 @@ export default function MasteringHistoryTable() {
                 const expired = Boolean(m.expiresAt && new Date(m.expiresAt).getTime() <= Date.now());
                 const canDownload = m.downloadAvailable && !expired && Boolean(selectedFormat);
                 return (
-                  <tr key={m.id} aria-selected={selectedIds.has(m.id)} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: selectedIds.has(m.id) ? "rgba(139,92,246,.1)" : undefined }}>
+                  <tr key={m.id} aria-selected={selectedIds.has(m.id)} style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)", background: selectedIds.has(m.id) ? "rgba(var(--bz-paint-8b5cf6),0.1)" : undefined }}>
                     <td style={{ padding: "0.5rem 0.6rem" }}><input type="checkbox" className="history-select" checked={selectedIds.has(m.id)} disabled={deleteBusy || m.status === "processing"} aria-label={t(`${m.originalName} auswählen`, `Select ${m.originalName}`)} onChange={() => toggleSelection(m.id)}/></td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(m.completedAt ?? m.createdAt, lang)}</td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-primary)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.originalName}</td>
@@ -259,15 +259,15 @@ export default function MasteringHistoryTable() {
                             onChange={(e) => setNotesDraft(e.target.value)}
                             onKeyDown={(e) => { if (e.key === "Enter") saveNotes(m.id); if (e.key === "Escape") setEditingNotes(null); }}
                             maxLength={80}
-                            style={{ fontSize: "0.75rem", padding: "0.2rem 0.4rem", borderRadius: "4px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "var(--text-primary)", outline: "none", width: 100 }}
+                            style={{ fontSize: "0.75rem", padding: "0.2rem 0.4rem", borderRadius: "4px", background: "rgba(var(--bz-paint-ffffff),0.06)", border: "1px solid rgba(var(--bz-border-ffffff),0.15)", color: "var(--text-primary)", outline: "none", width: 100 }}
                           />
-                          <button onClick={() => saveNotes(m.id)} style={{ fontSize: "0.72rem", color: "#6ee7b7", background: "none", border: "none", cursor: "pointer" }}>✓</button>
-                          <button onClick={() => setEditingNotes(null)} style={{ fontSize: "0.72rem", color: "#9ca3af", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+                          <button onClick={() => saveNotes(m.id)} style={{ fontSize: "0.72rem", color: "rgb(var(--bz-paint-6ee7b7))", background: "none", border: "none", cursor: "pointer" }}>✓</button>
+                          <button onClick={() => setEditingNotes(null)} style={{ fontSize: "0.72rem", color: "rgb(var(--bz-paint-9ca3af))", background: "none", border: "none", cursor: "pointer" }}>✕</button>
                         </div>
                       ) : (
                         <span
                           onClick={() => { setEditingNotes(m.id); setNotesDraft(m.notes); }}
-                          style={{ cursor: "pointer", borderBottom: "1px dashed rgba(255,255,255,0.1)" }}
+                          style={{ cursor: "pointer", borderBottom: "1px dashed rgba(var(--bz-border-ffffff),0.1)" }}
                           title={t("Klicken zum Bearbeiten", "Click to edit")}
                         >
                           {m.notes || "—"}
@@ -275,7 +275,7 @@ export default function MasteringHistoryTable() {
                       )}
                     </td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-secondary)" }}>{fmt(m.lufsIn)}</td>
-                    <td style={{ padding: "0.5rem 0.6rem", color: "#6ee7b7" }}>{fmt(m.lufsOut)}</td>
+                    <td style={{ padding: "0.5rem 0.6rem", color: "rgb(var(--bz-paint-6ee7b7))" }}>{fmt(m.lufsOut)}</td>
 
                     <td style={{ padding: "0.5rem 0.3rem" }}>
                       {canDownload && previewFormat ? (
@@ -285,7 +285,7 @@ export default function MasteringHistoryTable() {
                           style={{
                             display: "inline-flex", alignItems: "center", justifyContent: "center",
                             width: 26, height: 26, borderRadius: "50%", border: "none", cursor: "pointer",
-                            background: playingMasterId === m.id ? "rgba(56,189,248,0.18)" : "rgba(255,255,255,0.06)",
+                            background: playingMasterId === m.id ? "rgba(var(--bz-paint-38bdf8),0.18)" : "rgba(var(--bz-paint-ffffff),0.06)",
                             color: playingMasterId === m.id ? "var(--accent-cyan)" : "var(--text-muted)",
                             transition: "all 0.15s", flexShrink: 0,
                           }}
@@ -319,7 +319,7 @@ export default function MasteringHistoryTable() {
                             display: "inline-flex", alignItems: "center", gap: "0.3rem",
                             padding: "0.22rem 0.55rem", borderRadius: "5px", fontSize: "0.72rem",
                             fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer",
-                            background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.3)",
+                            background: "rgba(var(--bz-paint-38bdf8),0.1)", border: "1px solid rgba(var(--bz-border-38bdf8),0.3)",
                             color: downloadingId === m.id ? "var(--text-muted)" : "var(--accent-cyan)",
                           }}
                         >
@@ -336,7 +336,7 @@ export default function MasteringHistoryTable() {
                         onClick={() => void deleteMasters([m.id])}
                         disabled={deleteBusy || m.status === "processing"}
                         title={t("Aus Verlauf löschen", "Delete from history")}
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(239,68,68,0.4)", fontSize: "0.85rem", padding: "0.1rem 0.3rem", lineHeight: 1 }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(var(--bz-paint-ef4444),0.4)", fontSize: "0.85rem", padding: "0.1rem 0.3rem", lineHeight: 1 }}
                       >
                         {deleteBusy ? "…" : "✕"}
                       </button>

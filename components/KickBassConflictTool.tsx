@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft, CheckCircle2, FileAudio2, Loader2, LockKeyhole, RotateCcw, ScanSearch, UploadCloud, Waves } from "lucide-react";
@@ -29,10 +31,10 @@ export function compare(kick: Spectrum, bass: Spectrum): Result {
 
 function SpectrumChart({ result }: { result: Result }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => { const canvas = ref.current; if (!canvas) return; const drawFrame=()=>{const box = canvas.getBoundingClientRect(); const scale = devicePixelRatio || 1; canvas.width = box.width * scale; canvas.height = box.height * scale; const ctx = canvas.getContext("2d"); if (!ctx) return; ctx.scale(scale, scale); const w = box.width, h = box.height; ctx.clearRect(0,0,w,h); ctx.strokeStyle="rgba(255,255,255,.055)"; ctx.lineWidth=1; for(let i=0;i<5;i++){const y=12+(h-32)*i/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  useEffect(() => { const canvas = ref.current; if (!canvas) return; const drawFrame=()=>{const box = canvas.getBoundingClientRect(); const scale = devicePixelRatio || 1; canvas.width = box.width * scale; canvas.height = box.height * scale; const ctx = canvas.getContext("2d"); if (!ctx) return; ctx.scale(scale, scale); const w = box.width, h = box.height; ctx.clearRect(0,0,w,h); ctx.strokeStyle=uiColor("rgba(255,255,255,.055)"); ctx.lineWidth=1; for(let i=0;i<5;i++){const y=12+(h-32)*i/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
     const draw = (values:number[], color:string, fill:string) => { ctx.beginPath(); values.forEach((value,index)=>{const x=index/(values.length-1)*w,y=h-20-value*(h-38); index?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.lineTo(w,h-20);ctx.lineTo(0,h-20);ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.beginPath();values.forEach((value,index)=>{const x=index/(values.length-1)*w,y=h-20-value*(h-38);index?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();};
-    draw(result.bass.levels,"#b56cff","rgba(181,108,255,.08)"); draw(result.kick.levels,"#4bc8ff","rgba(75,200,255,.08)");
-    ctx.fillStyle="#59637d";ctx.font="10px monospace"; [40,60,100,160,250,350].forEach(hz=>{const x=Math.log(hz/MIN_HZ)/Math.log(MAX_HZ/MIN_HZ)*w;ctx.fillText(`${hz}`,Math.min(w-24,Math.max(0,x-8)),h-4);});};const loop=startVisibleAnimation(canvas,drawFrame,{continuous:false});return()=>loop.stop();
+    draw(result.bass.levels,uiColor("#b56cff"),uiColor("rgba(181,108,255,.08)")); draw(result.kick.levels,uiColor("#4bc8ff"),uiColor("rgba(75,200,255,.08)"));
+    ctx.fillStyle=uiColor("#59637d");ctx.font="10px monospace"; [40,60,100,160,250,350].forEach(hz=>{const x=Math.log(hz/MIN_HZ)/Math.log(MAX_HZ/MIN_HZ)*w;ctx.fillText(`${hz}`,Math.min(w-24,Math.max(0,x-8)),h-4);});};const loop=startVisibleAnimation(canvas,drawFrame,{continuous:false});return()=>loop.stop();
   }, [result]); return <canvas ref={ref} className="conflict-chart" aria-label="Kick and bass spectrum overlay"/>;
 }
 

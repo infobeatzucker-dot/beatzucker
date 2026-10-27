@@ -1,6 +1,8 @@
 "use client";
 
 import type { Lang } from "@/lib/types/mastering";
+import {uiColor,type UiThemeId} from '@/lib/uiTheme';
+import {useUiThemeSnapshot} from '@/lib/useUiThemeSnapshot';
 
 /**
  * MasteringIntensity slider — controls how aggressively the AI masters the track.
@@ -20,11 +22,11 @@ const PRESETS = [
   { de: "Maximum", en: "Maximum", value: 100 },
 ];
 
-function getIntensityColor(v: number): string {
-  if (v < 40)  return "#8b5cf6";   // purple — subtle
-  if (v < 70)  return "#38bdf8";   // cyan — balanced
-  if (v < 90)  return "#c4b5fd";   // gold — loud
-  return "#ff4757";                // red — max
+function getIntensityColor(v: number,theme:UiThemeId): string {
+  if (v < 40)  return uiColor("#8b5cf6",theme);
+  if (v < 70)  return uiColor("#38bdf8",theme);
+  if (v < 90)  return uiColor("#c4b5fd",theme);
+  return uiColor("#ff4757",theme);
 }
 
 function getIntensityLabel(v: number, lang: Lang): string {
@@ -37,7 +39,8 @@ function getIntensityLabel(v: number, lang: Lang): string {
 }
 
 export default function MasteringIntensity({ value, onChange, lang = "de" }: Props) {
-  const color = getIntensityColor(value);
+  const uiTheme=useUiThemeSnapshot();
+  const color = getIntensityColor(value,uiTheme);
   const label = getIntensityLabel(value, lang);
   const pct   = value;
 
@@ -74,14 +77,14 @@ export default function MasteringIntensity({ value, onChange, lang = "de" }: Pro
       <div className="relative mb-2.5">
         <div
           className="h-2 rounded-full relative overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.06)" }}
+          style={{ background: "rgba(var(--bz-paint-ffffff),0.06)" }}
         >
           {/* Filled portion */}
           <div
             className="h-full rounded-full transition-all duration-150"
             style={{
               width: `${pct}%`,
-              background: `linear-gradient(90deg, #8b5cf6, ${color})`,
+              background: `linear-gradient(90deg, rgb(var(--bz-paint-8b5cf6)), ${color})`,
               boxShadow: `0 0 8px ${color}66`,
             }}
           />
@@ -109,13 +112,13 @@ export default function MasteringIntensity({ value, onChange, lang = "de" }: Pro
             className="flex-1 py-1 rounded text-xs font-medium transition-all"
             style={{
               background: Math.abs(value - p.value) < 8
-                ? `${getIntensityColor(p.value)}22`
-                : "rgba(255,255,255,0.03)",
+                ? `${getIntensityColor(p.value,uiTheme)}22`
+                : "rgba(var(--bz-paint-ffffff),0.03)",
               border: `1px solid ${Math.abs(value - p.value) < 8
-                ? getIntensityColor(p.value) + "55"
-                : "rgba(255,255,255,0.06)"}`,
+                ? getIntensityColor(p.value,uiTheme) + "55"
+                : "rgba(var(--bz-paint-ffffff),0.06)"}`,
               color: Math.abs(value - p.value) < 8
-                ? getIntensityColor(p.value)
+                ? getIntensityColor(p.value,uiTheme)
                 : "var(--text-muted)",
             }}
           >

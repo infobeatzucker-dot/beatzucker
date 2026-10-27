@@ -48,7 +48,7 @@ export default function RelatedArticles({ articles, lang }: Props) {
                 display: "flex",
                 alignItems: "center",
                 gap: "0.75rem",
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid rgba(var(--bz-border-ffffff),0.06)",
                 transition: "border-color 0.2s, transform 0.2s",
                 cursor: "pointer",
               }}

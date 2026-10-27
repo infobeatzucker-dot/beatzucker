@@ -29,7 +29,7 @@ function Section({ sec, lang }: { sec: LocalizedSection; lang: Lang }) {
           fontWeight: 700,
           margin: "0 0 1rem",
           paddingBottom: "0.5rem",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.06)",
         }}
       >
         {sec.h2[lang]}
@@ -68,7 +68,7 @@ function Section({ sec, lang }: { sec: LocalizedSection; lang: Lang }) {
                       fontSize: "0.7rem",
                       letterSpacing: "0.08em",
                       textTransform: "uppercase",
-                      borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.08)",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -79,7 +79,7 @@ function Section({ sec, lang }: { sec: LocalizedSection; lang: Lang }) {
             </thead>
             <tbody>
               {sec.table.rows.map((row, ri) => (
-                <tr key={ri} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <tr key={ri} style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)" }}>
                   {row.map((cell, ci) => (
                     <td
                       key={ci}
@@ -138,8 +138,8 @@ export default function ArticleBody({ article, initialLang = "de" }: Props) {
               cursor: "pointer",
               border: "1px solid",
               transition: "all 0.15s",
-              background: lang === l ? "rgba(139,92,246,0.15)" : "transparent",
-              borderColor: lang === l ? "rgba(139,92,246,0.4)" : "rgba(255,255,255,0.1)",
+              background: lang === l ? "rgba(var(--bz-paint-8b5cf6),0.15)" : "transparent",
+              borderColor: lang === l ? "rgba(var(--bz-paint-8b5cf6),0.4)" : "rgba(var(--bz-paint-ffffff),0.1)",
               color: lang === l ? "var(--accent-purple)" : "var(--text-muted)",
             }}
           >

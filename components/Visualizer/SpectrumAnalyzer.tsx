@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef } from "react";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
@@ -44,12 +46,12 @@ export default function SpectrumAnalyzer({ isProcessing, hasPostData, analyser }
       ctx.clearRect(0, 0, W, H);
 
       // Grid lines
-      ctx.strokeStyle = "rgba(139,92,246,0.06)";
+      ctx.strokeStyle = uiColor("rgba(139,92,246,0.06)");
       ctx.lineWidth   = 1;
       for (let db = -20; db >= -80; db -= 20) {
         const y = ((db + 0) / -80) * (H - 20);
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-        ctx.fillStyle = "rgba(69,77,104,0.6)";
+        ctx.fillStyle = uiColor("rgba(69,77,104,0.6)");
         ctx.font      = "8px monospace";
         ctx.fillText(`${db}`, 2, y - 2);
       }
@@ -107,8 +109,8 @@ export default function SpectrumAnalyzer({ isProcessing, hasPostData, analyser }
         const b    = frac < 0.26 ? 215 : frac < 0.62 ? 255 : 255;
 
         const grad = ctx.createLinearGradient(x, y, x, H - 20);
-        grad.addColorStop(0, `rgba(${r},${g},${b},0.75)`);
-        grad.addColorStop(1, `rgba(${r},${g},${b},0.1)`);
+        grad.addColorStop(0, uiColor(`rgba(${r},${g},${b},0.75)`));
+        grad.addColorStop(1, uiColor(`rgba(${r},${g},${b},0.1)`));
         ctx.fillStyle = grad;
         ctx.fillRect(x, y, barW - 1, barH);
 
@@ -116,7 +118,7 @@ export default function SpectrumAnalyzer({ isProcessing, hasPostData, analyser }
         if (barDbPost) {
           const postNorm = Math.max(0, Math.min(1, (barDbPost[i] + 80) / 80));
           const postH    = postNorm * (H - 20);
-          ctx.fillStyle  = "rgba(56,189,248,0.35)";
+          ctx.fillStyle  = uiColor("rgba(56,189,248,0.35)");
           ctx.fillRect(x, H - 20 - postH, barW - 1, postH);
         }
 
@@ -130,12 +132,12 @@ export default function SpectrumAnalyzer({ isProcessing, hasPostData, analyser }
         }
         const peakNorm = Math.max(0, Math.min(1, (peakHold.current[i] + 80) / 80));
         const peakY    = H - 20 - peakNorm * (H - 20);
-        ctx.fillStyle  = "rgba(255,255,255,0.65)";
+        ctx.fillStyle  = uiColor("rgba(255,255,255,0.65)");
         ctx.fillRect(x, peakY, barW - 1, 1.5);
       }
 
       // Freq labels
-      ctx.fillStyle = "rgba(69,77,104,0.8)";
+      ctx.fillStyle = uiColor("rgba(69,77,104,0.8)");
       ctx.font      = "8px monospace";
       FREQ_LABELS.forEach((label, i) => {
         const x = (i / (FREQ_LABELS.length - 1)) * (W - 20) + 10;

@@ -372,8 +372,8 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
             className="mastering-dashboard glass-panel-elevated relative"
             style={{
               boxShadow: appState === "mastering"
-                ? "0 0 40px rgba(139,92,246,0.2), 0 0 80px rgba(56,189,248,0.05)"
-                : "0 4px 40px rgba(0,0,0,0.4)",
+                ? "0 0 40px rgba(var(--bz-paint-8b5cf6),0.2), 0 0 80px rgba(var(--bz-paint-38bdf8),0.05)"
+                : "0 4px 40px rgba(var(--bz-paint-000000),0.4)",
             }}
           >
             <div className="dashboard-heading">
@@ -395,9 +395,9 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
                     marginBottom: "1rem",
                     padding: "0.75rem 0.85rem",
                     borderRadius: "10px",
-                    background: "rgba(239,68,68,0.08)",
-                    border: "1px solid rgba(248,113,113,0.3)",
-                    color: "#fca5a5",
+                    background: "rgba(var(--bz-paint-ef4444),0.08)",
+                    border: "1px solid rgba(var(--bz-border-f87171),0.3)",
+                    color: "rgb(var(--bz-paint-fca5a5))",
                     display: "flex",
                     alignItems: "flex-start",
                     gap: "0.65rem",
@@ -426,18 +426,18 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
                 padding: "0.55rem 0.9rem",
                 borderRadius: "8px",
                 background: dailyUsed >= dailyLimit
-                  ? "rgba(239,68,68,0.08)"
+                  ? "rgba(var(--bz-paint-ef4444),0.08)"
                   : dailyUsed >= dailyLimit - 1
-                  ? "rgba(245,158,11,0.08)"
-                  : "rgba(139,92,246,0.07)",
-                border: `1px solid ${dailyUsed >= dailyLimit ? "rgba(239,68,68,0.25)" : dailyUsed >= dailyLimit - 1 ? "rgba(245,158,11,0.25)" : "rgba(139,92,246,0.2)"}`,
+                  ? "rgba(var(--bz-paint-f59e0b),0.08)"
+                  : "rgba(var(--bz-paint-8b5cf6),0.07)",
+                border: `1px solid ${dailyUsed >= dailyLimit ? "rgba(var(--bz-paint-ef4444),0.25)" : dailyUsed >= dailyLimit - 1 ? "rgba(var(--bz-paint-f59e0b),0.25)" : "rgba(var(--bz-paint-8b5cf6),0.2)"}`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 flexWrap: "wrap",
                 gap: "0.5rem",
               }}>
-                <span style={{ fontSize: "0.8rem", color: dailyUsed >= dailyLimit ? "#f87171" : dailyUsed >= dailyLimit - 1 ? "#fbbf24" : "var(--text-secondary)" }}>
+                <span style={{ fontSize: "0.8rem", color: dailyUsed >= dailyLimit ? "rgb(var(--bz-paint-f87171))" : dailyUsed >= dailyLimit - 1 ? "rgb(var(--bz-paint-fbbf24))" : "var(--text-secondary)" }}>
                   {T.free_limit[lang](dailyUsed, dailyLimit)}
                 </span>
               </div>
@@ -584,16 +584,16 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
             className="fixed bottom-0 left-0 right-0 z-50"
             style={{
-              background: "rgba(8,10,18,0.97)",
+              background: "rgba(var(--bz-paint-080a12),0.97)",
               backdropFilter: "blur(24px)",
-              borderTop: "1px solid rgba(139,92,246,0.2)",
-              boxShadow: "0 -8px 40px rgba(0,0,0,0.6), 0 -1px 0 rgba(139,92,246,0.08)",
+              borderTop: "1px solid rgba(var(--bz-border-8b5cf6),0.2)",
+              boxShadow: "0 -8px 40px rgba(var(--bz-shadow-000000),0.6), 0 -1px 0 rgba(var(--bz-shadow-8b5cf6),0.08)",
             }}
           >
             <div className="max-w-6xl mx-auto px-4 py-3">
               {/* Download window reminder */}
               <div className="text-center mb-2">
-                <span className="text-[10px]" style={{ color: "rgba(196,181,253,0.7)" }}>
+                <span className="text-[10px]" style={{ color: "rgba(var(--bz-paint-c4b5fd),0.7)" }}>
                   {T.download_window[lang]()}
                 </span>
               </div>
@@ -609,13 +609,13 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
                         className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
                         style={{
                           background: active
-                            ? "linear-gradient(135deg, rgba(139,92,246,0.25), rgba(56,189,248,0.15))"
-                            : "rgba(255,255,255,0.04)",
+                            ? "linear-gradient(135deg, rgba(var(--bz-paint-8b5cf6),0.25), rgba(var(--bz-paint-38bdf8),0.15))"
+                            : "rgba(var(--bz-paint-ffffff),0.04)",
                           border: active
-                            ? "1px solid rgba(139,92,246,0.5)"
-                            : "1px solid rgba(255,255,255,0.08)",
+                            ? "1px solid rgba(var(--bz-paint-8b5cf6),0.5)"
+                            : "1px solid rgba(var(--bz-paint-ffffff),0.08)",
                           color: active ? "var(--accent-purple)" : "var(--text-muted)",
-                          boxShadow: active ? "0 0 10px rgba(139,92,246,0.2)" : "none",
+                          boxShadow: active ? "0 0 10px rgba(var(--bz-paint-8b5cf6),0.2)" : "none",
                         }}
                       >
                         {fmt.label}

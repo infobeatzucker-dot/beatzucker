@@ -12,6 +12,7 @@ import { subscribeGlobalAudioState, toggleGlobalAudio, getGlobalAudioState } fro
 import { DONATE_URL } from "@/lib/constants";
 import type { Lang } from "@/lib/types/mastering";
 import { APP_VERSION } from "@/lib/releases";
+import ThemeSelector from "@/components/ThemeSelector";
 
 export default function Header({ lang = "de" }: { lang?: Lang }) {
   const [menuOpen, setMenuOpen]   = useState(false);
@@ -53,12 +54,12 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
       <header
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? "rgba(5, 8, 22, 0.9)" : "rgba(5, 8, 22, 0.42)",
+          background: scrolled ? "rgba(var(--bz-paint-050816),0.9)" : "rgba(var(--bz-paint-050816),0.42)",
           backdropFilter: "blur(20px)",
           borderBottom: scrolled
-            ? "1px solid rgba(139,92,246,0.18)"
-            : "1px solid rgba(255,255,255,0.04)",
-          boxShadow: scrolled ? "0 4px 32px rgba(0,0,0,0.4)" : "none",
+            ? "1px solid rgba(var(--bz-paint-8b5cf6),0.18)"
+            : "1px solid rgba(var(--bz-paint-ffffff),0.04)",
+          boxShadow: scrolled ? "0 4px 32px rgba(var(--bz-paint-000000),0.4)" : "none",
         }}
       >
         <div className="header-inner">
@@ -78,9 +79,9 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
               aria-label={lang === "en" ? `Version ${APP_VERSION}: What's new` : `Version ${APP_VERSION}: Was ist neu?`}
               className="brand-release text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"
               style={{
-                background: "rgba(139,92,246,0.15)",
+                background: "rgba(var(--bz-paint-8b5cf6),0.15)",
                 color: "var(--accent-purple)",
-                border: "1px solid rgba(139,92,246,0.25)",
+                border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
                 letterSpacing: "0.05em",
                 textDecoration: "none",
               }}
@@ -113,21 +114,23 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            <ThemeSelector lang={lang}/>
             <span className="hidden xl:block"><DonateButton variant="nav" lang={lang} /></span>
             {/* Global audio play/pause — visible whenever the player is loaded */}
             {audioState.available && (
               <button
+                className="header-audio-control"
                 onClick={toggleGlobalAudio}
                 title={audioState.playing ? (lang === "de" ? "Pausieren" : "Pause") : (lang === "de" ? "Abspielen" : "Play")}
                 style={{
                   display: "flex", alignItems: "center", gap: "0.35rem",
                   padding: "0.3rem 0.7rem", borderRadius: "20px",
                   background: audioState.playing
-                    ? "rgba(56,189,248,0.12)"
-                    : "rgba(255,255,255,0.06)",
+                    ? "rgba(var(--bz-paint-38bdf8),0.12)"
+                    : "rgba(var(--bz-paint-ffffff),0.06)",
                   border: audioState.playing
-                    ? "1px solid rgba(56,189,248,0.35)"
-                    : "1px solid rgba(255,255,255,0.12)",
+                    ? "1px solid rgba(var(--bz-paint-38bdf8),0.35)"
+                    : "1px solid rgba(var(--bz-paint-ffffff),0.12)",
                   color: audioState.playing ? "var(--accent-cyan)" : "var(--text-muted)",
                   fontSize: "0.75rem", fontWeight: 700,
                   cursor: "pointer",
@@ -160,10 +163,10 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
                 <>
                   <button
                     onClick={() => setAuthOpen(true)}
-                    className="text-sm px-3 py-1.5 rounded-lg transition-all font-medium"
+                    className="header-signin text-sm px-3 py-1.5 rounded-lg transition-all font-medium"
                     style={{
-                      background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.12)",
+                      background: "rgba(var(--bz-paint-ffffff),0.06)",
+                      border: "1px solid rgba(var(--bz-border-ffffff),0.12)",
                       color: "var(--text-secondary)",
                       cursor: "pointer",
                     }}
@@ -180,7 +183,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
 
             {/* Mobile hamburger */}
             <button
-              className="md:hidden p-2 rounded-lg transition-colors"
+              className="header-menu-toggle md:hidden p-2 rounded-lg transition-colors"
               style={{ color: "var(--text-secondary)" }}
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label={lang === "de" ? "Menü" : "Menu"}
@@ -205,12 +208,13 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.18 }}
               style={{
-                background: "rgba(8,10,15,0.97)",
-                borderTop: "1px solid rgba(139,92,246,0.12)",
+                background: "rgba(var(--bz-paint-080a0f),0.97)",
+                borderTop: "1px solid rgba(var(--bz-border-8b5cf6),0.12)",
                 overflow: "hidden",
               }}
             >
               <div className="px-4 py-5 flex flex-col gap-4">
+                <div className="header-mobile-theme"><ThemeSelector lang={lang}/></div>
                 {[
                   { label: lang === "de" ? "Startseite" : "Home", href: homeHref },
                   { label: lang === "de" ? "Funktionen" : "Features", href: featuresHref },

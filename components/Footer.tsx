@@ -32,7 +32,7 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
     <footer
       className="border-t py-8 px-4"
       style={{
-        borderColor: "rgba(255,255,255,0.06)",
+        borderColor: "rgba(var(--bz-border-ffffff),0.06)",
         background: "var(--bg-secondary)",
       }}
     >
@@ -59,7 +59,7 @@ export default function Footer({ lang = "de" }: { lang?: Lang }) {
           <div className="text-xs" style={{ color: "var(--text-muted)" }}>
             {lang === "de" ? "Adaptives Mastering · Professionelle Audiobearbeitung" : "Adaptive mastering · Professional audio processing"}
           </div>
-          <div className="text-[10px] flex items-center gap-1" style={{ color: "#22c55e" }}>
+          <div className="text-[10px] flex items-center gap-1" style={{ color: "rgb(var(--bz-paint-22c55e))" }}>
             <Lock size={11} strokeWidth={2} />
             <span>{lang === "de" ? "Kein Tracking · Keine Werbe-Cookies · EU-Server" : "No tracking · No advertising cookies · EU servers"}</span>
           </div>

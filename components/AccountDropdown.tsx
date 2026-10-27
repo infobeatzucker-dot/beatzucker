@@ -54,7 +54,7 @@ export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
           background: user.image
             ? "transparent"
             : "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
-          border: "2px solid rgba(139,92,246,0.4)",
+          border: "2px solid rgba(var(--bz-border-8b5cf6),0.4)",
           cursor: "pointer",
           overflow: "hidden",
           display: "flex",
@@ -62,7 +62,7 @@ export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
           justifyContent: "center",
           fontSize: "0.85rem",
           fontWeight: 700,
-          color: "#fff",
+          color: "rgb(var(--bz-paint-ffffff))",
           padding: 0,
         }}
         aria-label={lang === "de" ? "Konto" : "Account"}
@@ -79,16 +79,16 @@ export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
           top: "calc(100% + 8px)",
           right: 0,
           minWidth: 220,
-          background: "var(--bg-elevated, #1a1a2e)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))",
+          border: "1px solid rgba(var(--bz-border-ffffff),0.1)",
           borderRadius: "12px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+          boxShadow: "0 8px 32px rgba(var(--bz-shadow-000000),0.5)",
           overflow: "hidden",
           zIndex: 1000,
         }}>
           {/* User info */}
-          <div style={{ padding: "0.85rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-            <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#fff",
+          <div style={{ padding: "0.85rem 1rem", borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
+            <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "rgb(var(--bz-paint-ffffff))",
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {user.name ?? user.email}
             </div>
@@ -102,19 +102,19 @@ export default function AccountDropdown({ lang = "de" }: { lang?: Lang }) {
 
           {/* Masters counter */}
           {hasLimit && (
-            <div style={{ padding: "0.65rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ padding: "0.65rem 1rem", borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
               <div style={{ display: "flex", justifyContent: "space-between",
                             fontSize: "0.72rem", color: "var(--text-muted)", marginBottom: "0.3rem" }}>
                 <span>{lang === "de" ? "Masters heute" : "Masters today"}</span>
-                <span style={{ color: pct >= 90 ? "#f87171" : "#fff" }}>
+                <span style={{ color: pct >= 90 ? "rgb(var(--bz-paint-f87171))" : "rgb(var(--bz-paint-ffffff))" }}>
                   {info!.dailyUsed} / {info!.dailyLimit}
                 </span>
               </div>
-              <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2 }}>
+              <div style={{ height: 4, background: "rgba(var(--bz-paint-ffffff),0.08)", borderRadius: 2 }}>
                 <div style={{
                   width: `${pct}%`, height: "100%", borderRadius: 2,
                   background: pct >= 90
-                    ? "linear-gradient(90deg, #f87171, #ef4444)"
+                    ? "linear-gradient(90deg, rgb(var(--bz-paint-f87171)), rgb(var(--bz-paint-ef4444)))"
                     : "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))",
                   transition: "width 0.3s ease",
                 }}/>

@@ -18,7 +18,7 @@ const TESTIMONIALS = [
   {
     name: "Jonas B.",
     initials: "JB",
-    color: "#8b5cf6",
+    color: "rgb(var(--bz-paint-8b5cf6))",
     role: { de: "Electronic Producer", en: "Electronic Producer" },
     text: {
       de: "Hab's erst nicht geglaubt, dass eine Automatik da rankommt an einen echten Mastering-Job. Nach dem ersten Export war ich still — der Track hatte plötzlich das Punch-Level, das sonst nur teure Releases haben.",
@@ -28,7 +28,7 @@ const TESTIMONIALS = [
   {
     name: "Nina S.",
     initials: "NS",
-    color: "#38bdf8",
+    color: "rgb(var(--bz-paint-38bdf8))",
     role: { de: "Singer-Songwriterin", en: "Singer-Songwriter" },
     text: {
       de: "Ich komme aus der Songwriting-Ecke, nicht aus der Technik — Studios waren für mich immer eine Kostenfrage. Jetzt lade ich hoch, warte ein paar Sekunden und habe einen Master, den ich mir sonst nicht hätte leisten können.",
@@ -38,7 +38,7 @@ const TESTIMONIALS = [
   {
     name: "Kevin M.",
     initials: "KM",
-    color: "#c4b5fd",
+    color: "rgb(var(--bz-paint-c4b5fd))",
     role: { de: "Hip-Hop Beatmaker", en: "Hip-Hop Beatmaker" },
     text: {
       de: "Was mich überzeugt hat, ist der direkte A/B-Vergleich im Player — kein Rätselraten, ob sich was verändert hat. Ich höre live, wo der Unterschied sitzt, und feile so lange, bis der Master genau meins ist.",
@@ -48,7 +48,7 @@ const TESTIMONIALS = [
   {
     name: "Laura T.",
     initials: "LT",
-    color: "#a78bfa",
+    color: "rgb(var(--bz-paint-a78bfa))",
     role: { de: "Indie-Gitarristin", en: "Indie Guitarist" },
     text: {
       de: "Meine Demos gehen alle vorher durch Beatzucker. Die Lautheit trifft jedes Mal, ohne dass irgendwas anfängt zu pumpen oder zu clippen — merkt man einfach, dass da solide DSP-Arbeit dahintersteckt.",
@@ -58,7 +58,7 @@ const TESTIMONIALS = [
   {
     name: "Fabian K.",
     initials: "FK",
-    color: "#34d399",
+    color: "rgb(var(--bz-paint-34d399))",
     role: { de: "Podcast-Produzent", en: "Podcast Producer" },
     text: {
       de: "Bei einem Podcast zählt vor allem eins: gleichbleibende Lautstärke über alle Folgen. Die Plattform-Presets für Spotify und Apple sitzen sofort — die Beschwerden über zu leise oder zu laute Folgen sind quasi verschwunden.",
@@ -68,7 +68,7 @@ const TESTIMONIALS = [
   {
     name: "Melina P.",
     initials: "MP",
-    color: "#f472b6",
+    color: "rgb(var(--bz-paint-f472b6))",
     role: { de: "DJ & Produzentin", en: "DJ & Producer" },
     text: {
       de: "Zwischen zwei Studio-Sessions bleibt selten Zeit für Mastering — mit Beatzucker ist der Track fertig, bevor der Kaffee kalt wird. Für schnelle Releases hat sich das für mich zum festen Werkzeug entwickelt.",
@@ -83,7 +83,7 @@ export default function TestimonialsSection({ lang = "de" }: Props) {
       {/* subtle bg accent */}
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse 80% 40% at 50% 100%, rgba(139,92,246,0.05) 0%, transparent 70%)",
+        background: "radial-gradient(ellipse 80% 40% at 50% 100%, rgba(var(--bz-paint-8b5cf6),0.05) 0%, transparent 70%)",
       }} />
 
       <div style={{ maxWidth: "1100px", margin: "0 auto", position: "relative" }}>
@@ -92,8 +92,8 @@ export default function TestimonialsSection({ lang = "de" }: Props) {
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>
           <div style={{
             display: "inline-block",
-            background: "rgba(139,92,246,0.12)",
-            border: "1px solid rgba(139,92,246,0.25)",
+            background: "rgba(var(--bz-paint-8b5cf6),0.12)",
+            border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
             borderRadius: "6px",
             padding: "0.25rem 0.85rem",
             fontSize: "0.72rem",
@@ -147,8 +147,8 @@ function TestimonialCard({ t, lang }: {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: "rgba(255,255,255,0.04)",
-        border: `1px solid ${hovered ? "rgba(139,92,246,0.3)" : "rgba(255,255,255,0.08)"}`,
+        background: "rgba(var(--bz-paint-ffffff),0.04)",
+        border: `1px solid ${hovered ? "rgba(var(--bz-paint-8b5cf6),0.3)" : "rgba(var(--bz-paint-ffffff),0.08)"}`,
         borderRadius: "16px",
         padding: "1.5rem",
         backdropFilter: "blur(16px)",

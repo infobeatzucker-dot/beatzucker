@@ -43,8 +43,8 @@ export default function UploadsPage() {
       </div>
       <div
         style={{
-          background: "var(--bg-elevated, #1a1a2e)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))",
+          border: "1px solid rgba(var(--bz-border-ffffff),0.07)",
           borderRadius: "var(--radius-md)",
           padding: "1.5rem",
         }}
@@ -57,7 +57,7 @@ export default function UploadsPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                <tr style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
                   {["Datei", "Datum", "Formate", "Status"].map((h) => (
                     <th key={h} style={{ padding: "0.4rem 0.6rem", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                   ))}
@@ -65,7 +65,7 @@ export default function UploadsPage() {
               </thead>
               <tbody>
                 {masters.slice(0, 10).map((m) => (
-                  <tr key={m.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                  <tr key={m.id} style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)" }}>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-primary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.originalName}</td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(m.completedAt ?? m.createdAt)}</td>
                     <td style={{ padding: "0.5rem 0.6rem", color: "var(--text-secondary)", fontSize: "0.75rem" }}>
@@ -74,8 +74,8 @@ export default function UploadsPage() {
                     <td style={{ padding: "0.5rem 0.6rem" }}>
                       <span style={{
                         fontSize: "0.72rem", fontWeight: 600, padding: "0.15rem 0.5rem", borderRadius: "5px",
-                        color: m.status === "done" ? "#6ee7b7" : m.status === "error" ? "#f87171" : "var(--accent-cyan)",
-                        background: m.status === "done" ? "rgba(16,185,129,0.1)" : m.status === "error" ? "rgba(239,68,68,0.1)" : "rgba(56,189,248,0.1)",
+                        color: m.status === "done" ? "rgb(var(--bz-paint-6ee7b7))" : m.status === "error" ? "rgb(var(--bz-paint-f87171))" : "var(--accent-cyan)",
+                        background: m.status === "done" ? "rgba(var(--bz-paint-10b981),0.1)" : m.status === "error" ? "rgba(var(--bz-paint-ef4444),0.1)" : "rgba(var(--bz-paint-38bdf8),0.1)",
                       }}>
                         {STATUS_LABEL[m.status] ?? m.status}
                       </span>

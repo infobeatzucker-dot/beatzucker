@@ -67,17 +67,17 @@ function IllustrationUpload() {
   return (
     <div style={{
       width: 80, height: 64, borderRadius: 10,
-      border: "2px dashed rgba(56,189,248,0.5)",
+      border: "2px dashed rgba(var(--bz-border-38bdf8),0.5)",
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      gap: 6, background: "rgba(56,189,248,0.04)",
+      gap: 6, background: "rgba(var(--bz-paint-38bdf8),0.04)",
     }}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M12 4v12M8 8l4-4 4 4" stroke="var(--accent-cyan)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="rgba(56,189,248,0.4)" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="rgba(var(--bz-paint-38bdf8),0.4)" strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
       <div style={{ display: "flex", gap: 3 }}>
         {["WAV","MP3","FLAC"].map(f => (
-          <span key={f} style={{ fontSize: 7, padding: "1px 4px", borderRadius: 3, background: "rgba(56,189,248,0.12)", color: "var(--accent-cyan)" }}>{f}</span>
+          <span key={f} style={{ fontSize: 7, padding: "1px 4px", borderRadius: 3, background: "rgba(var(--bz-paint-38bdf8),0.12)", color: "var(--accent-cyan)" }}>{f}</span>
         ))}
       </div>
     </div>
@@ -96,8 +96,8 @@ function IllustrationPlatform() {
         <div key={p.name} style={{
           display: "flex", alignItems: "center", gap: 5, padding: "3px 6px",
           borderRadius: 6, fontSize: 9, fontWeight: 600,
-          background: p.active ? "rgba(139,92,246,0.15)" : "rgba(255,255,255,0.04)",
-          border: `1px solid ${p.active ? "rgba(139,92,246,0.4)" : "rgba(255,255,255,0.06)"}`,
+          background: p.active ? "rgba(var(--bz-paint-8b5cf6),0.15)" : "rgba(var(--bz-paint-ffffff),0.04)",
+          border: `1px solid ${p.active ? "rgba(var(--bz-paint-8b5cf6),0.4)" : "rgba(var(--bz-paint-ffffff),0.06)"}`,
           color: p.active ? "var(--accent-purple)" : "var(--text-muted)",
         }}>
           <p.icon size={10} strokeWidth={2} />
@@ -114,20 +114,20 @@ function IllustrationKeyM() {
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <div style={{
         width: 48, height: 48, borderRadius: 10,
-        background: "linear-gradient(145deg, rgba(196,181,253,0.2), rgba(196,181,253,0.05))",
-        border: "2px solid rgba(196,181,253,0.5)",
+        background: "linear-gradient(145deg, rgba(var(--bz-paint-c4b5fd),0.2), rgba(var(--bz-paint-c4b5fd),0.05))",
+        border: "2px solid rgba(var(--bz-border-c4b5fd),0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 20, fontWeight: 800, color: "var(--accent-gold)",
         fontFamily: "var(--font-mono, monospace)",
-        boxShadow: "0 4px 0 rgba(196,181,253,0.3), 0 0 12px rgba(196,181,253,0.15)",
+        boxShadow: "0 4px 0 rgba(var(--bz-shadow-c4b5fd),0.3), 0 0 12px rgba(var(--bz-shadow-c4b5fd),0.15)",
       }}>M</div>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M3 8h10M9 4l4 4-4 4" stroke="var(--accent-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
       <div style={{
         width: 32, height: 32, borderRadius: "50%",
-        background: "rgba(56,189,248,0.15)",
-        border: "2px solid rgba(56,189,248,0.4)",
+        background: "rgba(var(--bz-paint-38bdf8),0.15)",
+        border: "2px solid rgba(var(--bz-border-38bdf8),0.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 14, color: "var(--accent-cyan)",
       }}>✓</div>
@@ -143,8 +143,8 @@ function IllustrationDownload() {
         <div key={f} style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "2px 6px", borderRadius: 4, fontSize: 8,
-          background: i === 0 ? "rgba(196,181,253,0.1)" : "rgba(255,255,255,0.04)",
-          border: `1px solid ${i === 0 ? "rgba(196,181,253,0.3)" : "rgba(255,255,255,0.06)"}`,
+          background: i === 0 ? "rgba(var(--bz-paint-c4b5fd),0.1)" : "rgba(var(--bz-paint-ffffff),0.04)",
+          border: `1px solid ${i === 0 ? "rgba(var(--bz-paint-c4b5fd),0.3)" : "rgba(var(--bz-paint-ffffff),0.06)"}`,
           color: i === 0 ? "var(--accent-gold)" : "var(--text-muted)",
         }}>
           <span>{f}</span>
@@ -180,7 +180,7 @@ function MiniWaveform() {
     <svg width={96} height={32} viewBox="0 0 96 32" style={{ overflow: "visible" }}>
       <polyline points={pts} fill="none" stroke="var(--accent-cyan)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       {[24,56].map(x => (
-        <rect key={x} x={x-1} y={0} width={2} height={32} fill="rgba(255,50,50,0.5)" rx={1}/>
+        <rect key={x} x={x-1} y={0} width={2} height={32} fill="rgba(var(--bz-paint-ff3232),0.5)" rx={1}/>
       ))}
     </svg>
   );
@@ -189,12 +189,12 @@ function MiniWaveform() {
 function MiniLissajous() {
   return (
     <svg width={60} height={60} viewBox="-30 -30 60 60">
-      <ellipse cx={0} cy={0} rx={18} ry={24} fill="none" stroke="rgba(56,189,248,0.5)" strokeWidth={1.5}
+      <ellipse cx={0} cy={0} rx={18} ry={24} fill="none" stroke="rgba(var(--bz-paint-38bdf8),0.5)" strokeWidth={1.5}
         transform="rotate(-25)"/>
-      <ellipse cx={0} cy={0} rx={8} ry={14} fill="none" stroke="rgba(56,189,248,0.25)" strokeWidth={1}
+      <ellipse cx={0} cy={0} rx={8} ry={14} fill="none" stroke="rgba(var(--bz-paint-38bdf8),0.25)" strokeWidth={1}
         transform="rotate(-25)"/>
-      <line x1={-26} y1={0} x2={26} y2={0} stroke="rgba(255,255,255,0.08)" strokeWidth={0.5}/>
-      <line x1={0} y1={-26} x2={0} y2={26} stroke="rgba(255,255,255,0.08)" strokeWidth={0.5}/>
+      <line x1={-26} y1={0} x2={26} y2={0} stroke="rgba(var(--bz-paint-ffffff),0.08)" strokeWidth={0.5}/>
+      <line x1={0} y1={-26} x2={0} y2={26} stroke="rgba(var(--bz-paint-ffffff),0.08)" strokeWidth={0.5}/>
     </svg>
   );
 }
@@ -213,7 +213,7 @@ function MiniLUFSMeter() {
       {[0,1].map(col => (
         <div key={col} style={{ display: "flex", flexDirection: "column", gap: 2, width: 10 }}>
           {segs.map((s, i) => (
-            <div key={i} style={{ height: s.h, borderRadius: 2, background: i < (col === 0 ? 4 : 3) ? s.c : "rgba(255,255,255,0.06)" }}/>
+            <div key={i} style={{ height: s.h, borderRadius: 2, background: i < (col === 0 ? 4 : 3) ? s.c : "rgba(var(--bz-paint-ffffff),0.06)" }}/>
           ))}
         </div>
       ))}
@@ -289,7 +289,7 @@ const VISUALIZERS = [
         <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="0.5" opacity=".4"/>
       </svg>
     ),
-    color: "#38bdf8",
+    color: "rgb(var(--bz-paint-38bdf8))",
     titleDe: "Stereofeld (Lissajous)",   titleEn: "Stereo Field (Lissajous)",
     descDe: "Eine senkrechte Linie steht für Mono, eine Ellipse für Stereo, ein breiter Kreis für ein sehr breites Klangbild. Ist der Korrelationswert positiv, ist der Track mono-kompatibel.",
     descEn: "A straight vertical line means mono, an ellipse means stereo, and a wide circle means a very wide image. A positive correlation value tells you it's mono-compatible.",
@@ -315,14 +315,14 @@ const VISUALIZERS = [
     key: "spectrogram",
     icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="1" width="14" height="14" rx="2" fill="rgba(56,189,248,0.1)" stroke="currentColor" strokeWidth="1" opacity=".5"/>
+        <rect x="1" y="1" width="14" height="14" rx="2" fill="rgba(var(--bz-paint-38bdf8),0.1)" stroke="currentColor" strokeWidth="1" opacity=".5"/>
         <rect x="3" y="3" width="4" height="4" rx="1" fill="currentColor" opacity=".8"/>
         <rect x="9" y="3" width="4" height="4" rx="1" fill="currentColor" opacity=".4"/>
         <rect x="3" y="9" width="4" height="4" rx="1" fill="currentColor" opacity=".3"/>
         <rect x="9" y="9" width="4" height="4" rx="1" fill="currentColor" opacity=".6"/>
       </svg>
     ),
-    color: "#8b5cf6",
+    color: "rgb(var(--bz-paint-8b5cf6))",
     titleDe: "Spectrogram Waterfall",   titleEn: "Spectrogram Waterfall",
     descDe: "Horizontal die Frequenz, vertikal der Zeitverlauf, die Farbe steht für die Intensität. So siehst du auf einen Blick, welche Frequenzen wann aktiv sind — praktisch für die Transienten-Analyse.",
     descEn: "Frequency across, time down, colour for intensity — a quick way to see which frequencies are active and when, handy for checking transients.",
@@ -510,7 +510,7 @@ function FaqItem({ qDe, qEn, aDe, aEn, color, lang }: {
     <div
       style={{
         background: "var(--bg-secondary)",
-        border: `1px solid ${open ? color.replace(")", ", 0.3)").replace("var(", "rgba(").replace("--accent-cyan", "56,189,248").replace("--accent-purple", "139,92,246") || "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.06)"}`,
+        border: `1px solid ${open ? color.replace(")", ", 0.3)").replace("var(", "rgba(").replace("--accent-cyan", "56,189,248").replace("--accent-purple", "139,92,246") || "rgba(var(--bz-paint-ffffff),0.08)" : "rgba(var(--bz-paint-ffffff),0.06)"}`,
         borderRadius: 10,
         overflow: "hidden",
         transition: "border-color 0.2s",
@@ -555,14 +555,14 @@ function KbdKey({ k, wide }: { k: string; wide?: boolean }) {
     <div style={{
       minWidth: wide ? 72 : 44, height: 44, padding: "0 8px",
       borderRadius: 8,
-      background: "linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)",
-      border: "1px solid rgba(255,255,255,0.15)",
-      borderBottom: "3px solid rgba(0,0,0,0.4)",
+      background: "linear-gradient(145deg, rgba(var(--bz-paint-ffffff),0.07) 0%, rgba(var(--bz-paint-ffffff),0.02) 100%)",
+      border: "1px solid rgba(var(--bz-border-ffffff),0.15)",
+      borderBottom: "3px solid rgba(var(--bz-border-000000),0.4)",
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: wide ? 11 : 16, fontWeight: 700,
       color: "var(--text-primary)",
       fontFamily: "var(--font-mono, monospace)",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+      boxShadow: "0 2px 8px rgba(var(--bz-shadow-000000),0.3)",
       userSelect: "none",
       flexShrink: 0,
     }}>
@@ -607,7 +607,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
       <div style={{ position: "fixed", top: 80, right: 16, zIndex: 40 }}>
         <div style={{
           display: "flex", borderRadius: 8, overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.5)",
+          border: "1px solid rgba(var(--bz-border-ffffff),0.1)", background: "rgba(var(--bz-paint-000000),0.5)",
           backdropFilter: "blur(8px)",
         }}>
           {(["de","en"] as Lang[]).map(l => (
@@ -615,7 +615,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
               padding: "5px 12px", border: "none", cursor: "pointer",
               fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
               textTransform: "uppercase",
-              background: lang === l ? "rgba(139,92,246,0.25)" : "transparent",
+              background: lang === l ? "rgba(var(--bz-paint-8b5cf6),0.25)" : "transparent",
               color: lang === l ? "var(--accent-purple)" : "var(--text-muted)",
               transition: "all 0.15s",
             }}>{l.toUpperCase()}</button>
@@ -626,8 +626,8 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
       {/* ── Hero ── */}
       <section style={{ textAlign: "center", padding: "7rem 2rem 3rem" }}>
         <div style={{
-          display: "inline-block", background: "rgba(56,189,248,0.1)",
-          border: "1px solid rgba(56,189,248,0.25)", borderRadius: 6,
+          display: "inline-block", background: "rgba(var(--bz-paint-38bdf8),0.1)",
+          border: "1px solid rgba(var(--bz-border-38bdf8),0.25)", borderRadius: 6,
           padding: "0.25rem 0.75rem", fontSize: "0.75rem",
           color: "var(--accent-cyan)", letterSpacing: "0.1em",
           textTransform: "uppercase", marginBottom: "1.5rem",
@@ -655,7 +655,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
             placeholder={t(T.search_ph, lang)}
             style={{
               width: "100%", padding: "0.75rem 1rem 0.75rem 2.75rem",
-              background: "var(--bg-elevated)", border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--bg-elevated)", border: "1px solid rgba(var(--bz-border-ffffff),0.1)",
               borderRadius: 12, color: "var(--text-primary)", fontSize: "0.9rem",
               outline: "none", boxSizing: "border-box",
             }}
@@ -695,14 +695,14 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
                 return (
                   <div key={i} style={{
                     background: "var(--bg-secondary)",
-                    border: `1px solid ${colors[i].replace("var(--accent-cyan)","rgba(56,189,248,0.2)").replace("var(--accent-purple)","rgba(139,92,246,0.2)").replace("var(--accent-gold)","rgba(196,181,253,0.2)").replace("#38bdf8","rgba(56,189,248,0.2)")}`,
+                    border: `1px solid ${colors[i].replace("var(--accent-cyan)","rgba(var(--bz-paint-38bdf8),0.2)").replace("var(--accent-purple)","rgba(var(--bz-paint-8b5cf6),0.2)").replace("var(--accent-gold)","rgba(var(--bz-paint-c4b5fd),0.2)").replace("rgb(var(--bz-paint-38bdf8))","rgba(var(--bz-paint-38bdf8),0.2)")}`,
                     borderRadius: 14, padding: "1.25rem",
                     display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12,
                     position: "relative",
                   }}>
                     <div style={{
                       fontSize: "1.8rem", fontWeight: 900, lineHeight: 1,
-                      color: colors[i].replace("var(--accent-cyan)","rgba(56,189,248,0.15)").replace("var(--accent-purple)","rgba(139,92,246,0.15)").replace("var(--accent-gold)","rgba(196,181,253,0.15)").replace("#38bdf8","rgba(56,189,248,0.15)"),
+                      color: colors[i].replace("var(--accent-cyan)","rgba(var(--bz-paint-38bdf8),0.15)").replace("var(--accent-purple)","rgba(var(--bz-paint-8b5cf6),0.15)").replace("var(--accent-gold)","rgba(var(--bz-paint-c4b5fd),0.15)").replace("rgb(var(--bz-paint-38bdf8))","rgba(var(--bz-paint-38bdf8),0.15)"),
                       fontFamily: "var(--font-mono, monospace)",
                       position: "absolute", top: 10, right: 14,
                     }}>{step.n}</div>
@@ -742,7 +742,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
             </div>
             <div style={{
               background: "var(--bg-secondary)",
-              border: "1px solid rgba(196,181,253,0.15)",
+              border: "1px solid rgba(var(--bz-border-c4b5fd),0.15)",
               borderRadius: 16, padding: "1.75rem 2rem",
             }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
@@ -751,7 +751,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
                     <KbdKey k={k.key} wide={k.key === "Space"} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2 7h10M8 3l4 4-4 4" stroke="rgba(196,181,253,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2 7h10M8 3l4 4-4 4" stroke="rgba(var(--bz-paint-c4b5fd),0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                       <span style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>{k.desc}</span>
                     </div>
@@ -777,7 +777,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
               {VISUALIZERS.map((v) => (
                 <div key={v.key} style={{
                   background: "var(--bg-secondary)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(var(--bz-border-ffffff),0.06)",
                   borderRadius: 12, padding: "1.25rem",
                   display: "flex", flexDirection: "column", gap: 12,
                 }}>
@@ -790,7 +790,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
                   <div style={{
                     display: "flex", alignItems: "center", justifyContent: "center",
                     padding: "0.75rem",
-                    background: "rgba(0,0,0,0.2)", borderRadius: 8,
+                    background: "rgba(var(--bz-paint-000000),0.2)", borderRadius: 8,
                     minHeight: 64,
                   }}>
                     {v.visual}
@@ -852,14 +852,14 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
         {/* ── Contact CTA ── */}
         <div style={{
           background: "var(--bg-elevated)",
-          border: "1px solid rgba(139,92,246,0.2)",
+          border: "1px solid rgba(var(--bz-border-8b5cf6),0.2)",
           borderRadius: 16, padding: "2rem",
           textAlign: "center",
         }}>
           <div style={{
             width: 44, height: 44, borderRadius: "50%",
-            background: "rgba(139,92,246,0.12)",
-            border: "1px solid rgba(139,92,246,0.3)",
+            background: "rgba(var(--bz-paint-8b5cf6),0.12)",
+            border: "1px solid rgba(var(--bz-border-8b5cf6),0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 1rem",
           }}>
@@ -875,7 +875,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
             {t(T.cta_sub, lang)}
           </p>
           <a href="mailto:info@re-beatz.com" style={{
-            background: "var(--accent-purple)", color: "#fff",
+            background: "var(--accent-purple)", color: "rgb(var(--bz-paint-ffffff))",
             padding: "0.625rem 1.5rem", borderRadius: 8,
             textDecoration: "none", fontSize: "0.875rem", fontWeight: 600,
             display: "inline-block",

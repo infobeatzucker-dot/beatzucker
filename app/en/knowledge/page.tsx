@@ -46,7 +46,7 @@ export default function EnglishKnowledgePage() {
       <Header lang="en" />
       <main style={{ paddingTop: "80px" }}>
         <section style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 1.5rem 2.5rem", textAlign: "center" }}>
-          <span className="label" style={{ display: "inline-block", color: "var(--accent-purple)", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", padding: "0.3rem 0.9rem", borderRadius: "20px", fontSize: "0.68rem", letterSpacing: "0.12em", marginBottom: "1.25rem" }}>
+          <span className="label" style={{ display: "inline-block", color: "var(--accent-purple)", background: "rgba(var(--bz-paint-8b5cf6),0.1)", border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)", padding: "0.3rem 0.9rem", borderRadius: "20px", fontSize: "0.68rem", letterSpacing: "0.12em", marginBottom: "1.25rem" }}>
             KNOWLEDGE
           </span>
           <h1 style={{ color: "var(--text-primary)", fontSize: "clamp(2rem, 5vw, 3.2rem)", fontWeight: 900, lineHeight: 1.15, margin: "0 0 1rem", letterSpacing: "-0.02em" }}>

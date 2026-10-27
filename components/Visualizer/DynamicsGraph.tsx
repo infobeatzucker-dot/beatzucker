@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef } from "react";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
@@ -48,10 +50,10 @@ export default function DynamicsGraph({ drValue, crestFactor, isProcessing }: Pr
         // GR bar (showing compression amount)
         const alpha = isProcessing ? 0.8 : 0.5;
         const grColor = norm > 0.5
-          ? `rgba(255,71,87,${alpha})`
+          ? uiColor(`rgba(255,71,87,${alpha})`)
           : norm > 0.25
-          ? `rgba(250,204,21,${alpha})`
-          : `rgba(56,189,248,${alpha})`;
+          ? uiColor(`rgba(250,204,21,${alpha})`)
+          : uiColor(`rgba(56,189,248,${alpha})`);
 
         ctx.fillStyle = grColor;
         ctx.fillRect(x + 1, barY, sectionW - 2, barH);
@@ -61,28 +63,28 @@ export default function DynamicsGraph({ drValue, crestFactor, isProcessing }: Pr
       const drNorm = Math.min(1, drValue / 20);
       const drBarW = drNorm * (W - 40);
 
-      ctx.fillStyle = "rgba(20,24,32,0.8)";
+      ctx.fillStyle = uiColor("rgba(20,24,32,0.8)");
       ctx.fillRect(20, H * 0.78, W - 40, 8);
 
       const drGrad = ctx.createLinearGradient(20, 0, W - 40, 0);
-      drGrad.addColorStop(0, "#ff4757");
-      drGrad.addColorStop(0.4, "#facc15");
-      drGrad.addColorStop(1, "#4ade80");
+      drGrad.addColorStop(0, uiColor("#ff4757"));
+      drGrad.addColorStop(0.4, uiColor("#facc15"));
+      drGrad.addColorStop(1, uiColor("#4ade80"));
       ctx.fillStyle = drGrad;
       ctx.fillRect(20, H * 0.78, drBarW, 8);
 
       // Labels
-      ctx.fillStyle = "rgba(69,77,104,0.9)";
+      ctx.fillStyle = uiColor("rgba(69,77,104,0.9)");
       ctx.font = "8px monospace";
       ctx.textAlign = "left";
       ctx.fillText("GR", 2, 12);
 
-      ctx.fillStyle = drValue >= 14 ? "#4ade80" : drValue >= 10 ? "#facc15" : "#ff4757";
+      ctx.fillStyle = drValue >= 14 ? uiColor("#4ade80") : drValue >= 10 ? uiColor("#facc15") : uiColor("#ff4757");
       ctx.font = "bold 9px monospace";
       ctx.textAlign = "center";
       ctx.fillText(`DR${drValue.toFixed(0)}`, W / 2, H * 0.78 - 4);
 
-      ctx.fillStyle = "rgba(69,77,104,0.7)";
+      ctx.fillStyle = uiColor("rgba(69,77,104,0.7)");
       ctx.font = "7px monospace";
       ctx.fillText(`CF: ${crestFactor.toFixed(1)} dB`, W / 2, H - 4);
 

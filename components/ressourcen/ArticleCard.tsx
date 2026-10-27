@@ -37,7 +37,7 @@ export default function ArticleCard({ article, lang }: Props) {
           gap: "0.75rem",
           transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s",
           cursor: "pointer",
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid rgba(var(--bz-border-ffffff),0.06)",
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
@@ -53,7 +53,7 @@ export default function ArticleCard({ article, lang }: Props) {
           style={{
             padding: "0.75rem",
             borderRadius: "12px",
-            background: "rgba(255,255,255,0.04)",
+            background: "rgba(var(--bz-paint-ffffff),0.04)",
             width: "fit-content",
             display: "flex",
           }}

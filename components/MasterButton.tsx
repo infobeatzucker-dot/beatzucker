@@ -76,19 +76,19 @@ export default function MasterButton({
             ${isProcessing ? "opacity-80 cursor-wait" : "hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"}`}
           style={{
             background: isProcessing
-              ? "linear-gradient(135deg, rgba(139,92,246,0.3), rgba(56,189,248,0.3))"
+              ? "linear-gradient(135deg, rgba(var(--bz-paint-8b5cf6),0.3), rgba(var(--bz-paint-38bdf8),0.3))"
               : "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
-            color: "#fff", border: "none",
+            color: "var(--ui-on-accent)", border: "none",
             boxShadow: isProcessing
-              ? "0 0 40px rgba(139,92,246,0.4), 0 0 80px rgba(56,189,248,0.2)"
-              : "0 0 20px rgba(139,92,246,0.3)",
+              ? "0 0 40px rgba(var(--bz-paint-8b5cf6),0.4), 0 0 80px rgba(var(--bz-paint-38bdf8),0.2)"
+              : "0 0 20px rgba(var(--bz-paint-8b5cf6),0.3)",
             minWidth: compact ? 160 : 240,
           }}
         >
           {isProcessing ? (
             <span className="flex items-center gap-3 justify-center">
               <span className="w-4 h-4 rounded-full border-2 border-transparent animate-spin"
-                style={{ borderTopColor: "rgba(255,255,255,0.8)", borderRightColor: "rgba(255,255,255,0.4)" }} />
+                style={{ borderTopColor: "rgba(var(--bz-border-ffffff),0.8)", borderRightColor: "rgba(var(--bz-border-ffffff),0.4)" }} />
               {lang === "de" ? "Mastering läuft…" : "Mastering…"}
             </span>
           ) : (
@@ -96,7 +96,7 @@ export default function MasterButton({
               {lang === "de" ? "▶ JETZT MASTERN" : "▶ MASTER NOW"}
               {!compact && (
                 <kbd className="text-xs px-1.5 py-0.5 rounded mono opacity-60"
-                  style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.2)", fontSize: 10 }}>
+                  style={{ background: "rgba(var(--bz-paint-000000),0.3)", border: "1px solid rgba(var(--bz-border-ffffff),0.2)", fontSize: 10 }}>
                   M
                 </kbd>
               )}
@@ -110,7 +110,7 @@ export default function MasterButton({
           <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
             {lang === "de" ? "Professionelle Mastering-Kette · Adaptive Parameterwahl · Format: " : "Professional mastering chain · Adaptive parameter selection · Format: "}<span style={{ color: "var(--accent-cyan)" }}>{selectedFormat.toUpperCase()}</span>
           </p>
-          <p className="text-xs text-center flex items-center gap-1" style={{ color: "rgba(196,181,253,0.75)" }}>
+          <p className="text-xs text-center flex items-center gap-1" style={{ color: "rgba(var(--bz-paint-c4b5fd),0.75)" }}>
             <span>⏱</span>
             <span>{lang === "de" ? "Download-Fenster nach Fertigstellung:" : "Download window after completion:"} <strong>{downloadWindow}</strong></span>
           </p>

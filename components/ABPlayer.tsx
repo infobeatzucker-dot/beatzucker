@@ -1,5 +1,8 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
+import { useUiThemeSnapshot } from "@/lib/useUiThemeSnapshot";
 /**
  * ABPlayer — Professional A/B comparison player
  *
@@ -31,6 +34,7 @@ interface Props {
 }
 
 export default function ABPlayer({ filename, lang = "de" }: Props) {
+  const uiTheme = useUiThemeSnapshot();
   const reduced = useReducedMotion();
   const engine = useAudioEngine();
   const liveEngineRef = useRef(engine);
@@ -66,7 +70,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
     if (!wf) return;
     const bars    = wf.length;
     const barW    = W / bars;
-    const color   = isB ? "#38bdf8" : "#8b5cf6";
+    const color   = isB ? uiColor("#38bdf8") : uiColor("#8b5cf6");
     const progress = engine.currentTime / (engine.duration || 1);
 
     ctx.clearRect(0, 0, W, H);
@@ -83,7 +87,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
 
       if (isClip) {
         // Clipping: bright red regardless of mode/progress
-        ctx.fillStyle = isPast ? "rgba(255,71,87,0.95)" : "rgba(255,71,87,0.5)";
+        ctx.fillStyle = isPast ? uiColor("rgba(255,71,87,0.95)") : uiColor("rgba(255,71,87,0.5)");
       } else {
         const alpha = isPast ? 0.9 : 0.22;
         ctx.fillStyle = color + Math.round(alpha * 255).toString(16).padStart(2, "0");
@@ -95,11 +99,11 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
     const px   = progress * W;
     const grad = ctx.createLinearGradient(px - 2, 0, px + 2, 0);
     grad.addColorStop(0,   "transparent");
-    grad.addColorStop(0.5, isB ? "#38bdf8" : "#8b5cf6");
+    grad.addColorStop(0.5, isB ? uiColor("#38bdf8") : uiColor("#8b5cf6"));
     grad.addColorStop(1,   "transparent");
     ctx.fillStyle = grad;
     ctx.fillRect(px - 2, 0, 4, H);
-  }, [engine?.staticWaveform, engine?.peakWaveform, engine?.staticWaveformB, engine?.peakWaveformB, engine?.currentTime, engine?.duration, engine?.mode]);
+  }, [engine?.staticWaveform, engine?.peakWaveform, engine?.staticWaveformB, engine?.peakWaveformB, engine?.currentTime, engine?.duration, engine?.mode,uiTheme]);
 
   // ── Live animation loop (oscilloscope + spectrum + VU) ─────────────────────
   useEffect(() => {
@@ -128,7 +132,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
           analyser.getByteTimeDomainData(td);
 
           const isB  = engine?.mode === "B";
-          const color = isB ? "#38bdf8" : "#8b5cf6";
+          const color = isB ? uiColor("#38bdf8") : uiColor("#8b5cf6");
 
           // Glow pass
           ctx.shadowBlur  = 8;
@@ -184,7 +188,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
           const r    = i < NUM * 0.3 ? 124 : i < NUM * 0.6 ? 60 : 0;
           const g    = i < NUM * 0.3 ? 111 : i < NUM * 0.6 ? 180 : 229;
           const b    = i < NUM * 0.3 ? 255 : i < NUM * 0.6 ? 200 : 196;
-          ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+          ctx.fillStyle = uiColor(`rgba(${r},${g},${b},0.7)`);
           ctx.fillRect(i * bW, H - h, Math.max(0.5, bW - 1), h);
         }
       }
@@ -221,8 +225,8 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
           if (i > segments * 0.75) { r = 245; g = 200; b = 66; }
           if (i > segments * 0.9)  { r = 255; g =  71; b = 87; }
           ctx.fillStyle = fill
-            ? `rgba(${r},${g},${b},0.9)`
-            : `rgba(${r},${g},${b},0.08)`;
+            ? uiColor(`rgba(${r},${g},${b},0.9)`)
+            : uiColor(`rgba(${r},${g},${b},0.08)`);
           ctx.fillRect(0, y, W, segH);
         }
       };
@@ -281,19 +285,19 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
       className="studio-ab-player rounded-2xl overflow-hidden mb-6"
       data-mode={mode}
       style={{
-        background: "rgba(8,10,18,0.85)",
-        border: `1px solid ${isB ? "rgba(56,189,248,0.25)" : "rgba(139,92,246,0.25)"}`,
+        background: "rgba(var(--bz-paint-080a12),0.85)",
+        border: `1px solid ${isB ? "rgba(var(--bz-paint-38bdf8),0.25)" : "rgba(var(--bz-paint-8b5cf6),0.25)"}`,
         backdropFilter: "blur(20px)",
         boxShadow: isB
-          ? "0 0 40px rgba(56,189,248,0.08), inset 0 1px 0 rgba(56,189,248,0.1)"
-          : "0 0 40px rgba(139,92,246,0.08), inset 0 1px 0 rgba(139,92,246,0.1)",
+          ? "0 0 40px rgba(var(--bz-paint-38bdf8),0.08), inset 0 1px 0 rgba(var(--bz-paint-38bdf8),0.1)"
+          : "0 0 40px rgba(var(--bz-paint-8b5cf6),0.08), inset 0 1px 0 rgba(var(--bz-paint-8b5cf6),0.1)",
         transition: "border-color 0.4s, box-shadow 0.4s",
       }}
     >
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-3"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+        style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)" }}
       >
         <div className="flex items-center gap-2">
           <div
@@ -327,21 +331,21 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
           onClick={() => engine.setLoudnessMatched(!engine.loudnessMatched)}
           className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs"
           style={{
-            color: engine.loudnessMatched ? "#67e8f9" : "var(--text-muted)",
-            background: engine.loudnessMatched ? "rgba(56,189,248,0.08)" : "rgba(255,255,255,0.025)",
-            border: `1px solid ${engine.loudnessMatched ? "rgba(56,189,248,0.22)" : "rgba(255,255,255,0.07)"}`,
+            color: engine.loudnessMatched ? "rgb(var(--bz-paint-67e8f9))" : "var(--text-muted)",
+            background: engine.loudnessMatched ? "rgba(var(--bz-paint-38bdf8),0.08)" : "rgba(var(--bz-paint-ffffff),0.025)",
+            border: `1px solid ${engine.loudnessMatched ? "rgba(var(--bz-paint-38bdf8),0.22)" : "rgba(var(--bz-paint-ffffff),0.07)"}`,
           }}
         >
           <span
             aria-hidden="true"
             className="relative h-4 w-7 rounded-full"
-            style={{ background: engine.loudnessMatched ? "rgba(56,189,248,0.35)" : "rgba(255,255,255,0.09)" }}
+            style={{ background: engine.loudnessMatched ? "rgba(var(--bz-paint-38bdf8),0.35)" : "rgba(var(--bz-paint-ffffff),0.09)" }}
           >
             <span
               className="absolute top-0.5 h-3 w-3 rounded-full transition-transform"
               style={{
                 left: 2,
-                background: engine.loudnessMatched ? "#67e8f9" : "#7c8499",
+                background: engine.loudnessMatched ? "rgb(var(--bz-paint-67e8f9))" : "rgb(var(--bz-paint-7c8499))",
                 transform: engine.loudnessMatched ? "translateX(12px)" : "translateX(0)",
               }}
             />
@@ -349,7 +353,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
           {lang === "de" ? "Lautheit angeglichen" : "Loudness matched"}
         </button>
         {engine.loudnessMatched && engine.loudnessCompensatedSource && engine.loudnessCompensationDb < -0.05 && (
-          <span className="mono text-[10px] tracking-wider" style={{ color: "rgba(255,255,255,0.34)" }}>
+          <span className="mono text-[10px] tracking-wider" style={{ color: "rgba(var(--bz-paint-ffffff),0.34)" }}>
             {engine.loudnessCompensatedSource} {engine.loudnessCompensationDb.toFixed(1)} dB
           </span>
         )}
@@ -381,7 +385,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `linear-gradient(90deg, rgba(8,10,18,0.6) 0%, transparent 8%, transparent 92%, rgba(8,10,18,0.6) 100%)`,
+            background: `linear-gradient(90deg, rgba(var(--bz-paint-080a12),0.6) 0%, transparent 8%, transparent 92%, rgba(var(--bz-paint-080a12),0.6) 100%)`,
           }}
         />
         {/* No audio yet overlay */}
@@ -409,7 +413,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
         <div
           ref={scrubberRef}
           className="h-1 rounded-full cursor-pointer relative group"
-          style={{ background: "rgba(255,255,255,0.06)" }}
+          style={{ background: "rgba(var(--bz-paint-ffffff),0.06)" }}
           onClick={handleScrub}
           onMouseDown={() => { isDragging.current = true; }}
         >
@@ -419,8 +423,8 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
             style={{
               width: `${progress}%`,
               background: isB
-                ? "linear-gradient(90deg, #8b5cf6, #38bdf8)"
-                : "linear-gradient(90deg, #4a3fc7, #8b5cf6)",
+                ? "linear-gradient(90deg, rgb(var(--bz-paint-8b5cf6)), rgb(var(--bz-paint-38bdf8)))"
+                : "linear-gradient(90deg, rgb(var(--bz-paint-4a3fc7)), rgb(var(--bz-paint-8b5cf6)))",
             }}
           />
           {/* Thumb */}
@@ -457,8 +461,8 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
           style={{
             background: isPlaying
               ? `radial-gradient(circle, ${accent}33, ${accent}11)`
-              : "rgba(255,255,255,0.05)",
-            border: `1.5px solid ${isPlaying ? accent : "rgba(255,255,255,0.1)"}`,
+              : "rgba(var(--bz-paint-ffffff),0.05)",
+            border: `1.5px solid ${isPlaying ? accent : "rgba(var(--bz-paint-ffffff),0.1)"}`,
             boxShadow: isPlaying ? `0 0 20px ${accent}44` : "none",
           }}
         >
@@ -499,7 +503,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
         {/* Time */}
         <span className="mono text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
           {formatTime(currentTime)}
-          <span style={{ color: "rgba(255,255,255,0.2)" }}> / </span>
+          <span style={{ color: "rgba(var(--bz-paint-ffffff),0.2)" }}> / </span>
           {formatTime(duration)}
         </span>
 
@@ -521,9 +525,9 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
 
           {masterUnavailable && (
             <span className="text-xs px-2 py-0.5 rounded" style={{
-              background: "rgba(255,71,87,0.1)",
+              background: "rgba(var(--bz-paint-ff4757),0.1)",
               color: "var(--accent-red)",
-              border: "1px solid rgba(255,71,87,0.2)",
+              border: "1px solid rgba(var(--bz-border-ff4757),0.2)",
               fontSize: "10px",
             }}>
               {lang === "de" ? "Master nicht verfügbar" : "master unavailable"}
@@ -538,9 +542,9 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
               key={k}
               className="text-xs px-1.5 py-0.5 rounded mono"
               style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "rgba(255,255,255,0.25)",
+                background: "rgba(var(--bz-paint-ffffff),0.04)",
+                border: "1px solid rgba(var(--bz-border-ffffff),0.08)",
+                color: "rgba(var(--bz-paint-ffffff),0.25)",
                 fontSize: "10px",
               }}
             >

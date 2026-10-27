@@ -30,7 +30,7 @@ export default function NotFound() {
         }}>
           404
         </div>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#fff", marginBottom: "0.75rem" }}>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "rgb(var(--bz-paint-ffffff))", marginBottom: "0.75rem" }}>
           Seite nicht gefunden
         </h1>
         <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "2.5rem", lineHeight: 1.6 }}>
@@ -41,7 +41,7 @@ export default function NotFound() {
             padding: "0.65rem 1.5rem",
             borderRadius: "8px",
             background: "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
-            color: "#fff",
+            color: "rgb(var(--bz-paint-ffffff))",
             fontWeight: 700,
             fontSize: "0.9rem",
             textDecoration: "none",
@@ -51,7 +51,7 @@ export default function NotFound() {
           <Link href="/features" style={{
             padding: "0.65rem 1.5rem",
             borderRadius: "8px",
-            border: "1px solid rgba(255,255,255,0.12)",
+            border: "1px solid rgba(var(--bz-border-ffffff),0.12)",
             color: "var(--text-secondary)",
             fontWeight: 600,
             fontSize: "0.9rem",

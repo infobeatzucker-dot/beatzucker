@@ -1,3 +1,5 @@
+
+import { uiColor } from "@/lib/uiTheme";
 /** Decorative stage illustration, independent of audio and DSP data. */
 export type SonicStage = "waiting" | "analyzing" | "dc" | "gain" | "eq" | "deesser" | "compression" | "ms" | "saturation" | "final_eq" | "bus_compression" | "limiting" | "dithering" | "codec_verify" | "rendering" | "complete";
 export function sonicStage(step?: string): SonicStage {
@@ -13,9 +15,9 @@ export function drawSonicCore(ctx: CanvasRenderingContext2D, width: number, heig
   const t = time * (stage === "waiting" ? .00009 : .00025), warm = stage === "saturation", calm = stage === "waiting" || stage === "rendering";
   const color = warm ? "238,160,122" : stage === "ms" ? "115,213,230" : "163,143,246";
   const halo = ctx.createRadialGradient(cx, cy, radius * .1, cx, cy, radius * 2.25);
-  halo.addColorStop(0, `rgba(${color},.16)`); halo.addColorStop(.45, `rgba(${color},.065)`); halo.addColorStop(1, `rgba(${color},0)`);
+  halo.addColorStop(0, uiColor(`rgba(${color},.16)`)); halo.addColorStop(.45, uiColor(`rgba(${color},.065)`)); halo.addColorStop(1, uiColor(`rgba(${color},0)`));
   ctx.fillStyle = halo; ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = "rgba(140,155,205,.05)"; ctx.lineWidth = 1;
+  ctx.strokeStyle = uiColor("rgba(140,155,205,.05)"); ctx.lineWidth = 1;
   for (let i = -3; i <= 3; i++) {
     ctx.beginPath(); ctx.moveTo(cx + i * radius * .62, cy - radius * 1.5); ctx.lineTo(cx + i * radius * .62, cy + radius * 1.5); ctx.stroke();
   }
@@ -27,7 +29,7 @@ export function drawSonicCore(ctx: CanvasRenderingContext2D, width: number, heig
       const x = cx + ox * Math.cos(rot) - oy * Math.sin(rot), y = cy + ox * Math.sin(rot) + oy * Math.cos(rot);
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = orbit ? "rgba(167,139,250,.18)" : "rgba(93,200,242,.23)"; ctx.lineWidth = .8; ctx.stroke();
+    ctx.strokeStyle = orbit ? uiColor("rgba(167,139,250,.18)") : uiColor("rgba(93,200,242,.23)"); ctx.lineWidth = .8; ctx.stroke();
   }
   // Woven rotating geometry, not a simulated FFT or loudness measurement.
   const spin = t * (calm ? .4 : .75), compression = stage === "compression" ? .85 + .035 * Math.sin(t * 3) : 1;
@@ -46,12 +48,12 @@ export function drawSonicCore(ctx: CanvasRenderingContext2D, width: number, heig
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
     const ink = ctx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
-    ink.addColorStop(0, `rgba(97,206,246,${calm ? .24 : .48})`); ink.addColorStop(.55, `rgba(${color},.57)`); ink.addColorStop(1, "rgba(233,150,222,.42)");
+    ink.addColorStop(0, uiColor(`rgba(97,206,246,${calm ? .24 : .48})`)); ink.addColorStop(.55, uiColor(`rgba(${color},.57)`)); ink.addColorStop(1, uiColor("rgba(233,150,222,.42)"));
     ctx.strokeStyle = ink; ctx.lineWidth = band % 4 === 0 ? 1.15 : .65; ctx.stroke();
   }
   for (let i = 0; i < 28; i++) {
     const a = i * 2.39996 + t * (i % 2 ? .1 : -.12), distance = radius * (1.22 + (i % 7) * .12);
     ctx.beginPath(); ctx.arc(cx + Math.cos(a) * distance, cy + Math.sin(a) * distance * .68, i % 5 === 0 ? 1.6 : .8, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${i % 3 ? color : "113,208,244"},${calm ? .23 : .48})`; ctx.fill();
+    ctx.fillStyle = uiColor(`rgba(${i % 3 ? color : "113,208,244"},${calm ? .23 : .48})`); ctx.fill();
   }
 }

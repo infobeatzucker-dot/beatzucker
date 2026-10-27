@@ -48,7 +48,7 @@ export default function CookieBanner() {
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.35)",
+          background: "rgba(var(--bz-paint-000000),0.35)",
           zIndex: 9998,
           backdropFilter: "blur(2px)",
         }}
@@ -65,21 +65,21 @@ export default function CookieBanner() {
           left: "50%",
           transform: "translateX(-50%)",
           width: "min(560px, calc(100vw - 2rem))",
-          background: "var(--bg-elevated, #1a1a2e)",
-          border: "1px solid rgba(139,92,246,0.25)",
+          background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))",
+          border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
           borderRadius: "14px",
           padding: "1.5rem 1.75rem",
           zIndex: 9999,
-          boxShadow: "0 8px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)",
+          boxShadow: "0 8px 40px rgba(var(--bz-shadow-000000),0.55), 0 0 0 1px rgba(var(--bz-shadow-ffffff),0.04)",
         }}
       >
         {/* Header row */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem" }}>
-          <Cookie size={17} strokeWidth={2} color="var(--accent-gold, #c4b5fd)" />
+          <Cookie size={17} strokeWidth={2} color="var(--accent-gold, rgb(var(--bz-paint-c4b5fd)))" />
           <span style={{
             fontWeight: 700,
             fontSize: "0.95rem",
-            color: "var(--text-primary, #fff)",
+            color: "var(--text-primary, rgb(var(--bz-paint-ffffff)))",
           }}>
             {en ? "Cookie information" : "Cookie-Hinweis"}
           </span>
@@ -89,17 +89,17 @@ export default function CookieBanner() {
         <p style={{
           fontSize: "0.82rem",
           lineHeight: 1.65,
-          color: "var(--text-secondary, #aaa)",
+          color: "var(--text-secondary, rgb(var(--bz-paint-aaaaaa)))",
           marginBottom: "1.25rem",
         }}>
           {en ? "Beatzucker uses only " : "Beatzucker verwendet ausschließlich "}
-          <strong style={{ color: "var(--text-primary, #fff)" }}>{en ? "strictly necessary" : "technisch notwendige"}</strong>{" "}
+          <strong style={{ color: "var(--text-primary, rgb(var(--bz-paint-ffffff)))" }}>{en ? "strictly necessary" : "technisch notwendige"}</strong>{" "}
           {en
             ? "cookies and local storage — no tracking cookies, advertising or analytics. Language preference and acknowledgement of this notice remain only on your device. "
             : "Cookies und lokalen Speicher — keine Tracking-Cookies, keine Werbung, kein Analytics. Sprachwahl und Bestätigung dieses Hinweises bleiben nur auf deinem Gerät. "}
           <Link
             href={en ? "/privacy" : "/datenschutz"}
-            style={{ color: "var(--accent-cyan, #38bdf8)", textDecoration: "none" }}
+            style={{ color: "var(--accent-cyan, rgb(var(--bz-paint-38bdf8)))", textDecoration: "none" }}
           >
             {en ? "Privacy Policy →" : "Datenschutzerklärung →"}
           </Link>
@@ -113,8 +113,8 @@ export default function CookieBanner() {
               padding: "0.5rem 1.25rem",
               borderRadius: "8px",
               border: "none",
-              background: "linear-gradient(135deg, var(--accent-purple, #8b5cf6), var(--accent-cyan, #38bdf8))",
-              color: "#fff",
+              background: "linear-gradient(135deg, var(--accent-purple, rgb(var(--bz-paint-8b5cf6))), var(--accent-cyan, rgb(var(--bz-paint-38bdf8))))",
+              color: "rgb(var(--bz-paint-ffffff))",
               fontWeight: 700,
               fontSize: "0.85rem",
               cursor: "pointer",

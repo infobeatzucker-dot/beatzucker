@@ -1,6 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
 function load(file,requireMock=()=>({}),extra={}){const mod={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module:mod,exports:mod.exports,require:requireMock,...extra});return mod.exports;}
-const {sonicStage,drawSonicCore}=load('lib/sonicCore.ts');
+const uiTheme=load('lib/uiTheme.ts');
+const {sonicStage,drawSonicCore}=load('lib/sonicCore.ts',name=>name==='@/lib/uiTheme'?uiTheme:{});
 assert.equal(sonicStage('loading'),'analyzing');assert.equal(sonicStage(),'analyzing');
 const stages=['waiting','analyzing','dc','gain','eq','deesser','compression','ms','saturation','final_eq','bus_compression','limiting','dithering','codec_verify','rendering','complete'];
 const profiles=new Map();

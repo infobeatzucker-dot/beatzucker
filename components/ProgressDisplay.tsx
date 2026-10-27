@@ -6,12 +6,12 @@ import { ProgressStep } from "@/lib/types/mastering";
 
 const ALL_STEPS: { key: string; label: string; icon: LucideIcon; color: string }[] = [
   { key: "analyzing",   label: "Analysis",             icon: Search,         color: "var(--accent-purple)" },
-  { key: "eq",          label: "EQ Correction",         icon: Sliders,        color: "#818cf8" },
+  { key: "eq",          label: "EQ Correction",         icon: Sliders,        color: "rgb(var(--bz-paint-818cf8))" },
   { key: "compression", label: "Multiband Compression", icon: BarChart3,      color: "var(--accent-cyan)" },
-  { key: "ms",          label: "M/S-Bearbeitung",       icon: ArrowLeftRight, color: "#22d3ee" },
-  { key: "saturation",  label: "Harmonic Saturation",   icon: Flame,          color: "#c4b5fd" },
-  { key: "limiting",    label: "True Peak Limiting",    icon: OctagonAlert,   color: "#fb923c" },
-  { key: "rendering",   label: "Format Rendering",      icon: Save,           color: "#4ade80" },
+  { key: "ms",          label: "M/S-Bearbeitung",       icon: ArrowLeftRight, color: "rgb(var(--bz-paint-22d3ee))" },
+  { key: "saturation",  label: "Harmonic Saturation",   icon: Flame,          color: "rgb(var(--bz-paint-c4b5fd))" },
+  { key: "limiting",    label: "True Peak Limiting",    icon: OctagonAlert,   color: "rgb(var(--bz-paint-fb923c))" },
+  { key: "rendering",   label: "Format Rendering",      icon: Save,           color: "rgb(var(--bz-paint-4ade80))" },
 ];
 
 // Approximate seconds each step takes (used for ETA)
@@ -53,20 +53,20 @@ export default function ProgressDisplay({ step }: Props) {
     <div
       className="mt-4 rounded-2xl overflow-hidden"
       style={{
-        border: "1px solid rgba(56,189,248,0.18)",
-        background: "linear-gradient(135deg, rgba(10,14,20,0.95), rgba(6,10,16,0.98))",
-        boxShadow: "0 4px 32px rgba(56,189,248,0.06), 0 0 0 1px rgba(255,255,255,0.03)",
+        border: "1px solid rgba(var(--bz-border-38bdf8),0.18)",
+        background: "linear-gradient(135deg, rgba(var(--bz-paint-0a0e14),0.95), rgba(var(--bz-paint-060a10),0.98))",
+        boxShadow: "0 4px 32px rgba(var(--bz-shadow-38bdf8),0.06), 0 0 0 1px rgba(var(--bz-shadow-ffffff),0.03)",
       }}
     >
       {/* Top header row */}
       <div
         style={{
           padding: "0.875rem 1rem 0.75rem",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
+          borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.05)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          background: "rgba(56,189,248,0.03)",
+          background: "rgba(var(--bz-paint-38bdf8),0.03)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
@@ -77,7 +77,7 @@ export default function ProgressDisplay({ step }: Props) {
             height: 8,
             borderRadius: "50%",
             background: "var(--accent-cyan)",
-            boxShadow: "0 0 8px rgba(56,189,248,0.7)",
+            boxShadow: "0 0 8px rgba(var(--bz-shadow-38bdf8),0.7)",
             animation: "pulse 1.2s ease-in-out infinite",
             flexShrink: 0,
           }} />
@@ -110,7 +110,7 @@ export default function ProgressDisplay({ step }: Props) {
         <div style={{
           height: "6px",
           borderRadius: "3px",
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(var(--bz-paint-ffffff),0.06)",
           overflow: "hidden",
           marginBottom: "1rem",
         }}>
@@ -120,7 +120,7 @@ export default function ProgressDisplay({ step }: Props) {
             borderRadius: "3px",
             background: "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))",
             transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
-            boxShadow: "0 0 12px rgba(56,189,248,0.45)",
+            boxShadow: "0 0 12px rgba(var(--bz-shadow-38bdf8),0.45)",
             position: "relative",
           }}>
             {/* Shimmer */}
@@ -130,7 +130,7 @@ export default function ProgressDisplay({ step }: Props) {
               right: 0,
               width: "40px",
               height: "100%",
-              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
+              background: "linear-gradient(90deg, transparent, rgba(var(--bz-paint-ffffff),0.35), transparent)",
               animation: "shimmer 1.5s ease-in-out infinite",
             }} />
           </div>
@@ -157,12 +157,12 @@ export default function ProgressDisplay({ step }: Props) {
                   padding: "0.4rem 0.2rem",
                   borderRadius: "8px",
                   background: state === "active"
-                    ? "rgba(56,189,248,0.08)"
+                    ? "rgba(var(--bz-paint-38bdf8),0.08)"
                     : state === "done"
-                    ? "rgba(139,92,246,0.06)"
+                    ? "rgba(var(--bz-paint-8b5cf6),0.06)"
                     : "transparent",
                   transition: "all 0.3s ease",
-                  border: state === "active" ? "1px solid rgba(56,189,248,0.2)" : "1px solid transparent",
+                  border: state === "active" ? "1px solid rgba(var(--bz-paint-38bdf8),0.2)" : "1px solid transparent",
                 }}
               >
                 {/* Step icon/check */}
@@ -175,17 +175,17 @@ export default function ProgressDisplay({ step }: Props) {
                   justifyContent: "center",
                   fontSize: state === "done" ? "0.75rem" : "0.85rem",
                   background: state === "done"
-                    ? "rgba(139,92,246,0.2)"
+                    ? "rgba(var(--bz-paint-8b5cf6),0.2)"
                     : state === "active"
-                    ? "rgba(56,189,248,0.15)"
-                    : "rgba(255,255,255,0.04)",
+                    ? "rgba(var(--bz-paint-38bdf8),0.15)"
+                    : "rgba(var(--bz-paint-ffffff),0.04)",
                   border: `1px solid ${
-                    state === "done" ? "rgba(139,92,246,0.35)" :
-                    state === "active" ? "rgba(56,189,248,0.4)" :
-                    "rgba(255,255,255,0.08)"
+                    state === "done" ? "rgba(var(--bz-paint-8b5cf6),0.35)" :
+                    state === "active" ? "rgba(var(--bz-paint-38bdf8),0.4)" :
+                    "rgba(var(--bz-paint-ffffff),0.08)"
                   }`,
                   transition: "all 0.3s ease",
-                  boxShadow: state === "active" ? "0 0 10px rgba(56,189,248,0.25)" : "none",
+                  boxShadow: state === "active" ? "0 0 10px rgba(var(--bz-paint-38bdf8),0.25)" : "none",
                 }}>
                   {state === "done"
                     ? <span style={{ color: "var(--accent-purple)", fontWeight: 700, fontSize: "0.7rem" }}>✓</span>
@@ -233,8 +233,8 @@ export default function ProgressDisplay({ step }: Props) {
                 background: i < currentIdx
                   ? "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))"
                   : i === currentIdx
-                  ? "linear-gradient(90deg, var(--accent-cyan), rgba(56,189,248,0.2))"
-                  : "rgba(255,255,255,0.05)",
+                  ? "linear-gradient(90deg, var(--accent-cyan), rgba(var(--bz-paint-38bdf8),0.2))"
+                  : "rgba(var(--bz-paint-ffffff),0.05)",
                 transition: "background 0.4s ease",
               }}
             />

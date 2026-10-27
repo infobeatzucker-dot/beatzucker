@@ -1,4 +1,6 @@
 "use client";
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Loader2, RotateCcw, UploadCloud, Waves } from "lucide-react";
@@ -15,7 +17,7 @@ import ToolLanguageNav from "./ToolLanguageNav";
 import ToolJourney from "./ToolJourney";
 import StereoInterpretation from "./StereoInterpretation";
 import { stereoStatus } from "@/lib/stereoGuidance";
-function Scope({result}:{result:Result}){const ref=useRef<HTMLCanvasElement>(null);useEffect(()=>{const c=ref.current;if(!c)return;const draw=()=>{const box=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=box.width*d;c.height=box.height*d;const x=c.getContext("2d");if(!x)return;x.scale(d,d);x.translate(box.width/2,box.height/2);x.strokeStyle="rgba(255,255,255,.08)";x.beginPath();x.moveTo(-box.width/2,0);x.lineTo(box.width/2,0);x.moveTo(0,-box.height/2);x.lineTo(0,box.height/2);x.stroke();x.fillStyle="rgba(84,205,255,.24)";const scale=Math.min(box.width,box.height)*.42;for(const[m,s]of result.points)x.fillRect(m*scale-s*scale,-m*scale-s*scale,1.5,1.5)};const loop=startVisibleAnimation(c,draw,{continuous:false});return()=>loop.stop();},[result]);return <canvas ref={ref} className="phase-scope"/>}
+function Scope({result}:{result:Result}){const ref=useRef<HTMLCanvasElement>(null);useEffect(()=>{const c=ref.current;if(!c)return;const draw=()=>{const box=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=box.width*d;c.height=box.height*d;const x=c.getContext("2d");if(!x)return;x.scale(d,d);x.translate(box.width/2,box.height/2);x.strokeStyle=uiColor("rgba(255,255,255,.08)");x.beginPath();x.moveTo(-box.width/2,0);x.lineTo(box.width/2,0);x.moveTo(0,-box.height/2);x.lineTo(0,box.height/2);x.stroke();x.fillStyle=uiColor("rgba(84,205,255,.24)");const scale=Math.min(box.width,box.height)*.42;for(const[m,s]of result.points)x.fillRect(m*scale-s*scale,-m*scale-s*scale,1.5,1.5)};const loop=startVisibleAnimation(c,draw,{continuous:false});return()=>loop.stop();},[result]);return <canvas ref={ref} className="phase-scope"/>}
 
 export default function StereoPhaseTool({lang}:{lang:Lang}){
   const job=useToolJob();const en=lang==="en",input=useRef<HTMLInputElement>(null);const[file,setFile]=useState<File|null>(null),[result,setResult]=useState<Result|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState("");

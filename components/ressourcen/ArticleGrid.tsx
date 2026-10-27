@@ -61,8 +61,8 @@ export default function ArticleGrid({ articles, initialLang = "de" }: Props) {
                 cursor: "pointer",
                 border: "1px solid",
                 transition: "all 0.15s",
-                background: category === cat.key ? "rgba(139,92,246,0.15)" : "transparent",
-                borderColor: category === cat.key ? "rgba(139,92,246,0.4)" : "rgba(255,255,255,0.1)",
+                background: category === cat.key ? "rgba(var(--bz-paint-8b5cf6),0.15)" : "transparent",
+                borderColor: category === cat.key ? "rgba(var(--bz-paint-8b5cf6),0.4)" : "rgba(var(--bz-paint-ffffff),0.1)",
                 color: category === cat.key ? "var(--accent-purple)" : "var(--text-muted)",
               }}
             >
@@ -85,8 +85,8 @@ export default function ArticleGrid({ articles, initialLang = "de" }: Props) {
                 cursor: "pointer",
                 border: "1px solid",
                 transition: "all 0.15s",
-                background: lang === l ? "rgba(56,189,248,0.1)" : "transparent",
-                borderColor: lang === l ? "rgba(56,189,248,0.3)" : "rgba(255,255,255,0.1)",
+                background: lang === l ? "rgba(var(--bz-paint-38bdf8),0.1)" : "transparent",
+                borderColor: lang === l ? "rgba(var(--bz-paint-38bdf8),0.3)" : "rgba(var(--bz-paint-ffffff),0.1)",
                 color: lang === l ? "var(--accent-cyan)" : "var(--text-muted)",
               }}
             >

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
@@ -84,9 +86,9 @@ function EqCurve({ values }: { values: ParamValues }) {
     return `M${points.join(" L")}`;
   }, [values]);
   return <svg className="adjust-eqcurve" viewBox="0 0 900 56" preserveAspectRatio="none" aria-hidden="true">
-    <defs><linearGradient id="bz-eqfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#48bfff" stopOpacity=".32" /><stop offset="100%" stopColor="#48bfff" stopOpacity="0" /></linearGradient></defs>
-    <path d={`${path} L900,56 L0,56 Z`} fill="url(#bz-eqfill)" /><path d={path} fill="none" stroke="#48bfff" strokeWidth="2" strokeLinecap="round" />
-    <line x1="0" y1="28" x2="900" y2="28" stroke="rgba(255,255,255,.08)" />
+    <defs><linearGradient id="bz-eqfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="rgb(var(--bz-paint-48bfff))" stopOpacity=".32" /><stop offset="100%" stopColor="rgb(var(--bz-paint-48bfff))" stopOpacity="0" /></linearGradient></defs>
+    <path d={`${path} L900,56 L0,56 Z`} fill="url(#bz-eqfill)" /><path d={path} fill="none" stroke="rgb(var(--bz-paint-48bfff))" strokeWidth="2" strokeLinecap="round" />
+    <line x1="0" y1="28" x2="900" y2="28" stroke="rgba(var(--bz-paint-ffffff),0.08)" />
   </svg>;
 }
 
@@ -109,7 +111,7 @@ function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null
       for (let i = 0; i < count; i++) {
         const bin = Math.max(0, Math.min((data?.length ?? 1) - 1, Math.round(Math.pow(i / count, 1.8) * (data?.length ?? 1) * .7)));
         const level = playing && data ? data[bin] / 255 : .06, bar = Math.max(2, level * height * .72);
-        ctx.fillStyle = `rgba(${72 + i * 2},${191 - i},255,${.08 + level * .22})`;
+        ctx.fillStyle = uiColor(`rgba(${72 + i * 2},${191 - i},255,${.08 + level * .22})`);
         ctx.fillRect(i / count * width, height - bar, Math.max(1, width / count - 2), bar);
       }
     };
@@ -300,15 +302,15 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     resize();
     const draw = () => {
       const current = regionRef.current, lo = current.start / dur, hi = (current.start + current.len) / dur; ctx.clearRect(0, 0, width, height);
-      const bg = ctx.createLinearGradient(0, 0, 0, height); bg.addColorStop(0, "rgba(72,191,255,.42)"); bg.addColorStop(1, "rgba(139,92,246,.2)");
-      const active = ctx.createLinearGradient(0, 0, 0, height); active.addColorStop(0, "#48bfff"); active.addColorStop(1, "#a461ff");
+      const bg = ctx.createLinearGradient(0, 0, 0, height); bg.addColorStop(0, uiColor("rgba(72,191,255,.42)")); bg.addColorStop(1, uiColor("rgba(139,92,246,.2)"));
+      const active = ctx.createLinearGradient(0, 0, 0, height); active.addColorStop(0, uiColor("#48bfff")); active.addColorStop(1, uiColor("#a461ff"));
       const bw = width / waveBars.length;
       waveBars.forEach((value, index) => { const ratio = index / waveBars.length, bar = Math.max(2, value * height * .82); ctx.fillStyle = ratio >= lo && ratio <= hi ? active : bg; ctx.fillRect(index * bw + .5, (height - bar) / 2, Math.max(1, bw - 1.4), bar); });
-      ctx.fillStyle = "rgba(72,191,255,.075)"; ctx.fillRect(lo * width, 0, (hi - lo) * width, height);
-      ctx.strokeStyle = "#48bfff"; ctx.lineWidth = 1.5; ctx.shadowColor = "#48bfff"; ctx.shadowBlur = 7;
+      ctx.fillStyle = uiColor("rgba(72,191,255,.075)"); ctx.fillRect(lo * width, 0, (hi - lo) * width, height);
+      ctx.strokeStyle = uiColor("#48bfff"); ctx.lineWidth = 1.5; ctx.shadowColor = uiColor("#48bfff"); ctx.shadowBlur = 7;
       [lo, hi].forEach((ratio) => { ctx.beginPath(); ctx.moveTo(ratio * width, 0); ctx.lineTo(ratio * width, height); ctx.stroke(); }); ctx.shadowBlur = 0;
       const engine = engineRef.current;
-      if (engine && !engine.paused) { const x = Math.min(1, engine.currentTime / dur) * width; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.shadowColor = "#48bfff"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); ctx.shadowBlur = 0; }
+      if (engine && !engine.paused) { const x = Math.min(1, engine.currentTime / dur) * width; ctx.strokeStyle = uiColor("#fff"); ctx.lineWidth = 2; ctx.shadowColor = uiColor("#48bfff"); ctx.shadowBlur = 10; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); ctx.shadowBlur = 0; }
       if (chipTimeRef.current) chipTimeRef.current.textContent = `${fmtTime(current.start)}–${fmtTime(Math.min(dur, current.start + current.len))}`;
     };
     const animation = startVisibleAnimation(canvas, draw, { continuous: playing, resize });

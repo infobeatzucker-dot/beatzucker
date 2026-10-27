@@ -26,6 +26,7 @@ model User {
   dailyMasterLimit     Int?      // null inherits the global default; 0 blocks new masters
   vocalRemoverEnabled Boolean @default(false)
   stemSeparationEnabled Boolean @default(false)
+  uiTheme              String? // null: browser preference; validated five-theme allowlist
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 

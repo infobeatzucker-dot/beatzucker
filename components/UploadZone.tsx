@@ -51,7 +51,7 @@ function IdleWaveform() {
           style={{
             width: "3px",
             height: bar.height,
-            background: "linear-gradient(180deg, #ee45d7 0%, #8261ff 52%, #49c8ff 100%)",
+            background: "linear-gradient(180deg, rgb(var(--bz-paint-ee45d7)) 0%, rgb(var(--bz-paint-8261ff)) 52%, rgb(var(--bz-paint-49c8ff)) 100%)",
             animationDelay: bar.delay,
             animationDuration: bar.duration,
           }}
@@ -249,16 +249,16 @@ export default function UploadZone({
                 {isUploading ? `${uploadProgress}%` : "100%"}
               </span>
             </div>
-            <div style={{ height: "5px", borderRadius: "3px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+            <div style={{ height: "5px", borderRadius: "3px", background: "rgba(var(--bz-paint-ffffff),0.06)", overflow: "hidden" }}>
               <div style={{
                 height: "100%",
                 width: isUploading ? `${uploadProgress}%` : "100%",
                 background: isUploading
-                  ? "linear-gradient(90deg, var(--accent-purple), #a78bfa)"
+                  ? "linear-gradient(90deg, var(--accent-purple), rgb(var(--bz-paint-a78bfa)))"
                   : "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))",
                 borderRadius: "3px",
                 transition: "width 0.25s ease",
-                boxShadow: isUploading ? "0 0 8px rgba(139,92,246,0.5)" : "none",
+                boxShadow: isUploading ? "0 0 8px rgba(var(--bz-paint-8b5cf6),0.5)" : "none",
               }} />
             </div>
           </div>
@@ -282,18 +282,18 @@ export default function UploadZone({
                 </span>
               )}
             </div>
-            <div style={{ height: "5px", borderRadius: "3px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+            <div style={{ height: "5px", borderRadius: "3px", background: "rgba(var(--bz-paint-ffffff),0.06)", overflow: "hidden" }}>
               {isAnalyzing ? (
                 <div style={{
                   height: "100%",
                   width: `${analyzeProgress}%`,
-                  background: "linear-gradient(90deg, var(--accent-cyan), #67e8f9)",
+                  background: "linear-gradient(90deg, var(--accent-cyan), rgb(var(--bz-paint-67e8f9)))",
                   borderRadius: "3px",
                   transition: "width 0.35s ease",
-                  boxShadow: "0 0 8px rgba(56,189,248,0.5)",
+                  boxShadow: "0 0 8px rgba(var(--bz-shadow-38bdf8),0.5)",
                 }} />
               ) : (
-                <div style={{ height: "100%", width: "0%", background: "rgba(255,255,255,0.04)" }} />
+                <div style={{ height: "100%", width: "0%", background: "rgba(var(--bz-paint-ffffff),0.04)" }} />
               )}
             </div>
           </div>
@@ -308,14 +308,14 @@ export default function UploadZone({
       <div
         className="rounded-2xl p-5 flex items-center justify-between"
         style={{
-          background: "rgba(139,92,246,0.08)",
-          border: "1px solid rgba(139,92,246,0.2)",
+          background: "rgba(var(--bz-paint-8b5cf6),0.08)",
+          border: "1px solid rgba(var(--bz-border-8b5cf6),0.2)",
         }}
       >
         <div className="flex items-center gap-4">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(139,92,246,0.15)" }}
+            style={{ background: "rgba(var(--bz-paint-8b5cf6),0.15)" }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M9 18V5l12-2v13" stroke="var(--accent-purple)" strokeWidth="1.5" strokeLinecap="round"/>
@@ -372,7 +372,7 @@ export default function UploadZone({
         <IdleWaveform />
         <div
           className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
-          style={{ background: "rgba(139,92,246,0.1)", border: "1px solid var(--border-subtle)" }}
+          style={{ background: "rgba(var(--bz-paint-8b5cf6),0.1)", border: "1px solid var(--border-subtle)" }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <rect x="3" y="11" width="18" height="11" rx="2" stroke="var(--accent-purple)" strokeWidth="1.5"/>
@@ -389,8 +389,8 @@ export default function UploadZone({
           onClick={() => onSignInClick?.()}
           className="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
           style={{
-            background: "linear-gradient(135deg, var(--accent-purple), #5a4fd0)",
-            color: "#fff",
+            background: "linear-gradient(135deg, var(--accent-purple), rgb(var(--bz-paint-5a4fd0)))",
+            color: "var(--ui-on-accent)",
           }}
         >
           {lang === "de" ? "Anmelden / Registrieren" : "Sign in / Register"}
@@ -421,8 +421,8 @@ export default function UploadZone({
         className="studio-upload-legacy-icon w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
         style={{
           background: isDragging
-            ? "rgba(56,189,248,0.15)"
-            : "rgba(139,92,246,0.1)",
+            ? "rgba(var(--bz-paint-38bdf8),0.15)"
+            : "rgba(var(--bz-paint-8b5cf6),0.1)",
           border: isDragging
             ? "1px solid var(--accent-cyan)"
             : "1px solid var(--border-subtle)",

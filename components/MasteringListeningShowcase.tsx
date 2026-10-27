@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, AudioLines, Headphones, Loader2, Pause, Play, ShieldCheck, Volume2 } from "lucide-react";
 import ShowcaseGallery from "./ShowcaseGallery";
@@ -96,7 +98,7 @@ export default function MasteringListeningShowcase({ lang = "de", initialTracks 
       updateContourFrame(frequency, samples, motion, now, playing && !!analyser, reducedMotion.matches);
       contours.current?.style.setProperty("--pulse", motion.pulse.toFixed(4));
       rings.forEach((ring, i) => (ring as HTMLElement).style.setProperty("--energy", motion.levels[i].toFixed(4)));
-      const color = ctx.createLinearGradient(0, height, width, 0); color.addColorStop(0, "#50caff"); color.addColorStop(.5, "#ab8cff"); color.addColorStop(1, "#ed78d7"); ctx.fillStyle = color;
+      const color = ctx.createLinearGradient(0, height, width, 0); color.addColorStop(0, uiColor("#50caff")); color.addColorStop(.5, uiColor("#ab8cff")); color.addColorStop(1, uiColor("#ed78d7")); ctx.fillStyle = color;
       for (let i = 0; i < 48; i++) { const bin = Math.min(frequency.length-1, Math.floor((i / 48) ** 2.2 * frequency.length)), size = Math.max(2, frequency[bin] / 255 * height * .92), step = width / 48; ctx.fillRect(i * step, height - size, Math.max(1, step - 3), size); }
       if (playing && now - lastState > 100) { lastState = now; setPosition(engine.current?.currentTime ?? 0); }
     }, { continuous: playing, maxFps: 40, reducedFps: 8, resize });
@@ -108,7 +110,7 @@ export default function MasteringListeningShowcase({ lang = "de", initialTracks 
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(audioLd).replace(/</g, "\\u003c") }} />
     <div className="listening-wrap">
       <header className="listening-heading"><span className="listening-eyebrow"><Headphones size={15} />{en ? "REAL TRACKS. YOUR EARS." : "ECHTE TRACKS. DEINE OHREN."}</span><h2 id="listening-heading">{en ? <>Hear what <em>mastering changes.</em></> : <>Hör selbst, was <em>Mastering verändert.</em></>}</h2><p>{en ? "Real songs. Original mix and Beatzucker master. Switch at the same position and decide for yourself." : "Echte Songs. Original-Mix und Beatzucker-Master. Wechsle an derselben Stelle und entscheide selbst."}</p></header>
-      {!initialTracks && <p style={{textAlign:"center",margin:"-12px 0 28px",fontSize:13}}><a href={en ? "/en/mastering-examples" : "/hoervergleich"} style={{color:"#b9c9ec"}}>{en ? "Mastering before and after: listening guidance and all excerpt measurements" : "Mastering vorher und nachher: Hörhinweise und alle Ausschnitt-Messwerte"} <ArrowRight size={13} style={{display:"inline",verticalAlign:"middle"}}/></a></p>}
+      {!initialTracks && <p style={{textAlign:"center",margin:"-12px 0 28px",fontSize:13}}><a href={en ? "/en/mastering-examples" : "/hoervergleich"} style={{color:"rgb(var(--bz-paint-b9c9ec))"}}>{en ? "Mastering before and after: listening guidance and all excerpt measurements" : "Mastering vorher und nachher: Hörhinweise und alle Ausschnitt-Messwerte"} <ArrowRight size={13} style={{display:"inline",verticalAlign:"middle"}}/></a></p>}
       <div ref={deck} className="listening-deck listening-gallery-deck" data-side={side}>
         <ShowcaseGallery tracks={tracks} index={index} side={side} playing={playing} loading={loading} en={en} onSelect={selectTrack} onToggle={()=>void toggle()} onSide={selectSide} contoursRef={contours} covers={covers}/>
         <div className="listening-main">

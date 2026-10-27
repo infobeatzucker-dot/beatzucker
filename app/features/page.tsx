@@ -103,23 +103,23 @@ const GROUP_COLORS: Record<string, string> = {
   eq:     "rgba(139,92,246,0.7)",
   comp:   "rgba(56,189,248,0.7)",
   stereo: "rgba(196,181,253,0.7)",
-  color:  "rgba(251,146,60,0.7)",
+  color:  "rgba(var(--bz-paint-fb923c),0.7)",
   limit:  "rgba(239,68,68,0.7)",
   output: "rgba(34,197,94,0.7)",
 };
 
 /* ─── Platform LUFS data ────────────────────────────────────────────────────── */
 const PLATFORMS: { icon: LucideIcon; name: string; lufs: string; peak: string; color: string }[] = [
-  { icon: Music,      name: "Spotify",       lufs: "−14 LUFS", peak: "−1 dBTP", color: "#1db954" },
-  { icon: Disc,       name: "Apple Music",   lufs: "−16 LUFS", peak: "−1 dBTP", color: "#fc3c44" },
-  { icon: Play,       name: "YouTube",       lufs: "−14 LUFS", peak: "−1 dBTP", color: "#ff0000" },
-  { icon: Waves,      name: "Tidal",         lufs: "−14 LUFS", peak: "−1 dBTP", color: "#00ffff" },
-  { icon: ShoppingBag, name: "Amazon Music",  lufs: "−14 LUFS", peak: "−2 dBTP", color: "#ff9900" },
-  { icon: Disc3,      name: "Deezer",        lufs: "−15 LUFS", peak: "−1 dBTP", color: "#a238ff" },
-  { icon: Smartphone, name: "TikTok",        lufs: "−13 LUFS", peak: "−1 dBTP", color: "#ff0050" },
-  { icon: Cloud,       name: "SoundCloud",    lufs:  "−8 LUFS", peak: "−1 dBTP", color: "#ff5500" },
+  { icon: Music,      name: "Spotify",       lufs: "−14 LUFS", peak: "−1 dBTP", color: "rgb(var(--bz-paint-1db954))" },
+  { icon: Disc,       name: "Apple Music",   lufs: "−16 LUFS", peak: "−1 dBTP", color: "rgb(var(--bz-paint-fc3c44))" },
+  { icon: Play,       name: "YouTube",       lufs: "−14 LUFS", peak: "−1 dBTP", color: "rgb(var(--bz-paint-ff0000))" },
+  { icon: Waves,      name: "Tidal",         lufs: "−14 LUFS", peak: "−1 dBTP", color: "rgb(var(--bz-paint-00ffff))" },
+  { icon: ShoppingBag, name: "Amazon Music",  lufs: "−14 LUFS", peak: "−2 dBTP", color: "rgb(var(--bz-paint-ff9900))" },
+  { icon: Disc3,      name: "Deezer",        lufs: "−15 LUFS", peak: "−1 dBTP", color: "rgb(var(--bz-paint-a238ff))" },
+  { icon: Smartphone, name: "TikTok",        lufs: "−13 LUFS", peak: "−1 dBTP", color: "rgb(var(--bz-paint-ff0050))" },
+  { icon: Cloud,       name: "SoundCloud",    lufs:  "−8 LUFS", peak: "−1 dBTP", color: "rgb(var(--bz-paint-ff5500))" },
   { icon: Disc2,      name: "Club / DJ",     lufs:  "−9 LUFS", peak: "−1 dBTP", color: "var(--accent-cyan)" },
-  { icon: Radio,      name: "Broadcast/TV",  lufs: "−23 LUFS", peak: "−1 dBTP", color: "#64748b" },
+  { icon: Radio,      name: "Broadcast/TV",  lufs: "−23 LUFS", peak: "−1 dBTP", color: "rgb(var(--bz-paint-64748b))" },
   { icon: Settings2,  name: "Custom",        lufs: "Manuell",  peak: "Manuell", color: "var(--accent-purple)" },
 ];
 
@@ -261,7 +261,7 @@ const FEATURES = [
     visual: "keyboard",
   },
   {
-    color: "#22c55e",
+    color: "rgb(var(--bz-paint-22c55e))",
     title: { de: "Privacy by Design", en: "Privacy by Design" },
     desc: {
       de: "Wir verzichten auf Tracking, Werbe-Cookies und Analytics. Deine Audiodateien bleiben nicht dauerhaft auf dem Server, und selbst Schriftarten werden lokal ausgeliefert, damit keine externe Anfrage deine IP verrät.",
@@ -304,7 +304,7 @@ function VisualPipeline() {
       {stages.map((s, i) => (
         <div key={s} className="flex items-center gap-1">
           <div className="px-1.5 py-1 rounded text-[9px] font-bold"
-            style={{ background: "rgba(56,189,248,0.15)", border: "1px solid rgba(56,189,248,0.3)", color: "var(--accent-cyan)" }}>
+            style={{ background: "rgba(var(--bz-paint-38bdf8),0.15)", border: "1px solid rgba(var(--bz-border-38bdf8),0.3)", color: "var(--accent-cyan)" }}>
             {s}
           </div>
           {i < stages.length - 1 && <span style={{ color: "var(--accent-cyan)", fontSize: 10 }}>→</span>}
@@ -321,7 +321,7 @@ function VisualSlider() {
         <span>0%</span><span style={{ color: "var(--accent-gold)" }}>65% Balanced</span><span>100%</span>
       </div>
       <div className="w-full px-2 relative">
-        <div className="h-1.5 rounded-full w-full" style={{ background: "rgba(255,255,255,0.08)" }} />
+        <div className="h-1.5 rounded-full w-full" style={{ background: "rgba(var(--bz-paint-ffffff),0.08)" }} />
         <div className="h-1.5 rounded-full absolute top-0 left-2" style={{ width: "65%", background: "linear-gradient(90deg, var(--accent-purple), var(--accent-gold))" }} />
         <div className="w-3 h-3 rounded-full absolute -top-[3px]" style={{ left: "calc(65% - 4px)", background: "var(--accent-gold)", boxShadow: "0 0 6px var(--accent-gold)" }} />
       </div>
@@ -351,8 +351,8 @@ function VisualAB() {
         <div key={label} className="flex flex-col items-center gap-1">
           <div className="px-3 py-1 rounded-lg text-xs font-bold"
             style={{
-              background: i === 0 ? "rgba(139,92,246,0.2)" : "rgba(56,189,248,0.2)",
-              border: `1px solid ${i === 0 ? "rgba(139,92,246,0.4)" : "rgba(56,189,248,0.4)"}`,
+              background: i === 0 ? "rgba(var(--bz-paint-8b5cf6),0.2)" : "rgba(var(--bz-paint-38bdf8),0.2)",
+              border: `1px solid ${i === 0 ? "rgba(var(--bz-paint-8b5cf6),0.4)" : "rgba(var(--bz-paint-38bdf8),0.4)"}`,
               color: i === 0 ? "var(--accent-purple)" : "var(--accent-cyan)",
             }}>
             {label}
@@ -374,7 +374,7 @@ function VisualManual() {
     <div className="h-16 flex items-end justify-center gap-4" aria-hidden="true">
       {faders.map((level, index) => (
         <div key={level} className="relative h-12 w-3 flex justify-center">
-          <span className="absolute inset-y-0 w-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.12)" }} />
+          <span className="absolute inset-y-0 w-0.5 rounded-full" style={{ background: "rgba(var(--bz-paint-ffffff),0.12)" }} />
           <span
             className="absolute bottom-0 w-0.5 rounded-full"
             style={{ height: `${level}%`, background: index % 2 ? "var(--accent-purple)" : "var(--accent-cyan)", boxShadow: `0 0 7px ${index % 2 ? "var(--accent-purple)" : "var(--accent-cyan)"}` }}
@@ -386,7 +386,7 @@ function VisualManual() {
         </div>
       ))}
       <div className="ml-1 self-center rounded-md border px-2 py-1 text-[9px] font-bold"
-        style={{ color: "var(--accent-cyan)", borderColor: "rgba(56,189,248,.35)", background: "rgba(56,189,248,.08)" }}>
+        style={{ color: "var(--accent-cyan)", borderColor: "rgba(var(--bz-border-38bdf8),0.35)", background: "rgba(var(--bz-paint-38bdf8),0.08)" }}>
         LIVE
       </div>
     </div>
@@ -457,7 +457,7 @@ function VisualWaterfall() {
 function VisualReport() {
   return (
     <div className="h-16 flex items-center justify-center gap-3">
-      <div className="rounded-lg p-2 flex flex-col gap-1.5" style={{ background: "rgba(196,181,253,0.08)", border: "1px solid rgba(196,181,253,0.2)" }}>
+      <div className="rounded-lg p-2 flex flex-col gap-1.5" style={{ background: "rgba(var(--bz-paint-c4b5fd),0.08)", border: "1px solid rgba(var(--bz-border-c4b5fd),0.2)" }}>
         {["LUFS: −14.0", "Peak: −1.0 dBTP", "DR: 11"].map((line) => (
           <div key={line} className="text-[8px] mono" style={{ color: "var(--accent-gold)" }}>{line}</div>
         ))}
@@ -475,7 +475,7 @@ function VisualFormats() {
         const colors = ["var(--accent-purple)", "var(--accent-cyan)", "#c4b5fd", "#38bdf8"];
         return (
           <span key={f} className="px-1.5 py-0.5 rounded text-[9px] font-bold"
-            style={{ background: `rgba(255,255,255,0.06)`, border: `1px solid ${colors[i]}44`, color: colors[i] }}>
+            style={{ background: `rgba(var(--bz-paint-ffffff),0.06)`, border: `1px solid ${colors[i]}44`, color: colors[i] }}>
             {f}
           </span>
         );
@@ -502,10 +502,10 @@ function VisualKeyboard() {
         <div key={k} className="flex flex-col items-center gap-1">
           <kbd className="px-2 py-1 rounded text-xs font-bold"
             style={{
-              background: "rgba(196,181,253,0.1)",
-              border: "1px solid rgba(196,181,253,0.4)",
-              color: "#c4b5fd",
-              boxShadow: "0 2px 0 rgba(196,181,253,0.3)",
+              background: "rgba(var(--bz-paint-c4b5fd),0.1)",
+              border: "1px solid rgba(var(--bz-border-c4b5fd),0.4)",
+              color: "rgb(var(--bz-paint-c4b5fd))",
+              boxShadow: "0 2px 0 rgba(var(--bz-shadow-c4b5fd),0.3)",
               fontFamily: "monospace",
             }}>
             {k}
@@ -525,9 +525,9 @@ function VisualPrivacy() {
         {badges.map((b) => (
           <span key={b.label} className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"
             style={{
-              background: "rgba(239,68,68,0.12)",
-              border: "1px solid rgba(239,68,68,0.3)",
-              color: "#f87171",
+              background: "rgba(var(--bz-paint-ef4444),0.12)",
+              border: "1px solid rgba(var(--bz-border-ef4444),0.3)",
+              color: "rgb(var(--bz-paint-f87171))",
               textDecoration: "line-through",
             }}>
             <b.Icon size={10} strokeWidth={2} />
@@ -535,7 +535,7 @@ function VisualPrivacy() {
           </span>
         ))}
       </div>
-      <span className="text-[9px] font-bold" style={{ color: "#22c55e", letterSpacing: "0.05em" }}>
+      <span className="text-[9px] font-bold" style={{ color: "rgb(var(--bz-paint-22c55e))", letterSpacing: "0.05em" }}>
         ✓ EU-Server · DSGVO · Privacy by Design
       </span>
     </div>
@@ -576,12 +576,12 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
 
       {/* Language toggle */}
       <div className="fixed top-16 right-4 z-40 flex gap-1 rounded-lg p-1"
-        style={{ background: "rgba(14,17,23,0.85)", border: "1px solid var(--border-subtle)", backdropFilter: "blur(8px)" }}>
+        style={{ background: "rgba(var(--bz-paint-0e1117),0.85)", border: "1px solid var(--border-subtle)", backdropFilter: "blur(8px)" }}>
         {(["de", "en"] as const).map((l) => (
           <button key={l} onClick={() => changeLanguage(l)}
             className="px-2.5 py-1 rounded-md text-xs font-bold uppercase transition-all"
             style={lang === l
-              ? { background: "var(--accent-purple)", color: "#fff" }
+              ? { background: "var(--accent-purple)", color: "rgb(var(--bz-paint-ffffff))" }
               : { color: "var(--text-muted)" }}>
             {l}
           </button>
@@ -591,8 +591,8 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
       {/* ── Hero ── */}
       <section style={{ textAlign: "center", padding: "7rem 2rem 3rem" }}>
         <div style={{
-          display: "inline-block", background: "rgba(139,92,246,0.1)",
-          border: "1px solid rgba(139,92,246,0.25)", borderRadius: "6px",
+          display: "inline-block", background: "rgba(var(--bz-paint-8b5cf6),0.1)",
+          border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)", borderRadius: "6px",
           padding: "0.25rem 0.75rem", fontSize: "0.75rem",
           color: "var(--accent-purple)", letterSpacing: "0.1em",
           textTransform: "uppercase", marginBottom: "1.5rem",
@@ -610,7 +610,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", justifyContent: "center" }}>
           {[t.stat1, t.stat2, t.stat3, t.stat4].map((s) => (
             <div key={s} style={{
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(var(--bz-paint-ffffff),0.04)", border: "1px solid rgba(var(--bz-border-ffffff),0.08)",
               borderRadius: "100px", padding: "0.35rem 1rem", fontSize: "0.8rem",
               color: "var(--text-secondary)", fontWeight: 600,
             }}>
@@ -624,8 +624,8 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
       <section style={{ maxWidth: "900px", margin: "0 auto", padding: "1rem 2rem 4rem" }}>
         <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
           <div style={{
-            display: "inline-block", background: "rgba(56,189,248,0.1)",
-            border: "1px solid rgba(56,189,248,0.25)", borderRadius: "6px",
+            display: "inline-block", background: "rgba(var(--bz-paint-38bdf8),0.1)",
+            border: "1px solid rgba(var(--bz-border-38bdf8),0.25)", borderRadius: "6px",
             padding: "0.25rem 0.75rem", fontSize: "0.75rem",
             color: "var(--accent-cyan)", letterSpacing: "0.1em",
             textTransform: "uppercase", marginBottom: "1rem",
@@ -643,9 +643,9 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
               visual: (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                   <div style={{
-                    width: 80, height: 60, border: "2px dashed rgba(139,92,246,0.5)",
+                    width: 80, height: 60, border: "2px dashed rgba(var(--bz-border-8b5cf6),0.5)",
                     borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                    background: "rgba(139,92,246,0.05)",
+                    background: "rgba(var(--bz-paint-8b5cf6),0.05)",
                   }}>
                     <Music size={24} strokeWidth={2} color="var(--accent-purple)" />
                   </div>
@@ -681,7 +681,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
                   {["WAV 24", "FLAC", "MP3 320", "AAC"].map((f) => (
                     <div key={f} style={{
                       padding: "3px 8px", borderRadius: 4, fontSize: "0.65rem", fontWeight: 700,
-                      background: "rgba(196,181,253,0.12)", border: "1px solid rgba(196,181,253,0.3)",
+                      background: "rgba(var(--bz-paint-c4b5fd),0.12)", border: "1px solid rgba(var(--bz-border-c4b5fd),0.3)",
                       color: "var(--accent-gold)",
                     }}>
                       {f}
@@ -728,8 +728,8 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
       <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 2rem 4rem" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{
-            display: "inline-block", background: "rgba(196,181,253,0.1)",
-            border: "1px solid rgba(196,181,253,0.25)", borderRadius: "6px",
+            display: "inline-block", background: "rgba(var(--bz-paint-c4b5fd),0.1)",
+            border: "1px solid rgba(var(--bz-border-c4b5fd),0.25)", borderRadius: "6px",
             padding: "0.25rem 0.75rem", fontSize: "0.75rem",
             color: "var(--accent-gold)", letterSpacing: "0.1em",
             textTransform: "uppercase", marginBottom: "1rem",
@@ -778,7 +778,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
           ))}
 
           {/* Legend */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(var(--bz-border-ffffff),0.05)" }}>
             {Object.entries({ input: "Input", eq: "EQ", comp: "Dynamics", stereo: "Stereo", color: "Saturation", limit: "Limiting", output: "Output" }).map(([k, label]) => (
               <div key={k} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <div style={{ width: 8, height: 8, borderRadius: 2, background: GROUP_COLORS[k] }} />
@@ -793,8 +793,8 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
       <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 2rem 4rem" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{
-            display: "inline-block", background: "rgba(139,92,246,0.1)",
-            border: "1px solid rgba(139,92,246,0.25)", borderRadius: "6px",
+            display: "inline-block", background: "rgba(var(--bz-paint-8b5cf6),0.1)",
+            border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)", borderRadius: "6px",
             padding: "0.25rem 0.75rem", fontSize: "0.75rem",
             color: "var(--accent-purple)", letterSpacing: "0.1em",
             textTransform: "uppercase", marginBottom: "1rem",
@@ -810,7 +810,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
             return (
               <div key={f.visual} className="glass-panel p-4"
                 style={{
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(var(--bz-border-ffffff),0.06)",
                   transition: "border-color 0.2s, box-shadow 0.2s",
                 }}
                 onMouseEnter={(e) => {
@@ -823,7 +823,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
                 }}
               >
                 {/* Mini visual */}
-                <div className="rounded-lg mb-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", padding: "0.5rem" }}>
+                <div className="rounded-lg mb-3" style={{ background: "rgba(var(--bz-paint-ffffff),0.02)", border: "1px solid rgba(var(--bz-border-ffffff),0.04)", padding: "0.5rem" }}>
                   <Visual />
                 </div>
                 <h3 style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.4rem", color: f.color }}>
@@ -835,7 +835,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
                 <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
                   {f.tags.map((tag) => (
                     <span key={tag} style={{
-                      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                      background: "rgba(var(--bz-paint-ffffff),0.04)", border: "1px solid rgba(var(--bz-border-ffffff),0.08)",
                       borderRadius: "4px", padding: "0.1rem 0.45rem",
                       fontSize: "0.65rem", color: "var(--text-muted)",
                     }}>
@@ -853,8 +853,8 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
       <section style={{ maxWidth: "900px", margin: "0 auto", padding: "0 2rem 4rem" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{
-            display: "inline-block", background: "rgba(56,189,248,0.1)",
-            border: "1px solid rgba(56,189,248,0.25)", borderRadius: "6px",
+            display: "inline-block", background: "rgba(var(--bz-paint-38bdf8),0.1)",
+            border: "1px solid rgba(var(--bz-border-38bdf8),0.25)", borderRadius: "6px",
             padding: "0.25rem 0.75rem", fontSize: "0.75rem",
             color: "var(--accent-cyan)", letterSpacing: "0.1em",
             textTransform: "uppercase", marginBottom: "1rem",
@@ -869,7 +869,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <tr style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.06)" }}>
                   {["Plattform", "Loudness Target", "True Peak"].map((h) => (
                     <th key={h} style={{ padding: "0.75rem 1rem", textAlign: "left", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>
                       {h}
@@ -879,7 +879,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
               </thead>
               <tbody>
                 {PLATFORMS.map((p, i) => (
-                  <tr key={p.name} style={{ borderBottom: i < PLATFORMS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                  <tr key={p.name} style={{ borderBottom: i < PLATFORMS.length - 1 ? "1px solid rgba(var(--bz-paint-ffffff),0.04)" : "none" }}>
                     <td style={{ padding: "0.65rem 1rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <p.icon size={17} strokeWidth={2} color={p.color} />
@@ -906,8 +906,8 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
       <section style={{ maxWidth: "900px", margin: "0 auto", padding: "0 2rem 4rem" }}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{
-            display: "inline-block", background: "rgba(196,181,253,0.1)",
-            border: "1px solid rgba(196,181,253,0.25)", borderRadius: "6px",
+            display: "inline-block", background: "rgba(var(--bz-paint-c4b5fd),0.1)",
+            border: "1px solid rgba(var(--bz-border-c4b5fd),0.25)", borderRadius: "6px",
             padding: "0.25rem 0.75rem", fontSize: "0.75rem",
             color: "var(--accent-gold)", letterSpacing: "0.1em",
             textTransform: "uppercase", marginBottom: "1rem",
@@ -926,7 +926,7 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
                 style={{
                   display: "flex", alignItems: "center", gap: "0.4rem",
                   padding: "0.5rem 1rem", borderRadius: "8px",
-                  background: "rgba(56,189,248,0.08)", border: "1px solid rgba(56,189,248,0.2)",
+                  background: "rgba(var(--bz-paint-38bdf8),0.08)", border: "1px solid rgba(var(--bz-border-38bdf8),0.2)",
                   fontFamily: "monospace", fontSize: "0.85rem", fontWeight: 600, color: "var(--text-primary)",
                 }}
               >
@@ -939,12 +939,12 @@ export default function FeaturesPage({ initialLang = "de" }: { initialLang?: "de
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ textAlign: "center", padding: "3rem 2rem 5rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <section style={{ textAlign: "center", padding: "3rem 2rem 5rem", borderTop: "1px solid rgba(var(--bz-border-ffffff),0.06)" }}>
         <h2 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: "1rem" }}>{t.cta_h2}</h2>
         <p style={{ color: "var(--text-secondary)", marginBottom: "2rem" }}>{t.cta_sub}</p>
         <Link href={lang === "en" ? "/en" : "/"} style={{
           background: "linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))",
-          color: "#fff", padding: "0.875rem 2.5rem", borderRadius: "10px",
+          color: "rgb(var(--bz-paint-ffffff))", padding: "0.875rem 2.5rem", borderRadius: "10px",
           textDecoration: "none", fontSize: "1rem", fontWeight: 700, display: "inline-block",
         }}>
           {t.cta_btn}

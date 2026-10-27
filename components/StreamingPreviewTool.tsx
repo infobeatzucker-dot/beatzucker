@@ -11,12 +11,12 @@ import ToolLanguageNav from "./ToolLanguageNav";
 import ToolJourney from "./ToolJourney";
 
 const PLATFORMS = [
-  { id: "spotify", name: "Spotify", target: -14, ceiling: -1, color: "#1ed760" },
-  { id: "apple", name: "Apple Music", target: -16, ceiling: -1, color: "#fa496d" },
-  { id: "youtube", name: "YouTube", target: -14, ceiling: -1, color: "#ff4b55" },
-  { id: "tidal", name: "Tidal", target: -14, ceiling: -1, color: "#55e8ff" },
-  { id: "amazon", name: "Amazon Music", target: -14, ceiling: -2, color: "#ffad32" },
-  { id: "deezer", name: "Deezer", target: -15, ceiling: -1, color: "#a97cff" },
+  { id: "spotify", name: "Spotify", target: -14, ceiling: -1, color: "rgb(var(--bz-paint-1ed760))" },
+  { id: "apple", name: "Apple Music", target: -16, ceiling: -1, color: "rgb(var(--bz-paint-fa496d))" },
+  { id: "youtube", name: "YouTube", target: -14, ceiling: -1, color: "rgb(var(--bz-paint-ff4b55))" },
+  { id: "tidal", name: "Tidal", target: -14, ceiling: -1, color: "rgb(var(--bz-paint-55e8ff))" },
+  { id: "amazon", name: "Amazon Music", target: -14, ceiling: -2, color: "rgb(var(--bz-paint-ffad32))" },
+  { id: "deezer", name: "Deezer", target: -15, ceiling: -1, color: "rgb(var(--bz-paint-a97cff))" },
 ] as const;
 
 export default function StreamingPreviewTool({ lang }: { lang: Lang }) {

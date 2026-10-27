@@ -50,6 +50,7 @@ export async function GET() {
       dailyMasterLimit: user.dailyMasterLimit,
       vocalRemoverEnabled: user.vocalRemoverEnabled,
       stemSeparationEnabled: user.stemSeparationEnabled,
+      uiTheme: user.uiTheme,
       termsAcceptedAt: user.termsAcceptedAt,
       termsVersion: user.termsVersion,
       termsLanguage: user.termsLanguage,

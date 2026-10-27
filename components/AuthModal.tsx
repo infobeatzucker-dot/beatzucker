@@ -20,10 +20,10 @@ interface AuthModalProps {
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "0.6rem 0.85rem",
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(var(--bz-paint-ffffff),0.05)",
+  border: "1px solid rgba(var(--bz-border-ffffff),0.12)",
   borderRadius: "8px",
-  color: "var(--text-primary, #fff)",
+  color: "var(--text-primary, rgb(var(--bz-paint-ffffff)))",
   fontSize: "0.9rem",
   outline: "none",
   boxSizing: "border-box",
@@ -32,10 +32,10 @@ const inputStyle: React.CSSProperties = {
 const btnPrimary: React.CSSProperties = {
   width: "100%",
   padding: "0.65rem",
-  background: "linear-gradient(135deg, var(--accent-purple, #8b5cf6), var(--accent-cyan, #38bdf8))",
+  background: "linear-gradient(135deg, var(--accent-purple, rgb(var(--bz-paint-8b5cf6))), var(--accent-cyan, rgb(var(--bz-paint-38bdf8))))",
   border: "none",
   borderRadius: "8px",
-  color: "#fff",
+  color: "rgb(var(--bz-paint-ffffff))",
   fontWeight: 700,
   fontSize: "0.9rem",
   cursor: "pointer",
@@ -45,10 +45,10 @@ const btnPrimary: React.CSSProperties = {
 const btnGoogle: React.CSSProperties = {
   width: "100%",
   padding: "0.6rem",
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.14)",
+  background: "rgba(var(--bz-paint-ffffff),0.06)",
+  border: "1px solid rgba(var(--bz-border-ffffff),0.14)",
   borderRadius: "8px",
-  color: "var(--text-primary, #fff)",
+  color: "var(--text-primary, rgb(var(--bz-paint-ffffff)))",
   fontWeight: 600,
   fontSize: "0.88rem",
   cursor: "pointer",
@@ -61,7 +61,7 @@ const btnGoogle: React.CSSProperties = {
 const linkBtn: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "var(--accent-cyan, #38bdf8)",
+  color: "var(--accent-cyan, rgb(var(--bz-paint-38bdf8)))",
   fontSize: "0.82rem",
   cursor: "pointer",
   padding: 0,
@@ -69,20 +69,20 @@ const linkBtn: React.CSSProperties = {
 };
 
 const errStyle: React.CSSProperties = {
-  background: "rgba(239,68,68,0.12)",
-  border: "1px solid rgba(239,68,68,0.3)",
+  background: "rgba(var(--bz-paint-ef4444),0.12)",
+  border: "1px solid rgba(var(--bz-border-ef4444),0.3)",
   borderRadius: "6px",
   padding: "0.5rem 0.75rem",
-  color: "#fca5a5",
+  color: "rgb(var(--bz-paint-fca5a5))",
   fontSize: "0.82rem",
 };
 
 const okStyle: React.CSSProperties = {
-  background: "rgba(16,185,129,0.12)",
-  border: "1px solid rgba(16,185,129,0.3)",
+  background: "rgba(var(--bz-paint-10b981),0.12)",
+  border: "1px solid rgba(var(--bz-border-10b981),0.3)",
   borderRadius: "6px",
   padding: "0.5rem 0.75rem",
-  color: "#6ee7b7",
+  color: "rgb(var(--bz-paint-6ee7b7))",
   fontSize: "0.82rem",
 };
 
@@ -90,10 +90,10 @@ const okStyle: React.CSSProperties = {
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-9 20-20 0-1.3-.2-2.7-.4-4z"/>
-      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.1 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/>
-      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.5 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.5-11.2-8.3l-6.5 5C9.7 39.8 16.4 44 24 44z"/>
-      <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.5 4.6-4.6 6l6.2 5.2C41.7 35.7 44 30.2 44 24c0-1.3-.2-2.7-.4-4z"/>
+      <path fill="rgb(var(--bz-paint-ffc107))" d="M43.6 20H24v8h11.3C33.7 33 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-9 20-20 0-1.3-.2-2.7-.4-4z"/>
+      <path fill="rgb(var(--bz-paint-ff3d00))" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34 6.1 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/>
+      <path fill="rgb(var(--bz-paint-4caf50))" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.5 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.5-11.2-8.3l-6.5 5C9.7 39.8 16.4 44 24 44z"/>
+      <path fill="rgb(var(--bz-paint-1976d2))" d="M43.6 20H24v8h11.3c-.9 2.5-2.5 4.6-4.6 6l6.2 5.2C41.7 35.7 44 30.2 44 24c0-1.3-.2-2.7-.4-4z"/>
     </svg>
   );
 }
@@ -263,9 +263,9 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
   // ── Divider ────────────────────────────────────────────────────
   const Divider = () => (
     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1rem 0" }}>
-      <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }}/>
+      <div style={{ flex: 1, height: 1, background: "rgba(var(--bz-paint-ffffff),0.08)" }}/>
       <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>{t("oder", "or")}</span>
-      <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }}/>
+      <div style={{ flex: 1, height: 1, background: "rgba(var(--bz-paint-ffffff),0.08)" }}/>
     </div>
   );
   const termsField = <label style={{ display: "flex", alignItems: "flex-start", gap: "0.55rem", color: "var(--text-muted)", fontSize: "0.75rem", lineHeight: 1.5, marginBottom: "0.9rem" }}>
@@ -278,7 +278,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
       {/* Backdrop */}
       <div
         onClick={onClose}
-        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9998, backdropFilter: "blur(3px)" }}
+        style={{ position: "fixed", inset: 0, background: "rgba(var(--bz-paint-000000),0.55)", zIndex: 9998, backdropFilter: "blur(3px)" }}
       />
 
       {/* Card */}
@@ -293,14 +293,14 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "min(420px, calc(100vw - 2rem))",
-          background: "var(--bg-elevated, #1a1a2e)",
-          border: "1px solid rgba(139,92,246,0.25)",
+          background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))",
+          border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
           borderRadius: "16px",
           padding: "2rem",
           maxHeight: "calc(100dvh - 2rem)",
           overflowY: "auto",
           zIndex: 9999,
-          boxShadow: "0 16px 60px rgba(0,0,0,0.6)",
+          boxShadow: "0 16px 60px rgba(var(--bz-shadow-000000),0.6)",
         }}
       >
         {/* Close */}
@@ -325,7 +325,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {/* ── LOGIN ───────────────────────────────────────── */}
         {view === "login" && (
           <>
-            <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
+            <h2 style={{ color: "rgb(var(--bz-paint-ffffff))", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
               {t("Anmelden", "Sign in")}
             </h2>
             {termsField}
@@ -354,7 +354,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {/* ── REGISTER ────────────────────────────────────── */}
         {view === "register" && (
           <>
-            <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
+            <h2 style={{ color: "rgb(var(--bz-paint-ffffff))", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
               {t("Konto erstellen", "Create account")}
             </h2>
             {termsField}
@@ -385,7 +385,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {/* ── FORGOT ──────────────────────────────────────── */}
         {view === "forgot" && (
           <>
-            <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", textAlign: "center" }}>
+            <h2 style={{ color: "rgb(var(--bz-paint-ffffff))", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", textAlign: "center" }}>
               {t("Passwort vergessen", "Forgot password")}
             </h2>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", margin: "0 0 1.25rem", lineHeight: 1.5 }}>
@@ -409,14 +409,14 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {view === "forgot-sent" && (
           <>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
-              <Mail size={40} strokeWidth={1.75} color="var(--accent-cyan, #38bdf8)" />
+              <Mail size={40} strokeWidth={1.75} color="var(--accent-cyan, rgb(var(--bz-paint-38bdf8)))" />
             </div>
-            <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.75rem", textAlign: "center" }}>
+            <h2 style={{ color: "rgb(var(--bz-paint-ffffff))", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.75rem", textAlign: "center" }}>
               {t("Anfrage erhalten", "Request received")}
             </h2>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", lineHeight: 1.6 }}>
               {t("Falls ein Konto mit dieser E-Mail existiert, erhältst du in Kürze einen Reset-Link. Der Link ist ", "If an account with this email exists, you'll receive a reset link shortly. The link is valid for ")}
-              <strong style={{ color: "#fff" }}>{t("15 Minuten", "15 minutes")}</strong>.
+              <strong style={{ color: "rgb(var(--bz-paint-ffffff))" }}>{t("15 Minuten", "15 minutes")}</strong>.
             </p>
             <div style={{ textAlign: "center", marginTop: "1.25rem" }}>
               <button style={linkBtn} onClick={() => { setView("login"); setError(""); }}>{t("← Zum Login", "← Sign in")}</button>
@@ -428,13 +428,13 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {view === "otp" && (
           <>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
-              <ShieldCheck size={32} strokeWidth={1.75} color="var(--accent-purple, #8b5cf6)" />
+              <ShieldCheck size={32} strokeWidth={1.75} color="var(--accent-purple, rgb(var(--bz-paint-8b5cf6)))" />
             </div>
-            <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", textAlign: "center" }}>
+            <h2 style={{ color: "rgb(var(--bz-paint-ffffff))", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem", textAlign: "center" }}>
               {t("2-Faktor-Authentifizierung", "Two-factor authentication")}
             </h2>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", margin: "0 0 1.25rem", lineHeight: 1.5 }}>
-              {t("Wir haben einen 6-stelligen Code an ", "We've sent a six-digit code to ")}<strong style={{ color: "#fff" }}>{email}</strong>.
+              {t("Wir haben einen 6-stelligen Code an ", "We've sent a six-digit code to ")}<strong style={{ color: "rgb(var(--bz-paint-ffffff))" }}>{email}</strong>.
             </p>
             <form onSubmit={handleOtp} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <label htmlFor="otp-code" className="sr-only">{t("6-stelliger Bestätigungscode", "Six-digit verification code")}</label>
@@ -464,7 +464,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
         {/* ── RESET ───────────────────────────────────────── */}
         {view === "reset" && (
           <>
-            <h2 style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
+            <h2 style={{ color: "rgb(var(--bz-paint-ffffff))", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 1.25rem", textAlign: "center" }}>
               {t("Neues Passwort setzen", "Set a new password")}
             </h2>
             <form onSubmit={handleReset} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>

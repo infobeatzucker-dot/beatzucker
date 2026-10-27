@@ -47,8 +47,8 @@ export default function LegalLayout({ title, activePage, sections, children, lan
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
           <div style={{
             display: "inline-block",
-            background: "rgba(139,92,246,0.1)",
-            border: "1px solid rgba(139,92,246,0.25)",
+            background: "rgba(var(--bz-paint-8b5cf6),0.1)",
+            border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
             borderRadius: "6px",
             padding: "0.25rem 0.75rem",
             fontSize: "0.75rem",
@@ -62,16 +62,16 @@ export default function LegalLayout({ title, activePage, sections, children, lan
             display: "inline-flex",
             alignItems: "center",
             gap: "0.4rem",
-            background: "rgba(16,185,129,0.08)",
-            border: "1px solid rgba(16,185,129,0.2)",
+            background: "rgba(var(--bz-paint-10b981),0.08)",
+            border: "1px solid rgba(var(--bz-border-10b981),0.2)",
             borderRadius: "6px",
             padding: "0.25rem 0.75rem",
             fontSize: "0.72rem",
-            color: "#10b981",
+            color: "rgb(var(--bz-paint-10b981))",
             letterSpacing: "0.05em",
           }}>
             <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-              <circle cx="4" cy="4" r="4" fill="#10b981"/>
+              <circle cx="4" cy="4" r="4" fill="rgb(var(--bz-paint-10b981))"/>
             </svg>
             {dateLabel}
           </div>
@@ -97,11 +97,11 @@ export default function LegalLayout({ title, activePage, sections, children, lan
                   fontWeight: isActive ? 700 : 500,
                   textDecoration: "none",
                   background: isActive
-                    ? "rgba(139,92,246,0.18)"
-                    : "rgba(255,255,255,0.04)",
+                    ? "rgba(var(--bz-paint-8b5cf6),0.18)"
+                    : "rgba(var(--bz-paint-ffffff),0.04)",
                   border: isActive
-                    ? "1px solid rgba(139,92,246,0.4)"
-                    : "1px solid rgba(255,255,255,0.08)",
+                    ? "1px solid rgba(var(--bz-paint-8b5cf6),0.4)"
+                    : "1px solid rgba(var(--bz-paint-ffffff),0.08)",
                   color: isActive ? "var(--accent-purple)" : "var(--text-muted)",
                   transition: "all 0.15s ease",
                 }}
@@ -115,8 +115,8 @@ export default function LegalLayout({ title, activePage, sections, children, lan
         {/* Table of contents (if sections provided) */}
         {sections && sections.length > 0 && (
           <div style={{
-            background: "rgba(255,255,255,0.025)",
-            border: "1px solid rgba(255,255,255,0.07)",
+            background: "rgba(var(--bz-paint-ffffff),0.025)",
+            border: "1px solid rgba(var(--bz-border-ffffff),0.07)",
             borderRadius: "10px",
             padding: "1.25rem 1.5rem",
             marginBottom: "2.5rem",

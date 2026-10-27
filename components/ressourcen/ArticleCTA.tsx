@@ -18,8 +18,8 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
         borderRadius: "16px",
         textAlign: "center",
         margin: "2.5rem 0",
-        background: "linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(56,189,248,0.06) 100%)",
-        border: "1px solid rgba(139,92,246,0.2)",
+        background: "linear-gradient(135deg, rgba(var(--bz-paint-8b5cf6),0.08) 0%, rgba(var(--bz-paint-38bdf8),0.06) 100%)",
+        border: "1px solid rgba(var(--bz-border-8b5cf6),0.2)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -33,7 +33,7 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
           transform: "translateX(-50%)",
           width: "200px",
           height: "200px",
-          background: "radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(var(--bz-paint-8b5cf6),0.15) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -45,8 +45,8 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
           style={{
             display: "inline-block",
             color: "var(--accent-cyan)",
-            background: "rgba(56,189,248,0.1)",
-            border: "1px solid rgba(56,189,248,0.25)",
+            background: "rgba(var(--bz-paint-38bdf8),0.1)",
+            border: "1px solid rgba(var(--bz-border-38bdf8),0.25)",
             padding: "0.25rem 0.75rem",
             borderRadius: "20px",
             fontSize: "0.65rem",
@@ -94,13 +94,13 @@ export default function ArticleCTA({ lang, variant = "default" }: Props) {
               display: "inline-block",
               padding: "0.75rem 1.75rem",
               borderRadius: "10px",
-              background: "linear-gradient(135deg, var(--accent-purple) 0%, #6055e8 100%)",
-              color: "#fff",
+              background: "linear-gradient(135deg, var(--accent-purple) 0%, rgb(var(--bz-paint-6055e8)) 100%)",
+              color: "rgb(var(--bz-paint-ffffff))",
               fontWeight: 700,
               fontSize: "0.9rem",
               textDecoration: "none",
               transition: "opacity 0.2s, transform 0.2s",
-              boxShadow: "0 4px 20px rgba(139,92,246,0.35)",
+              boxShadow: "0 4px 20px rgba(var(--bz-shadow-8b5cf6),0.35)",
             }}
           >
             {lang === "de" ? "Kostenlos mastern →" : "Master for free →"}

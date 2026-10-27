@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef } from "react";
 import { Play, Pause } from "lucide-react";
 import { useAudioEngine } from "@/contexts/AudioEngineContext";
@@ -19,7 +21,7 @@ export default function ExpressResultPlayer({lang,active=true}:{lang:Lang;active
       ctx.clearRect(0,0,640,400);
       let energy=0;
       if(analyser&&playing&&!document.hidden&&!reduced.matches){analyser.getByteFrequencyData(frequency);analyser.getByteTimeDomainData(wave);for(const sample of wave)energy+=((sample-128)/128)**2;energy=Math.min(1,Math.sqrt(energy/wave.length)*3);}
-      const glow=ctx.createRadialGradient(320,200,10,320,200,190);glow.addColorStop(0,`rgba(102,172,255,${.08+energy*.18})`);glow.addColorStop(.5,'rgba(132,94,234,.06)');glow.addColorStop(1,'rgba(100,160,255,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,640,400);
+      const glow=ctx.createRadialGradient(320,200,10,320,200,190);glow.addColorStop(0,uiColor(`rgba(102,172,255,${.08+energy*.18})`));glow.addColorStop(.5,uiColor('rgba(132,94,234,.06)'));glow.addColorStop(1,uiColor('rgba(100,160,255,0)'));ctx.fillStyle=glow;ctx.fillRect(0,0,640,400);
       for(let ring=0;ring<4;ring++){
         ctx.beginPath();
         for(let point=0;point<=160;point++){
@@ -30,14 +32,14 @@ export default function ExpressResultPlayer({lang,active=true}:{lang:Lang;active
           const x=320+Math.cos(angle)*radius,y=200+Math.sin(angle)*radius*.78;
           if(point===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
         }
-        ctx.closePath();ctx.strokeStyle=ring%2?'#b89aff':'#80dfff';ctx.globalAlpha=.8-ring*.13;ctx.lineWidth=ring===0?3:1.5;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=playing?12:4;ctx.stroke();
+        ctx.closePath();ctx.strokeStyle=ring%2?uiColor('#b89aff'):uiColor('#80dfff');ctx.globalAlpha=.8-ring*.13;ctx.lineWidth=ring===0?3:1.5;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=playing?12:4;ctx.stroke();
       }
       ctx.shadowBlur=0;ctx.globalAlpha=1;
     };
     const tick=(time:number)=>{raf=0;if(document.hidden||!playing||reduced.matches)return;if(time-last>=1000/30){last=time;draw();}raf=requestAnimationFrame(tick);};
     const refresh=()=>{cancelAnimationFrame(raf);draw();if(playing&&!document.hidden&&!reduced.matches)raf=requestAnimationFrame(tick);};
-    refresh();document.addEventListener('visibilitychange',refresh);reduced.addEventListener('change',refresh);
-    return()=>{cancelAnimationFrame(raf);document.removeEventListener('visibilitychange',refresh);reduced.removeEventListener('change',refresh);};
+    refresh();document.addEventListener('visibilitychange',refresh);reduced.addEventListener('change',refresh);window.addEventListener('beatzucker-theme-change',refresh);
+    return()=>{cancelAnimationFrame(raf);document.removeEventListener('visibilitychange',refresh);reduced.removeEventListener('change',refresh);window.removeEventListener('beatzucker-theme-change',refresh);};
   },[analyser,playing,active]);
   if(!engine)return null;
   const time=(seconds:number)=>{const safe=Number.isFinite(seconds)?Math.max(0,Math.floor(seconds)):0;return `${Math.floor(safe/60)}:${String(safe%60).padStart(2,'0')}`;};

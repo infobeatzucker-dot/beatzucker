@@ -10,7 +10,7 @@ export function ShowcaseArtwork({ track, coverUrl }: { track: ShowcaseTrack; cov
   const hue = [...track.id].reduce((sum, ch) => (sum * 31 + ch.charCodeAt(0)) % 360, 0);
   const cover = coverUrl || (COVER_TITLES[track.id] === track.title ? `/images/showcase/${track.id}-v1.webp` : null);
   return <div className="gallery-artwork" style={{ "--cover-hue": hue } as CSSProperties} aria-hidden="true">
-    {cover ? <img src={cover} width={768} height={768} alt="" loading="lazy" decoding="async"/> : <svg viewBox="0 0 400 400" fill="none"><defs><linearGradient id={`cover-${track.id}`} x1="0" y1="0" x2="400" y2="400" gradientUnits="userSpaceOnUse"><stop stopColor="currentColor"/><stop offset="1" stopColor="#ec8be8"/></linearGradient></defs>
+    {cover ? <img src={cover} width={768} height={768} alt="" loading="lazy" decoding="async"/> : <svg viewBox="0 0 400 400" fill="none"><defs><linearGradient id={`cover-${track.id}`} x1="0" y1="0" x2="400" y2="400" gradientUnits="userSpaceOnUse"><stop stopColor="currentColor"/><stop offset="1" stopColor="rgb(var(--bz-paint-ec8be8))"/></linearGradient></defs>
       {Array.from({length:9},(_,i)=><ellipse key={i} cx="200" cy="200" rx={48+i*15} ry={130-i*8} transform={`rotate(${i*16} 200 200)`} stroke={`url(#cover-${track.id})`} strokeWidth={i===4?2:1} opacity={.18+i*.07}/>)}
       <circle cx="200" cy="200" r="31" stroke="currentColor" strokeWidth=".5"/><circle cx="200" cy="200" r="5" fill="currentColor"/>
     </svg>}<span className="gallery-art-label">BEATZUCKER / SOUND SERIES</span><span className="gallery-art-title">{track.title}</span><span className="gallery-art-genre">{track.genre}</span>

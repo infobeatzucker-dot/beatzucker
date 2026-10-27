@@ -1,4 +1,6 @@
 "use client";
+import {uiColor} from '@/lib/uiTheme';
+import {useUiThemeSnapshot} from '@/lib/useUiThemeSnapshot';
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -37,12 +39,13 @@ function BrandMark({ id, icon: Icon }: Pick<PlatformOption, "id" | "icon">) {
 }
 
 function PlatformCard({ option, active, onClick }: { option: PlatformOption; active: boolean; onClick: () => void }) {
+  const uiTheme=useUiThemeSnapshot();
   return (
     <button
       type="button"
       onClick={onClick}
       className={`platform-tile ${active ? "active" : ""}`}
-      style={{ "--platform-tone": option.tone } as React.CSSProperties}
+      style={{ "--platform-tone": uiColor(option.tone,uiTheme) } as React.CSSProperties}
       aria-pressed={active}
       title={`${option.label}: ${option.lufs} LUFS`}
     >

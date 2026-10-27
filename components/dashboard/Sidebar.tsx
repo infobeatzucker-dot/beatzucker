@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUiLanguage } from "@/lib/useUiLanguage";
+import ThemeSelector from "@/components/ThemeSelector";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Library, UploadCloud, SlidersHorizontal, UserCircle, Menu, X, Sparkles, ShieldCheck } from "lucide-react";
 
@@ -77,13 +78,14 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
           <span className="brand-wave mini" aria-hidden="true">
             {[10, 22, 32, 18, 26, 12].map((height, index) => <i key={index} style={{ height }} />)}
           </span>
-          <span className="font-black text-lg tracking-tight" style={{ color: "#fff" }}>
+          <span className="font-black text-lg tracking-tight" style={{ color: "rgb(var(--bz-paint-ffffff))" }}>
             Beatzucker
           </span>
         </Link>
         <div className="dashboard-brand-sub px-2 mb-7"><Sparkles size={10} /> {en ? "ADAPTIVE MASTERING" : "ADAPTIVES MASTERING"}</div>
 
         <NavLinks pathname={effectivePathname} />
+        <div className="sidebar-theme"><ThemeSelector lang={lang} save/></div>
         <div id="dashboard-express-slot" />
 
         <div style={{ marginTop: "auto", paddingTop: "1.5rem" }}>
@@ -99,8 +101,8 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
         className="md:hidden flex items-center justify-between"
         style={{
           padding: "0.75rem 1rem",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          background: "rgba(8,10,18,0.85)",
+          borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.06)",
+          background: "rgba(var(--bz-paint-080a12),0.85)",
           backdropFilter: "blur(12px)",
           position: "sticky",
           top: 0,
@@ -108,8 +110,9 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
         }}
       >
         <Link href={en ? "/en" : "/"} className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-          <span className="font-black text-base tracking-tight" style={{ color: "#fff" }}>Beatzucker</span>
+          <span className="font-black text-base tracking-tight" style={{ color: "rgb(var(--bz-paint-ffffff))" }}>Beatzucker</span>
         </Link>
+        <ThemeSelector lang={lang}/>
         <button
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={en ? "Menu" : "Menü"}
@@ -127,8 +130,8 @@ export default function Sidebar({ previewPath }: { previewPath?: string }) {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.18 }}
             style={{
-              background: "rgba(8,10,15,0.97)",
-              borderBottom: "1px solid rgba(139,92,246,0.12)",
+              background: "rgba(var(--bz-paint-080a0f),0.97)",
+              borderBottom: "1px solid rgba(var(--bz-border-8b5cf6),0.12)",
               overflow: "hidden",
               position: "sticky",
               top: 53,

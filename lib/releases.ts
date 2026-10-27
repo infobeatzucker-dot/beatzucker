@@ -10,6 +10,11 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"1.7.0",date:"2026-10-27",
+  title:{de:"Dein Studio in fünf Farbwelten",en:"Your studio in five color themes"},
+  summary:{de:"Wähle Original, Studio Light, Analog, Aurora oder Sandstone – mit abgestimmten Oberflächen, Reglern und Audioanzeigen.",en:"Choose Original, Studio Light, Analog, Aurora or Sandstone—with coordinated surfaces, controls and audio displays."},
+  improvements:{de:["Farbschema direkt in der Navigation wechseln. Ohne Anmeldung merkt sich dein Browser die Auswahl.","Im Dashboard ausprobieren und im Konto speichern: Dein Look wird beim nächsten Login auch auf anderen Geräten wiederhergestellt.","Auch Express-Assistent, manuelle Feinabstimmung und Referenz-Regler passen sich an. Audioverarbeitung und Klang bleiben unverändert."],en:["Switch themes directly in navigation. When signed out, your browser remembers your choice.","Try and save a theme in your dashboard: your look is restored on your next login, including on other devices.","The Express assistant, manual fine-tuning and reference dials follow your theme. Audio processing and sound remain unchanged."]},
+}, {
   version:"1.6.1",date:"2026-10-27",
   title:{de:"Express: direkter vergleichen, mehr Platz im Studio",en:"Express: compare directly, more room in the studio"},
   summary:{de:"Ein grafischer Express-Button links lässt der Konsole mehr Platz. Der Assistent zeigt die laufende Analyse und bietet den Hörvergleich direkt im Ergebnisfenster.",en:"A graphic Express button on the left gives the console more room. The assistant shows analysis activity and offers a comparison right in the result window."},

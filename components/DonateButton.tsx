@@ -30,8 +30,8 @@ export default function DonateButton({ variant = "nav", lang = "de" }: Props) {
       <div
         className="mt-4 p-4 rounded-xl flex items-center justify-between gap-3 flex-wrap"
         style={{
-          background: "linear-gradient(135deg, rgba(196,181,253,0.08), rgba(139,92,246,0.05))",
-          border: "1px solid rgba(196,181,253,0.25)",
+          background: "linear-gradient(135deg, rgba(var(--bz-paint-c4b5fd),0.08), rgba(var(--bz-paint-8b5cf6),0.05))",
+          border: "1px solid rgba(var(--bz-border-c4b5fd),0.25)",
         }}
       >
         <div>
@@ -51,8 +51,8 @@ export default function DonateButton({ variant = "nav", lang = "de" }: Props) {
           rel="noopener noreferrer"
           className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
           style={{
-            background: "linear-gradient(135deg, var(--accent-gold), #e8a000)",
-            color: "#000",
+            background: "linear-gradient(135deg, var(--accent-gold), rgb(var(--bz-paint-e8a000)))",
+            color: "rgb(var(--bz-paint-000000))",
             textDecoration: "none",
           }}
         >
@@ -71,8 +71,8 @@ export default function DonateButton({ variant = "nav", lang = "de" }: Props) {
       title={lang === "de" ? "Beatzucker unterstützen" : "Support Beatzucker"}
       className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:opacity-90"
       style={{
-        background: "rgba(196,181,253,0.1)",
-        border: "1px solid rgba(196,181,253,0.3)",
+        background: "rgba(var(--bz-paint-c4b5fd),0.1)",
+        border: "1px solid rgba(var(--bz-border-c4b5fd),0.3)",
         color: "var(--accent-gold)",
         textDecoration: "none",
       }}

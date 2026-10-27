@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef } from "react";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
@@ -46,7 +48,7 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
       const midY = H / 2;
 
       // Grid center line
-      ctx.strokeStyle = "rgba(69,77,104,0.3)";
+      ctx.strokeStyle = uiColor("rgba(69,77,104,0.3)");
       ctx.lineWidth   = 1;
       ctx.setLineDash([4, 4]);
       ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
@@ -75,8 +77,8 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
           ctx.globalAlpha = 1;
         };
 
-        drawReal("#8b5cf6", 0.6);
-        if (hasPostData) drawReal("#38bdf8", 0.8, 1.3);
+        drawReal(uiColor("#8b5cf6"), 0.6);
+        if (hasPostData) drawReal(uiColor("#38bdf8"), 0.8, 1.3);
       } else {
         // ── Static simulation ────────────────────────────────────
         const preWave = preWaveRef.current;
@@ -110,16 +112,16 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
           void step;
         };
 
-        drawWave(preWave, "#e843d4", 0.58);
+        drawWave(preWave, uiColor("#e843d4"), 0.58);
         if (hasPostData || isProcessing) {
           const gain = hasPostData ? 1.4 : 1.0 + Math.abs(Math.sin(t * 2)) * 0.4;
-          drawWave(preWave, "#48c8ff", hasPostData ? 0.86 : 0.46, gain);
+          drawWave(preWave, uiColor("#48c8ff"), hasPostData ? 0.86 : 0.46, gain);
         }
 
         // Idle playhead
         if (!isProcessing) {
           const playX = (t * 30) % W;
-          ctx.fillStyle = "rgba(255,255,255,0.12)";
+          ctx.fillStyle = uiColor("rgba(255,255,255,0.12)");
           ctx.fillRect(playX, 0, 1, H);
         }
       }
@@ -128,7 +130,7 @@ export default function WaveformViewer({ isProcessing, hasPostData, analyser }: 
       if (!analyser) {
         const wave = preWaveRef.current;
         if (wave) {
-          ctx.strokeStyle = "rgba(56,189,248,0.25)";
+          ctx.strokeStyle = uiColor("rgba(56,189,248,0.25)");
           ctx.lineWidth   = 1;
           ctx.beginPath();
           const ws = Math.max(1, Math.floor(wave.length / Math.max(1, W)));

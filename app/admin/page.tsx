@@ -51,17 +51,17 @@ interface PromoData {
 }
 
 const BG_OPTIONS = [
-  { value: "purple", label: "Lila", color: "#8b5cf6" },
-  { value: "cyan",   label: "Cyan",  color: "#38bdf8" },
-  { value: "gold",   label: "Gold",  color: "#c4b5fd" },
-  { value: "fire",   label: "Fire",  color: "#ef4444" },
+  { value: "purple", label: "Lila", color: "rgb(var(--bz-paint-8b5cf6))" },
+  { value: "cyan",   label: "Cyan",  color: "rgb(var(--bz-paint-38bdf8))" },
+  { value: "gold",   label: "Gold",  color: "rgb(var(--bz-paint-c4b5fd))" },
+  { value: "fire",   label: "Fire",  color: "rgb(var(--bz-paint-ef4444))" },
 ];
 
 const BG_PREVIEW: Record<string, { border: string; bg: string; badge: string }> = {
-  purple: { border: "rgba(139,92,246,0.6)", bg: "linear-gradient(135deg,rgba(139,92,246,.18),rgba(56,189,248,.06))", badge: "linear-gradient(135deg,#8b5cf6,#38bdf8)" },
-  cyan:   { border: "rgba(56,189,248,0.6)",   bg: "linear-gradient(135deg,rgba(56,189,248,.15),rgba(139,92,246,.06))", badge: "linear-gradient(135deg,#38bdf8,#8b5cf6)" },
-  gold:   { border: "rgba(196,181,253,0.6)",  bg: "linear-gradient(135deg,rgba(196,181,253,.15),rgba(245,130,32,.08))", badge: "linear-gradient(135deg,#c4b5fd,#f08020)" },
-  fire:   { border: "rgba(239,68,68,0.6)",   bg: "linear-gradient(135deg,rgba(239,68,68,.16),rgba(245,130,32,.08))", badge: "linear-gradient(135deg,#ef4444,#f59e0b)" },
+  purple: { border: "rgba(var(--bz-border-8b5cf6),0.6)", bg: "linear-gradient(135deg,rgba(139,92,246,.18),rgba(56,189,248,.06))", badge: "linear-gradient(135deg,#8b5cf6,#38bdf8)" },
+  cyan:   { border: "rgba(var(--bz-border-38bdf8),0.6)",   bg: "linear-gradient(135deg,rgba(56,189,248,.15),rgba(139,92,246,.06))", badge: "linear-gradient(135deg,#38bdf8,#8b5cf6)" },
+  gold:   { border: "rgba(var(--bz-border-c4b5fd),0.6)",  bg: "linear-gradient(135deg,rgba(196,181,253,.15),rgba(245,130,32,.08))", badge: "linear-gradient(135deg,#c4b5fd,#f08020)" },
+  fire:   { border: "rgba(var(--bz-border-ef4444),0.6)",   bg: "linear-gradient(135deg,rgba(239,68,68,.16),rgba(245,130,32,.08))", badge: "linear-gradient(135deg,#ef4444,#f59e0b)" },
 };
 
 function fmtDate(iso: string) {
@@ -86,8 +86,8 @@ function StatusBadge({ status }: { status: string }) {
 
 const card = (children: React.ReactNode, style?: React.CSSProperties) => (
   <div style={{
-    background: "var(--bg-elevated, #1a1a2e)",
-    border: "1px solid rgba(255,255,255,0.07)",
+    background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))",
+    border: "1px solid rgba(var(--bz-border-ffffff),0.07)",
     borderRadius: "12px", padding: "1.25rem",
     ...style,
   }}>{children}</div>
@@ -110,7 +110,7 @@ function PromoPreview({ title, body, ctaText, bgStyle }: { title: string; body: 
       </div>
       <div style={{ fontSize: "0.6rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
         display: "inline-block", background: s.badge, borderRadius: "4px",
-        padding: "0.15rem 0.5rem", color: "#fff", marginBottom: "0.6rem" }}>
+        padding: "0.15rem 0.5rem", color: "rgb(var(--bz-paint-ffffff))", marginBottom: "0.6rem" }}>
         Aktion
       </div>
       <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--text-primary)", marginBottom: "0.4rem", lineHeight: 1.25 }}>
@@ -122,7 +122,7 @@ function PromoPreview({ title, body, ctaText, bgStyle }: { title: string; body: 
       {ctaText && (
         <div style={{ display: "inline-block", background: s.badge,
           borderRadius: "7px", padding: "0.4rem 0.9rem",
-          color: "#fff", fontSize: "0.78rem", fontWeight: 700 }}>
+          color: "rgb(var(--bz-paint-ffffff))", fontSize: "0.78rem", fontWeight: 700 }}>
           {ctaText}
         </div>
       )}
@@ -254,7 +254,7 @@ export default function AdminPage() {
   if (error) {
     return (
       <div style={{ background: "var(--bg-primary)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#f87171", fontSize: "0.9rem" }}>{error}</div>
+        <div style={{ color: "rgb(var(--bz-paint-f87171))", fontSize: "0.9rem" }}>{error}</div>
       </div>
     );
   }
@@ -285,8 +285,8 @@ export default function AdminPage() {
     padding: "0.5rem 0.6rem", fontSize: "0.8rem", color: "var(--text-secondary)",
   };
   const inputStyle: React.CSSProperties = {
-    padding: "0.5rem 0.75rem", background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px",
+    padding: "0.5rem 0.75rem", background: "rgba(var(--bz-paint-ffffff),0.05)",
+    border: "1px solid rgba(var(--bz-border-ffffff),0.1)", borderRadius: "8px",
     color: "var(--text-primary)", fontSize: "0.85rem", outline: "none", width: "100%",
     boxSizing: "border-box",
   };
@@ -300,12 +300,12 @@ export default function AdminPage() {
         {/* Title */}
         <div style={{ marginBottom: "2rem" }}>
           <div style={{
-            display: "inline-block", background: "rgba(239,68,68,0.1)",
-            border: "1px solid rgba(239,68,68,0.25)", borderRadius: "6px",
-            padding: "0.25rem 0.75rem", fontSize: "0.72rem", color: "#f87171",
+            display: "inline-block", background: "rgba(var(--bz-paint-ef4444),0.1)",
+            border: "1px solid rgba(var(--bz-border-ef4444),0.25)", borderRadius: "6px",
+            padding: "0.25rem 0.75rem", fontSize: "0.72rem", color: "rgb(var(--bz-paint-f87171))",
             letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.75rem",
           }}>Admin</div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#fff", margin: 0 }}>Dashboard</h1>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "rgb(var(--bz-paint-ffffff))", margin: 0 }}>Dashboard</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: "0.4rem" }}>
             {session?.user?.email}
           </p>
@@ -326,7 +326,7 @@ export default function AdminPage() {
 
         {/* ── ADMIN PASSWORD RESET ── */}
         <div style={{ marginBottom: "2.5rem" }}>
-          <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f87171",
+          <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "rgb(var(--bz-paint-f87171))",
             letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 1rem" }}>
             Admin-Passwort ändern
           </h2>
@@ -355,14 +355,14 @@ export default function AdminPage() {
                   />
                 </div>
                 {pwMsg && (
-                  <div style={{ fontSize: "0.8rem", color: pwMsg.ok ? "#10b981" : "#f87171" }}>
+                  <div style={{ fontSize: "0.8rem", color: pwMsg.ok ? "rgb(var(--bz-paint-10b981))" : "rgb(var(--bz-paint-f87171))" }}>
                     {pwMsg.text}
                   </div>
                 )}
                 <button onClick={resetAdminPassword} disabled={pwSaving} style={{
                   padding: "0.65rem 1.25rem", alignSelf: "flex-start",
-                  background: "linear-gradient(135deg,#ef4444,#f59e0b)",
-                  border: "none", borderRadius: "8px", color: "#fff",
+                  background: "linear-gradient(135deg,rgb(var(--bz-paint-ef4444)),rgb(var(--bz-paint-f59e0b)))",
+                  border: "none", borderRadius: "8px", color: "rgb(var(--bz-paint-ffffff))",
                   fontWeight: 700, fontSize: "0.88rem",
                   cursor: pwSaving ? "wait" : "pointer", opacity: pwSaving ? 0.7 : 1,
                 }}>
@@ -375,7 +375,7 @@ export default function AdminPage() {
 
         {/* ── PROMO SECTION ── */}
         <div style={{ marginBottom: "2.5rem" }}>
-          <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#c4b5fd",
+          <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "rgb(var(--bz-paint-c4b5fd))",
             letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 1rem" }}>
             Aktions-Popup
           </h2>
@@ -390,13 +390,13 @@ export default function AdminPage() {
                     onClick={() => setPromoActive(v => !v)}
                     style={{
                       position: "relative", width: 44, height: 24, borderRadius: 12,
-                      background: promoActive ? "linear-gradient(135deg,#8b5cf6,#38bdf8)" : "rgba(255,255,255,0.1)",
+                      background: promoActive ? "linear-gradient(135deg,rgb(var(--bz-paint-8b5cf6)),rgb(var(--bz-paint-38bdf8)))" : "rgba(var(--bz-paint-ffffff),0.1)",
                       border: "none", cursor: "pointer", transition: "background 0.2s", flexShrink: 0,
                     }}
                   >
                     <span style={{
                       position: "absolute", top: 3, left: promoActive ? 23 : 3,
-                      width: 18, height: 18, borderRadius: "50%", background: "#fff",
+                      width: 18, height: 18, borderRadius: "50%", background: "rgb(var(--bz-paint-ffffff))",
                       transition: "left 0.18s", display: "block",
                     }} />
                   </button>
@@ -449,8 +449,8 @@ export default function AdminPage() {
                         style={{
                           display: "flex", alignItems: "center", gap: "0.4rem",
                           padding: "0.3rem 0.65rem", borderRadius: "7px", cursor: "pointer",
-                          background: promoBg === opt.value ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.04)",
-                          border: promoBg === opt.value ? `1px solid ${opt.color}` : "1px solid rgba(255,255,255,0.08)",
+                          background: promoBg === opt.value ? "rgba(var(--bz-paint-ffffff),0.1)" : "rgba(var(--bz-paint-ffffff),0.04)",
+                          border: promoBg === opt.value ? `1px solid ${opt.color}` : "1px solid rgba(var(--bz-paint-ffffff),0.08)",
                           color: promoBg === opt.value ? opt.color : "var(--text-muted)",
                           fontSize: "0.78rem", fontWeight: 600, transition: "all 0.15s",
                         }}>
@@ -476,14 +476,14 @@ export default function AdminPage() {
                   <button onClick={savePromo} disabled={promoSaving} style={{
                     padding: "0.65rem 1.5rem",
                     background: "linear-gradient(135deg,var(--accent-purple),var(--accent-cyan))",
-                    border: "none", borderRadius: "8px", color: "#fff",
+                    border: "none", borderRadius: "8px", color: "rgb(var(--bz-paint-ffffff))",
                     fontWeight: 700, fontSize: "0.88rem", cursor: promoSaving ? "wait" : "pointer",
                     opacity: promoSaving ? 0.7 : 1,
                   }}>
                     {promoSaving ? "Speichern…" : "Speichern"}
                   </button>
                   {promoMsg && (
-                    <span style={{ fontSize: "0.82rem", color: promoMsg.ok ? "#10b981" : "#f87171" }}>
+                    <span style={{ fontSize: "0.82rem", color: promoMsg.ok ? "rgb(var(--bz-paint-10b981))" : "rgb(var(--bz-paint-f87171))" }}>
                       {promoMsg.text}
                     </span>
                   )}
@@ -514,7 +514,7 @@ export default function AdminPage() {
               value={search} onChange={e => setSearch(e.target.value)}
               style={{
                 padding: "0.4rem 0.75rem", borderRadius: "7px",
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(var(--bz-paint-ffffff),0.05)", border: "1px solid rgba(var(--bz-border-ffffff),0.1)",
                 color: "var(--text-primary)", fontSize: "0.82rem", outline: "none", width: 240,
               }}
             />
@@ -523,7 +523,7 @@ export default function AdminPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                  <tr style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
                     {["Email", "Name", "Masters", lang === "en" ? "Daily limit" : "Tageslimit", "Dabei seit", ""].map(h => (
                       <th key={h} style={thStyle}>{h}</th>
                     ))}
@@ -531,7 +531,7 @@ export default function AdminPage() {
                 </thead>
                 <tbody>
                   {filteredUsers.map(u => (
-                    <tr key={u.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <tr key={u.id} style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)" }}>
                       <td style={{ ...tdStyle, color: "var(--text-primary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</td>
                       <td style={tdStyle}>{u.name ?? "—"}</td>
                       <td style={{ ...tdStyle, textAlign: "center" }}>{u.mastersCount}</td>
@@ -542,8 +542,8 @@ export default function AdminPage() {
                           onClick={() => deleteUser(u.id, u.email)}
                           disabled={deletingId === u.id}
                           style={{
-                            background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)",
-                            color: "#f87171", borderRadius: "5px", padding: "0.25rem 0.6rem",
+                            background: "rgba(var(--bz-paint-ef4444),0.1)", border: "1px solid rgba(var(--bz-border-ef4444),0.25)",
+                            color: "rgb(var(--bz-paint-f87171))", borderRadius: "5px", padding: "0.25rem 0.6rem",
                             fontSize: "0.72rem", cursor: "pointer", fontWeight: 600,
                           }}
                         >{deletingId === u.id ? "…" : "Löschen"}</button>
@@ -566,7 +566,7 @@ export default function AdminPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                  <tr style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
                     {["Datum", "Datei", "Plattform", "Status", "User"].map(h => (
                       <th key={h} style={thStyle}>{h}</th>
                     ))}
@@ -574,7 +574,7 @@ export default function AdminPage() {
                 </thead>
                 <tbody>
                   {recentMasters.map(m => (
-                    <tr key={m.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <tr key={m.id} style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)" }}>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{fmtDate(m.createdAt)}</td>
                       <td style={{ ...tdStyle, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>{m.originalName}</td>
                       <td style={tdStyle}>{m.platform}</td>

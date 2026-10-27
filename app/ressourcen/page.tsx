@@ -71,8 +71,8 @@ export default function RessourcenPage() {
             style={{
               display: "inline-block",
               color: "var(--accent-purple)",
-              background: "rgba(139,92,246,0.1)",
-              border: "1px solid rgba(139,92,246,0.25)",
+              background: "rgba(var(--bz-paint-8b5cf6),0.1)",
+              border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
               padding: "0.3rem 0.9rem",
               borderRadius: "20px",
               fontSize: "0.68rem",

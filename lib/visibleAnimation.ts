@@ -30,6 +30,7 @@ export function startVisibleAnimation(element: Element, draw: (time: number) => 
   resize?.observe(element);
   document.addEventListener("visibilitychange", visibility);
   media.addEventListener("change", invalidate);
+  window.addEventListener("beatzucker-theme-change", invalidate);
   invalidate();
   return {
     invalidate,
@@ -37,6 +38,7 @@ export function startVisibleAnimation(element: Element, draw: (time: number) => 
       stopped = true; cancelAnimationFrame(frame); frame = 0;
       intersection?.disconnect(); resize?.disconnect();
       document.removeEventListener("visibilitychange", visibility); media.removeEventListener("change", invalidate);
+      window.removeEventListener("beatzucker-theme-change", invalidate);
     },
   };
 }

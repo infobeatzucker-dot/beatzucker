@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef } from "react";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
@@ -35,7 +37,7 @@ export default function StereoField({
       const H = canvas.height;
 
       // Fade trail
-      ctx.fillStyle = "rgba(5,8,22,0.14)";
+      ctx.fillStyle = uiColor("rgba(5,8,22,0.14)");
       ctx.fillRect(0, 0, W, H);
 
       const cx     = W / 2;
@@ -43,7 +45,7 @@ export default function StereoField({
       const radius = Math.min(cx, cy) - 10;
 
       // Crosshair
-      ctx.strokeStyle = "rgba(69,77,104,0.3)";
+      ctx.strokeStyle = uiColor("rgba(69,77,104,0.3)");
       ctx.lineWidth   = 1;
       ctx.beginPath();
       ctx.moveTo(cx, 0); ctx.lineTo(cx, H);
@@ -51,14 +53,14 @@ export default function StereoField({
       ctx.stroke();
 
       // Diagonal guides
-      ctx.strokeStyle = "rgba(69,77,104,0.15)";
+      ctx.strokeStyle = uiColor("rgba(69,77,104,0.15)");
       ctx.beginPath();
       ctx.moveTo(cx - radius, cy + radius); ctx.lineTo(cx + radius, cy - radius);
       ctx.moveTo(cx - radius, cy - radius); ctx.lineTo(cx + radius, cy + radius);
       ctx.stroke();
 
       // Circle border
-      ctx.strokeStyle = "rgba(139,92,246,0.1)";
+      ctx.strokeStyle = uiColor("rgba(139,92,246,0.1)");
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.stroke();
@@ -105,7 +107,7 @@ export default function StereoField({
         const alpha = Math.max(0, 1 - p.age);
         const red = Math.round(72 + alpha * 70);
         const blue = 255;
-        ctx.fillStyle  = `rgba(${red},190,${blue},${(alpha * 0.85).toFixed(2)})`;
+        ctx.fillStyle  = uiColor(`rgba(${red},190,${blue},${(alpha * 0.85).toFixed(2)})`);
         const size     = Math.max(0.5, 2 * (1 - p.age * 0.7));
         ctx.beginPath();
         ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
@@ -116,7 +118,7 @@ export default function StereoField({
       // Correlation meter bar
       const corrH = 4;
       const corrY = H - corrH - 2;
-      ctx.fillStyle = "rgba(20,24,32,0.8)";
+      ctx.fillStyle = uiColor("rgba(20,24,32,0.8)");
       ctx.fillRect(0, corrY, W, corrH);
 
       let corr = monoCompatibility;
@@ -134,12 +136,12 @@ export default function StereoField({
       }
 
       const corrNorm  = (corr + 1) / 2;
-      const corrColor = corr > 0.5 ? "#4ade80" : corr > 0 ? "#facc15" : "#ff4757";
+      const corrColor = corr > 0.5 ? uiColor("#4ade80") : corr > 0 ? uiColor("#facc15") : uiColor("#ff4757");
       ctx.fillStyle = corrColor;
       ctx.fillRect(0, corrY, corrNorm * W, corrH);
 
       // Labels
-      ctx.fillStyle  = "rgba(69,77,104,0.8)";
+      ctx.fillStyle  = uiColor("rgba(69,77,104,0.8)");
       ctx.font       = "8px monospace";
       ctx.textAlign  = "center";
       ctx.fillText("L",    cx - radius + 5, cy - 2);

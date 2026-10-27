@@ -115,17 +115,17 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
       <div
         className="rounded-2xl p-4 mb-4"
         style={{
-          background: "linear-gradient(135deg, rgba(56,189,248,0.08), rgba(139,92,246,0.08))",
-          border: "1px solid rgba(56,189,248,0.25)",
+          background: "linear-gradient(135deg, rgba(var(--bz-paint-38bdf8),0.08), rgba(var(--bz-paint-8b5cf6),0.08))",
+          border: "1px solid rgba(var(--bz-border-38bdf8),0.25)",
         }}
       >
         <div className="flex items-start gap-3">
           {/* Checkmark */}
           <div
             className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5"
-            style={{ background: "rgba(56,189,248,0.15)", border: "1px solid rgba(56,189,248,0.35)" }}
+            style={{ background: "rgba(var(--bz-paint-38bdf8),0.15)", border: "1px solid rgba(var(--bz-border-38bdf8),0.35)" }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--bz-paint-38bdf8))" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
@@ -146,8 +146,8 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
           onClick={openReport}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
           style={{
-            background: "rgba(139,92,246,0.08)",
-            border: "1px solid rgba(139,92,246,0.25)",
+            background: "rgba(var(--bz-paint-8b5cf6),0.08)",
+            border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
             color: "var(--accent-purple)",
           }}
         >
@@ -177,11 +177,11 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
               className="flex items-center justify-between p-3 rounded-xl transition-all text-left"
               style={{
                 background: isLocked
-                  ? "rgba(14,17,23,0.4)"
-                  : "rgba(139,92,246,0.08)",
+                  ? "rgba(var(--bz-paint-0e1117),0.4)"
+                  : "rgba(var(--bz-paint-8b5cf6),0.08)",
                 border: isLocked
                   ? "1px solid var(--border-subtle)"
-                  : "1px solid rgba(139,92,246,0.2)",
+                  : "1px solid rgba(var(--bz-paint-8b5cf6),0.2)",
                 opacity: isLocked ? 0.5 : 1,
                 cursor: isLocked ? "not-allowed" : "pointer",
               }}
@@ -198,9 +198,9 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
                 <span
                   className="text-xs px-1.5 py-0.5 rounded"
                   style={{
-                    background: "rgba(56,189,248,0.1)",
+                    background: "rgba(var(--bz-paint-38bdf8),0.1)",
                     color: "var(--accent-cyan)",
-                    border: "1px solid rgba(56,189,248,0.2)",
+                    border: "1px solid rgba(var(--bz-border-38bdf8),0.2)",
                   }}
                 >
                   {lang === "de" ? "KOSTENLOS" : "FREE"}
@@ -216,8 +216,8 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
       <div
         className="mt-4 p-3 rounded-xl flex items-center gap-3"
         style={{
-          background: "rgba(139,92,246,0.06)",
-          border: "1px solid rgba(139,92,246,0.18)",
+          background: "rgba(var(--bz-paint-8b5cf6),0.06)",
+          border: "1px solid rgba(var(--bz-border-8b5cf6),0.18)",
         }}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -245,8 +245,8 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
           className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold"
           style={{
-            background: "linear-gradient(135deg, rgba(139,92,246,0.16), rgba(72,191,255,0.12))",
-            border: "1px solid rgba(139,92,246,0.35)",
+            background: "linear-gradient(135deg, rgba(var(--bz-paint-8b5cf6),0.16), rgba(var(--bz-paint-48bfff),0.12))",
+            border: "1px solid rgba(var(--bz-border-8b5cf6),0.35)",
             color: "var(--text-primary)",
           }}
         >
@@ -273,8 +273,8 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold"
             style={{
-              background: "rgba(56,189,248,0.07)",
-              border: "1px solid rgba(56,189,248,0.25)",
+              background: "rgba(var(--bz-paint-38bdf8),0.07)",
+              border: "1px solid rgba(var(--bz-border-38bdf8),0.25)",
               color: "var(--accent-cyan)",
             }}
           >
@@ -295,8 +295,8 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
           className={`${onRemaster ? "flex-1" : "w-full"} flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold`}
           style={{
-            background: "rgba(139,92,246,0.08)",
-            border: "1px solid rgba(139,92,246,0.25)",
+            background: "rgba(var(--bz-paint-8b5cf6),0.08)",
+            border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
             color: "var(--accent-purple)",
           }}
         >

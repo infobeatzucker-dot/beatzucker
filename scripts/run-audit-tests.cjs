@@ -15,6 +15,7 @@ try {
   run(process.execPath, ['scripts/mastering-quality-tests.cjs']);
   run(process.execPath, ['scripts/reference-dial-tests.cjs']);
   run(process.execPath, ['scripts/express-assistant-tests.cjs']);
+  run(process.execPath, ['scripts/ui-theme-tests.cjs']);
   run(process.execPath, ['scripts/mastering-stability-tests.cjs']);
   run(process.execPath, ['scripts/mastering-audio-lifecycle-tests.cjs']);
   run(process.execPath, ['scripts/sonic-progress-tests.cjs']);

@@ -31,7 +31,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         <div style={{
           padding: "2rem",
           textAlign: "center",
-          color: "var(--text-muted, #999)",
+          color: "var(--text-muted, rgb(var(--bz-paint-999999)))",
         }}>
           <p style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>
             Etwas ist schiefgelaufen.
@@ -40,10 +40,10 @@ export default class ErrorBoundary extends Component<Props, State> {
             onClick={() => this.setState({ hasError: false })}
             style={{
               padding: "0.5rem 1rem",
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(var(--bz-paint-ffffff),0.1)",
+              border: "1px solid rgba(var(--bz-border-ffffff),0.2)",
               borderRadius: "8px",
-              color: "var(--text-primary, #fff)",
+              color: "var(--text-primary, rgb(var(--bz-paint-ffffff)))",
               cursor: "pointer",
             }}
           >

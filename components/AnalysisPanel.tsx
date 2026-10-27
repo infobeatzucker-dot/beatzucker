@@ -154,8 +154,8 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing,
                 <span
                   className="text-[9px] font-bold px-1.5 py-0.5 rounded"
                   style={{
-                    background: isBad ? "rgba(255,71,87,0.15)" : "rgba(196,181,253,0.15)",
-                    border:     isBad ? "1px solid rgba(255,71,87,0.4)" : "1px solid rgba(196,181,253,0.4)",
+                    background: isBad ? "rgba(var(--bz-paint-ff4757),0.15)" : "rgba(var(--bz-paint-c4b5fd),0.15)",
+                    border:     isBad ? "1px solid rgba(var(--bz-paint-ff4757),0.4)" : "1px solid rgba(var(--bz-paint-c4b5fd),0.4)",
                     color:      isBad ? "var(--accent-red)" : "var(--accent-gold)",
                     letterSpacing: "0.05em",
                   }}
@@ -226,11 +226,11 @@ export default function AnalysisPanel({ preAnalysis, postAnalysis, isProcessing,
           className="rounded-xl p-3 mt-4 flex items-start gap-2.5"
           style={{
             background: preAnalysis.mono_compatibility < 0.5
-              ? "rgba(255,71,87,0.07)"
-              : "rgba(196,181,253,0.07)",
+              ? "rgba(var(--bz-paint-ff4757),0.07)"
+              : "rgba(var(--bz-paint-c4b5fd),0.07)",
             border: preAnalysis.mono_compatibility < 0.5
-              ? "1px solid rgba(255,71,87,0.3)"
-              : "1px solid rgba(196,181,253,0.3)",
+              ? "1px solid rgba(var(--bz-paint-ff4757),0.3)"
+              : "1px solid rgba(var(--bz-paint-c4b5fd),0.3)",
           }}
         >
           <svg className="flex-shrink-0 mt-0.5" width="15" height="15" viewBox="0 0 24 24"

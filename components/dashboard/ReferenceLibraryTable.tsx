@@ -57,7 +57,7 @@ export default function ReferenceLibraryTable() {
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
                 {["Gespeichert", "Name", "LUFS", ""].map((h) => (
                   <th key={h} style={{ padding: "0.35rem 0.5rem", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, fontSize: "0.68rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>{h}</th>
                 ))}
@@ -68,7 +68,7 @@ export default function ReferenceLibraryTable() {
                 let lufs = "—";
                 try { const a = JSON.parse(ref.analysisJson); lufs = `${a.integrated_lufs?.toFixed(1)} LUFS`; } catch {}
                 return (
-                  <tr key={ref.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                  <tr key={ref.id} style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)" }}>
                     <td style={{ padding: "0.5rem 0.5rem", fontSize: "0.75rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDate(ref.createdAt)}</td>
                     <td style={{ padding: "0.5rem 0.5rem", fontSize: "0.82rem", color: "var(--text-primary)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ref.name}</td>
                     <td style={{ padding: "0.5rem 0.5rem", fontSize: "0.75rem", color: "var(--accent-purple)", fontVariantNumeric: "tabular-nums" }}>{lufs}</td>
@@ -77,7 +77,7 @@ export default function ReferenceLibraryTable() {
                         onClick={() => deleteRef(ref.id)}
                         disabled={deletingRefId === ref.id}
                         title="Referenz löschen"
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(239,68,68,0.4)", fontSize: "0.85rem", padding: "0.1rem 0.3rem", lineHeight: 1 }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(var(--bz-paint-ef4444),0.4)", fontSize: "0.85rem", padding: "0.1rem 0.3rem", lineHeight: 1 }}
                       >
                         {deletingRefId === ref.id ? "…" : "✕"}
                       </button>

@@ -1,4 +1,6 @@
 "use client";
+
+import { uiColor } from "@/lib/uiTheme";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import { findActiveRangeAsync, waveformPeaksAsync } from "@/lib/audioWorker";
 import{useEffect,useRef,useState}from"react";import Link from"next/link";import{ArrowLeft,CheckCircle2,Download,Loader2,Scissors,UploadCloud}from"lucide-react";import type{Lang}from"@/lib/types/mastering";import{decodeAudio}from"@/lib/clientAudio";
@@ -22,10 +24,10 @@ function Wave({buffer,start,end,disabled,onChange,lang}:{buffer:AudioBuffer;star
       const box = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
       canvas.width = Math.max(1, box.width * dpr); canvas.height = Math.max(1, box.height * dpr); ctx.scale(dpr,dpr);
       const w = box.width, h = box.height;
-      ctx.fillStyle = "#090d20"; ctx.fillRect(0,0,w,h); ctx.strokeStyle = "#66d4ff"; ctx.beginPath();
+      ctx.fillStyle = uiColor("#090d20"); ctx.fillRect(0,0,w,h); ctx.strokeStyle = uiColor("#66d4ff"); ctx.beginPath();
       peaks?.forEach((peak, index) => { const x = index / peaks.length * w, y = peak * h * .45; ctx.moveTo(x,h/2-y); ctx.lineTo(x,h/2+y); }); ctx.stroke();
-      ctx.fillStyle = "rgba(6,9,23,.76)"; ctx.fillRect(0,0,start/buffer.duration*w,h); ctx.fillRect(end/buffer.duration*w,0,w-end/buffer.duration*w,h);
-      ctx.strokeStyle = "#e861d6"; ctx.lineWidth = 2;
+      ctx.fillStyle = uiColor("rgba(6,9,23,.76)"); ctx.fillRect(0,0,start/buffer.duration*w,h); ctx.fillRect(end/buffer.duration*w,0,w-end/buffer.duration*w,h);
+      ctx.strokeStyle = uiColor("#e861d6"); ctx.lineWidth = 2;
       for (const time of [start,end]) { const x = time / buffer.duration*w; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
     };
     const animation = startVisibleAnimation(canvas, draw, { continuous: false });

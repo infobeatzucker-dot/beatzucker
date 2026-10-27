@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "./compare.css";
+import "./ui-theme.css";
+import { uiThemeBootstrap } from "@/lib/uiTheme";
 import CookieBanner from "@/components/CookieBanner";
 import Providers from "@/components/Providers";
 
@@ -136,6 +138,7 @@ export default function RootLayout({
   return (
     <html lang="de" className={inter.variable} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: uiThemeBootstrap }} />
         <script dangerouslySetInnerHTML={{ __html: documentLanguageScript }} />
         <script
           type="application/ld+json"

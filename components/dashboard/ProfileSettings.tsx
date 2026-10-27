@@ -15,8 +15,8 @@ const section = (title: string, children: React.ReactNode) => (
   <section
     key={title}
     style={{
-      background: "var(--bg-elevated, #1a1a2e)",
-      border: "1px solid rgba(255,255,255,0.07)",
+      background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))",
+      border: "1px solid rgba(var(--bz-border-ffffff),0.07)",
       borderRadius: "var(--radius-md)",
       padding: "1.5rem",
       marginBottom: "1.5rem",
@@ -29,8 +29,8 @@ const section = (title: string, children: React.ReactNode) => (
 
 const inputSty: React.CSSProperties = {
   width: "100%", padding: "0.55rem 0.8rem",
-  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: "7px", color: "var(--text-primary, #fff)", fontSize: "0.88rem",
+  background: "rgba(var(--bz-paint-ffffff),0.05)", border: "1px solid rgba(var(--bz-border-ffffff),0.1)",
+  borderRadius: "7px", color: "var(--text-primary, rgb(var(--bz-paint-ffffff)))", fontSize: "0.88rem",
   outline: "none", boxSizing: "border-box",
 };
 
@@ -177,7 +177,7 @@ export default function ProfileSettings() {
 
   return (
     <div lang={lang}>
-      {securityMsg && <p role="status" style={{ ...msgStyle(securityMsg), position: "sticky", top: "1rem", zIndex: 10, background: "var(--bg-elevated, #1a1a2e)", padding: "0.8rem", borderRadius: 8 }}>{securityMsg}</p>}
+      {securityMsg && <p role="status" style={{ ...msgStyle(securityMsg), position: "sticky", top: "1rem", zIndex: 10, background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))", padding: "0.8rem", borderRadius: 8 }}>{securityMsg}</p>}
       <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "1.5rem" }}>{data.user.email}</p>
 
       {section(t("Nutzung", "Usage"), (
@@ -187,12 +187,12 @@ export default function ProfileSettings() {
           </p>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.4rem" }}>
             <span>{t("Masters heute", "Masters today")}</span>
-            <span style={{ color: pct >= 90 ? "#f87171" : "var(--text-primary)" }}>{data.dailyUsed} / {data.dailyLimit}</span>
+            <span style={{ color: pct >= 90 ? "rgb(var(--bz-paint-f87171))" : "var(--text-primary)" }}>{data.dailyUsed} / {data.dailyLimit}</span>
           </div>
-          <div style={{ height: 6, background: "rgba(255,255,255,0.07)", borderRadius: 3 }}>
+          <div style={{ height: 6, background: "rgba(var(--bz-paint-ffffff),0.07)", borderRadius: 3 }}>
             <div style={{
               width: `${pct}%`, height: "100%", borderRadius: 3,
-              background: pct >= 90 ? "linear-gradient(90deg, #f87171, #ef4444)" : "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))",
+              background: pct >= 90 ? "linear-gradient(90deg, rgb(var(--bz-paint-f87171)), rgb(var(--bz-paint-ef4444)))" : "linear-gradient(90deg, var(--accent-purple), var(--accent-cyan))",
             }} />
           </div>
         </>
@@ -204,7 +204,7 @@ export default function ProfileSettings() {
             <label htmlFor="profile-name" style={{ display: "block", fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.3rem" }}>{t("Anzeigename", "Display name")}</label>
             <input id="profile-name" style={inputSty} value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={t("Dein Name", "Your name")} maxLength={80} />
           </div>
-          <button type="submit" disabled={busy} style={{ padding: "0.55rem 1.25rem", borderRadius: "7px", border: "none", background: "rgba(139,92,246,0.2)", color: "var(--accent-purple)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>{t("Speichern", "Save")}</button>
+          <button type="submit" disabled={busy} style={{ padding: "0.55rem 1.25rem", borderRadius: "7px", border: "none", background: "rgba(var(--bz-paint-8b5cf6),0.2)", color: "var(--accent-purple)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>{t("Speichern", "Save")}</button>
           {nameMsg && <div style={{ width: "100%", ...msgStyle(nameMsg) }}>{nameMsg}</div>}
         </form>
       ))}
@@ -215,7 +215,7 @@ export default function ProfileSettings() {
           <input style={inputSty} type="password" autoComplete="new-password" aria-label={t("Neues Passwort", "New password")} placeholder={t("Neues Passwort (min. 8 Zeichen)", "New password (at least 8 characters)")} value={newPw} onChange={(e) => setNewPw(e.target.value)} required />
           <input style={inputSty} type="password" autoComplete="new-password" aria-label={t("Neues Passwort wiederholen", "Repeat new password")} placeholder={t("Neues Passwort wiederholen", "Repeat new password")} value={newPw2} onChange={(e) => setNewPw2(e.target.value)} required />
           {confirmationFields(false)}
-          <button type="submit" disabled={busy || (data.twoFactor && otp.length !== 6)} style={{ padding: "0.55rem 1.25rem", borderRadius: "7px", border: "none", width: "fit-content", background: "rgba(139,92,246,0.2)", color: "var(--accent-purple)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}>{t("Passwort ändern", "Change password")}</button>
+          <button type="submit" disabled={busy || (data.twoFactor && otp.length !== 6)} style={{ padding: "0.55rem 1.25rem", borderRadius: "7px", border: "none", width: "fit-content", background: "rgba(var(--bz-paint-8b5cf6),0.2)", color: "var(--accent-purple)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}>{t("Passwort ändern", "Change password")}</button>
           {pwMsg && <div style={msgStyle(pwMsg)}>{pwMsg}</div>}
         </form>
       ))}
@@ -236,15 +236,15 @@ export default function ProfileSettings() {
               disabled={busy || !curPw || (data.twoFactor && otp.length !== 6)}
               style={{
                 padding: "0.45rem 1rem", borderRadius: "7px", border: "none",
-                background: data.twoFactor ? "rgba(239,68,68,0.15)" : "rgba(16,185,129,0.15)",
-                color: data.twoFactor ? "#f87171" : "#6ee7b7",
+                background: data.twoFactor ? "rgba(var(--bz-paint-ef4444),0.15)" : "rgba(var(--bz-paint-10b981),0.15)",
+                color: data.twoFactor ? "rgb(var(--bz-paint-f87171))" : "rgb(var(--bz-paint-6ee7b7))",
                 fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", flexShrink: 0,
               }}
             >
               {data.twoFactor ? t("Deaktivieren", "Disable") : t("Aktivieren", "Enable")}
             </button>
           </div>
-          {twoFactorMsg && <p style={{ fontSize: "0.8rem", marginTop: "0.5rem", color: twoFactorMsg.startsWith("✓") ? "#6ee7b7" : "#fca5a5" }}>{twoFactorMsg}</p>}
+          {twoFactorMsg && <p style={{ fontSize: "0.8rem", marginTop: "0.5rem", color: twoFactorMsg.startsWith("✓") ? "rgb(var(--bz-paint-6ee7b7))" : "rgb(var(--bz-paint-fca5a5))" }}>{twoFactorMsg}</p>}
         </div>
       ))}
 
@@ -256,7 +256,7 @@ export default function ProfileSettings() {
           <button
             onClick={handleExportDownload}
             disabled={busy}
-            style={{ display: "inline-block", padding: "0.5rem 1.1rem", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", color: "var(--accent-purple)", borderRadius: "7px", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}
+            style={{ display: "inline-block", padding: "0.5rem 1.1rem", background: "rgba(var(--bz-paint-8b5cf6),0.1)", border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)", color: "var(--accent-purple)", borderRadius: "7px", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}
           >
             {t("Meine Daten exportieren (JSON)", "Export my data (JSON)")}
           </button>
@@ -268,13 +268,13 @@ export default function ProfileSettings() {
           {!deleteConfirm ? (
             <button
               onClick={() => setDeleteConfirm(true)}
-              style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", borderRadius: "7px", padding: "0.5rem 1rem", fontSize: "0.85rem", cursor: "pointer", fontWeight: 600, width: "fit-content" }}
+              style={{ background: "rgba(var(--bz-paint-ef4444),0.1)", border: "1px solid rgba(var(--bz-border-ef4444),0.3)", color: "rgb(var(--bz-paint-f87171))", borderRadius: "7px", padding: "0.5rem 1rem", fontSize: "0.85rem", cursor: "pointer", fontWeight: 600, width: "fit-content" }}
             >
               {t("Konto löschen", "Delete account")}
             </button>
           ) : (
-            <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "8px", padding: "1rem" }}>
-              <p style={{ fontSize: "0.85rem", color: "#fca5a5", marginBottom: "0.75rem" }}>
+            <div style={{ background: "rgba(var(--bz-paint-ef4444),0.08)", border: "1px solid rgba(var(--bz-border-ef4444),0.25)", borderRadius: "8px", padding: "1rem" }}>
+              <p style={{ fontSize: "0.85rem", color: "rgb(var(--bz-paint-fca5a5))", marginBottom: "0.75rem" }}>
                 <strong>{t("Wirklich löschen?", "Are you sure?")}</strong> {t("Dein Konto und deine Mastering-Daten werden entfernt. Gesetzlich aufzubewahrende Nachweise bleiben erhalten. Ein laufendes Mastering muss zuerst beendet sein.", "Your account and mastering data will be removed. Records subject to legal retention will be kept. Any running master must finish first.")}
               </p>
               {data.user.hasPassword ? confirmationFields() : <>
@@ -282,8 +282,8 @@ export default function ProfileSettings() {
                 <button type="button" disabled={busy} className="btn-secondary" onClick={() => signIn("google", { callbackUrl: `${window.location.origin}/dashboard/profile?confirmDelete=1&lang=${lang}` }, { prompt: "select_account" })}>{t("Mit Google erneut bestätigen", "Confirm through Google again")}</button>
               </>}
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button onClick={deleteAccount} disabled={busy || (data.user.hasPassword && (!curPw || (data.twoFactor && otp.length !== 6)))} style={{ background: "#ef4444", border: "none", color: "#fff", borderRadius: "6px", padding: "0.45rem 0.9rem", fontSize: "0.82rem", cursor: "pointer", fontWeight: 700 }}>{t("Ja, Konto löschen", "Yes, delete account")}</button>
-                <button disabled={busy} onClick={() => setDeleteConfirm(false)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-secondary)", borderRadius: "6px", padding: "0.45rem 0.9rem", fontSize: "0.82rem", cursor: "pointer" }}>{t("Abbrechen", "Cancel")}</button>
+                <button onClick={deleteAccount} disabled={busy || (data.user.hasPassword && (!curPw || (data.twoFactor && otp.length !== 6)))} style={{ background: "rgb(var(--bz-paint-ef4444))", border: "none", color: "rgb(var(--bz-paint-ffffff))", borderRadius: "6px", padding: "0.45rem 0.9rem", fontSize: "0.82rem", cursor: "pointer", fontWeight: 700 }}>{t("Ja, Konto löschen", "Yes, delete account")}</button>
+                <button disabled={busy} onClick={() => setDeleteConfirm(false)} style={{ background: "rgba(var(--bz-paint-ffffff),0.07)", border: "1px solid rgba(var(--bz-border-ffffff),0.1)", color: "var(--text-secondary)", borderRadius: "6px", padding: "0.45rem 0.9rem", fontSize: "0.82rem", cursor: "pointer" }}>{t("Abbrechen", "Cancel")}</button>
               </div>
             </div>
           )}

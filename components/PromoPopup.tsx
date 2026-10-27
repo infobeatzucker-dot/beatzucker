@@ -14,25 +14,25 @@ interface Promotion {
 
 const BG_STYLES: Record<string, { border: string; bg: string; glow: string; badge: string }> = {
   purple: {
-    border: "rgba(139,92,246,0.6)",
+    border: "rgba(var(--bz-border-8b5cf6),0.6)",
     bg: "linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(56,189,248,0.06) 100%)",
     glow: "rgba(139,92,246,0.25)",
     badge: "linear-gradient(135deg, #8b5cf6, #38bdf8)",
   },
   cyan: {
-    border: "rgba(56,189,248,0.6)",
+    border: "rgba(var(--bz-border-38bdf8),0.6)",
     bg: "linear-gradient(135deg, rgba(56,189,248,0.15) 0%, rgba(139,92,246,0.06) 100%)",
     glow: "rgba(56,189,248,0.22)",
     badge: "linear-gradient(135deg, #38bdf8, #8b5cf6)",
   },
   gold: {
-    border: "rgba(196,181,253,0.6)",
+    border: "rgba(var(--bz-border-c4b5fd),0.6)",
     bg: "linear-gradient(135deg, rgba(196,181,253,0.15) 0%, rgba(245,130,32,0.08) 100%)",
     glow: "rgba(196,181,253,0.22)",
     badge: "linear-gradient(135deg, #c4b5fd, #f08020)",
   },
   fire: {
-    border: "rgba(239,68,68,0.6)",
+    border: "rgba(var(--bz-border-ef4444),0.6)",
     bg: "linear-gradient(135deg, rgba(239,68,68,0.16) 0%, rgba(245,130,32,0.08) 100%)",
     glow: "rgba(239,68,68,0.22)",
     badge: "linear-gradient(135deg, #ef4444, #f59e0b)",
@@ -77,7 +77,7 @@ export default function PromoPopup() {
             onClick={dismiss}
             style={{
               position: "fixed", inset: 0, zIndex: 9000,
-              background: "rgba(0,0,0,0.65)",
+              background: "rgba(var(--bz-paint-000000),0.65)",
               backdropFilter: "blur(6px)",
             }}
           />
@@ -94,11 +94,11 @@ export default function PromoPopup() {
               top: "50%", left: "50%",
               transform: "translate(-50%, -50%)",
               width: "min(480px, 92vw)",
-              background: "rgba(10,12,22,0.97)",
+              background: "rgba(var(--bz-paint-0a0c16),0.97)",
               border: `1px solid ${style.border}`,
               borderRadius: "20px",
               padding: "2rem",
-              boxShadow: `0 0 60px ${style.glow}, 0 24px 60px rgba(0,0,0,0.6)`,
+              boxShadow: `0 0 60px ${style.glow}, 0 24px 60px rgba(var(--bz-paint-000000),0.6)`,
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -113,7 +113,7 @@ export default function PromoPopup() {
               onClick={dismiss}
               style={{
                 position: "absolute", top: "1rem", right: "1rem",
-                background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(var(--bz-paint-ffffff),0.07)", border: "1px solid rgba(var(--bz-border-ffffff),0.12)",
                 borderRadius: "50%", width: 32, height: 32,
                 color: "var(--text-muted)", fontSize: "1.1rem",
                 cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
@@ -127,7 +127,7 @@ export default function PromoPopup() {
               background: style.badge,
               borderRadius: "6px", padding: "0.2rem 0.75rem",
               fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.12em",
-              textTransform: "uppercase", color: "#fff",
+              textTransform: "uppercase", color: "rgb(var(--bz-paint-ffffff))",
             }}>Aktion</div>
 
             {/* Title */}
@@ -156,7 +156,7 @@ export default function PromoPopup() {
                     background: style.badge,
                     border: "none", borderRadius: "10px",
                     padding: "0.65rem 1.4rem",
-                    color: "#fff", fontSize: "0.9rem", fontWeight: 700,
+                    color: "rgb(var(--bz-paint-ffffff))", fontSize: "0.9rem", fontWeight: 700,
                     cursor: "pointer", textDecoration: "none",
                     display: "inline-block",
                   }}
@@ -165,8 +165,8 @@ export default function PromoPopup() {
               <button
                 onClick={dismiss}
                 style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: "rgba(var(--bz-paint-ffffff),0.06)",
+                  border: "1px solid rgba(var(--bz-border-ffffff),0.12)",
                   borderRadius: "10px", padding: "0.65rem 1.2rem",
                   color: "var(--text-muted)", fontSize: "0.88rem",
                   cursor: "pointer",

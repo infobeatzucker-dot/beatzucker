@@ -30,7 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...pair("/ressourcen", "/en/knowledge", "2026-10-24", 0.8),
     ...ARTICLES.flatMap(article => pair(`/ressourcen/${article.slug}`, `/en/knowledge/${article.slug}`, articleContentDate(article), 0.7)),
     ...pair("/impressum", "/legal-notice", "2026-08-23", 0.2),
-    ...pair("/datenschutz", "/privacy", "2026-10-20", 0.2),
+    ...pair("/datenschutz", "/privacy", "2026-10-27", 0.2),
     ...pair("/agb", "/terms", "2026-08-23", 0.2),
     ...pair("/widerruf", "/cancellation-policy", "2026-10-20", 0.1),
   ];

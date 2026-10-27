@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef } from "react";
 import type { Lang } from "@/lib/types/mastering";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
@@ -83,13 +85,13 @@ export function GoniometerScope({ width, lang, analyser, playing }: {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(Math.PI / 4);
-    ctx.strokeStyle = "rgba(255,255,255,.07)";
+    ctx.strokeStyle = uiColor("rgba(255,255,255,.07)");
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(-r, 0); ctx.lineTo(r, 0);
     ctx.moveTo(0, -r); ctx.lineTo(0, r);
     ctx.stroke();
-    ctx.strokeStyle = "rgba(255,255,255,.05)";
+    ctx.strokeStyle = uiColor("rgba(255,255,255,.05)");
     ctx.beginPath(); ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
 
@@ -109,7 +111,7 @@ export function GoniometerScope({ width, lang, analyser, playing }: {
 
     for (let j = 0; j < trail.current.length; j++) {
       const a = j / trail.current.length;
-      ctx.fillStyle = `rgba(${Math.round(72 + a * 67)},${Math.round(191 - a * 20)},255,${a * 0.75})`;
+      ctx.fillStyle = uiColor(`rgba(${Math.round(72 + a * 67)},${Math.round(191 - a * 20)},255,${a * 0.75})`);
       ctx.beginPath();
       ctx.arc(trail.current[j].x, trail.current[j].y, 1.6, 0, Math.PI * 2);
       ctx.fill();
@@ -137,7 +139,7 @@ export function SaturationScope({ drive, lang, analyser, playing }: {
     const pad = 20;
     const ox = pad, oy = h - pad, ax = w - pad * 5, ay = pad;
 
-    ctx.strokeStyle = "rgba(255,255,255,.08)";
+    ctx.strokeStyle = uiColor("rgba(255,255,255,.08)");
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(ox, oy); ctx.lineTo(ax, oy);
@@ -157,18 +159,18 @@ export function SaturationScope({ drive, lang, analyser, playing }: {
       const py = oy - y * (oy - ay);
       i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
     }
-    ctx.strokeStyle = "#eb56d8";
+    ctx.strokeStyle = uiColor("#eb56d8");
     ctx.lineWidth = 2.2;
     ctx.lineCap = "round";
-    ctx.shadowColor = "#eb56d8";
+    ctx.shadowColor = uiColor("#eb56d8");
     ctx.shadowBlur = 7;
     ctx.stroke();
     ctx.shadowBlur = 0;
 
     const xin = Math.sin(t * 2.3) * 0.5 + 0.5;
     const yin = Math.tanh(xin * drv) / Math.tanh(drv);
-    ctx.fillStyle = "#fff";
-    ctx.shadowColor = "#eb56d8";
+    ctx.fillStyle = uiColor("#fff");
+    ctx.shadowColor = uiColor("#eb56d8");
     ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.arc(ox + xin * (ax - ox), oy - yin * (oy - ay), 3.4, 0, Math.PI * 2);
@@ -185,7 +187,7 @@ export function SaturationScope({ drive, lang, analyser, playing }: {
       const live = bins.current?.[Math.min(bins.current.length - 1, 8 + k * 18)] ?? 70;
       const amp = Math.max(2, (drive * 70 + live * 0.18) / (k * 0.45 + 1) * (0.88 + 0.12 * Math.sin(t * 4 + k)));
       const bh = Math.min(amp, oy - ay - 4);
-      ctx.fillStyle = k % 2 ? "rgba(72,191,255,.75)" : "rgba(139,92,246,.75)";
+      ctx.fillStyle = k % 2 ? uiColor("rgba(72,191,255,.75)") : uiColor("rgba(139,92,246,.75)");
       ctx.fillRect(bx + k * (bw + gap), oy - bh, bw, bh);
     }
   }, [drive, analyser, playing]);
@@ -230,11 +232,11 @@ export function GainReductionScope({
     lastGr.current = gr;
 
     const barW = 30, bx = pad, by = pad, bh = h - pad * 2;
-    ctx.fillStyle = "rgba(255,255,255,.05)";
+    ctx.fillStyle = uiColor("rgba(255,255,255,.05)");
     ctx.fillRect(bx, by, barW, bh);
 
     const thrY = by + bh * (1 - thrNorm);
-    ctx.strokeStyle = "rgba(72,191,255,.7)";
+    ctx.strokeStyle = uiColor("rgba(72,191,255,.7)");
     ctx.setLineDash([3, 3]);
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(bx, thrY); ctx.lineTo(bx + barW, thrY); ctx.stroke();
@@ -242,20 +244,20 @@ export function GainReductionScope({
 
     const sigH = bh * sig;
     const grad = ctx.createLinearGradient(0, by + bh - sigH, 0, by + bh);
-    grad.addColorStop(0, "#48bfff");
-    grad.addColorStop(1, "#8b5cff");
+    grad.addColorStop(0, uiColor("#48bfff"));
+    grad.addColorStop(1, uiColor("#8b5cff"));
     ctx.fillStyle = grad;
     ctx.fillRect(bx, by + bh - sigH, barW, sigH);
 
     if (gr > 0.3) {
-      ctx.fillStyle = "rgba(255,71,87,.85)";
+      ctx.fillStyle = uiColor("rgba(255,71,87,.85)");
       ctx.fillRect(bx, by + bh - sigH, barW, Math.min(gr * 2.2, sigH));
     }
 
     const lx = bx + barW + 24;
     const lw = w - lx - pad;
     if (lw > 20) {
-      ctx.strokeStyle = "rgba(255,255,255,.07)";
+      ctx.strokeStyle = uiColor("rgba(255,255,255,.07)");
       ctx.beginPath();
       for (let i = 0; i <= 8; i++) {
         const gx = lx + (i / 8) * lw;
@@ -271,9 +273,9 @@ export function GainReductionScope({
         const py = by + g * bh * 3.2;
         i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       }
-      ctx.strokeStyle = "#ff4757";
+      ctx.strokeStyle = uiColor("#ff4757");
       ctx.lineWidth = 1.8;
-      ctx.shadowColor = "#ff4757";
+      ctx.shadowColor = uiColor("#ff4757");
       ctx.shadowBlur = 6;
       ctx.stroke();
       ctx.shadowBlur = 0;
@@ -325,18 +327,18 @@ export function MultibandScope({ analyser, playing, values, lang }: {
       const reduction = Math.max(0, levels.current[b] - (threshold + 36) / 36) * (1 - 1 / ratio);
       const x = gap + b * (cardW + gap);
       const meterY = 32, meterH = h - 56;
-      ctx.fillStyle = "rgba(255,255,255,.035)";
+      ctx.fillStyle = uiColor("rgba(255,255,255,.035)");
       ctx.fillRect(x, meterY, cardW, meterH);
       const fillH = meterH * Math.min(1, levels.current[b]);
       const grad = ctx.createLinearGradient(0, meterY + meterH, 0, meterY);
-      grad.addColorStop(0, "#8b5cff"); grad.addColorStop(1, "#48bfff");
+      grad.addColorStop(0, uiColor("#8b5cff")); grad.addColorStop(1, uiColor("#48bfff"));
       ctx.fillStyle = grad;
       ctx.fillRect(x, meterY + meterH - fillH, cardW, fillH);
       if (reduction > 0) {
-        ctx.fillStyle = "rgba(235,86,216,.85)";
+        ctx.fillStyle = uiColor("rgba(235,86,216,.85)");
         ctx.fillRect(x, meterY + meterH - fillH, cardW, Math.min(fillH, reduction * meterH * 2));
       }
-      ctx.fillStyle = "rgba(230,235,255,.72)";
+      ctx.fillStyle = uiColor("rgba(230,235,255,.72)");
       ctx.font = "600 9px system-ui";
       ctx.textAlign = "center";
       ctx.fillText(names[b], x + cardW / 2, 18);

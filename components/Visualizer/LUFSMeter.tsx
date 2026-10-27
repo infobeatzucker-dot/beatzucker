@@ -1,5 +1,7 @@
 "use client";
 
+
+import { uiColor } from "@/lib/uiTheme";
 import { useEffect, useRef } from "react";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 
@@ -87,15 +89,15 @@ export default function LUFSMeter({ integrated, truePeak, isProcessing, analyser
         const barY = H - barH;
 
         // Background
-        ctx.fillStyle = "rgba(20,24,32,0.8)";
+        ctx.fillStyle = uiColor("rgba(20,24,32,0.8)");
         ctx.fillRect(x, 0, meterW, H);
 
         // Color zones
         const zones = [
-          { start: 0,    end: 0.6,  color: "#4ade80" },
-          { start: 0.6,  end: 0.8,  color: "#facc15" },
-          { start: 0.8,  end: 0.9,  color: "#fb923c" },
-          { start: 0.9,  end: 1.0,  color: "#ff4757" },
+          { start: 0,    end: 0.6,  color: uiColor("#4ade80") },
+          { start: 0.6,  end: 0.8,  color: uiColor("#facc15") },
+          { start: 0.8,  end: 0.9,  color: uiColor("#fb923c") },
+          { start: 0.9,  end: 1.0,  color: uiColor("#ff4757") },
         ];
 
         zones.forEach(({ start, end, color }) => {
@@ -113,7 +115,7 @@ export default function LUFSMeter({ integrated, truePeak, isProcessing, analyser
         PLATFORM_TARGETS.forEach(({ lufs, color }) => {
           if (lufs >= MIN_DB && lufs <= MAX_DB) {
             const lineY = dbToY(lufs, H, MIN_DB, MAX_DB);
-            ctx.strokeStyle = color;
+            ctx.strokeStyle = uiColor(color);
             ctx.lineWidth   = 1;
             ctx.setLineDash([3, 2]);
             ctx.beginPath();
@@ -124,12 +126,12 @@ export default function LUFSMeter({ integrated, truePeak, isProcessing, analyser
         });
 
         // Label + value
-        ctx.fillStyle  = "rgba(69,77,104,0.9)";
+        ctx.fillStyle  = uiColor("rgba(69,77,104,0.9)");
         ctx.font       = "bold 8px monospace";
         ctx.textAlign  = "center";
         ctx.fillText(label, x + meterW / 2, 10);
 
-        ctx.fillStyle = value > -6 ? "#ff4757" : value > -12 ? "#facc15" : "#38bdf8";
+        ctx.fillStyle = value > -6 ? uiColor("#ff4757") : value > -12 ? uiColor("#facc15") : uiColor("#38bdf8");
         ctx.font      = "7px monospace";
         ctx.fillText(`${value.toFixed(1)}`, x + meterW / 2, H - 4);
         ctx.textAlign  = "left";
@@ -137,16 +139,16 @@ export default function LUFSMeter({ integrated, truePeak, isProcessing, analyser
 
       // True Peak panel
       const tpX = (meterW + 4) * 3 + 4;
-      ctx.fillStyle = "rgba(20,24,32,0.6)";
+      ctx.fillStyle = uiColor("rgba(20,24,32,0.6)");
       ctx.fillRect(tpX, 0, 56, H);
-      ctx.fillStyle = "rgba(69,77,104,0.9)";
+      ctx.fillStyle = uiColor("rgba(69,77,104,0.9)");
       ctx.font      = "7px monospace";
       ctx.fillText("TRUE", tpX + 4, 10);
       ctx.fillText("PEAK", tpX + 4, 19);
-      ctx.fillStyle = truePeak > -1 ? "#ff4757" : "#38bdf8";
+      ctx.fillStyle = truePeak > -1 ? uiColor("#ff4757") : uiColor("#38bdf8");
       ctx.font      = "bold 9px monospace";
       ctx.fillText(`${truePeak.toFixed(1)}`, tpX + 4, H / 2 + 4);
-      ctx.fillStyle = "rgba(69,77,104,0.7)";
+      ctx.fillStyle = uiColor("rgba(69,77,104,0.7)");
       ctx.font      = "7px monospace";
       ctx.fillText("dBTP", tpX + 4, H / 2 + 14);
 

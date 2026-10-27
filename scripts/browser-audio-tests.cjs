@@ -13,7 +13,8 @@ async function main() {
   const listeners = {}, mediaListeners = {};
   const document = { get hidden() { return hidden; }, addEventListener: (n, f) => listeners[n] = f, removeEventListener: n => delete listeners[n] };
   const media = { get matches() { return reduced; }, addEventListener: (n, f) => mediaListeners[n] = f, removeEventListener: n => delete mediaListeners[n] };
-  const animation = load('lib/visibleAnimation.ts', { document, window: { matchMedia: () => media },
+  const themeListeners={};
+  const animation = load('lib/visibleAnimation.ts', { document, window: { matchMedia: () => media,addEventListener:(name,fn)=>themeListeners[name]=fn,removeEventListener:name=>delete themeListeners[name] },
     requestAnimationFrame: fn => { frames.set(++next, fn); return next; }, cancelAnimationFrame: id => frames.delete(id),
     IntersectionObserver: class { constructor(fn) { intersection = fn; } observe() {} disconnect() {} },
     ResizeObserver: class { constructor(fn) { resize = fn; } observe() {} disconnect() {} },

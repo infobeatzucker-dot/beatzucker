@@ -13,8 +13,8 @@ export default function PresetsPage() {
       </div>
       <div
         style={{
-          background: "var(--bg-elevated, #1a1a2e)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))",
+          border: "1px solid rgba(var(--bz-border-ffffff),0.07)",
           borderRadius: "var(--radius-md)",
           padding: "1.5rem",
         }}
