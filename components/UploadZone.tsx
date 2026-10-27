@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useImperativeHandle } from "react";
 import { AppState, AnalysisData, UploadedFile, type Lang } from "@/lib/types/mastering";
 import { withDspAdmissionRetry } from "@/lib/dspAdmissionRetry";
 import UploadSignal from "@/components/UploadSignal";
 
+export interface UploadZoneHandle { selectFile: () => void; uploadFile: (file: File) => void }
+export interface UploadStatus { busy: boolean; error: string | null }
 interface Props {
+  controllerRef?: React.Ref<UploadZoneHandle>;
+  onStatusChange?: (status: UploadStatus) => void;
   onUploadComplete: (file: UploadedFile) => void;
   onAnalysisComplete: (data: AnalysisData) => void;
   setAppState: (state: AppState) => void;
@@ -65,6 +69,8 @@ export default function UploadZone({
   isAuthenticated = false,
   onSignInClick,
   lang = "de",
+  controllerRef,
+  onStatusChange,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -77,6 +83,7 @@ export default function UploadZone({
   const inputRef = useRef<HTMLInputElement>(null);
   const workRef = useRef<AbortController | null>(null);
   useEffect(() => () => workRef.current?.abort(), []);
+  useEffect(() => { onStatusChange?.({busy:isUploading||isAnalyzing,error}); }, [isUploading,isAnalyzing,error,onStatusChange]);
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -187,6 +194,12 @@ export default function UploadZone({
     },
     [onUploadComplete, onAnalysisComplete, setAppState, lang]
   );
+
+  // The assistant delegates to this same uploader; it never owns a second job.
+  useImperativeHandle(controllerRef, () => ({
+    selectFile: () => { if (!isAuthenticated) onSignInClick?.(); else inputRef.current?.click(); },
+    uploadFile: (file: File) => { if (!isAuthenticated) onSignInClick?.(); else void handleFile(file); },
+  }), [isAuthenticated,onSignInClick,handleFile]);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {

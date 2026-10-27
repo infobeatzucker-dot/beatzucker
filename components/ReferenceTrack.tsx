@@ -34,6 +34,7 @@ export interface SavedRef {
 }
 
 interface Props {
+  onBusyChange?: (busy: boolean) => void;
   onReference: (analysis: ReferenceAnalysis | null, filename: string | null) => void;
   canSaveRefs?: boolean;
   refLimit?: number;
@@ -249,6 +250,7 @@ export default function ReferenceTrack({
   onSaveRef,
   onDeleteRef,
   lang = "de",
+  onBusyChange,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [filename, setFilename]         = useState<string | null>(null);
@@ -263,6 +265,7 @@ export default function ReferenceTrack({
   const [analyzePct, setAnalyzePct] = useState(0);
   const job = useRef<AbortController|null>(null);
   useEffect(()=>()=>job.current?.abort(),[]);
+  useEffect(()=>{onBusyChange?.(phase!=="idle");return ()=>onBusyChange?.(false);},[phase,onBusyChange]);
 
   // Library view toggle (only when canSaveRefs && savedRefs.length > 0)
   const [view, setView] = useState<"upload" | "library">("upload");

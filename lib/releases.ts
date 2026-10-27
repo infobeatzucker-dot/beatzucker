@@ -10,6 +10,11 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"1.6.0",date:"2026-10-27",
+  title:{de:"Mit Express Schritt für Schritt zum Master",en:"Step by step to your master with Express"},
+  summary:{de:"Der neue Express-Assistent begleitet dich im übersichtlichen Popup durch dein Mastering. Die gewohnte Konsole bleibt erhalten.",en:"The new Express assistant guides you through mastering in a clear popup. Your familiar console stays available."},
+  improvements:{de:["Song auswählen, Ziel und Klang festlegen, freiwillig Referenzen ergänzen und das Downloadformat wählen – ohne Fachwissen.","Du startest das Mastering erst nach deiner Bestätigung. Danach geht es zum Hörvergleich, Download oder zur manuellen Feinabstimmung.","Assistent und Konsole teilen sich Song und Einstellungen. Die Mastering-Routine, Klangqualität und bisherigen Funktionen bleiben unverändert."],en:["Choose your song, target and sound, optionally add references and pick your download format—no audio expertise needed.","Mastering starts only after your confirmation. Afterwards, compare, download or fine-tune manually.","The assistant and console share your song and settings. Audio processing, sound quality and existing features remain unchanged."]},
+}, {
   version:"1.5.1",date:"2026-10-24",
   title:{de:"Referenz-Lab im Studio-Look",en:"Studio-style reference lab"},
   summary:{de:"Plastische Drehregler und klare Anzeigen machen die Referenzeinstellungen übersichtlicher.",en:"Dimensional dials and clear readouts make reference settings easier to navigate."},

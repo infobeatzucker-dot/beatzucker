@@ -4,8 +4,9 @@ import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react"
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, RotateCcw, X } from "lucide-react";
-import UploadZone from "@/components/UploadZone";
+import { AlertCircle, RotateCcw, X, Sparkles, ArrowRight } from "lucide-react";
+import UploadZone, {type UploadZoneHandle,type UploadStatus} from "@/components/UploadZone";
+import { canStartExpress } from "@/lib/expressMastering";
 import AuthModal from "@/components/AuthModal";
 import MasterButton from "@/components/MasterButton";
 import { MasteringRun } from "@/lib/masteringRun";
@@ -32,6 +33,7 @@ const AnalysisPanel = dynamic(() => import("@/components/AnalysisPanel"), { ssr:
 const ABPlayer = dynamic(() => import("@/components/ABPlayer"), { ssr: false });
 const ManualAdjustModal = dynamic(() => import("@/components/ManualAdjustModal"), { ssr: false });
 const DownloadPanel = lazy(() => import("@/components/DownloadPanel"));
+const ExpressMasteringAssistant = dynamic(() => import("@/components/ExpressMasteringAssistant"), {ssr:false});
 
 
 // ── Auto-play master after mastering completes ─────────────────────────────────
@@ -126,6 +128,12 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   const [authOpen, setAuthOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [masteringError, setMasteringError] = useState<string | null>(null);
+  const [expressOpen,setExpressOpen] = useState(false);
+  const [expressStep,setExpressStep] = useState(0);
+  const [expressReferenceBusy,setExpressReferenceBusy] = useState(false);
+  const [uploadStatus,setUploadStatus] = useState<UploadStatus>({busy:false,error:null});
+  const uploadController = useRef<UploadZoneHandle>(null);
+  const expressRun = useRef(false);
   const adjustReopenGuardRef = useRef(0);
 
   // Scroll targets
@@ -213,7 +221,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     setUploadedFile(file);
     setAppState("uploaded");
   }, []);
-  const handleAnalysisComplete = useCallback((data: AnalysisData) => { setAnalysis(data); setAppState("analyzed"); }, []);
+  const handleAnalysisComplete = useCallback((data: AnalysisData) => { setUploadStatus({busy:false,error:null}); setAnalysis(data); setAppState("analyzed"); }, []);
 
   const handleMasteringStart = useCallback(() => {
     isMasteringRef.current = true;
@@ -234,6 +242,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     setMasteringError(null);
     setDailyUsed((used) => used === null ? null : used + 1);
     window.dispatchEvent(new Event("beatzucker-account-updated"));
+    if(expressRun.current){expressRun.current=false;setExpressStep(5);setExpressOpen(true);}
   }, []);
 
   const handleMasteringError = useCallback((message: string) => {
@@ -242,10 +251,14 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     setAppState(masterData ? "done" : "analyzed");
     setCurrentProgress(null);
     setMasteringError(message);
+    if(expressRun.current){expressRun.current=false;setExpressStep(4);setExpressOpen(true);}
     window.dispatchEvent(new Event("beatzucker-account-updated"));
   }, [masterData]);
 
   const handleReset = useCallback(() => {
+    expressRun.current=false;
+    setExpressStep(0);
+    setUploadStatus({busy:false,error:null});
     stopGlobalAudio();
     masteringRun.current.reset();
     setUploadCycle(cycle => cycle + 1);
@@ -262,6 +275,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
 
   // Remaster: keep file + analysis, just clear the master result
   const handleRemaster = useCallback(() => {
+    expressRun.current=false;
     masteringRun.current.reset();
     isMasteringRef.current = false; // cancel any in-flight mastering callbacks
     setMasterData(null);
@@ -285,6 +299,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     const run = masteringRun.current.start();
     if (!run) return; // Synchronous protection against double clicks and shortcuts.
     setAdjustOpen(false);
+    setExpressOpen(false);
     handleMasteringStart();
     try { await runMastering({
       fileId: uploadedFile.file_id,
@@ -312,6 +327,12 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   // Prefer the high-quality browser preview. MP3 128 remains a valid selected
   // delivery format, but should not be the default source for critical A/B.
   const masteredUrl = masterData?.formats.mp3320 || masterData?.formats.mp3128 || masterData?.formats.wav16 || "";
+  const expressCanStart = canStartExpress({state:appState,hasFile:!!uploadedFile,hasAnalysis:!!analysis,authenticated:sessionStatus==="authenticated",used:dailyUsed,limit:dailyLimit});
+  const openExpress = () => {stopGlobalAudio();setExpressStep(masterData?5:analysis?Math.min(expressStep,4):0);setExpressOpen(true);};
+  const showExpressResult = () => {setExpressOpen(false);setTimeout(()=>{
+    downloadRef.current?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+    mainPanelRef.current?.querySelector<HTMLElement>('.studio-download-target')?.focus({preventScroll:true});
+  },50);};
 
   return (
     <>
@@ -323,6 +344,24 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
           originalLufs={analysis?.integrated_lufs}
           masteredLufs={masterData?.post_analysis.integrated_lufs}
         >
+          <div className="express-launch">
+            <div className="express-launch-copy"><span><Sparkles size={22}/></span><div><h3>{lang==='en'?'A little guidance? Meet Express.':'Ein bisschen Unterstützung? Express hilft.'}</h3><p>{lang==='en'?'Step by step to your master. Your familiar console stays right here.':'Schritt für Schritt zu deinem Master. Deine gewohnte Konsole bleibt genau hier.'}</p></div></div>
+            <button type="button" className="express-primary" onClick={openExpress} disabled={appState==='mastering'}>{lang==='en'?'Open assistant':'Assistent öffnen'}<ArrowRight size={16}/></button>
+          </div>
+          <ExpressMasteringAssistant
+            open={expressOpen} step={expressStep} onStep={setExpressStep} onClose={()=>setExpressOpen(false)} lang={lang}
+            file={uploadedFile} analysis={analysis} upload={uploadStatus}
+            onSelectFile={()=>uploadController.current?.selectFile()} onDropFile={file=>uploadController.current?.uploadFile(file)} onReset={handleReset}
+            authenticated={sessionStatus==='authenticated'} onSignIn={()=>{setExpressOpen(false);setAuthOpen(true);}}
+            platform={platform} onPlatform={setPlatform} customLufs={customLufs} preset={preset} onPreset={setPreset}
+            character={character} onCharacter={setCharacter} intensity={intensity} onIntensity={setIntensity}
+            format={selectedFormat} onFormat={setSelectedFormat} formats={FORMAT_OPTIONS}
+            reference={referenceAnalysis} referenceBusy={expressReferenceBusy} onClearReference={()=>setReferenceAnalysis(null)}
+            referenceEditor={<ReferenceMastering value={referenceAnalysis} onChange={setReferenceAnalysis} sourceHasProfile={!!analysis?.tonal_profile} savedRefs={savedRefs} onSaveRef={handleSaveRef} onDeleteRef={handleDeleteRef} lang={lang} onBusyChange={setExpressReferenceBusy}/>}
+            canStart={expressCanStart&&!expressReferenceBusy} limitReached={dailyUsed!==null&&dailyUsed>=dailyLimit} error={masteringError}
+            onStart={()=>{if(!expressCanStart||expressReferenceBusy||isMasteringRef.current)return;expressRun.current=true;void handleRun();}}
+            hasResult={!!masterData} onResult={showExpressResult} onManual={()=>{setExpressOpen(false);setTimeout(openManualAdjust,0);}}
+          />
           <div
             className="mastering-dashboard glass-panel-elevated relative"
             style={{
@@ -415,6 +454,8 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
                   >
                     <UploadZone
                       key={uploadCycle}
+                      controllerRef={uploadController}
+                      onStatusChange={setUploadStatus}
                       onUploadComplete={handleUploadComplete}
                       onAnalysisComplete={handleAnalysisComplete}
                       setAppState={setAppState}

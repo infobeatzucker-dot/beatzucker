@@ -16,9 +16,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }));
   };
   return [
-    ...pair("", "/en", "2026-10-24", 1),
-    ...pair("/features", "/en/features", "2026-10-24", 0.9),
-    ...pair("/help", "/en/help", "2026-10-24", 0.7),
+    ...pair("", "/en", "2026-10-27", 1),
+    ...pair("/features", "/en/features", "2026-10-27", 0.9),
+    ...pair("/help", "/en/help", "2026-10-27", 0.7),
     ...pair("/in-eigener-sache", "/en/support", "2026-10-11", 0.5),
     ...pair("/versionen", "/en/updates", RELEASE_DATE, 0.5),
     ...pair("/hoervergleich", "/en/mastering-examples", "2026-10-18", 0.8),
