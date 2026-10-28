@@ -65,8 +65,58 @@ export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get("data");
   if (!raw) return Response.json({ error: "data required" }, { status: 400 });
   let payload: ReportPayload;
+  if (raw.length > 524288) return Response.json({ error: "Report too large" }, { status: 413 });
   try { payload = JSON.parse(Buffer.from(raw, "base64").toString("utf-8")) as ReportPayload; }
   catch { return Response.json({ error: "invalid data" }, { status: 400 }); }
+  return renderReport(payload);
+}
+
+/** Reports may contain lengthy analyses. Send them in a bounded body, not a URL. */
+export async function POST(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  if (origin && origin !== new URL(process.env.NEXTAUTH_URL ?? req.url).origin)
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  if (!req.headers.get("content-type")?.startsWith("application/x-www-form-urlencoded"))
+    return Response.json({ error: "Unsupported content type" }, { status: 415 });
+  const maxBytes = 524288;
+  if (Number(req.headers.get("content-length")) > maxBytes)
+    return Response.json({ error: "Report too large" }, { status: 413 });
+  const reader = req.body?.getReader();
+  if (!reader) return Response.json({ error: "data required" }, { status: 400 });
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const deadline = Date.now() + 30000;
+  try {
+    for (;;) {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let item: ReadableStreamReadResult<Uint8Array>;
+      try {
+        item = await Promise.race([reader.read(), new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error("timeout")), Math.max(1, deadline - Date.now()));
+        })]);
+      } finally { clearTimeout(timer); }
+      if (item.done) break;
+      size += item.value.byteLength;
+      if (size > maxBytes) { void reader.cancel().catch(() => {}); return Response.json({ error: "Report too large" }, { status: 413 }); }
+      chunks.push(item.value);
+    }
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+    const raw = new URLSearchParams(new TextDecoder().decode(bytes)).get("data");
+    if (!raw) return Response.json({ error: "data required" }, { status: 400 });
+    let payload: ReportPayload;
+    try { payload = JSON.parse(raw); } catch { return Response.json({ error: "invalid data" }, { status: 400 }); }
+    return renderReport(payload);
+  } catch {
+    void reader.cancel().catch(() => {});
+    return Response.json({ error: "Invalid or incomplete report" }, { status: 400 });
+  } finally { reader.releaseLock(); }
+}
+
+function renderReport(payload: ReportPayload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload))
+    return Response.json({ error: "invalid data" }, { status: 400 });
 
   const lang: Lang = payload.lang === "en" ? "en" : "de";
   const locale = lang === "de" ? "de-DE" : "en-GB";

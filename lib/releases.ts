@@ -10,6 +10,11 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"1.8.0",date:"2026-10-28",
+  title:{de:"Mehr Farbwelten, edle Studio-Regler",en:"More color themes, refined studio dials"},
+  summary:{de:"Sechs zusätzliche Designs erweitern dein Studio auf elf Farbwelten. Die vertrauten Drehregler erhalten feinere Metallreflexe.",en:"Six additional designs bring your studio to eleven color themes. Familiar dials gain more refined metal reflections."},
+  improvements:{de:["Neu: Obsidian Gold, Midnight Cobalt, Velvet Plum, Arctic Ice, Pistachio Studio und Rose Quartz – über die Navigation auswählen und im Profil speichern.","Charakter- und Referenzregler behalten ihre griffige Bauform, mit feiner gebürsteten Oberflächen, Lichtkanten und abgestimmten Materialien. Die Bedienung und Audiobearbeitung bleiben unverändert.","Auch umfangreiche Mastering-Berichte öffnen ohne überlange Adresse und lassen sich weiterhin auf Deutsch und Englisch als PDF speichern."],en:["New: Obsidian Gold, Midnight Cobalt, Velvet Plum, Arctic Ice, Pistachio Studio and Rose Quartz—choose in navigation and save in your profile.","Character and reference dials retain their knurled construction with finer brushed surfaces, highlighted edges and coordinated materials. Controls and audio processing stay unchanged.","Detailed mastering reports open without oversized addresses and can still be saved as PDF in German and English."]},
+}, {
   version:"1.7.0",date:"2026-10-27",
   title:{de:"Dein Studio in fünf Farbwelten",en:"Your studio in five color themes"},
   summary:{de:"Wähle Original, Studio Light, Analog, Aurora oder Sandstone – mit abgestimmten Oberflächen, Reglern und Audioanzeigen.",en:"Choose Original, Studio Light, Analog, Aurora or Sandstone—with coordinated surfaces, controls and audio displays."},

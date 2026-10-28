@@ -1,7 +1,7 @@
 /* Explicitly isolated local Chrome + actual upload/analysis/master/download. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{PrismaClient}=require('@prisma/client'),{hashSync}=require('bcryptjs');
 if(process.env.BEATZUCKER_ISOLATED_QA!=='1')throw Error('Isolated local QA only');
-const base='http://127.0.0.1:3013',folder=path.resolve('validation-output/tools-audit-20261011/runtime'),qaTheme=process.env.QA_UI_THEME||'original',out=path.resolve('validation-output/express-assistant-1.6',qaTheme);assert.ok(['original','light','analog','aurora','sandstone'].includes(qaTheme));fs.mkdirSync(out,{recursive:true});
+const base='http://127.0.0.1:3013',folder=path.resolve('validation-output/tools-audit-20261011/runtime'),qaTheme=process.env.QA_UI_THEME||'original',out=path.resolve('validation-output/express-assistant-1.6',qaTheme);assert.ok(['original','light','analog','aurora','sandstone','obsidian-gold','midnight-cobalt','velvet-plum','arctic-ice','pistachio-studio','rose-quartz'].includes(qaTheme));fs.mkdirSync(out,{recursive:true});
 function fixture(){const sr=48000,n=sr*6,b=Buffer.alloc(44+n*4);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(2,22);b.writeUInt32LE(sr,24);b.writeUInt32LE(sr*4,28);b.writeUInt16LE(4,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(n*4,40);let seed=24,state=0;for(let i=0;i<n;i++){seed=(1664525*seed+1013904223)>>>0;state=.3*(seed/4294967296-.5)*.5+.7*state;const x=Math.round((.6*state+.015*Math.sin(i/sr*2*Math.PI*110))*32767);b.writeInt16LE(x,44+i*4);b.writeInt16LE(Math.round(x*.92),46+i*4);}return b}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{

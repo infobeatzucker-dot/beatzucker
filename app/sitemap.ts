@@ -16,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }));
   };
   return [
-    ...pair("", "/en", "2026-10-27", 1),
+    ...pair("", "/en", "2026-10-28", 1),
     ...pair("/features", "/en/features", "2026-10-27", 0.9),
     ...pair("/help", "/en/help", "2026-10-27", 0.7),
     ...pair("/in-eigener-sache", "/en/support", "2026-10-11", 0.5),

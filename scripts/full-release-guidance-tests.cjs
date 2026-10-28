@@ -17,7 +17,7 @@ for(const lang of ['de','en']){
  const C=load('components/StereoInterpretation.tsx').default;
  for(const result of [undefined,baseline,risk,{...baseline,valid:false}]){const html=renderToStaticMarkup(React.createElement(C,{lang,result}));assert.ok(html.includes(lang==='en'?'/en/tools/reference-comparison':'/tools/reference-comparison'));assert.ok(!html.includes('NaN'));assert.ok(html.includes(lang==='en'?'not live playback':'nicht die laufende Wiedergabe'));}
 }
-const {APP_VERSION}=load('lib/releases.ts');assert.equal(APP_VERSION,'1.7.0');assert.equal(require('../package.json').version,APP_VERSION);const lock=require('../package-lock.json');assert.equal(lock.version,APP_VERSION);assert.equal(lock.packages[''].version,APP_VERSION);
+const {APP_VERSION}=load('lib/releases.ts');assert.equal(APP_VERSION,'1.8.0');assert.equal(require('../package.json').version,APP_VERSION);const lock=require('../package-lock.json');assert.equal(lock.version,APP_VERSION);assert.equal(lock.packages[''].version,APP_VERSION);
 for(const file of ['components/Header.tsx','components/ReleaseHistory.tsx'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bBeta\b/i);
 const map=load('app/sitemap.ts').default();assert.equal(map.length,86);for(const prefix of ['/ressourcen/','/en/knowledge/'])for(const slug of ['lufs-erklaert','sample-rate-bit-depth'])assert.equal(map.find(r=>r.url.endsWith(prefix+slug)).lastModified.toISOString().slice(0,10),'2026-10-18');
 console.log('PASS full-release/no-beta, bilingual revised guides, mono/phase/bass/balance/silence advice, rendered links and truthful sitemap dates');

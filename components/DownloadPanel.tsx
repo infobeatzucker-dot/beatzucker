@@ -7,6 +7,7 @@ import ABPlayer from "./ABPlayer";
 import DonateButton from "./DonateButton";
 import MasterReadyReveal from "./MasterReadyReveal";
 import DownloadJumpButton from "./DownloadJumpButton";
+import { openMasteringReport } from "@/lib/openMasteringReport";
 
 interface Props {
   masterData:  MasterData;
@@ -91,8 +92,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
       codecTrim: masterData.notes.match(/Codec safety trim:\s*([\d.]+) dB/i)?.[1] ?? "",
       date:  new Date().toLocaleString(lang === "de" ? "de-DE" : "en-GB", { dateStyle: "long", timeStyle: "short" }),
     };
-    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-    window.open(`/api/report?data=${encodeURIComponent(b64)}`, "_blank", "noopener,noreferrer");
+    openMasteringReport(payload);
   };
 
   // fmtKey = "mp3128", ext = "mp3"  →  beatzucker_trackname_mp3128.mp3
