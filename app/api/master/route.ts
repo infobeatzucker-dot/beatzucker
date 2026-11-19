@@ -235,6 +235,13 @@ export async function POST(req: NextRequest) {
         let pythonCompleted = false;
         let finalPayload: Record<string, unknown> | null = null;
         let pythonError = "";
+        const stageEvents = new Set<string>();
+        const forwardProgress = (data: Record<string, unknown>) => {
+          if (typeof data.step === "string" && /^[a-z_]{1,32}$/.test(data.step) && stageEvents.size < 32) {
+            stageEvents.add(data.step);
+          }
+          send(data);
+        };
 
         try { outer: while (true) {
           const { done, value } = await reader.read();
@@ -253,7 +260,7 @@ export async function POST(req: NextRequest) {
                     pythonError = typeof data.error === "string" ? data.error : "Mastering wurde abgebrochen";
                     break outer;
                   }
-                  send(data);
+                  forwardProgress(data);
                 } catch { /* ignore */ }
               }
             }
@@ -278,7 +285,7 @@ export async function POST(req: NextRequest) {
                 pythonError = typeof data.error === "string" ? data.error : "Mastering wurde abgebrochen";
                 break outer;
               } else {
-                send(data);
+                forwardProgress(data);
               }
             } catch { /* ignore */ }
           }
@@ -293,6 +300,8 @@ export async function POST(req: NextRequest) {
 
         // Persist results
         const validatedPayload = await validateMasterResult(finalPayload, masterId, format);
+        validatedPayload.stage_events = [...stageEvents];
+        validatedPayload.settings = { platform, preset, intensity, targetLufs, character, selectedFormat: format };
         if (overrides && Object.keys(overrides).length > 0) {
           validatedPayload.manual_overrides = overrides;
         }
@@ -408,13 +417,15 @@ async function finalizeMaster(
   const manualOverrides = payload?.manual_overrides && typeof payload.manual_overrides === "object"
     ? payload.manual_overrides : null;
 
+  const completedAt = new Date();
   await db.master.update({
     where: { id: dbMasterId },
     data:  {
       status:       "done",
-      completedAt:  new Date(),
+      completedAt,
+      user: { update: { lastMasteredAt: completedAt } },
       postAnalysis: postAnalysis ? JSON.stringify(postAnalysis) : null,
-      aiParams:      JSON.stringify({ selectedFormat, params, manualOverrides }),
+      aiParams:      JSON.stringify({ selectedFormat, params, manualOverrides, settings: payload?.settings, stageEvents: payload?.stage_events }),
       pathWav32:     savedPath("wav32"),
       pathWav24:     savedPath("wav24"),
       pathWav16:     savedPath("wav16"),

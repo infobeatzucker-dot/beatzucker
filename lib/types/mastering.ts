@@ -43,6 +43,8 @@ export interface SongSections { version:1;duration:number;segments:{start:number
 
 export interface MasterData {
   master_id: string;
+  settings?: MasteringJobSettings;
+  stage_events?: string[];
   selected_format?: string;
   formats: {
     wav32?:  string;
@@ -64,6 +66,15 @@ export interface MasterData {
    * ersten Reglerkontakt nicht unerwartet springt.
    */
   params?: Record<string, unknown>;
+}
+
+export interface MasteringJobSettings {
+  platform: Platform;
+  preset: Preset;
+  intensity: number;
+  targetLufs?: number;
+  character: number;
+  selectedFormat: string;
 }
 
 export interface UploadedFile {

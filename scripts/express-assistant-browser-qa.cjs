@@ -36,9 +36,58 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const resultPlayer=dialog.locator('.express-result-player');await resultPlayer.waitFor();await sleep(1200);await resultPlayer.getByRole('button',{name:'Original',exact:true}).click();await resultPlayer.locator('button[aria-pressed=true]').filter({hasText:'Original'}).waitFor();await resultPlayer.getByRole('button',{name:'Master',exact:true}).click();await resultPlayer.locator('button[aria-pressed=true]').filter({hasText:'Master'}).waitFor();assert.equal(await resultPlayer.getByLabel('Lautheit abgleichen').isChecked(),false);assert.equal(await page.locator('audio').count()<=1,true);
   await page.emulateMedia({reducedMotion:'no-preference'});await resultPlayer.getByRole('slider').fill('0');if(await resultPlayer.getByRole('button',{name:'Vergleich pausieren',exact:true}).count())await resultPlayer.getByRole('button',{name:'Vergleich pausieren',exact:true}).click();await resultPlayer.getByRole('button',{name:'Vergleich abspielen',exact:true}).click();await resultPlayer.getByRole('button',{name:'Vergleich pausieren',exact:true}).waitFor();await sleep(250);const ringFrame1=await resultPlayer.locator('canvas').evaluate(c=>c.toDataURL());await sleep(250);const ringFrame2=await resultPlayer.locator('canvas').evaluate(c=>c.toDataURL());assert.ok(ringFrame1!==ringFrame2,'real audio changes ring geometry: '+JSON.stringify(await page.evaluate(()=>({probe:window.__expressAudioProbe,hidden:document.hidden,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches}))));await resultPlayer.getByRole('button',{name:'Vergleich pausieren',exact:true}).click();await sleep(150);const restingFrame=await resultPlayer.locator('canvas').evaluate(c=>c.toDataURL());await sleep(250);assert.ok(await resultPlayer.locator('canvas').evaluate(c=>c.toDataURL())===restingFrame,'paused rings stay still');await page.emulateMedia({reducedMotion:'reduce'});
   await dialog.screenshot({path:path.join(out,'06-finished-desktop.png')});await dialog.getByRole('button',{name:'Anhören & herunterladen',exact:true}).click();await dialog.waitFor({state:'hidden'});await page.locator('.studio-download-target').waitFor();const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:/WAV 24-bit/}).click();const downloaded=await downloadEvent;assert.equal(await downloaded.failure(),null);const savedFile=path.join(out,'generated-master.wav');await downloaded.saveAs(savedFile);assert.equal(fs.readFileSync(savedFile).subarray(0,4).toString(),'RIFF');
-  await page.getByRole('button',{name:'Assistent öffnen',exact:true}).click();await dialog.getByRole('button',{name:'Manuell nachjustieren',exact:true}).click();await dialog.waitFor({state:'hidden'});const manual=page.getByRole('dialog',{name:'Manuelle Feinabstimmung',exact:true});await manual.waitFor({state:'visible'});await manual.getByRole('button',{name:'Schließen',exact:true}).click();
+  // Change the next-run controls after the Club/Pop master. Manual fine-tuning
+  // must still submit the completed job's settings.
+  await page.locator('.platform-tile').filter({hasText:'Spotify'}).click();
+  await page.locator('.preset-tile').filter({hasText:'Rock'}).click();
+  await page.getByRole('button',{name:'Assistent öffnen',exact:true}).click();await dialog.getByRole('button',{name:'Manuell nachjustieren',exact:true}).click();await dialog.waitFor({state:'hidden'});
+  const manual=page.getByRole('dialog',{name:'Manuelle Feinabstimmung',exact:true});
+  await manual.waitFor({state:'visible'});
+  await manual.locator('input.adjust-fadinput').first().press('ArrowRight');
+  const manualResponse=page.waitForResponse(r=>r.url()===base+'/api/master'&&r.status()===200,{timeout:180000});
+  await manual.getByRole('button',{name:'Neuen Master erstellen',exact:true}).click();
+  await manualResponse;
+  await page.locator('.studio-download-target').waitFor({timeout:180000});
+  assert.equal(masters.length,3);
+  for (const key of ['platform','preset','character','intensity','format']) assert.equal(masters[2][key],masters[1][key],key);
+  assert.ok(Object.keys(masters[2].overrides).length);
+  const updatedUser=await db.user.findUnique({where:{email},include:{masters:{where:{status:'done'},orderBy:{completedAt:'desc'}}}});
+  assert.equal(updatedUser.masters.length,2);
+  assert.ok(updatedUser.lastSeenAt instanceof Date);
+  assert.equal(+updatedUser.lastMasteredAt,+updatedUser.masters[0].completedAt);
+  const stored=JSON.parse(updatedUser.masters[0].aiParams);
+  assert.equal(stored.settings.platform,'club');
+  assert.ok(stored.stageEvents.includes('dithering_skipped'));
+  const [report]=await Promise.all([context.waitForEvent('page'),page.getByRole('button',{name:/Mastering-Bericht/}).click()]);
+  await report.waitForLoadState();
+  assert.match(await report.locator('body').innerText(),/Dithering\s+Übersprungen/);
+  await report.close();
+  if(process.env.QA_ADMIN_ACTIVITY==='1'){
+   assert.equal((await page.evaluate(()=>fetch('/api/admin').then(r=>r.status))),403);
+   const adminEmail='qa-admin-activity@example.invalid';
+   const adminPassword=hashSync(password,10);
+   await db.user.upsert({where:{email:adminEmail},update:{password:adminPassword},create:{email:adminEmail,password:adminPassword}});
+   const admin=await browser.newContext({baseURL:base});
+   try {
+    await admin.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());
+    const csrfToken=(await(await admin.request.get('/api/auth/csrf')).json()).csrfToken;
+    await admin.request.post('/api/auth/callback/credentials',{form:{csrfToken,email:adminEmail,password,json:'true',callbackUrl:base+'/admin'},headers:{Origin:base}});
+    const adminPage=await admin.newPage();
+    await adminPage.goto('/admin?lang=de');
+    const result=await adminPage.evaluate(async()=>{const response=await fetch('/api/admin');return {status:response.status,body:await response.json()};});
+    assert.equal(result.status,200);
+    const observed=result.body.users.find(user=>user.email===email);
+    assert.equal(new Date(observed.lastSeenAt).getTime(),+updatedUser.lastSeenAt);
+    assert.equal(new Date(observed.lastMasteredAt).getTime(),+updatedUser.lastMasteredAt);
+    await adminPage.getByRole('columnheader',{name:'Zuletzt online',exact:true}).waitFor();
+    const row=adminPage.getByRole('row').filter({hasText:email});
+    const format=new Intl.DateTimeFormat('de-DE',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Berlin'});
+    await row.getByRole('cell',{name:format.format(updatedUser.lastMasteredAt),exact:true}).first().waitFor();
+    console.log('PASS admin activity API returns both timestamps to admin only');
+   }finally{await admin.close();}
+  }
   try{await db.user.update({where:{email},data:{dailyMasterLimit:0}})}finally{await db.$disconnect()}
-  await page.getByRole('button',{name:'mastere erneut',exact:true}).click();await page.evaluate(()=>window.dispatchEvent(new Event('beatzucker-account-updated')));await page.getByText(/Tageslimit erreicht/).waitFor();await page.getByRole('button',{name:'Assistent öffnen',exact:true}).click();await dialog.getByRole('alert').filter({hasText:'Kontingent'}).waitFor();assert.equal(await dialog.getByRole('button',{name:'Jetzt meinen Song mastern',exact:true}).isEnabled(),false);await page.keyboard.press('m');assert.equal(masters.length,2);await dialog.getByRole('button',{name:'Assistent schließen',exact:true}).click();
+  await page.getByRole('button',{name:'mastere erneut',exact:true}).click();await page.evaluate(()=>window.dispatchEvent(new Event('beatzucker-account-updated')));await page.getByText(/Tageslimit erreicht/).waitFor();await page.getByRole('button',{name:'Assistent öffnen',exact:true}).click();await dialog.getByRole('alert').filter({hasText:'Kontingent'}).waitFor();assert.equal(await dialog.getByRole('button',{name:'Jetzt meinen Song mastern',exact:true}).isEnabled(),false);await page.keyboard.press('m');assert.equal(masters.length,3);await dialog.getByRole('button',{name:'Assistent schließen',exact:true}).click();
   // Reuse existing normal console, then English guide and retained controls.
   await page.goto('/dashboard?lang=en');await page.getByRole('button',{name:'Open assistant',exact:true}).click();await dialog.getByRole('heading',{name:'Let’s start with your song.',exact:true}).waitFor();await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});assert.equal(await page.getByRole('button',{name:'Open assistant',exact:true}).evaluate(el=>document.activeElement===el),true);
   for(const width of [390,320]){await page.setViewportSize({width,height:844});await page.locator('.express-mobile-entry .express-launch').waitFor();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.getByRole('button',{name:'Open assistant',exact:true}).click();await dialog.waitFor({state:'visible'});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});}

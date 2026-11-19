@@ -35,7 +35,9 @@ export async function GET() {
     }),
     db.user.findMany({
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true, email: true, name: true, createdAt: true, dailyMasterLimit: true,
+        vocalRemoverEnabled: true, stemSeparationEnabled: true, lastSeenAt: true, lastMasteredAt: true,
         _count: { select: { masters: true } },
       },
     }),
@@ -45,6 +47,18 @@ export async function GET() {
   ]);
 
   const quotaByUser = new Map(quotaUsage.map(usage => [usage.userId, usage._count._all]));
+  const hasHistoricalMasters = users.some(user => !user.lastMasteredAt && user._count.masters > 0);
+  const historicalMasters = hasHistoricalMasters ? await db.master.groupBy({
+    by: ["userId"],
+    where: { user: { is: { lastMasteredAt: null } }, status: "done" },
+    _max: { createdAt: true, completedAt: true },
+  }) : [];
+  const historicalLastMaster = new Map<string, Date>();
+  for (const master of historicalMasters) {
+    const { completedAt, createdAt } = master._max;
+    const date = completedAt && (!createdAt || completedAt >= createdAt) ? completedAt : createdAt;
+    if (date && master.userId) historicalLastMaster.set(master.userId, date);
+  }
   for (const usage of chargedUsage) quotaByUser.set(usage.userId, (quotaByUser.get(usage.userId) ?? 0) + usage._count._all);
   // Python service health check
   const pythonUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:8001";
@@ -76,6 +90,8 @@ export async function GET() {
       email: u.email,
       name: u.name,
       createdAt: u.createdAt,
+      lastSeenAt: u.lastSeenAt,
+      lastMasteredAt: u.lastMasteredAt ?? historicalLastMaster.get(u.id) ?? null,
       mastersCount: u._count.masters,
       dailyMasterLimit: u.dailyMasterLimit,
       vocalRemoverEnabled: u.vocalRemoverEnabled,

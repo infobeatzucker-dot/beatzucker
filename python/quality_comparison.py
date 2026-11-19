@@ -25,8 +25,8 @@ from mastering import master_audio
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def old_module(filename, name):
-    source = subprocess.run(["git", "show", f"1e791f7:python/{filename}"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", check=True).stdout
+def old_module(filename, name, revision):
+    source = subprocess.run(["git", "show", f"{revision}:python/{filename}"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", check=True).stdout
     module = types.ModuleType(name); module.__file__ = str(ROOT / "python" / filename)
     sys.modules[name] = module
     exec(compile(source, module.__file__, "exec"), module.__dict__)
@@ -40,11 +40,13 @@ def metrics(audio, sr):
 
 def main():
     parser = argparse.ArgumentParser(); parser.add_argument("--source", action="append", required=True); parser.add_argument("--seconds", type=float, default=20)
+    parser.add_argument("--baseline", default="1e791f7", help="Git revision used for the reference render")
     args = parser.parse_args()
+    revision = subprocess.run(["git", "rev-parse", "--verify", "--end-of-options", args.baseline + "^{commit}"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
     if not .4 <= args.seconds <= 30: raise ValueError("Use 0.4–30 seconds")
     output = ROOT / "validation-output" / "mastering-quality-20261017" / secrets.token_hex(4)
     output.mkdir(parents=True, exist_ok=False)
-    old_ai, old_dsp = old_module("ai_params.py", "baseline_ai"), old_module("mastering.py", "baseline_dsp")
+    old_ai, old_dsp = old_module("ai_params.py", "baseline_ai", revision), old_module("mastering.py", "baseline_dsp", revision)
     cases = []; keys = {}; cards = []
     for number, filename in enumerate(args.source, 1):
         source = Path(filename).resolve(); info = sf.info(source)
@@ -80,7 +82,7 @@ def main():
         cases.append({"case":number,"source":str(source),"start":start,"seconds":len(audio)/sr,"rate":sr,"metrics":details,"candidate_params":asdict(new_params)})
         cards.append(f'<section><h2>Vergleich {number}</h2><p>Pegelangepasst; höre auf Basskontur, Stimmen/S-Laute, Transienten und Stereobild. Nicht allein nach Lautstärke urteilen.</p><label>A<audio controls preload="metadata" src="case-{number}/A.wav"></audio></label><label>B<audio controls preload="metadata" src="case-{number}/B.wav"></audio></label><p>Deine Wahl: A / B / kein Unterschied. Notiere auch die gehörte Stelle.</p></section>')
         print(f"PASS comparison {number}: finite WAV24, preserved duration/rate, true peak safe; audition difference {self_difference:.4f} LU", flush=True)
-    (output/"measurements.json").write_text(json.dumps({"baseline":"1e791f7","subjective_listening":"not performed; human review required","cases":cases},indent=2,ensure_ascii=False),encoding="utf-8")
+    (output/"measurements.json").write_text(json.dumps({"baseline":revision,"subjective_listening":"not performed; human review required","cases":cases},indent=2,ensure_ascii=False),encoding="utf-8")
     (output/"reveal.json").write_text(json.dumps(keys,indent=2),encoding="utf-8")
     (output/"index.html").write_text('<!doctype html><html lang="de"><meta charset="utf-8"><title>Privater Mastering-Hörvergleich</title><style>body{background:#090d1c;color:#e2e8f0;font:16px system-ui;max-width:900px;margin:40px auto;padding:20px}section{background:#121b31;padding:24px;border:1px solid #334155;border-radius:16px;margin:20px 0}audio{display:block;width:100%;margin:10px 0 20px}p{color:#a8b5ce;line-height:1.6}</style><h1>Pegelangepasster Blindvergleich</h1><p>Nur lokale, private Testausschnitte. A/B ist pro Vergleich zufällig zugeordnet. Erst hören, danach optional reveal.json zur Auflösung öffnen. Kein Nachweis einer subjektiven Qualitätsverbesserung ohne deine Bewertung.</p>'+''.join(cards)+'<script>document.querySelectorAll("audio").forEach(a=>a.onplay=()=>document.querySelectorAll("audio").forEach(b=>{if(a!==b)b.pause()}))</script></html>',encoding="utf-8")
     print("PRIVATE comparison: " + str(output/"index.html"),flush=True)

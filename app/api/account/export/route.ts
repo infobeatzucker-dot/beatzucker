@@ -55,6 +55,8 @@ export async function GET() {
       termsVersion: user.termsVersion,
       termsLanguage: user.termsLanguage,
       createdAt: user.createdAt,
+      lastSeenAt: user.lastSeenAt,
+      lastMasteredAt: user.lastMasteredAt,
       updatedAt: user.updatedAt,
     },
     linkedAccounts: user.accounts,

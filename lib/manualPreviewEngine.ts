@@ -22,8 +22,6 @@ export class ManualPreviewEngine {
   private latestValues: ParamValues;
   private readonly contextParams: Record<string, unknown>;
   private readonly finalAir: BiquadFilterNode;
-  private readonly saturationWet: GainNode;
-  private readonly saturationDry: GainNode;
   private readonly wet: GainNode;
   private readonly dry: GainNode;
   private readonly output: GainNode;
@@ -82,16 +80,10 @@ export class ManualPreviewEngine {
 
     // Saturation mirrors the server's complementary 5 kHz split: only the
     // lower branch is shaped; highs remain clean and recombine afterwards.
-    const satLow1 = this.ctx.createBiquadFilter(); satLow1.type = "lowpass"; satLow1.frequency.value = 5000; satLow1.Q.value = 0.707;
-    const satLow2 = this.ctx.createBiquadFilter(); satLow2.type = "lowpass"; satLow2.frequency.value = 5000; satLow2.Q.value = 0.707;
-    const satHigh1 = this.ctx.createBiquadFilter(); satHigh1.type = "highpass"; satHigh1.frequency.value = 5000; satHigh1.Q.value = 0.707;
-    const satHigh2 = this.ctx.createBiquadFilter(); satHigh2.type = "highpass"; satHigh2.frequency.value = 5000; satHigh2.Q.value = 0.707;
-    const satSum = this.ctx.createGain();
-    this.saturationWet = this.ctx.createGain(); this.saturationDry = this.ctx.createGain();
-    satLow1.connect(satLow2).connect(this.shaper).connect(satSum);
-    satHigh1.connect(satHigh2).connect(satSum);
-    satSum.connect(this.saturationWet).connect(this.finalAir);
-    this.saturationDry.connect(this.finalAir);
+    const cutoff = Math.min(5000, this.ctx.sampleRate * .45);
+    const satLow1 = this.ctx.createBiquadFilter(); satLow1.type = "lowpass"; satLow1.frequency.value = cutoff; satLow1.Q.value = -3.0103;
+    const satLow2 = this.ctx.createBiquadFilter(); satLow2.type = "lowpass"; satLow2.frequency.value = cutoff; satLow2.Q.value = -3.0103;
+    satLow1.connect(satLow2).connect(this.shaper).connect(this.finalAir);
     limiter.connect(this.analyser).connect(this.output).connect(this.ctx.destination);
 
     this.ready = Promise.resolve().then(async () => {
@@ -104,8 +96,9 @@ export class ManualPreviewEngine {
       this.bus = new AudioWorkletNode(this.ctx, "beatzucker-mastering-dynamics", { outputChannelCount: [2], processorOptions: { mode: "bus", params } });
       this.dynamicEq.onprocessorerror = this.bands.onprocessorerror = this.bus.onprocessorerror = () => { this.pause(); this.errorListener(); };
       this.bus.port.onmessage = event => { if (Number.isFinite(event.data?.reduction)) this.reduction = event.data.reduction; };
-      air.connect(this.dynamicEq).connect(this.bands); this.bands.connect(satLow1); this.bands.connect(satHigh1);
-      this.bands.connect(this.saturationDry);
+      air.connect(this.dynamicEq).connect(this.bands);
+      this.bands.connect(satLow1);
+      this.bands.connect(this.finalAir);
       this.finalAir.connect(this.bus).connect(this.wet);
     });
     // Handle load rejection even if the user closes before pressing Play.
@@ -166,21 +159,18 @@ export class ManualPreviewEngine {
 
     const drive = values.saturation_amount ?? 0;
     this.shaper.curve = this.makeSaturationCurve(drive);
-    set(this.saturationWet.gain, drive >= .01 ? 1 : 0); set(this.saturationDry.gain, drive >= .01 ? 0 : 1);
   }
 
   private makeSaturationCurve(amount: number) {
     const samples = 2048;
     const curve = new Float32Array(samples);
-    if (amount <= 0.0001) {
-      for (let i = 0; i < samples; i++) curve[i] = (i / (samples - 1)) * 2 - 1;
-      return curve;
-    }
-    // Same transfer curve as python/mastering.py: tanh(x*k)/k, k=1+2a.
+    // Only the nonlinear difference is added to the direct signal.
+    const fade = Math.max(0, Math.min(amount / .05, 1));
+    const mix = fade * fade * (3 - 2 * fade);
     const drive = 1 + Math.max(0, amount) * 2;
     for (let i = 0; i < samples; i++) {
       const x = (i / (samples - 1)) * 2 - 1;
-      curve[i] = Math.tanh(x * drive) / drive;
+      curve[i] = (Math.tanh(x * drive) / drive - x) * mix;
     }
     return curve;
   }

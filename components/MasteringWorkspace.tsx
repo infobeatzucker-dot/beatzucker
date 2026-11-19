@@ -125,6 +125,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   const [selectedFormat,   setSelectedFormat]   = useState<string>("mp3128");
   const [referenceAnalysis, setReferenceAnalysis] = useState<ReferenceInput | null>(null);
   const [masterReference, setMasterReference] = useState<ReferenceInput | null>(null);
+  const completedSettings = masterData?.settings;
   const [savedRefs, setSavedRefs] = useState<SavedRef[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
@@ -297,8 +298,13 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     if (!uploadedFile) return;
     // Manual adjustments start from the completed master's reference context,
     // not changed selectors that are waiting for the next automatic run.
-    const renderReference = overrides !== undefined && masterData ? masterReference : referenceAnalysis;
-    const renderCharacter = overrides !== undefined && masterData ? Number(masterData.params?.character ?? .5) : character;
+    const isAdjustment = overrides !== undefined && masterData !== null;
+    const renderReference = isAdjustment ? masterReference : referenceAnalysis;
+    const currentSettings = { platform, targetLufs: customLufs, preset, intensity, character, selectedFormat };
+    const settings = isAdjustment ? completedSettings ?? {
+      ...currentSettings, character: Number(masterData.params?.character ?? .5),
+    } : currentSettings;
+    const renderOverrides = isAdjustment ? { ...masterData.manual_overrides, ...overrides } : overrides;
     const run = masteringRun.current.start();
     if (!run) return; // Synchronous protection against double clicks and shortcuts.
     setAdjustOpen(false);
@@ -308,19 +314,18 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
       fileId: uploadedFile.file_id,
       uploadToken: uploadedFile.upload_token,
       originalName: uploadedFile.filename,
-      platform, targetLufs: customLufs, preset, intensity, character:renderCharacter,
-      selectedFormat,
+      ...settings,
       analysis: analysis ?? undefined,
       referenceAnalysis: renderReference ?? undefined,
-      overrides,
+      overrides: renderOverrides,
       lang,
       signal: run.signal,
       onProgress: step => { if (run.current()) handleProgressUpdate(step); },
-      onComplete: data => { if (run.current()) { setMasterReference(renderReference);handleMasteringComplete(data); } },
+      onComplete: data => { if (run.current()) { setMasterReference(renderReference);handleMasteringComplete({ ...data, settings: data.settings ?? settings }); } },
       onError: message => { if (run.current()) handleMasteringError(message); },
     }); } finally { run.finish(); }
   }, [uploadedFile, platform, customLufs, preset, intensity, selectedFormat, analysis,
-      referenceAnalysis, masterReference, masterData, character, lang, handleMasteringStart, handleProgressUpdate,
+      referenceAnalysis, masterReference, masterData, completedSettings, character, lang, handleMasteringStart, handleProgressUpdate,
       handleMasteringComplete, handleMasteringError]);
 
   // Audio engine URLs
@@ -549,9 +554,9 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
                     masterData={masterData}
                     fileId={uploadedFile?.file_id ?? ""}
                     filename={uploadedFile?.filename ?? "track"}
-                    platform={platform}
-                    preset={preset}
-                    intensity={intensity}
+                    platform={completedSettings?.platform ?? platform}
+                    preset={completedSettings?.preset ?? preset}
+                    intensity={completedSettings?.intensity ?? intensity}
                     preAnalysis={analysis!}
                     onReset={handleReset}
                     onRemaster={handleRemaster}
@@ -656,11 +661,11 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
           uploadToken={uploadedFile.upload_token}
           filename={uploadedFile.filename}
           durationSec={uploadedFile.duration || analysis?.duration_seconds || 0}
-          platform={platform}
-          preset={preset}
-          intensity={intensity}
+          platform={completedSettings?.platform ?? platform}
+          preset={completedSettings?.preset ?? preset}
+          intensity={completedSettings?.intensity ?? intensity}
           analysis={analysis}
-          character={masterData ? Number(masterData.params?.character ?? .5) : character}
+          character={completedSettings?.character ?? character}
           referenceAnalysis={masterData ? masterReference : referenceAnalysis}
           serverParams={masterData?.params ?? null}
           onApply={handleRun}

@@ -33,9 +33,23 @@ class ProgressStagesTests(unittest.TestCase):
         self.assertEqual(names[-1], 'limiting')
         self.assertTrue(all(name.endswith('_skipped') for name in names[1:-1]))
         events=[]
-        mastering.process_mastering_audio(self.audio(),16000,MasteringParams(saturation_amount=.005,final_air_gain=0),lambda *event:events.append(event))
+        mastering.process_mastering_audio(self.audio(),16000,MasteringParams(saturation_amount=0,final_air_gain=0),lambda *event:events.append(event))
         self.assertIn('saturation_skipped',[s for s,_ in events])
         self.assertIn('final_eq_skipped',[s for s,_ in events])
+
+    def test_saturation_continuity_and_stereo_link(self):
+        for rate in (8000, 48000, 96000):
+            t = np.arange(rate // 4) / rate
+            signal = (.25 * np.sin(2 * np.pi * min(4500, rate * .4) * t)).astype(np.float32)
+            stereo = np.stack([signal, -signal])
+            np.testing.assert_array_equal(mastering.apply_saturation(stereo, rate, 0), stereo)
+            below = mastering.apply_saturation(stereo, rate, .00999)
+            above = mastering.apply_saturation(stereo, rate, .01001)
+            self.assertLess(float(np.max(np.abs(below - above))), 1e-4)
+            driven = mastering.apply_saturation(stereo, rate, .3)
+            self.assertTrue(np.isfinite(driven).all())
+            np.testing.assert_allclose(driven[0], -driven[1], atol=1e-6)
+            self.assertGreater(float(np.max(np.abs(driven - stereo))), 1e-6)
 
     def test_full_orchestration_reports_format_specific_dither_and_verification(self):
         with tempfile.TemporaryDirectory() as folder:

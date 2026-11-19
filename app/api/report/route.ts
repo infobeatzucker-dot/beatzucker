@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { MASTERING_STAGES } from "@/lib/masteringStages";
 
 type Lang = "de" | "en";
 type Scalar = number | string | boolean;
@@ -8,6 +9,7 @@ interface ReportPayload {
   pre: Record<string, Scalar>; post: Record<string, Scalar> | null;
   notes: string; date: string; params?: Record<string, unknown>;
   manualOverrides?: Record<string, unknown>; selectedFormat?: string;
+  stageEvents?: unknown;
   availableFormats?: string[]; genre?: string; referenceUsed?: boolean; codecTrim?: string;
 }
 
@@ -41,15 +43,6 @@ const PARAMETER_GROUPS = [
     ["bus_comp_threshold", "Bus-Comp-Schwelle", "Bus comp threshold", "dB"],
     ["bus_comp_ratio", "Bus-Comp-Ratio", "Bus comp ratio", ":1"],
   ]},
-] as const;
-
-const DSP_STAGES = [
-  ["DC-Offset entfernen", "DC offset removal"], ["Gain-Staging", "Gain staging"],
-  ["Korrektur-EQ", "Correction EQ"], ["De-Esser", "De-esser"],
-  ["Multiband-Kompression", "Multiband compression"], ["M/S-Bearbeitung", "M/S processing"],
-  ["Sättigung", "Saturation"], ["Final-EQ", "Final EQ"],
-  ["Bus-Kompression", "Bus compression"], ["True-Peak-Limiter", "True peak limiter"],
-  ["Dithering & Export", "Dithering & export"], ["Codec-Verifikation", "Codec verification"],
 ] as const;
 
 function esc(value: unknown): string {
@@ -121,6 +114,14 @@ function renderReport(payload: ReportPayload) {
   const lang: Lang = payload.lang === "en" ? "en" : "de";
   const locale = lang === "de" ? "de-DE" : "en-GB";
   const t = <T,>(de: T, en: T) => lang === "de" ? de : en;
+  const stageEvents = new Set(Array.isArray(payload.stageEvents) ? payload.stageEvents : []);
+  const chain = MASTERING_STAGES.map(stage => {
+    const label = stage.key === "dithering" ? "Dithering" : stage[lang];
+    const status = stageEvents.has(stage.key + "_skipped") ? t("Übersprungen", "Skipped")
+      : stageEvents.has(stage.key) ? t("Ausgeführt", "Applied")
+        : t("Nicht protokolliert", "Not recorded");
+    return `<div class="stage">${label}<br/><small>${status}</small></div>`;
+  }).join("");
   const pre = payload.pre && typeof payload.pre === "object" ? payload.pre : {};
   const post = payload.post && typeof payload.post === "object" ? payload.post : null;
   const params = payload.params && typeof payload.params === "object" ? payload.params : {};
@@ -156,7 +157,7 @@ function renderReport(payload: ReportPayload) {
   <p class="summary">${esc(payload.notes || t("Keine Zusammenfassung verfügbar.", "No summary available."))}</p>
   <section><div class="section-title">${t("Master-Ergebnis", "Master result")}</div><div class="kpis"><div class="kpi"><span class="label">LUFS</span><strong>${metric(post?.integrated_lufs,"",1)}</strong><small>${t("Original", "Original")}: ${metric(pre.integrated_lufs,"",1)}</small></div><div class="kpi"><span class="label">TRUE PEAK</span><strong>${metric(post?.true_peak,"dBTP",1)}</strong><small>${t("Grenze", "Ceiling")}: ${metric(params.true_peak_ceiling,"dBTP",1)}</small></div><div class="kpi"><span class="label">DYNAMIC RANGE</span><strong>DR${number(post?.dr_value,0,locale)}</strong><small>${t("Original", "Original")}: DR${number(pre.dr_value,0,locale)}</small></div><div class="kpi"><span class="label">STEREO</span><strong>${number((finite(post?.stereo_width)??0)*100,0,locale)} %</strong><small>${t("Mono-Kompatibilität", "Mono compatibility")}: ${number(post?.mono_compatibility,2,locale)}</small></div></div></section>
   <section><div class="section-title">${t("Vorher-/Nachher-Messung", "Before/after measurement")}</div><table><thead><tr><th>${t("Messwert", "Metric")}</th><th>${t("Original", "Original")}</th><th>${t("Master", "Master")}</th></tr></thead><tbody>${comparisonRow("Integrated LUFS",metric(pre.integrated_lufs,"LUFS"),metric(post?.integrated_lufs,"LUFS"))}${comparisonRow("True Peak",metric(pre.true_peak,"dBTP"),metric(post?.true_peak,"dBTP"))}${comparisonRow("Dynamic Range",`DR${number(pre.dr_value,0,locale)}`,`DR${number(post?.dr_value,0,locale)}`)}${comparisonRow("Crest Factor",metric(pre.crest_factor,"dB"),metric(post?.crest_factor,"dB"))}${comparisonRow("Loudness Range",metric(pre.lra,"LU"),metric(post?.lra,"LU"))}${comparisonRow(t("Mono-Kompatibilität","Mono compatibility"),number(pre.mono_compatibility,2,locale),number(post?.mono_compatibility,2,locale))}${comparisonRow("Clipping",yesNo(pre.clipping_detected),yesNo(post?.clipping_detected),Boolean(post?.clipping_detected))}</tbody></table></section>
-  <section><div class="section-title">${t("Tatsächlich verwendete DSP-Kette", "DSP chain actually used")}</div><div class="chain">${DSP_STAGES.map(([de,en])=>`<div class="stage">${t(de,en)}</div>`).join("")}</div></section>
+  <section><div class="section-title">${t("Protokoll der Mastering-Stufen", "Mastering stage log")}</div><div class="chain">${chain}</div></section>
   ${parameterHtml?`<section><div class="section-title">${t("Adaptive & manuelle Parameter", "Adaptive & manual parameters")}</div><div class="parameters">${parameterHtml}</div></section>`:""}
   <section><div class="section-title">${t("Spektrum & Frequenzenergie", "Spectrum & frequency energy")}</div><table><thead><tr><th>${t("Messwert", "Metric")}</th><th>${t("Original", "Original")}</th><th>${t("Master", "Master")}</th></tr></thead><tbody>${comparisonRow(t("Spektraler Schwerpunkt","Spectral centroid"),metric((finite(pre.spectral_centroid)??0)/1000,"kHz"),metric((finite(post?.spectral_centroid)??0)/1000,"kHz"))}${comparisonRow(t("Spektraler Rolloff","Spectral rolloff"),metric((finite(pre.spectral_rolloff)??0)/1000,"kHz"),metric((finite(post?.spectral_rolloff)??0)/1000,"kHz"))}${comparisonRow("Sub · 20–80 Hz",metric(pre.rms_sub,"dB"),metric(post?.rms_sub,"dB"))}${comparisonRow(t("Bass · 80–500 Hz","Low · 80–500 Hz"),metric(pre.rms_low,"dB"),metric(post?.rms_low,"dB"))}${comparisonRow(t("Mitten · 500 Hz–5 kHz","Mid · 500 Hz–5 kHz"),metric(pre.rms_mid,"dB"),metric(post?.rms_mid,"dB"))}${comparisonRow(t("Höhen · 5–12 kHz","High · 5–12 kHz"),metric(pre.rms_high,"dB"),metric(post?.rms_high,"dB"))}${comparisonRow(t("Luft · 12–20 kHz","Air · 12–20 kHz"),metric(pre.rms_air,"dB"),metric(post?.rms_air,"dB"))}</tbody></table></section>
   <section><div class="section-title">${t("Export & Qualitätsprüfung", "Export & quality verification")}</div><div class="quality-grid"><div class="quality"><span class="label">${t("Quelle", "Source")}</span><strong>${number(pre.sample_rate,0,locale)} Hz · ${number(pre.bit_depth,0,locale)} Bit · ${Number(pre.channels)===2?"Stereo":"Mono"}</strong></div><div class="quality"><span class="label">${t("Referenz-Matching", "Reference matching")}</span><strong>${payload.referenceUsed?t("Verwendet","Used"):t("Nicht verwendet","Not used")}</strong></div><div class="quality"><span class="label">${t("Codec-Sicherheitsabsenkung", "Codec safety trim")}</span><strong>${payload.codecTrim?`${esc(payload.codecTrim)} dB`:t("Nicht erforderlich","Not required")}</strong></div></div><div class="formats">${t("Erzeugte Dateien", "Rendered files")}: ${availableFormats.length?availableFormats.map(esc).join(" · "):esc(selectedFormat)}</div></section>

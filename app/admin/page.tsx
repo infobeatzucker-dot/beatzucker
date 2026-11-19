@@ -28,6 +28,8 @@ interface AdminUser {
   name: string | null;
   createdAt: string;
   mastersCount: number;
+  lastSeenAt: string | null;
+  lastMasteredAt: string | null;
 }
 
 interface RecentMaster {
@@ -66,6 +68,12 @@ const BG_PREVIEW: Record<string, { border: string; bg: string; badge: string }> 
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+function formatActivityDate(iso: string, lang: "de" | "en") {
+  return new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "de-DE", {
+    dateStyle: "short", timeStyle: "short", timeZone: "Europe/Berlin",
+  }).format(new Date(iso));
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -524,7 +532,7 @@ export default function AdminPage() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
-                    {["Email", "Name", "Masters", lang === "en" ? "Daily limit" : "Tageslimit", "Dabei seit", ""].map(h => (
+                    {["Email", "Name", "Masters", lang === "en" ? "Daily limit" : "Tageslimit", lang === "en" ? "Member since" : "Dabei seit", lang === "en" ? "Last online" : "Zuletzt online", lang === "en" ? "Last mastered" : "Zuletzt gemastert", ""].map(h => (
                       <th key={h} style={thStyle}>{h}</th>
                     ))}
                   </tr>
@@ -537,6 +545,8 @@ export default function AdminPage() {
                       <td style={{ ...tdStyle, textAlign: "center" }}>{u.mastersCount}</td>
                       <td style={tdStyle}><UserDailyLimit lang={lang} userId={u.id} email={u.email} value={u.dailyMasterLimit} used={u.dailyUsed} onSaved={quota => setData(current => current ? { ...current, users: current.users.map(user => user.id === u.id ? { ...user, ...quota } : user) } : current)} /><UserStemAccess userId={u.id} vocal={u.vocalRemoverEnabled} stems={u.stemSeparationEnabled} en={lang === "en"}/></td>
                       <td style={tdStyle}>{fmtDate(u.createdAt)}</td>
+                      <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{u.lastSeenAt ? formatActivityDate(u.lastSeenAt, lang) : lang === "en" ? "Not recorded" : "Nicht erfasst"}</td>
+                      <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{u.lastMasteredAt ? formatActivityDate(u.lastMasteredAt, lang) : "—"}</td>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>
                         <button
                           onClick={() => deleteUser(u.id, u.email)}

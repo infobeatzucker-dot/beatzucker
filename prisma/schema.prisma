@@ -20,6 +20,8 @@ model User {
   loginOtp             String?
   loginOtpExpires      DateTime?
   passwordChangedAt    DateTime?
+  lastSeenAt           DateTime?
+  lastMasteredAt       DateTime?
   termsAcceptedAt      DateTime?
   termsVersion         String?
   termsLanguage        String?

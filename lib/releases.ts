@@ -10,6 +10,11 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"1.8.1",date:"2026-11-19",
+  title:{de:"Verlässlich nachjustieren und dokumentieren",en:"Reliable fine-tuning and reports"},
+  summary:{de:"Manuelle Feinabstimmung behält die Einstellungen des fertigen Masters. Der PDF-Bericht zeigt, welche Bearbeitungsstufen ausgeführt wurden.",en:"Manual fine-tuning keeps the settings of the completed master. The PDF report shows which processing stages ran."},
+  improvements:{de:["Bereits vorgenommene manuelle Anpassungen bleiben bei weiteren Korrekturen erhalten.","Die Sättigung setzt bei niedriger Stärke weicher ein."],en:["Previous manual adjustments carry over when you make further changes.","Saturation comes in more smoothly at low settings."]},
+}, {
   version:"1.8.0",date:"2026-10-28",
   title:{de:"Mehr Farbwelten, edle Studio-Regler",en:"More color themes, refined studio dials"},
   summary:{de:"Sechs zusätzliche Designs erweitern dein Studio auf elf Farbwelten. Die vertrauten Drehregler erhalten feinere Metallreflexe.",en:"Six additional designs bring your studio to eleven color themes. Familiar dials gain more refined metal reflections."},

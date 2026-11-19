@@ -353,26 +353,24 @@ def apply_saturation(audio: np.ndarray, sr: int, amount: float) -> np.ndarray:
     Oversampling pushes tanh-generated harmonics above the new Nyquist (sr Hz)
     where resample_poly's anti-alias FIR removes them before downsampling.
     """
-    if amount < 0.01:
+    if amount <= 0:
         return audio
 
     # 2× upsample before nonlinearity (axis=-1 = time axis for [ch, samples] arrays)
     audio_up = scipy_signal.resample_poly(audio, 2, 1, axis=-1).astype(np.float32)
-    # Complementary LR4 split: when amount tends to zero, both bands recombine
-    # flat. Independent Butterworth LP/HP filters did not guarantee this and
-    # could colour the signal even before the nonlinear processing.
-    low_part, high_part = linkwitz_riley_crossover(audio_up, sr * 2, 5000)
-    result = (soft_clip(low_part, drive=amount) + high_part).astype(np.float32)
-    del low_part, high_part
-
-    # 2× downsample — resample_poly includes built-in anti-aliasing FIR
-    result = scipy_signal.resample_poly(result, 1, 2, axis=-1).astype(np.float32)
-    # Trim to original length (resample_poly may produce ±1 sample)
-    if audio.ndim == 2:
-        result = result[:, :audio.shape[1]]
-    else:
-        result = result[:audio.shape[0]]
-    return result
+    # Add only the nonlinear difference to the untouched signal. Recombining
+    # the crossover branches would impose its phase rotation even at tiny drive.
+    cutoff = min(5000, sr * .45)
+    sos = scipy_signal.butter(2, cutoff, btype="low", fs=sr * 2, output="sos").astype(np.float32)
+    low_part = scipy_signal.sosfilt(sos, audio_up, axis=-1)
+    del audio_up
+    low_part = scipy_signal.sosfilt(sos, low_part, axis=-1)
+    delta = soft_clip(low_part, drive=amount) - low_part
+    del low_part
+    delta = scipy_signal.resample_poly(delta, 1, 2, axis=-1).astype(np.float32)
+    fade = min(amount / .05, 1.0)
+    mix = fade * fade * (3.0 - 2.0 * fade)
+    return audio + np.float32(mix) * delta[..., :audio.shape[-1]]
 
 
 # ─── 10. BUS COMPRESSION ───────────────────────────────────────────────────────
@@ -861,7 +859,7 @@ def process_mastering_audio(audio: np.ndarray, sr: int, params: MasteringParams,
     emit("ms" if active else "ms_skipped", 52)
     if active:
         audio = apply_ms_processing(audio, sr, params)
-    emit("saturation" if active and params.saturation_amount >= 0.01 else "saturation_skipped", 62)
+    emit("saturation" if active and params.saturation_amount > 0 else "saturation_skipped", 62)
     if active:
         audio = apply_saturation(audio, sr, params.saturation_amount)
     emit("final_eq" if active and abs(params.final_air_gain) > 0.001 else "final_eq_skipped", 67)

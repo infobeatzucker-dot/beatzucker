@@ -100,11 +100,20 @@ export const authOptions: NextAuthOptions = {
       if (token.id && Date.now() - lastCheck > 60 * 1000) {
         const dbUser = await db.user.findUnique({
           where: { id: token.id as string },
-          select: { passwordChangedAt: true },
+          select: { passwordChangedAt: true, lastSeenAt: true },
         });
         const currentPwChanged = dbUser?.passwordChangedAt?.getTime() ?? 0;
         if (!dbUser || currentPwChanged > ((token.pwChangedAt as number) || 0)) return {} as typeof token;
         token.lastPwCheck = Date.now();
+        const now = new Date();
+        const cutoff = new Date(now.getTime() - 5 * 60_000);
+        // Repeated client session checks should not write SQLite on every request.
+        if (!dbUser.lastSeenAt || dbUser.lastSeenAt < cutoff) {
+          await db.user.updateMany({
+            where: { id: token.id as string, passwordChangedAt: dbUser.passwordChangedAt, OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: cutoff } }] },
+            data: { lastSeenAt: now },
+          }).catch(() => { console.warn("[auth] Could not record account activity"); });
+        }
       }
       return token;
     },

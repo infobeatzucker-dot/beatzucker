@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
 function load(file,extra={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,require,Response,Buffer,URL,URLSearchParams,TextDecoder,Uint8Array,process:{env:{NEXTAUTH_URL:'https://beatzucker.de'}},setTimeout,clearTimeout,...extra});return module.exports;}
-const route=load('app/api/report/route.ts');
+const route=load('app/api/report/route.ts',{require:name=>name==='@/lib/masteringStages'?load('lib/masteringStages.ts'):require(name)});
 const request=(value,headers={})=>new Request('https://beatzucker.de/api/report',{method:'POST',headers:{Origin:'https://beatzucker.de',...headers},body:value});
 const post=(payload,headers={})=>route.POST(request(new URLSearchParams({data:JSON.stringify(payload)}),headers));
 (async()=>{
@@ -8,6 +8,11 @@ const post=(payload,headers={})=>route.POST(request(new URLSearchParams({data:JS
   const payload={filename:'Änderung <script>alert(1)</script>.wav',lang,pre:{integrated_lufs:-20,channels:2},post:{integrated_lufs:-9,true_peak:-1},notes:'Großer Bericht ü & '.repeat(3000),params:{target_lufs:-9,presence_gain:1.5},manualOverrides:{presence_gain:1.5},availableFormats:['wav24','mp3320']};
   const response=await post(payload);assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/text\/html/);assert.match(response.headers.get('cache-control'),/no-store/);assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);const html=await response.text();assert.ok(html.includes(lang==='de'?'Mastering-Bericht':'Mastering report'));assert.ok(html.includes('Änderung &lt;script&gt;'));assert.ok(!html.includes('<script>alert(1)</script>'));assert.ok(html.includes(lang==='de'?'MANUELL':'MANUAL'));assert.ok(html.includes('MP3 320 kbps'));assert.ok(html.includes('Großer Bericht ü &amp;'));
  }
+ const stageHtml=await (await post({lang:'en',stageEvents:['dc','final_eq_skipped','dithering_skipped']})).text();
+ assert.match(stageHtml,/DC removal<br\/><small>Applied/);
+ assert.match(stageHtml,/Final EQ<br\/><small>Skipped/);
+ assert.match(stageHtml,/Dithering<br\/><small>Skipped/);
+ assert.match(stageHtml,/Codec verification<br\/><small>Not recorded/);
  for(const invalid of [null,[],42,'bad'])assert.equal((await post(invalid)).status,400);
  assert.equal((await route.POST(request('data=%7Bbad'))).status,415);
  assert.equal((await route.POST(request('data=%7Bbad',{'content-type':'application/x-www-form-urlencoded'}))).status,400);
