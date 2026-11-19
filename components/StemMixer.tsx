@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { AudioLines, Drum, Guitar, Mic2, Music2, Pause, Play, RotateCcw, Waves } from "lucide-react";
+import { AudioLines, Drum, Guitar, Mic2, Music2, Pause, Play, Repeat, RotateCcw, Waves } from "lucide-react";
 import { stopGlobalAudio } from "@/lib/globalAudio";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import type { Lang } from "@/lib/types/mastering";
@@ -52,6 +52,7 @@ export default function StemMixer({ id, demo, stems, lang }: MixerSource & { ste
   const [solo, setSolo] = useState<string[]>([]);
   const [faders, setFaders] = useState<Record<string, number>>({});
   const [playing, setPlaying] = useState(false);
+  const [repeat, setRepeat] = useState(!!demo);
   const [loading, setLoading] = useState(false);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
@@ -150,6 +151,20 @@ export default function StemMixer({ id, demo, stems, lang }: MixerSource & { ste
     });
   }
 
+  function handleEnd() {
+    if (!requested.current || starting.current || !media.current.some(audio => audio?.ended)) return;
+    if (!repeat) {
+      stop();
+      setPosition(duration);
+      return;
+    }
+    pauseMedia();
+    seekTarget.current = null;
+    for (const audio of media.current) if (audio) audio.currentTime = 0;
+    setPosition(0);
+    startMedia();
+  }
+
   function toggle() {
     if (requested.current) { stop(); return; }
     if (media.current.some(audio => !audio || audio.error)) { fail(); return; }
@@ -198,7 +213,7 @@ export default function StemMixer({ id, demo, stems, lang }: MixerSource & { ste
       const players = media.current;
       const main = players[0];
       if (!main || !requested.current || starting.current) return;
-      if (players.some(audio => audio?.ended)) { stop(); setPosition(duration); return; }
+      if (players.some(audio => audio?.ended)) { handleEnd(); return; }
       if (waiting.current) {
         if (performance.now() - waitBegan.current > 15000) { fail(); return; }
         if (players.every(audio => audio && !audio.seeking && audio.readyState >= 3)) {
@@ -229,7 +244,7 @@ export default function StemMixer({ id, demo, stems, lang }: MixerSource & { ste
     return () => clearInterval(timer);
     // Media refs own the transport; only playback and duration restart the clock.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing, duration]);
+  }, [playing, duration, repeat]);
 
   useEffect(() => {
     if (!deck.current || !playing) return;
@@ -284,6 +299,8 @@ export default function StemMixer({ id, demo, stems, lang }: MixerSource & { ste
       <span>{clock(position)}</span>
       <input type="range" min={0} max={duration || 1} step=".01" value={Math.min(position, duration || 1)} disabled={!duration || (loading && !playing)} aria-label={en ? "Shared playback position" : "Gemeinsame Wiedergabeposition"} aria-valuetext={clock(position)} onChange={event => jump(Number(event.target.value))}/>
       <span>{clock(duration)}</span>
+      <button type="button" className="bz-desk-repeat" aria-pressed={repeat} aria-label={en ? "Repeat all tracks" : "Alle Spuren wiederholen"}
+        onClick={() => setRepeat(value => !value)}><Repeat size={17} aria-hidden="true"/><span>Loop</span></button>
     </div>
     {loading && <p role="status">{en ? "Buffering the tracks…" : "Spuren werden gepuffert…"}</p>}
     {error && <p role="alert">{en ? "A track could not be played. Reload to retry. Check whether the result is still available." : "Eine Spur konnte nicht abgespielt werden. Lade die Seite neu und prüfe, ob das Ergebnis noch verfügbar ist."}</p>}
@@ -297,7 +314,7 @@ export default function StemMixer({ id, demo, stems, lang }: MixerSource & { ste
         return <div key={stem} className="bz-stem-strip" data-channel={stem} data-audible={isAudible(stem)}>
           <audio ref={node => { media.current[index] = node; }} preload={demo ? "none" : "metadata"} controlsList="nodownload"
             src={demo ? `/audio/stem-demo/${stem}.mp3` : `/api/stems?id=${id}&asset=${stem}&play=1`}
-            onLoadedMetadata={updateDuration} onError={fail} onEnded={() => { stop(); setPosition(duration); }}/>
+            onLoadedMetadata={updateDuration} onError={fail} onEnded={handleEnd}/>
           <div className="bz-desk-name"><Icon size={17} aria-hidden="true"/><strong>{label}</strong></div>
           <svg viewBox="0 0 508 48" preserveAspectRatio="none" aria-hidden="true"><path ref={node => { waves.current[index] = node; }} d="M0 24H508" className={index % 2 ? "bz-trace-b" : "bz-trace-a"}/></svg>
           <div className="bz-stem-buttons">

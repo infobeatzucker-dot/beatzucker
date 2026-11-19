@@ -11,7 +11,7 @@ import BeforeAfterShowcase from "@/components/BeforeAfterShowcase";
 import Footer from "@/components/Footer";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import ScrollToTop from "@/components/ScrollToTop";
-import PromoPopup from "@/components/PromoPopup";
+import HomePopups from "@/components/HomePopups";
 import MasteringJsonLd from "@/components/MasteringJsonLd";
 import MasterOverview, { type MasterOverviewData } from "@/components/MasterOverview";
 import MasteringGuideSection from "@/components/MasteringGuideSection";
@@ -142,7 +142,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
 
       <Footer lang={lang} />
       <ScrollToTop lang={lang} />
-      <PromoPopup />
+      <HomePopups lang={lang}/>
     </div>
   );
 }

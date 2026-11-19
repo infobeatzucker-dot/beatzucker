@@ -42,7 +42,7 @@
 .bz-desk-led::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #11151c; box-shadow: 0 0 0 2px #ffffff27; }
 .bz-desk-led[data-playing="true"]::before { background: var(--desk-live); box-shadow: 0 0 10px #7ee6c0aa; }
 .bz-stem-transport {
-  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto;
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto;
   align-items: center; gap: 9px; margin: 13px 0 12px; padding: 6px 9px;
   border: 1px solid #080b11; border-radius: 9px;
   color: var(--desk-live); background: #11171e;
@@ -50,6 +50,12 @@
   font: .76rem ui-monospace, monospace;
 }
 .bz-stem-transport input { accent-color: var(--desk-live); width: 100%; min-width: 0; }
+.stem-lab .bz-stem-mixer .bz-stem-transport .bz-desk-repeat { display: flex; gap: 5px; padding-inline: 7px; font-weight: 750; }
+.stem-lab .bz-stem-mixer .bz-stem-transport .bz-desk-repeat[aria-pressed="true"] {
+  border-color: var(--desk-live); color: var(--desk-live); background: var(--desk-screen);
+  box-shadow: inset 0 1px var(--desk-live), 0 0 8px color-mix(in srgb, var(--desk-live) 42%, transparent);
+}
+@media (max-width: 430px) { .bz-desk-repeat span { display: none; } }
 .stem-lab .bz-stem-mixer :is(.bz-stem-transport, .bz-stem-buttons, .bz-desk-readout) button {
   display: grid; place-items: center; min-width: 32px; min-height: 33px; padding: 0;
   border: 1px solid #101319; border-radius: 5px; color: var(--desk-ink);

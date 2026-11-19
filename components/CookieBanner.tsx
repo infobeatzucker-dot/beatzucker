@@ -37,6 +37,7 @@ export default function CookieBanner() {
   function accept() {
     try { localStorage.setItem(STORAGE_KEY, "accepted"); } catch { /* The notice can still be dismissed for this visit. */ }
     setVisible(false);
+    window.dispatchEvent(new Event("beatzucker-cookie-notice-closed"));
   }
 
   if (!mounted || !visible) return null;

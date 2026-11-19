@@ -10,6 +10,14 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"2.2.0",date:"2026-11-19",
+  title:{de:"Spuren im Loop hören",en:"Play separated tracks on repeat"},
+  summary:{de:"Probiere die Spurenmixer mit laufender Wiederholung aus. Auf der Startseite erklärt ein Spendenaufruf, wie du den Ausbau von Beatzucker unterstützen kannst.",en:"Explore the stem mixers with continuous playback. The homepage donation appeal explains how you can support Beatzucker’s growth."},
+  improvements:{
+    de:["In den Demos von Vocal Remover und Stem Separation ist Loop beim Start an. Auch deine eigenen getrennten Spuren kannst du auf Wunsch wiederholen."],
+    en:["Loop is on by default in the Vocal Remover and Stem Separation demos. You can also turn on repeat for your own separated tracks."],
+  },
+}, {
   version:"2.1.0",date:"2026-11-19",
   title:{de:"Die Spurenmixer jetzt direkt ausprobieren",en:"Try the stem mixers right away"},
   summary:{de:"Hör dir einen echten Demosong im Vocal Remover oder Stem Splitter an und probiere die Regler aus.",en:"Hear an actual demo song in the Vocal Remover or Stem Splitter and try the controls."},

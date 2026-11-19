@@ -9,6 +9,7 @@ import ToolUsageStats from "@/components/admin/ToolUsageStats";
 import UserDailyLimit from "@/components/admin/UserDailyLimit";
 import UserStemAccess from "@/components/admin/UserStemAccess";
 import ShowcaseManager from "@/components/admin/ShowcaseManager";
+import DonationPopupSetting from "@/components/admin/DonationPopupSetting";
 import { useUiLanguage } from "@/lib/useUiLanguage";
 
 interface Stats {
@@ -335,6 +336,7 @@ export default function AdminPage() {
           ))}
         </div>
 
+        <DonationPopupSetting lang={lang}/>
         <ToolUsageStats />
         <ShowcaseManager />
 
