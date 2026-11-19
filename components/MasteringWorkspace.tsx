@@ -376,6 +376,33 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
     isOpen={appState === "mastering"} completed={appState === "done" && !masteringError}
     step={currentProgress} lang={lang} inline={Boolean(studio)}
   />;
+  const uploadCard = (
+    <AnimatePresence mode="wait">
+      {(appState === "idle" || appState === "uploaded" || appState === "analyzing") && (
+        <motion.div
+          key="upload"
+          className="dashboard-upload-card"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+        >
+          <UploadZone
+            key={uploadCycle}
+            controllerRef={uploadController}
+            onStatusChange={setUploadStatus}
+            onUploadComplete={handleUploadComplete}
+            onAnalysisComplete={handleAnalysisComplete}
+            setAppState={setAppState}
+            uploadedFile={uploadedFile}
+            isAuthenticated={sessionStatus === "authenticated"}
+            onSignInClick={() => setAuthOpen(true)}
+            lang={lang}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
   const manualEditor = uploadedFile && <ManualAdjustModal
     inline={Boolean(studio)} open={adjustOpen} onClose={closeManualAdjust} lang={lang}
     fileId={uploadedFile.file_id} uploadToken={uploadedFile.upload_token} filename={uploadedFile.filename}
@@ -427,6 +454,7 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
               <span className="ready-status"><i /> {T.ready[lang]}</span>
             </div>
 
+            {studio && uploadCard}
             {studio && <div className="beta-monitor-bay" id="beta-monitor">
               <studio.Transport key={uploadedFile?.file_id ?? "demo"} filename={uploadedFile?.filename} lang={lang} />
               <studio.Workflow state={appState} before={analysis} after={masterData?.post_analysis ?? null} lang={lang} />
@@ -502,31 +530,7 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
                 <PlatformTargets value={platform} onChange={setPlatform} customLufs={customLufs} onCustomLufsChange={setCustomLufs} lang={lang} />
               </div>
 
-              <AnimatePresence mode="wait">
-                {(appState === "idle" || appState === "uploaded" || appState === "analyzing") && (
-                  <motion.div
-                    key="upload"
-                    className="dashboard-upload-card"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <UploadZone
-                      key={uploadCycle}
-                      controllerRef={uploadController}
-                      onStatusChange={setUploadStatus}
-                      onUploadComplete={handleUploadComplete}
-                      onAnalysisComplete={handleAnalysisComplete}
-                      setAppState={setAppState}
-                      uploadedFile={uploadedFile}
-                      isAuthenticated={sessionStatus === "authenticated"}
-                      onSignInClick={() => setAuthOpen(true)}
-                      lang={lang}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {!studio && uploadCard}
 
               <div className="dashboard-control-card preset-card">
                 <PresetSelector value={preset} onChange={setPreset} lang={lang} />
@@ -537,6 +541,11 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
                 )}
               </div>
             </div>
+
+            {studio && <studio.Actions lang={lang} state={appState} canStart={expressCanStart}
+              format={selectedFormat} formats={FORMAT_OPTIONS} onFormat={setSelectedFormat}
+              onStart={() => void handleRun()} onManual={openManualAdjust} onRemaster={handleRemaster}
+            />}
 
             <div className="dashboard-secondary-grid" id={studio ? "beta-references" : undefined}>
               {!studio && <MasteringIntensity value={intensity} onChange={setIntensity} lang={lang} />}
@@ -549,11 +558,6 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
                 lang={lang}
               />
             </div>
-
-            {studio && <studio.Actions lang={lang} state={appState} canStart={expressCanStart}
-              format={selectedFormat} formats={FORMAT_OPTIONS} onFormat={setSelectedFormat}
-              onStart={() => void handleRun()} onManual={openManualAdjust} onRemaster={handleRemaster}
-            />}
 
             {studio && <>
               {progressPanel}

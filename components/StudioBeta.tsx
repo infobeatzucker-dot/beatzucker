@@ -210,8 +210,8 @@ function Actions({ lang, state, canStart, format, formats, onFormat, onStart, on
       <button type="button" onClick={onRemaster}>{en ? "Remaster" : "Erneut mastern"}</button>
       <StudioFineTuneButton onClick={onManual} label={en ? "Fine-tune" : "Feinabstimmung"} />
       <a className="beta-render-key" href="#beta-exports"><Download size={17}/>Downloads</a>
-    </> : <button type="button" className="beta-render-key" disabled={!canStart} onClick={onStart}>
-      <AudioLines size={19}/>{state === "mastering" ? (en ? "Mastering…" : "Mastering läuft…") : (en ? "Master track" : "Track mastern")}
+    </> : <button type="button" className="beta-render-key beta-master-key" disabled={!canStart} onClick={onStart}>
+      <AudioLines size={23} aria-hidden="true" />{state === "mastering" ? (en ? "Mastering…" : "Mastering läuft…") : (en ? "Master track" : "Track mastern")}
     </button>}
   </div>;
 }

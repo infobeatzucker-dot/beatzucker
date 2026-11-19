@@ -10,6 +10,14 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"2.3.1",date:"2026-11-19",
+  title:{de:"Upload und Mastering-Start im Studio Mode leichter finden",en:"Find upload and mastering more easily in Studio Mode"},
+  summary:{de:"Das Upload-Feld steht jetzt am Anfang der Konsole. Der größere Master-Button leuchtet kurz auf, sobald dein Track bereit ist.",en:"The upload area is now at the top of the console. The larger Master button glows briefly when your track is ready."},
+  improvements:{
+    de:["Auf kleinen Bildschirmen nutzt der Master-Button die volle Breite. Die Animationen folgen deiner Einstellung für reduzierte Bewegung."],
+    en:["The Master button uses the full width on small screens. Animations respect your reduced-motion setting."],
+  },
+}, {
   version:"2.3.0",date:"2026-11-19",
   title:{de:"Studio Mode mit integrierter Feinabstimmung",en:"Studio Mode with built-in fine-tuning"},
   summary:{de:"Im Studio Mode findest du Analyse, Mastering, Hörvergleich und Export in einer Konsole. Starte auf der Startseite über „Studio Mode ausprobieren“.",en:"Studio Mode puts analysis, mastering, listening comparisons and export in one console. Open it from the homepage using “Try Studio Mode”."},
