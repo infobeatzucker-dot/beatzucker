@@ -14,6 +14,7 @@ interface AuthModalProps {
   initialView?: View;
   resetToken?: string;
   lang?: Lang;
+  returnTo?: string;
 }
 
 // ── Shared input style ────────────────────────────────────────────────
@@ -99,7 +100,7 @@ function GoogleIcon() {
 }
 
 // ── AuthModal ─────────────────────────────────────────────────────────
-export default function AuthModal({ open, onClose, initialView = "login", resetToken, lang = "de" }: AuthModalProps) {
+export default function AuthModal({ open, onClose, initialView = "login", resetToken, lang = "de", returnTo }: AuthModalProps) {
   const [view, setView]           = useState<View>(initialView);
   const [email, setEmail]         = useState("");
   const [password, setPassword]   = useState("");
@@ -140,7 +141,7 @@ export default function AuthModal({ open, onClose, initialView = "login", resetT
       const response = await fetch("/api/auth/consent", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accepted: true, version: TERMS_VERSION, lang }) });
       if (!response.ok) throw Error();
-      await signIn("google", { callbackUrl: home });
+      await signIn("google", { callbackUrl: returnTo ?? home });
     }
     catch { networkError(); }
     finally { setLoading(false); }

@@ -8,9 +8,9 @@ const browser=await chromium.launch({channel:'chrome',headless:true,args:['--mut
 const page=await context.newPage();await page.goto(base+'/tools/stem-separation');await page.getByRole('button',{name:'Verstanden',exact:true}).click();
 const sr=44100,n=sr*2,b=Buffer.alloc(44+n*4);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(2,22);b.writeUInt32LE(sr,24);b.writeUInt32LE(sr*4,28);b.writeUInt16LE(4,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(n*4,40);for(let i=0;i<n;i++){const v=Math.round(Math.sin(i/sr*2*Math.PI*220)*4000);b.writeInt16LE(v,44+i*4);b.writeInt16LE(v,46+i*4)}
 await page.locator('input[type=file]').setInputFiles({name:'Lokale-Demodatei.wav',mimeType:'audio/wav',buffer:b});await page.getByRole('button',{name:'Ganzen Track trennen',exact:true}).click();await page.getByText('Deine Spuren sind bereit',{exact:true}).waitFor({timeout:120000});
-await page.getByRole('button',{name:'Alle Spuren abspielen',exact:true}).click();
+await page.locator('.stem-results').getByRole('button',{name:'Alle Spuren abspielen',exact:true}).click();
 await page.waitForFunction(()=>{
- const tracks=[...document.querySelectorAll('.bz-stem-strip audio')];
+ const tracks=[...document.querySelectorAll('.stem-results .bz-stem-strip audio')];
  return tracks.length===4&&tracks.every(track=>track.readyState>=2&&!track.paused);
 });
 if(await page.locator('.stem-downloads a').count()!==4)throw Error('Full-access stem downloads missing');

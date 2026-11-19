@@ -122,7 +122,7 @@ async function themeCheck(page, selector) {
       const mail=new URL(await dialog.getByRole("link",{name:send}).getAttribute("href"));
       assert.equal(mail.pathname,"info@re-beatz.com");
       const draft=mail.searchParams.get("body");
-      assert.ok(draft.includes(path)&&draft.includes("v2.0.0")&&draft.includes("Beim Export"));
+      assert.ok(draft.includes(path)&&draft.includes(`v${require("../package.json").version}`)&&draft.includes("Beim Export"));
       assert.ok(!draft.includes("qa-private")&&!draft.includes("#studio-guide"));
       await page.keyboard.press("Escape");
       await dialog.waitFor({state:"hidden"});

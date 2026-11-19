@@ -10,6 +10,14 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"2.1.0",date:"2026-11-19",
+  title:{de:"Die Spurenmixer jetzt direkt ausprobieren",en:"Try the stem mixers right away"},
+  summary:{de:"Hör dir einen echten Demosong im Vocal Remover oder Stem Splitter an und probiere die Regler aus.",en:"Hear an actual demo song in the Vocal Remover or Stem Splitter and try the controls."},
+  improvements:{
+    de:["Vocal Remover und Stem Separation haben eine Hördemo ohne Anmeldung. Mit Fadern, Solo und Mute kannst du jede Spur im Mischpult einzeln prüfen."],
+    en:["Vocal Remover and Stem Separation offer a listening demo without an account. Use faders, solo and mute to inspect each track in the mixer."],
+  },
+}, {
   version:"2.0.0",date:"2026-11-19",
   title:{de:"Beatzucker 2.0 mit neuem Studio-Look",en:"Beatzucker 2.0 brings a new studio look"},
   summary:{de:"Vergleiche Original und Master anhand gemessener Werte und spring direkt zu markanten Pegeländerungen. Drei Audio-Tools zeigen dir mehr vom Signal.",en:"Compare original and master using measured data, and jump to distinct level changes. Three audio tools show you more of the signal."},

@@ -32,7 +32,10 @@ function faderDb(value: number) {
   return 6;
 }
 
-export default function StemMixer({ id, stems, lang }: { id: string; stems: string[]; lang: Lang }) {
+type MixerSource = { id: string; demo?: false } | { id?: never; demo: true };
+const mixerPlay = "beatzucker-stem-mixer-play";
+
+export default function StemMixer({ id, demo, stems, lang }: MixerSource & { stems: string[]; lang: Lang }) {
   const en = lang === "en";
   const deck = useRef<HTMLDivElement>(null);
   const media = useRef<(HTMLAudioElement | null)[]>([]);
@@ -151,6 +154,7 @@ export default function StemMixer({ id, stems, lang }: { id: string; stems: stri
     if (requested.current) { stop(); return; }
     if (media.current.some(audio => !audio || audio.error)) { fail(); return; }
     stopGlobalAudio();
+    document.dispatchEvent(new CustomEvent(mixerPlay, { detail: deck.current }));
     setError(false);
     requested.current = true;
     setLoading(true);
@@ -250,7 +254,13 @@ export default function StemMixer({ id, stems, lang }: { id: string; stems: stri
 
   useEffect(() => {
     const players = [...media.current];
+    const element = deck.current;
+    function pauseOther(event: Event) {
+      if ((event as CustomEvent).detail !== element && requested.current) stop();
+    }
+    document.addEventListener(mixerPlay, pauseOther);
     return () => {
+      document.removeEventListener(mixerPlay, pauseOther);
       attempt.current++;
       requested.current = starting.current = waiting.current = false;
       for (const player of players) player?.pause();
@@ -266,7 +276,7 @@ export default function StemMixer({ id, stems, lang }: { id: string; stems: stri
 
   return <div ref={deck} className="bz-stem-mixer">
     <header className="bz-desk-header">
-      <h2><AudioLines size={20}/>{en ? "Stem mixer" : "Spurenmixer"}</h2>
+      <h2><AudioLines size={20}/>{demo ? (en ? "Demo mixer" : "Demo-Mischpult") : en ? "Stem mixer" : "Spurenmixer"}</h2>
       <span className="bz-desk-led" data-playing={playing && !loading}>{loading ? (en ? "Buffering" : "Puffert") : playing ? (en ? "Playing" : "Wiedergabe") : (en ? "Stopped" : "Gestoppt")}</span>
     </header>
     <div className="bz-stem-transport">
@@ -285,7 +295,9 @@ export default function StemMixer({ id, stems, lang }: { id: string; stems: stri
         const db = faderDb(value);
         const readout = value === 0 ? "−∞" : `${db > 0 ? "+" : ""}${db.toLocaleString(lang, { maximumFractionDigits: 1 })}`;
         return <div key={stem} className="bz-stem-strip" data-channel={stem} data-audible={isAudible(stem)}>
-          <audio ref={node => { media.current[index] = node; }} preload="metadata" controlsList="nodownload" src={`/api/stems?id=${id}&asset=${stem}&play=1`} onLoadedMetadata={updateDuration} onError={fail} onEnded={() => { stop(); setPosition(duration); }}/>
+          <audio ref={node => { media.current[index] = node; }} preload={demo ? "none" : "metadata"} controlsList="nodownload"
+            src={demo ? `/audio/stem-demo/${stem}.mp3` : `/api/stems?id=${id}&asset=${stem}&play=1`}
+            onLoadedMetadata={updateDuration} onError={fail} onEnded={() => { stop(); setPosition(duration); }}/>
           <div className="bz-desk-name"><Icon size={17} aria-hidden="true"/><strong>{label}</strong></div>
           <svg viewBox="0 0 508 48" preserveAspectRatio="none" aria-hidden="true"><path ref={node => { waves.current[index] = node; }} d="M0 24H508" className={index % 2 ? "bz-trace-b" : "bz-trace-a"}/></svg>
           <div className="bz-stem-buttons">
@@ -309,6 +321,8 @@ export default function StemMixer({ id, stems, lang }: { id: string; stems: stri
         </div>;
       })}
     </div>
-    <p className="bz-desk-note">{en ? "Faders control playback. WAV downloads use the original stem levels." : "Die Fader regeln die Wiedergabe. WAV-Downloads behalten die Originalpegel der Spuren."}</p>
+    <p className="bz-desk-note">{demo
+      ? (en ? "Faders, mute and solo let you explore this demo mix." : "Mit Fadern, Mute und Solo kannst du diesen Demo-Mix erkunden.")
+      : (en ? "Faders control playback. WAV downloads use the original stem levels." : "Die Fader regeln die Wiedergabe. WAV-Downloads behalten die Originalpegel der Spuren.")}</p>
   </div>;
 }

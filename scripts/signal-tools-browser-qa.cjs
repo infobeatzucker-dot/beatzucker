@@ -73,6 +73,7 @@ async function stems(page) {
   const id = "a".repeat(32);
   const files = { vocals:tone(220), drums:tone(60), bass:tone(90), other:tone(440) };
   let rangeRequests = 0;
+  await page.route("**/api/auth/session", route => route.fulfill({ json:{ user:{ id:"isolated-qa", name:"Isolated QA" }, expires:"2099-01-01T00:00:00Z" } }));
   await page.route("**/api/stems**", async route => {
     const url = new URL(route.request().url());
     const audio = files[url.searchParams.get("asset")];
@@ -86,42 +87,43 @@ async function stems(page) {
     return route.fulfill({ status:206, body:audio.subarray(first, last + 1), headers:{ ...headers, "content-range":`bytes ${first}-${last}/${audio.length}` } });
   });
   await page.goto("/en/tools/stem-separation");
-  await page.getByRole("heading", { name:"Stem mixer" }).waitFor();
-  await page.getByRole("button", { name:"Play all tracks" }).click();
-  await page.waitForFunction(() => [...document.querySelectorAll(".bz-stem-strip audio")].every(audio => !audio.paused && audio.currentTime > .25));
-  await page.locator(".bz-stem-meter i[style]").first().waitFor();
-  assert.notEqual(await page.locator(".bz-stem-strip path").first().getAttribute("d"), "M0 24H508");
-  const fader = page.getByRole("slider", { name:"Vocals level", exact:true });
-  const vocals = page.locator('[data-channel="vocals"]');
+  const mixer = page.locator(".stem-results .bz-stem-mixer");
+  await mixer.getByRole("heading", { name:"Stem mixer" }).waitFor();
+  await mixer.getByRole("button", { name:"Play all tracks" }).click();
+  await page.waitForFunction(() => [...document.querySelectorAll(".stem-results .bz-stem-strip audio")].every(audio => !audio.paused && audio.currentTime > .25));
+  await mixer.locator(".bz-stem-meter i[style]").first().waitFor();
+  assert.notEqual(await mixer.locator(".bz-stem-strip path").first().getAttribute("d"), "M0 24H508");
+  const fader = mixer.getByRole("slider", { name:"Vocals level", exact:true });
+  const vocals = mixer.locator('[data-channel="vocals"]');
   const meter = vocals.locator(".bz-stem-meter i");
   assert.equal(await fader.getAttribute("aria-valuetext"), "0 dB");
   await fader.press("Home");
   assert.equal(await fader.getAttribute("aria-valuetext"), "−∞ dB");
-  await page.waitForFunction(() => document.querySelector('[data-channel="vocals"] .bz-stem-meter i')?.style.getPropertyValue("--level") === "0");
+  await page.waitForFunction(() => document.querySelector('.stem-results [data-channel="vocals"] .bz-stem-meter i')?.style.getPropertyValue("--level") === "0");
   await fader.press("End");
   assert.equal(await fader.getAttribute("aria-valuetext"), "+6 dB");
-  await page.waitForFunction(() => Number(document.querySelector('[data-channel="vocals"] .bz-stem-meter i')?.style.getPropertyValue("--level")) > 0);
+  await page.waitForFunction(() => Number(document.querySelector('.stem-results [data-channel="vocals"] .bz-stem-meter i')?.style.getPropertyValue("--level")) > 0);
   await vocals.getByRole("button", { name:"Reset Vocals level" }).click();
   assert.equal(await fader.getAttribute("aria-valuetext"), "0 dB");
   const initialLevel = Number(await meter.evaluate(element => element.style.getPropertyValue("--level")));
   const bounds = await fader.boundingBox();
   await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height * .7);
-  await page.waitForFunction(level => Number(document.querySelector('[data-channel="vocals"] .bz-stem-meter i')?.style.getPropertyValue("--level")) < level, initialLevel);
-  assert.equal(await page.getByRole("slider", { name:"Bass level", exact:true }).getAttribute("aria-valuetext"), "0 dB");
-  await page.getByRole("button", { name:"Solo · Bass", exact:true }).click();
-  assert.equal(await page.locator('.bz-stem-strip[data-audible="true"]').count(), 1);
-  await page.getByRole("button", { name:"Mute Bass", exact:true }).click();
-  assert.equal(await page.locator('.bz-stem-strip[data-audible="true"]').count(), 0);
-  const timeline = page.getByRole("slider", { name:"Shared playback position" });
+  await page.waitForFunction(level => Number(document.querySelector('.stem-results [data-channel="vocals"] .bz-stem-meter i')?.style.getPropertyValue("--level")) < level, initialLevel);
+  assert.equal(await mixer.getByRole("slider", { name:"Bass level", exact:true }).getAttribute("aria-valuetext"), "0 dB");
+  await mixer.getByRole("button", { name:"Solo · Bass", exact:true }).click();
+  assert.equal(await mixer.locator('.bz-stem-strip[data-audible="true"]').count(), 1);
+  await mixer.getByRole("button", { name:"Mute Bass", exact:true }).click();
+  assert.equal(await mixer.locator('.bz-stem-strip[data-audible="true"]').count(), 0);
+  const timeline = mixer.getByRole("slider", { name:"Shared playback position" });
   await timeline.fill("4");
-  await page.waitForFunction(() => [...document.querySelectorAll(".bz-stem-strip audio")].every(audio => !audio.paused && audio.currentTime >= 4));
-  const times = await page.locator(".bz-stem-strip audio").evaluateAll(nodes => nodes.map(node => node.currentTime));
+  await page.waitForFunction(() => [...document.querySelectorAll(".stem-results .bz-stem-strip audio")].every(audio => !audio.paused && audio.currentTime >= 4));
+  const times = await mixer.locator(".bz-stem-strip audio").evaluateAll(nodes => nodes.map(node => node.currentTime));
   assert.ok(Math.max(...times) - Math.min(...times) < .18);
-  await page.getByRole("button", { name:"Pause all tracks" }).click();
-  assert.ok(await page.locator(".bz-stem-strip audio").evaluateAll(nodes => nodes.every(node => node.paused)));
+  await mixer.getByRole("button", { name:"Pause all tracks" }).click();
+  assert.ok(await mixer.locator(".bz-stem-strip audio").evaluateAll(nodes => nodes.every(node => node.paused)));
   assert.equal(await page.locator(".stem-downloads a").count(), 0);
   assert.ok(rangeRequests >= 4);
-  const paletteCount = await page.locator(".bz-stem-mixer").evaluate(deck => {
+  const paletteCount = await mixer.evaluate(deck => {
     const root = document.documentElement, previous = root.dataset.uiTheme;
     const colors = ["original","light","analog","aurora","sandstone","obsidian-gold","midnight-cobalt","velvet-plum","arctic-ice","pistachio-studio","rose-quartz"].map(theme => {
       root.dataset.uiTheme = theme;
@@ -133,16 +135,64 @@ async function stems(page) {
   assert.equal(paletteCount, 11);
   if (process.env.QA_STEM_SCREENSHOT) {
     await page.setViewportSize({ width:1440, height:1050 });
-    await page.getByRole("button", { name:"Mute Bass", exact:true }).click();
-    await page.getByRole("button", { name:"Solo · Bass", exact:true }).click();
+    await mixer.getByRole("button", { name:"Mute Bass", exact:true }).click();
+    await mixer.getByRole("button", { name:"Solo · Bass", exact:true }).click();
     await timeline.fill("1");
-    await page.getByRole("button", { name:"Play all tracks" }).click();
-    await page.waitForFunction(() => [...document.querySelectorAll(".bz-stem-meter i")].every(el => Number(el.style.getPropertyValue("--level")) > 0));
-    await page.locator(".bz-stem-mixer").screenshot({ path:process.env.QA_STEM_SCREENSHOT, style:"header.fixed { visibility: hidden; }" });
-    await page.getByRole("button", { name:"Pause all tracks" }).click();
+    await mixer.getByRole("button", { name:"Play all tracks" }).click();
+    await page.waitForFunction(() => [...document.querySelectorAll(".stem-results .bz-stem-meter i")].every(el => Number(el.style.getPropertyValue("--level")) > 0));
+    await mixer.screenshot({ path:process.env.QA_STEM_SCREENSHOT, style:"header.fixed { visibility: hidden; }" });
+    await mixer.getByRole("button", { name:"Pause all tracks" }).click();
     await page.setViewportSize({ width:390, height:844 });
   }
-  console.log("PASS stem mixer: four WAV streams, real fader gain, keyboard/pointer/reset, solo/mute, common seek/pause and trial restriction");
+  await timeline.fill("1");
+  await mixer.getByRole("button", { name:"Play all tracks" }).click();
+  await page.waitForFunction(() => [...document.querySelectorAll(".stem-results audio")].every(audio => !audio.paused));
+  const demo = page.locator("#demo");
+  await demo.getByRole("button", { name:"Play all tracks" }).click();
+  assert.ok(await mixer.locator("audio").evaluateAll(nodes => nodes.every(node => node.paused)));
+  await demo.getByRole("button", { name:"Pause all tracks" }).click();
+  console.log("PASS stem mixer: four WAV streams, fader gain, solo/mute, seek, trial restriction and exclusive preview playback");
+}
+
+async function publicDemos(page) {
+  const requests = [];
+  let workerRequests = 0;
+  const observe = request => { if (request.url().includes("/audio/stem-demo/")) requests.push(request.url()); };
+  page.on("request", observe);
+  await page.route("**/api/stems", route => { workerRequests++; return route.fulfill({ status:401, json:{ error:"Unauthorized" } }); });
+  for (const [prefix, lang] of [["","de"],["/en","en"]]) {
+    for (const [slug, count] of [["vocal-remover",2],["stem-separation",4]]) {
+      requests.length = 0;
+      await page.goto(`${prefix}/tools/${slug}`);
+      const demo = page.locator("#demo");
+      const signIn = page.getByRole("button", { name:lang === "en" ? "Sign in to try your own song" : "Für deinen eigenen Song anmelden" });
+      await signIn.waitFor();
+      assert.equal(await demo.locator(".bz-stem-strip").count(),count);
+      assert.equal(await demo.locator("audio[preload=none]").count(), count);
+      assert.equal(requests.length, 0);
+      assert.equal(await demo.locator("a[download]").count(), 0);
+      assert.ok(await page.locator("link[rel=canonical]").getAttribute("href").then(url => url.endsWith(`/tools/${slug}`)));
+      assert.equal(await page.locator("link[hreflang]").count(), 3);
+      if (slug === "vocal-remover") {
+        await signIn.click();
+        await page.locator("input[type=email]:visible").first().waitFor();
+        await page.keyboard.press("Escape");
+        await page.goto(`${prefix}/tools/${slug}`);
+      }
+      await demo.getByRole("button", { name:lang === "en" ? "Play all tracks" : "Alle Spuren abspielen" }).click();
+      await page.waitForFunction(() => {
+        const tracks = [...document.querySelectorAll("#demo audio")];
+        return tracks.length && tracks.every(audio => !audio.paused && audio.currentTime > .25);
+      });
+      await demo.getByRole("button", { name:lang === "en" ? "Solo · Vocals" : "Solo · Stimme", exact:true }).click();
+      assert.equal(await demo.locator('[data-audible="true"]').count(),1);
+      assert.equal(new Set(requests).size,count);
+    }
+  }
+  await page.unroute("**/api/stems");
+  page.off("request",observe);
+  assert.equal(workerRequests,0);
+  console.log("PASS public DE/EN demos: real two/four stem playback, solo, no audio preload, sign-in, canonical and languages");
 }
 
 (async () => {
@@ -153,7 +203,7 @@ async function stems(page) {
     await context.addInitScript(() => localStorage.setItem("beatzucker_cookie_consent", "accepted"));
     const page = await context.newPage(), errors = [];
     page.on("pageerror", error => errors.push(error.message));
-    for (const check of [cutter, conflict, stems]) {
+    for (const check of [cutter, conflict, publicDemos, stems]) {
       await check(page);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     }

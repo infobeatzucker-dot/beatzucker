@@ -23,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...pair("/versionen", "/en/updates", RELEASE_DATE, 0.5),
     ...pair("/hoervergleich", "/en/mastering-examples", "2026-10-18", 0.8),
     ...pair("/mix-check", "/en/mix-check", GUIDANCE_UPDATED, 0.9),
-    ...pair("/tools", "/en/tools", "2026-10-18", 0.9),
+    ...pair("/tools", "/en/tools", "2026-11-19", 0.9),
     ...["vocal-remover", "stem-separation"].flatMap(slug => pair(`/tools/${slug}`, `/en/tools/${slug}`, "2026-11-19", 0.6)),
     ...Object.keys(TOOL_GUIDES).filter(slug => slug !== "mix-check").flatMap(slug =>
       pair(`/tools/${slug}`, `/en/tools/${slug}`, ["album-consistency","vocal-chain","kick-bass-conflict","audio-cutter"].includes(slug) ? "2026-11-19" : ["speech-cleaner","stereo-phase","wav-to-mp3"].includes(slug) ? "2026-10-18" : "2026-10-17", 0.8)),
