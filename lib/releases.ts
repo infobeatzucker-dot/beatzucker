@@ -10,6 +10,24 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"2.3.0",date:"2026-11-19",
+  title:{de:"Studio Mode mit integrierter Feinabstimmung",en:"Studio Mode with built-in fine-tuning"},
+  summary:{de:"Im Studio Mode findest du Analyse, Mastering, Hörvergleich und Export in einer Konsole. Starte auf der Startseite über „Studio Mode ausprobieren“.",en:"Studio Mode puts analysis, mastering, listening comparisons and export in one console. Open it from the homepage using “Try Studio Mode”."},
+  improvements:{
+    de:[
+      "Nach dem ersten Master kannst du EQ, Dynamik und Stereo direkt in der Konsole feinabstimmen, Änderungen im Loop anhören und neu rendern.",
+      "Wellenform und Live-Spektrum reagieren auf die Wiedergabe. Einen Demo-Track kannst du ohne Anmeldung abspielen.",
+      "Der Nach-oben-Pfeil führt zum Anfang der Konsole. Die Exportformate sind in allen Farbschemata lesbar.",
+      "Die Tool-Übersicht zeigt neue Grafiken für die einzelnen Werkzeuge. Neon Studio steht als zusätzliches Farbschema zur Auswahl.",
+    ],
+    en:[
+      "After your first master, fine-tune EQ, dynamics and stereo in the console, listen to changes on a loop and render again.",
+      "The waveform and live spectrum respond to playback. You can play the demo track without signing in.",
+      "The up arrow takes you back to the top of the console. Export formats are readable in every color theme.",
+      "The tools overview has new graphics for each tool. Neon Studio is available as an additional color theme.",
+    ],
+  },
+}, {
   version:"2.2.0",date:"2026-11-19",
   title:{de:"Spuren im Loop hören",en:"Play separated tracks on repeat"},
   summary:{de:"Probiere die Spurenmixer mit laufender Wiederholung aus. Auf der Startseite erklärt ein Spendenaufruf, wie du den Ausbau von Beatzucker unterstützen kannst.",en:"Explore the stem mixers with continuous playback. The homepage donation appeal explains how you can support Beatzucker’s growth."},

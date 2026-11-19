@@ -7,8 +7,6 @@ export default function CharacterDial({value,onChange,lang,sections}:{value:numb
   const en=lang==='en',id=useId(),drag=useRef<{x:number;y:number;value:number;id:number}|null>(null);
   const percent=Math.round(value*100),label=percent<35?(en?'Transparent':'Transparent'):percent>65?(en?'Punch':'Druckvoll'):(en?'Balanced':'Ausgewogen');
   const set=(next:number)=>onChange(Math.round(Math.max(0,Math.min(1,next))*100)/100);
-  const names={quiet:en?'Quieter':'Ruhiger',steady:en?'Steady':'Ausgeglichen',dense:en?'Denser':'Dichter'};
-  const time=(seconds:number)=>`${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
   return <section className="character-card" aria-labelledby={id+'-title'}>
     <div className="character-copy"><span className="character-eyebrow">SONIC CHARACTER</span><h3 id={id+'-title'}>{en?'Make it yours.':'Dein Sound. Dein Charakter.'}</h3>
       <p>{en?'From open and restrained to fuller and more assertive. Shapes compression and saturation—not your loudness target.':'Von offen und zurückhaltend bis voller und druckvoller. Steuert Kompression und Sättigung – nicht dein Lautheitsziel.'}</p>
@@ -26,6 +24,13 @@ export default function CharacterDial({value,onChange,lang,sections}:{value:numb
       <div className="character-knurl"><div className="character-face"/><div className="character-pointer" style={{transform:`rotate(${-135+270*value}deg)`}}><i/></div></div>
       <span className="character-center-mark" aria-hidden="true">✦</span>
     </div><div className="character-ends"><span>{en?'OPEN':'OFFEN'}</span><span>PUNCH</span></div></div>
-    {sections&&<div className="song-sections"><div className="song-sections-heading"><strong>{en?'Your song’s energy map':'Die Energiekarte deines Songs'}</strong><span>{sections.segments.length} {en?(sections.segments.length===1?'region':'regions'):(sections.segments.length===1?'Abschnitt':'Abschnitte')}</span></div><div className="song-sections-tape" role="img" aria-label={sections.segments.map(s=>`${time(s.start)}–${time(s.end)} ${names[s.kind]}`).join(', ')}>{sections.segments.map((s,i)=><span key={i} className={'song-region '+s.kind} style={{flexGrow:s.end-s.start}} title={`${time(s.start)}–${time(s.end)} · ${names[s.kind]}`}/>)}</div><div className="song-sections-legend">{(['quiet','steady','dense'] as const).map(k=><span key={k}><i className={k}/>{names[k]}</span>)}<time>{time(sections.duration)}</time></div><p>{en?'Measured energy and density—not guessed verses or choruses. Gentle transitions reduce bus compression in quieter and denser regions; section levels are not equalized.':'Gemessene Energie und Dichte – keine geratenen Strophen oder Refrains. Weiche Übergänge nehmen Bus-Kompression in ruhigeren und dichteren Bereichen zurück; Abschnittspegel werden nicht angeglichen.'}</p></div>}
+    {sections && <SongEnergyMap sections={sections} lang={lang} />}
   </section>;
+}
+
+export function SongEnergyMap({sections,lang}:{sections:SongSections;lang:Lang}) {
+  const en=lang==='en';
+  const names={quiet:en?'Quieter':'Ruhiger',steady:en?'Steady':'Ausgeglichen',dense:en?'Denser':'Dichter'};
+  const time=(seconds:number)=>`${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
+  return <div className="song-sections"><div className="song-sections-heading"><strong>{en?'Your song’s energy map':'Die Energiekarte deines Songs'}</strong><span>{sections.segments.length} {en?(sections.segments.length===1?'region':'regions'):(sections.segments.length===1?'Abschnitt':'Abschnitte')}</span></div><div className="song-sections-tape" role="img" aria-label={sections.segments.map(s=>`${time(s.start)}–${time(s.end)} ${names[s.kind]}`).join(', ')}>{sections.segments.map((s,i)=><span key={i} className={'song-region '+s.kind} style={{flexGrow:s.end-s.start}} title={`${time(s.start)}–${time(s.end)} · ${names[s.kind]}`}/>)}</div><div className="song-sections-legend">{(['quiet','steady','dense'] as const).map(k=><span key={k}><i className={k}/>{names[k]}</span>)}<time>{time(sections.duration)}</time></div><p>{en?'Measured energy and density—not guessed verses or choruses. Gentle transitions reduce bus compression in quieter and denser regions; section levels are not equalized.':'Gemessene Energie und Dichte – keine geratenen Strophen oder Refrains. Weiche Übergänge nehmen Bus-Kompression in ruhigeren und dichteren Bereichen zurück; Abschnittspegel werden nicht angeglichen.'}</p></div>;
 }

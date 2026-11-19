@@ -29,6 +29,12 @@ const MORE_PLATFORMS: PlatformOption[] = [
   { id: "broadcast", label: "Rundfunk / TV", short: "TV", lufs: "−23", icon: Radio, tone: "#63c8ff" },
 ];
 
+export function platformLoudness(platform: Platform, customLufs: number) {
+  if (platform === "custom") return customLufs;
+  const option = [...PLATFORMS, ...MORE_PLATFORMS].find(item => item.id === platform);
+  return option ? Number(option.lufs.replace("−", "-")) : customLufs;
+}
+
 function BrandMark({ id, icon: Icon }: Pick<PlatformOption, "id" | "icon">) {
   if (Icon) return <Icon size={21} strokeWidth={1.9} aria-hidden="true" />;
   if (id === "spotify") return (

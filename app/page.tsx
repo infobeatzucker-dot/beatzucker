@@ -107,6 +107,10 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
                 <ArrowRight size={20} aria-hidden="true" />
               </a>
 
+              <a href={lang === "en" ? "/en/studio-beta" : "/studio-beta"} style={{ display: "inline-flex", alignItems: "center", gap: 6, margin: "8px 0", color: "var(--accent-cyan)", fontSize: ".82rem", textDecoration: "underline", textUnderlineOffset: "3px" }}>
+                <Sparkles size={14} aria-hidden="true" />{lang === "en" ? "Try Studio Mode" : "Studio Mode ausprobieren"}
+              </a>
+
               <div id="home-express-slot" />
               <div className="hero-usps">
                 {USPS.map(({ icon: Icon, title, desc }) => (

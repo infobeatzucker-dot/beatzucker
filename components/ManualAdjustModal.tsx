@@ -21,6 +21,7 @@ import { normalizeLoopRegion } from "@/lib/manualLoop";
 
 interface Props {
   open: boolean; onClose: () => void; lang?: Lang; fileId: string; uploadToken: string; filename: string;
+  inline?: boolean;
   character?: number;
   durationSec: number; platform: Platform; preset: Preset; intensity: number;
   analysis: AnalysisData | null; referenceAnalysis?: ReferenceInput | null;
@@ -148,7 +149,7 @@ function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null
 
 const emptyBars = Array.from({ length: 240 }, () => .08);
 
-export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, uploadToken, filename, durationSec, analysis, referenceAnalysis, platform, preset, intensity, character = .5, serverParams, onApply }: Props) {
+export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, uploadToken, filename, durationSec, analysis, referenceAnalysis, platform, preset, intensity, character = .5, serverParams, onApply, inline = false }: Props) {
   const base = useMemo(() => seedValues(serverParams), [serverParams]);
   const [values, setValues] = useState<ParamValues>(base), valuesRef = useRef(values); valuesRef.current = values;
   const [tab, setTab] = useState<TabId>("eq");
@@ -218,7 +219,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   }, [open, base, dur, destroyEngine]);
   useEffect(() => destroyEngine, [destroyEngine]);
   useEffect(() => {
-    if (!open) return;
+    if (!open || inline) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
@@ -229,7 +230,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
       window.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [open, handleClose]);
+  }, [open, handleClose, inline]);
 
   useEffect(() => {
     if (!open || !fileId) return;
@@ -361,11 +362,13 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
 
   const tabDefs = PARAM_DEFS.filter((definition) => definition.tab === tab), wide = tab === "ms" || tab === "sat" || tab === "bus";
   if (!open || typeof document === "undefined") return null;
-  return createPortal(<div className="adjust-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) handleClose(); }} role="dialog" aria-modal="true" aria-label={lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}>
-    <motion.div className="adjust-modal bz-hardware bz-manual-rack" onPointerDown={(event) => event.stopPropagation()} initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
-      <header className="adjust-head"><div><h2><span className="adjust-dot" />{lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}<span className="adjust-live-badge"><Radio size={10} /> LIVE</span></h2>
+  const title = lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung";
+  const panel = (
+    <motion.div className="adjust-modal bz-hardware bz-manual-rack" onPointerDown={inline ? undefined : (event) => event.stopPropagation()}
+      initial={inline ? false : { opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
+      <header className="adjust-head"><div><h2><span className="adjust-dot" />{title}<span className="adjust-live-badge"><Radio size={10} /> LIVE</span></h2>
         <p>{filename}{dirty > 0 && <span className="adjust-dirty"> · {dirty} {lang === "en" ? "changed" : "geändert"}</span>}</p></div>
-        <button type="button" className="adjust-close" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleClose(); }} aria-label={lang === "en" ? "Close" : "Schließen"}><X size={16} /></button></header>
+        <button type="button" className="adjust-close" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleClose(); }} aria-label={inline ? (lang === "en" ? "Collapse fine-tuning" : "Feinabstimmung einklappen") : (lang === "en" ? "Close" : "Schließen")}><X size={16} /></button></header>
 
       <div className="adjust-wave-bar bz-rack-transport"><div className="adjust-transport">
         <button type="button" className="adjust-play" onClick={() => void togglePlay()} disabled={engineBusy} aria-label={playing ? (lang === "en" ? "Pause live preview" : "Live-Vorschau pausieren") : (lang === "en" ? "Play live preview" : "Live-Vorschau abspielen")}>{engineBusy ? <Loader2 size={15} className="adjust-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}</button>
@@ -386,7 +389,7 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         {tab === "mb" && <MultibandScope analyser={analyser} playing={playing} lang={lang} />}
         {tabDefs.map((definition) => {
           const value = values[definition.key] ?? definition.min;
-          return <div key={definition.key} className={wide ? "adjust-channel-fixed" : "adjust-channel-flex"}>{tab === "eq"
+          return <div key={definition.key} className={wide ? "adjust-channel-fixed" : "adjust-channel-flex"}>{tab === "eq" || (inline && (tab === "ms" || tab === "bus"))
             ? <StudioDial label={t(definition.label, lang)} reading={formatValue(definition, value)} value={value} min={definition.min} max={definition.max} step={definition.step} change={next => setParam(definition.key, next)} inputClassName="adjust-fadinput"/>
             : <Fader def={definition} value={value} onChange={setParam} lang={lang}/>}</div>;
         })}
@@ -406,5 +409,9 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
         <div className="adjust-live-note"><span />{lang === "en" ? "Instant Web Audio preview · final export uses the full mastering engine" : "Sofortige Web-Audio-Vorschau · finaler Export nutzt die vollständige Mastering-Engine"}</div>
         <button className="adjust-commit" disabled={!dirty} onClick={() => onApply(changedOnly(values, base))}>{lang === "en" ? "Create new master" : "Neuen Master erstellen"}</button></footer>
     </motion.div>
+  );
+  if (inline) return panel;
+  return createPortal(<div className="adjust-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) handleClose(); }} role="dialog" aria-modal="true" aria-label={title}>
+    {panel}
   </div>, document.body);
 }

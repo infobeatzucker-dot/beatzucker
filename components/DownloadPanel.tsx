@@ -21,6 +21,7 @@ interface Props {
   onReset:     () => void;
   onRemaster?: () => void;  // Keep file + analysis, go back to preset selection
   onManualAdjust?: () => void;  // Regler-Panel für die manuelle Nachjustierung öffnen
+  embeddedPlayer?: boolean;
   lang?: Lang;
 }
 
@@ -64,7 +65,7 @@ function resultSummary(masterData: MasterData, platform: string, preset: string,
   return parts.join(" ");
 }
 
-export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster, onManualAdjust, lang = "de" }: Props) {
+export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster, onManualAdjust, embeddedPlayer, lang = "de" }: Props) {
   const downloadHeading = useRef<HTMLHeadingElement>(null), downloadHeadingId = useId();
   const displayNotes = resultSummary(masterData, platform, preset, intensity, lang);
 
@@ -108,9 +109,9 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
   return (
     <div className="mt-6">
       {/* A/B Comparison Player — URLs are provided via AudioEngineContext */}
-      <MasterReadyReveal key={masterData.master_id} lang={lang}>
+      {!embeddedPlayer && <MasterReadyReveal key={masterData.master_id} lang={lang}>
         <ABPlayer filename={filename} lang={lang} monitor={{ original: preAnalysis, master: masterData.post_analysis, download: <DownloadJumpButton target={downloadHeading} targetId={downloadHeadingId} lang={lang} /> }} />
-      </MasterReadyReveal>
+      </MasterReadyReveal>}
       {masterData.post_analysis && <MasteringSoundProfile original={preAnalysis} master={masterData.post_analysis} lang={lang}/>}
 
       {/* Success Banner */}
@@ -307,7 +308,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
             <path d="M3 3v5h5"/>
           </svg>
-          {lang === "de" ? "Neuen Master erstellen" : "Create new master"}
+          {embeddedPlayer ? (lang === "de" ? "Neuen Track laden" : "Load a new track") : (lang === "de" ? "Neuen Master erstellen" : "Create new master")}
         </motion.button>
       </div>
     </div>

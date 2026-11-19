@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, RotateCcw, X, Sparkles, ArrowRight } from "lucide-react";
+import { AlertCircle, RotateCcw, X, Sparkles, ArrowRight, SlidersHorizontal } from "lucide-react";
 import UploadZone, {type UploadZoneHandle,type UploadStatus} from "@/components/UploadZone";
 import { canStartExpress } from "@/lib/expressMastering";
 import AuthModal from "@/components/AuthModal";
@@ -15,10 +15,12 @@ import { stopGlobalAudio } from "@/lib/globalAudio";
 import PlatformTargets from "@/components/PlatformTargets";
 import PresetSelector from "@/components/PresetSelector";
 import MasteringIntensity from "@/components/MasteringIntensity";
+import type { ComponentType } from "react";
 import { type SavedRef, type ReferenceAnalysis as RefAnalysis } from "@/components/ReferenceTrack";
-import CharacterDial from "@/components/CharacterDial";
+import CharacterDial, { SongEnergyMap } from "@/components/CharacterDial";
 import ReferenceMastering from "@/components/ReferenceMastering";
 import MasteringProgressModal from "@/components/MasteringProgressModal";
+import StudioFineTuneButton from "@/components/StudioFineTuneButton";
 import type { ParamValues } from "@/lib/masteringParams";
 import { runMastering } from "@/lib/runMastering";
 import { AudioEngineProvider, useAudioEngine } from "@/contexts/AudioEngineContext";
@@ -39,9 +41,10 @@ const ExpressMasteringAssistant = dynamic(() => import("@/components/ExpressMast
 
 // ── Auto-play master after mastering completes ─────────────────────────────────
 // Must live inside AudioEngineProvider so it can access the audio engine hook.
-function MasterPlayTrigger({ shouldPlay, downloadRef }: {
+function MasterPlayTrigger({ shouldPlay, downloadRef, scroll = true }: {
   shouldPlay: boolean;
   downloadRef: React.RefObject<HTMLDivElement | null>;
+  scroll?: boolean;
 }) {
   const engine = useAudioEngine();
   const didTrigger = useRef(false);
@@ -54,7 +57,7 @@ function MasterPlayTrigger({ shouldPlay, downloadRef }: {
     // Scroll to download/player panel
     const scrollTimer = setTimeout(() => {
       const el = downloadRef.current;
-      if (el) {
+      if (scroll && el) {
         const y = el.getBoundingClientRect().top + window.scrollY - 100;
         window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
       }
@@ -102,9 +105,23 @@ const FORMAT_OPTIONS = [
 interface Props {
   lang: Lang;
   onResultChange?: (result: MasterOverviewData | null) => void;
+  studio?: {
+    Workflow: ComponentType<{ state: AppState; before: AnalysisData | null; after: AnalysisData | null; lang: Lang }>;
+    Transport: ComponentType<{ filename?: string; lang: Lang }>;
+    Controls: ComponentType<{
+      intensity: number; onIntensity: (value: number) => void;
+      character: number; onCharacter: (value: number) => void;
+      customLufs: number; platform: Platform; onLufs: (value: number) => void; lang: Lang;
+    }>;
+    Actions: ComponentType<{
+      lang: Lang; state: AppState; canStart: boolean; format: string;
+      formats: typeof FORMAT_OPTIONS; onFormat: (value: string) => void;
+      onStart: () => void; onManual: () => void; onRemaster: () => void;
+    }>;
+  };
 }
 
-export default function MasteringWorkspace({ lang, onResultChange }: Props) {
+export default function MasteringWorkspace({ lang, onResultChange, studio }: Props) {
   const { data: session, status: sessionStatus } = useSession();
   const [dailyUsed, setDailyUsed] = useState<number | null>(null);
   const [dailyLimit, setDailyLimit] = useState(DAILY_MASTER_LIMIT);
@@ -132,7 +149,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
   const [masteringError, setMasteringError] = useState<string | null>(null);
   const [expressOpen,setExpressOpen] = useState(false);
   const [expressTarget,setExpressTarget] = useState<HTMLElement|null>(null);
-  useEffect(()=>{setExpressTarget(document.getElementById('home-express-slot') ?? document.getElementById('dashboard-express-slot'));},[]);
+  useEffect(()=>{setExpressTarget(document.getElementById(studio ? "beta-express-slot" : "home-express-slot") ?? document.getElementById("dashboard-express-slot"));},[studio]);
   const [expressStep,setExpressStep] = useState(0);
   const [expressReferenceBusy,setExpressReferenceBusy] = useState(false);
   const [uploadStatus,setUploadStatus] = useState<UploadStatus>({busy:false,error:null});
@@ -205,12 +222,18 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     // finished the same pointer sequence. Ignore that one click-through.
     if (Date.now() < adjustReopenGuardRef.current) return;
     setAdjustOpen(true);
-  }, []);
+    if (studio) {
+      const section = mainPanelRef.current?.querySelector<HTMLElement>("#beta-manual");
+      section?.focus({ preventScroll: true });
+      section?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+    }
+  }, [studio]);
 
   const closeManualAdjust = useCallback(() => {
-    adjustReopenGuardRef.current = Date.now() + 500;
+    if (studio) mainPanelRef.current?.querySelector<HTMLElement>("#beta-manual")?.focus({ preventScroll: true });
+    else adjustReopenGuardRef.current = Date.now() + 500;
     setAdjustOpen(false);
-  }, []);
+  }, [studio]);
 
   const handleUploadComplete   = useCallback((file: UploadedFile) => {
     setMasterReference(null);
@@ -283,6 +306,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
     masteringRun.current.reset();
     isMasteringRef.current = false; // cancel any in-flight mastering callbacks
     setMasterData(null);
+    setAdjustOpen(false);
     setCurrentProgress(null);
     setMasteringError(null);
     setAppState("analyzed");
@@ -348,6 +372,20 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
       <span className="express-launch-copy"><small>{lang==='en'?'YOUR GUIDED MASTER':'DEIN BEGLEITETER MASTER'}</small><strong>{lang==='en'?'Express assistant':'Express-Assistent'}</strong><span>{lang==='en'?'Great sound. One easy step at a time.':'Großer Sound. Ganz einfach Schritt für Schritt.'}</span><b>{lang==='en'?'Open assistant':'Assistent öffnen'}<ArrowRight size={17} aria-hidden="true"/></b></span>
     </button>
   );
+  const progressPanel = <MasteringProgressModal
+    isOpen={appState === "mastering"} completed={appState === "done" && !masteringError}
+    step={currentProgress} lang={lang} inline={Boolean(studio)}
+  />;
+  const manualEditor = uploadedFile && <ManualAdjustModal
+    inline={Boolean(studio)} open={adjustOpen} onClose={closeManualAdjust} lang={lang}
+    fileId={uploadedFile.file_id} uploadToken={uploadedFile.upload_token} filename={uploadedFile.filename}
+    durationSec={uploadedFile.duration || analysis?.duration_seconds || 0}
+    platform={completedSettings?.platform ?? platform} preset={completedSettings?.preset ?? preset}
+    intensity={completedSettings?.intensity ?? intensity} analysis={analysis}
+    character={completedSettings?.character ?? character}
+    referenceAnalysis={masterData ? masterReference : referenceAnalysis}
+    serverParams={masterData?.params ?? null} onApply={handleRun}
+  />;
   return (
     <>
       <div ref={mainPanelRef}>
@@ -388,6 +426,11 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
               </div>
               <span className="ready-status"><i /> {T.ready[lang]}</span>
             </div>
+
+            {studio && <div className="beta-monitor-bay" id="beta-monitor">
+              <studio.Transport key={uploadedFile?.file_id ?? "demo"} filename={uploadedFile?.filename} lang={lang} />
+              <studio.Workflow state={appState} before={analysis} after={masterData?.post_analysis ?? null} lang={lang} />
+            </div>}
 
             <AnimatePresence initial={false}>
               {masteringError && (
@@ -448,6 +491,12 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
               </div>
             )}
 
+            {studio && <div id="beta-processor"><studio.Controls
+              intensity={intensity} onIntensity={setIntensity} character={character} onCharacter={setCharacter}
+              customLufs={customLufs} platform={platform} onLufs={value => { setPlatform("custom"); setCustomLufs(value); }} lang={lang}
+            /></div>}
+            {studio && analysis?.sections && <div className="beta-energy-map"><SongEnergyMap sections={analysis.sections} lang={lang} /></div>}
+
             <div className={`dashboard-main-grid ${appState === "analyzed" || appState === "mastering" || appState === "done" ? "without-upload" : ""}`}>
               <div className="dashboard-control-card">
                 <PlatformTargets value={platform} onChange={setPlatform} customLufs={customLufs} onCustomLufsChange={setCustomLufs} lang={lang} />
@@ -489,9 +538,9 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
               </div>
             </div>
 
-            <div className="dashboard-secondary-grid">
-              <MasteringIntensity value={intensity} onChange={setIntensity} lang={lang} />
-              <CharacterDial value={character} onChange={setCharacter} lang={lang} sections={analysis?.sections}/>
+            <div className="dashboard-secondary-grid" id={studio ? "beta-references" : undefined}>
+              {!studio && <MasteringIntensity value={intensity} onChange={setIntensity} lang={lang} />}
+              {!studio && <CharacterDial value={character} onChange={setCharacter} lang={lang} sections={analysis?.sections}/>}
               <ReferenceMastering
                 value={referenceAnalysis} onChange={setReferenceAnalysis} sourceHasProfile={!!analysis?.tonal_profile}
                 savedRefs={savedRefs}
@@ -501,9 +550,32 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
               />
             </div>
 
+            {studio && <studio.Actions lang={lang} state={appState} canStart={expressCanStart}
+              format={selectedFormat} formats={FORMAT_OPTIONS} onFormat={setSelectedFormat}
+              onStart={() => void handleRun()} onManual={openManualAdjust} onRemaster={handleRemaster}
+            />}
+
+            {studio && <>
+              {progressPanel}
+              <section id="beta-manual" className="beta-manual-bay" tabIndex={-1} aria-label={lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}>
+                {adjustOpen && appState === "done" ? (
+                  <Suspense fallback={<p role="status">{lang === "en" ? "Loading fine-tuning…" : "Feinabstimmung wird geladen…"}</p>}>{manualEditor}</Suspense>
+                ) : <div className="beta-manual-panel">
+                  <SlidersHorizontal size={20} aria-hidden="true" />
+                  <div>
+                    <h2>{lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}</h2>
+                    <p>{appState === "done"
+                      ? (lang === "en" ? "Adjust EQ, dynamics, saturation and stereo with a live loop." : "Passe EQ, Dynamik, Sättigung und Stereo mit einer Live-Loop an.")
+                      : (lang === "en" ? "Create a master to unlock live fine-tuning for this track." : "Erstelle einen Master, um diesen Track live feinabzustimmen.")}</p>
+                  </div>
+                  {appState === "done" && <StudioFineTuneButton onClick={openManualAdjust} label={lang === "en" ? "Open fine-tuning" : "Feinabstimmung öffnen"} />}
+                </div>}
+              </section>
+            </>}
+
             {/* Player — shown after analysis (original only) */}
             <AnimatePresence>
-              {appState === "analyzed" && uploadedFile && (
+              {!studio && appState === "analyzed" && uploadedFile && (
                 <motion.div
                   key="player-pre"
                   initial={{ opacity: 0, y: 15 }}
@@ -540,7 +612,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
 
             {/* Download Panel — includes A/B player with master */}
             {/* downloadRef marks the scroll target for auto-scroll after mastering */}
-            <div ref={downloadRef} />
+            <div ref={downloadRef} id={studio ? "beta-exports" : undefined} />
             <AnimatePresence>
               {appState === "done" && masterData && (
                 <motion.div
@@ -561,6 +633,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
                     onReset={handleReset}
                     onRemaster={handleRemaster}
                     onManualAdjust={openManualAdjust}
+                    embeddedPlayer={Boolean(studio)}
                     lang={lang}
                   />
                   </Suspense>
@@ -572,6 +645,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
             <MasterPlayTrigger
               shouldPlay={appState === "done"}
               downloadRef={downloadRef}
+              scroll={!studio}
             />
           </div>
         </AudioEngineProvider>
@@ -580,7 +654,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
 
       {/* ── Sticky bottom "Master NOW" popup ───────────────────────────────────── */}
       <AnimatePresence>
-        {appState === "analyzed" && uploadedFile && (
+        {!studio && appState === "analyzed" && uploadedFile && (
           <motion.div
             key="master-popup"
             initial={{ y: 120, opacity: 0 }}
@@ -643,34 +717,7 @@ export default function MasteringWorkspace({ lang, onResultChange }: Props) {
         )}
       </AnimatePresence>
 
-      {/* ── Mastering progress modal ─────────────────────────────────────────── */}
-      <MasteringProgressModal
-        isOpen={appState === "mastering"}
-        completed={appState === "done" && !masteringError}
-        step={currentProgress}
-        lang={lang}
-      />
-
-      {/* ── Manuelle Nachjustierung ──────────────────────────────────────────── */}
-      {uploadedFile && (
-        <ManualAdjustModal
-          open={adjustOpen}
-          onClose={closeManualAdjust}
-          lang={lang}
-          fileId={uploadedFile.file_id}
-          uploadToken={uploadedFile.upload_token}
-          filename={uploadedFile.filename}
-          durationSec={uploadedFile.duration || analysis?.duration_seconds || 0}
-          platform={completedSettings?.platform ?? platform}
-          preset={completedSettings?.preset ?? preset}
-          intensity={completedSettings?.intensity ?? intensity}
-          analysis={analysis}
-          character={completedSettings?.character ?? character}
-          referenceAnalysis={masterData ? masterReference : referenceAnalysis}
-          serverParams={masterData?.params ?? null}
-          onApply={handleRun}
-        />
-      )}
+      {!studio && <>{progressPanel}{manualEditor}</>}
 
       {/* Auth modal — opened from the "Sign In / Register" prompt inside UploadZone */}
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} lang={lang} />
