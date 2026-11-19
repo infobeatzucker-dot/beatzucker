@@ -15,6 +15,12 @@ async function wait(request,id){const end=Date.now()+120000;while(Date.now()<end
  assert.equal((await start(user,'full','stem-separation')).status,403);
  let response=await start(user,'preview','stem-separation');assert.equal(response.status,202,await response.clone().text());let job=await response.json();await wait(user,job.id);
  assert.equal((await other('/api/stems?id='+job.id)).status,404);response=await user('/api/stems?id='+job.id+'&asset=vocals');assert.equal(response.status,200);assert.match(response.headers.get('content-disposition'),/inline/);assert.ok((await response.arrayBuffer()).byteLength>44);
+ const partial=await user('/api/stems?id='+job.id+'&asset=vocals&play=1',{headers:{Range:'bytes=0-43'}});
+ assert.equal(partial.status,206);assert.match(partial.headers.get('content-range'),/^bytes 0-43\/\d+$/);
+ // Next removes Content-Length from streamed route responses. The body and
+ // Content-Range must nevertheless agree exactly.
+ assert.equal(partial.headers.get('content-encoding'),null);
+ const bytes=Buffer.from(await partial.arrayBuffer());assert.equal(bytes.length,44);assert.equal(bytes.subarray(0,4).toString(),'RIFF');
  console.log('PASS actual signed-in trial, private model output and cross-account rejection');
  const change=enabled=>({method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:account.id,vocalRemoverEnabled:enabled,stemSeparationEnabled:false})});
  assert.equal((await user('/api/admin/stem-access',change(true))).status,403);assert.equal((await admin('/api/admin/stem-access',change(true))).status,200);

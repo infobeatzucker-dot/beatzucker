@@ -6,6 +6,7 @@ import "./compare.css";
 import "./ui-theme.css";
 import { uiThemeBootstrap } from "@/lib/uiTheme";
 import CookieBanner from "@/components/CookieBanner";
+import ProblemReport from "@/components/ProblemReport";
 import Providers from "@/components/Providers";
 
 const inter = Inter({
@@ -148,6 +149,7 @@ export default function RootLayout({
       <body className="antialiased noise-bg">
         <Providers>
           {children}
+          <ProblemReport />
           <CookieBanner />
         </Providers>
       </body>

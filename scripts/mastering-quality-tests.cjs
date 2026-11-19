@@ -4,6 +4,23 @@ function load(file,imports={},extra={}){const module={exports:{}};vm.runInNewCon
 let passed=0;async function test(name,fn){await fn();console.log('PASS '+name);passed++;}
 (async()=>{
  const validator=load('lib/analysisValidation.ts'),params=load('lib/masteringParams.ts');
+ await test('result timeline marks local level changes and skips uniform gain and silence',()=>{
+   const mod={exports:{}};
+   const source=ts.transpileModule(fs.readFileSync('components/MasteringSoundProfile.tsx','utf8'),{
+     compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}
+   }).outputText;
+   vm.runInNewContext(source,{module:mod,exports:mod.exports,require:()=>({})});
+   const {selectLevelChanges}=mod.exports;
+   const original=new Float32Array(800).fill(.08);
+   const master=new Float32Array(800).fill(.16);
+   assert.equal(selectLevelChanges(original,master,40).length,0);
+   original.fill(0,0,160);master.fill(0,0,160);
+   master.fill(.24,200,230);master.fill(.09,510,540);
+   const points=selectLevelChanges(original,master,40);
+   assert.equal(points.length,2);
+   assert.ok(points[0].time>=10&&points[0].time<12&&points[0].change>2);
+   assert.ok(points[1].time>=25&&points[1].time<27&&points[1].change< -2);
+ });
  const a={integrated_lufs:-18,true_peak:-5,dr_value:10,crest_factor:10,lra:8,rms_sub:-28,rms_low:-23,rms_mid:-22,rms_high:-28,rms_air:-38,spectral_centroid:2600,spectral_rolloff:8000,spectral_flatness:.2,stereo_width:.4,mono_compatibility:.7,bpm:120,key:'A minor',transient_density:1,dc_offset:0,duration_seconds:60,sample_rate:48000,bit_depth:24,channels:2,clipping_detected:false};
  const previous=process.env.ANALYSIS_SIGNING_SECRET;process.env.ANALYSIS_SIGNING_SECRET='isolated-tests-only-not-a-production-secret';
  const id='11223344-5566-4788-99aa-bbccddeeff00';

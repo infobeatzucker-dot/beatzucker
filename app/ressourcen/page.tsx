@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import ArticleGrid from "@/components/ressourcen/ArticleGrid";
 import { PracticeHub } from "@/components/ToolPractice";
+import StudioWorkflowGuide from "@/components/StudioWorkflowGuide";
 import { ARTICLES } from "@/app/data/ressourcen";
 
 export const metadata: Metadata = pageMetadata({
@@ -136,7 +137,7 @@ export default function RessourcenPage() {
         >
           <ArticleGrid articles={ARTICLES} />
         </section>
-      <div style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 1.5rem 3rem" }}><PracticeHub lang="de"/></div>
+      <div style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 1.5rem 3rem" }}><StudioWorkflowGuide lang="de"/><PracticeHub lang="de"/></div>
       </main>
 
       <Footer />

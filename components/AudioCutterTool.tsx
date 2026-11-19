@@ -10,14 +10,18 @@ import { toolError } from "@/lib/toolClient";
 import { useToolJob } from "@/lib/useToolJob";
 import ToolLanguageNav from "./ToolLanguageNav";
 import ToolJourney from "./ToolJourney";
+import AudioCutLoupe from "./AudioCutLoupe";
 
 const clock = (seconds:number) => `${Math.floor(seconds/60)}:${(seconds%60).toFixed(2).padStart(5,"0")}`;
+const fadeInput = (value: string, duration: number) => fadeSeconds(Math.max(0, Math.min(5, Number(value) || 0)), duration);
 export default function AudioCutterTool({ lang }: { lang: Lang }) {
   const en=lang==="en",job=useToolJob(),input=useRef<HTMLInputElement>(null),context=useRef<AudioContext|null>(null),source=useRef<AudioBufferSourceNode|null>(null),started=useRef({time:0,position:0,end:0});
   const [file,setFile]=useState<File|null>(null),[audio,setAudio]=useState<AudioBuffer|null>(null),[peaks,setPeaks]=useState<Float32Array|null>(null);
   const [start,setStart]=useState(0),[end,setEnd]=useState(0),[fadeIn,setFadeIn]=useState(.005),[fadeOut,setFadeOut]=useState(.005),[depth,setDepth]=useState<WavDepth>("24");
   const [busy,setBusy]=useState(false),[error,setError]=useState(""),[download,setDownload]=useState(""),[playing,setPlaying]=useState(false),[cursor,setCursor]=useState(0);
-  const drag=useRef<"start"|"end"|null>(null);
+  const drag=useRef<{ side: "start" | "end"; offset: number } | null>(null);
+  const [dragging, setDragging] = useState<"start" | "end" | null>(null);
+  const [focused, setFocused] = useState<"start" | "end" | null>(null);
   const previewEpoch=useRef(0);
   useEffect(()=>()=>{if(download)URL.revokeObjectURL(download)},[download]);
   useEffect(()=>()=>{previewEpoch.current++;try{source.current?.stop()}catch{}void context.current?.close()},[]);
@@ -27,26 +31,49 @@ export default function AudioCutterTool({ lang }: { lang: Lang }) {
   function reset(){job.cancel();stop();setBusy(false);setAudio(null);setPeaks(null);setFile(null);setDownload("");setError("");setCursor(0);if(input.current)input.current.value=""}
   async function load(selected:File){if(busy)return;reset();const task=job.start();setBusy(true);setFile(selected);try{const decoded=await decodeAudio(selected);if(!job.active(task))return;if(decoded.duration<.1)throw Error("CUT_RANGE");const waveform=await waveformPeaksAsync(decoded,task.signal);if(!job.active(task))return;setAudio(decoded);setPeaks(waveform);setStart(0);setEnd(decoded.duration);setFadeIn(.005);setFadeOut(.005)}catch(reason){if(job.active(task))setError(toolError(reason,lang))}finally{if(job.active(task))setBusy(false)}}
   function position(side:"start"|"end",value:number){if(!audio||busy||!Number.isFinite(value))return;invalidate();const nextStart=side==="start"?Math.max(0,Math.min(end-.05,value)):start,nextEnd=side==="end"?Math.min(audio.duration,Math.max(start+.05,value)):end;setStart(nextStart);setEnd(nextEnd);const maximum=(nextEnd-nextStart)/2;setFadeIn(current=>Math.min(current,maximum));setFadeOut(current=>Math.min(current,maximum))}
-  function move(event:PointerEvent<HTMLDivElement>){if(!drag.current||!audio||busy)return;const rect=event.currentTarget.getBoundingClientRect();position(drag.current,(event.clientX-rect.left)/rect.width*audio.duration)}
-  function down(event:PointerEvent<HTMLDivElement>){if(!audio||busy||event.button!==0)return;const rect=event.currentTarget.getBoundingClientRect(),value=(event.clientX-rect.left)/rect.width*audio.duration;const handle=(event.target as Element).closest('[data-handle]')?.getAttribute('data-handle');drag.current=handle==="start"||handle==="end"?handle:Math.abs(value-start)<Math.abs(value-end)?"start":"end";event.currentTarget.setPointerCapture(event.pointerId);move(event)}
+  function move(event:PointerEvent<HTMLDivElement>){if(!drag.current||!audio||busy)return;const rect=event.currentTarget.getBoundingClientRect();position(drag.current.side,(event.clientX-rect.left)/rect.width*audio.duration+drag.current.offset)}
+  function down(event:PointerEvent<HTMLDivElement>){
+    if(!audio||busy||event.button!==0||!event.isPrimary)return;
+    const rect=event.currentTarget.getBoundingClientRect(),value=(event.clientX-rect.left)/rect.width*audio.duration;
+    const handle=(event.target as Element).closest<HTMLButtonElement>("[data-handle]");
+    const side=handle?.dataset.handle === "start" ? "start" : handle ? "end" : Math.abs(value-start)<Math.abs(value-end) ? "start" : "end";
+    drag.current={side, offset:handle ? (side==="start"?start:end)-value : 0};
+    handle?.focus({ preventScroll: true });
+    setDragging(side);
+    event.currentTarget.setPointerCapture(event.pointerId);
+    if (!handle) move(event);
+  }
+  function endDrag(){drag.current=null;setDragging(null)}
   function keyboard(event:KeyboardEvent,side:"start"|"end"){if(!audio)return;const current=side==="start"?start:end,step=event.shiftKey?1:.01;const value=event.key==="ArrowLeft"?current-step:event.key==="ArrowRight"?current+step:event.key==="Home"?0:event.key==="End"?audio.duration:null;if(value!==null){event.preventDefault();position(side,value)}}
   async function preview(){if(!audio||busy)return;if(playing){stop();return;}setError("");try{const bounds=cutFrames(audio.duration,audio.sampleRate,start,end),offset=bounds.first/audio.sampleRate,length=bounds.frames/audio.sampleRate;const attempt=++previewEpoch.current;const ctx=context.current??=new AudioContext();await ctx.resume();if(attempt!==previewEpoch.current)return;stop();const node=ctx.createBufferSource(),gain=ctx.createGain(),at=ctx.currentTime+.025;node.buffer=audio;node.connect(gain).connect(ctx.destination);const fi=fadeSeconds(fadeIn,length),fo=fadeSeconds(fadeOut,length);gain.gain.setValueAtTime(fi>0?0:1,at);if(fi>0)gain.gain.linearRampToValueAtTime(1,at+fi);gain.gain.setValueAtTime(1,at+length-fo);if(fo>0)gain.gain.linearRampToValueAtTime(0,at+length);started.current={time:at,position:offset,end:offset+length};source.current=node;node.onended=()=>{if(source.current===node){source.current=null;setPlaying(false);setCursor(offset+length)}};node.start(at,offset,length);setCursor(offset);setPlaying(true)}catch(reason){setError(toolError(reason,lang));stop()}}
   async function render(){if(!audio||!file||busy)return;stop();const task=job.start();setBusy(true);setError("");setDownload("");try{const clipped=createAudioCut(audio,start,end,fadeIn,fadeOut);const blob=await encodeWavAsync(clipped,depth,depth!=="32f",task.signal);if(!job.active(task))return;setDownload(URL.createObjectURL(blob))}catch(reason){if(job.active(task))setError(toolError(reason,lang))}finally{if(job.active(task))setBusy(false)}}
   const path=peaks?Array.from(peaks, (peak,index)=>`M${(index/(peaks.length-1)*1000).toFixed(2)},${(80-Math.min(1,peak)*70).toFixed(2)}v${(Math.min(1,peak)*140).toFixed(2)}`).join(" "):"";
+  const detail = dragging ?? focused;
+  const startX = audio ? start / audio.duration * 1000 : 0;
+  const endX = audio ? end / audio.duration * 1000 : 0;
+  const fadeInWidth = audio ? fadeSeconds(fadeIn, end - start) / audio.duration * 1000 : 0;
+  const fadeOutWidth = audio ? fadeSeconds(fadeOut, end - start) / audio.duration * 1000 : 0;
   return <section className="stream-tool utility-tool"><ToolLanguageNav lang={lang}/><Link className="tool-back" href={en?"/en/tools":"/tools"}><ArrowLeft size={15}/>{en?"All tools":"Alle Tools"}</Link><div className="stream-hero"><span><Scissors size={14}/> AUDIO CUT LAB</span><h1>{en?<>Cut audio. <em>Keep your favourite part.</em></>:<>Audio schneiden. <em>Dein Ausschnitt bleibt.</em></>}</h1><p>{en?"Drag two markers, audition the selection and download a new WAV. Your original stays untouched.":"Zwei Marken ziehen, den Ausschnitt vorhören und eine neue WAV herunterladen. Dein Original bleibt unverändert."}</p></div>
     <input ref={input} hidden type="file" accept="audio/*,.wav,.flac,.mp3,.aiff,.aif,.m4a,.ogg" onChange={event=>{const next=event.target.files?.[0];if(next)void load(next)}}/>
     {!audio&&<button className="stream-upload utility-upload" disabled={busy} onClick={()=>input.current?.click()} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();const next=e.dataTransfer.files[0];if(next)void load(next)}}><UploadCloud size={30}/><strong>{busy?(en?"Reading audio…":"Audio wird eingelesen…"):(en?"Drop audio or choose a file":"Audio hier ablegen oder Datei wählen")}</strong><span>{en?"Local browser processing · up to 80 MB · mono/stereo":"Lokal im Browser · bis 80 MB · Mono/Stereo"}</span></button>}
     <ToolJourney mode="feedback" tool="audio-cutter" lang={lang} busy={busy} complete={!!download} error={error} progress={audio?(en?"Encoding your selected excerpt…":"Dein Ausschnitt wird kodiert…"):(en?"Decoding and drawing the waveform…":"Audio wird dekodiert und die Wellenform gezeichnet…")}/>
     {audio&&<div className="stream-console cut-console"><div className="stream-file"><div><strong>{file?.name}</strong><span>{clock(audio.duration)} · {audio.sampleRate/1000} kHz · {audio.numberOfChannels===2?"Stereo":"Mono"}</span></div><button disabled={busy} onClick={reset}>{en?"Change file":"Datei wechseln"}</button></div>
       <div className="cut-selection-title"><strong>{clock(start)} <span>→</span> {clock(end)}</strong><span>{en?"Selection":"Auswahl"}: {(end-start).toFixed(2)} s</span></div>
-      <div className="cut-wave" onPointerDown={down} onPointerMove={move} onPointerUp={()=>{drag.current=null}} onPointerCancel={()=>{drag.current=null}} onLostPointerCapture={()=>{drag.current=null}}>
-        <svg viewBox="0 0 1000 160" preserveAspectRatio="none" aria-hidden="true"><path d={path}/></svg>
+      <div className="cut-wave bz-cut-wave" onPointerDown={down} onPointerMove={move} onPointerUp={endDrag} onPointerCancel={endDrag} onLostPointerCapture={endDrag}>
+        <svg viewBox="0 0 1000 160" preserveAspectRatio="none" aria-hidden="true">
+          <path d={path}/>
+          <rect className="bz-cut-shade" width={startX} height="160"/>
+          <rect className="bz-cut-shade" x={endX} width={1000-endX} height="160"/>
+          {fadeInWidth > 0 && <polygon className="bz-cut-fade" points={`${startX},135 ${startX},23 ${startX+fadeInWidth},23`}/>}
+          {fadeOutWidth > 0 && <polygon className="bz-cut-fade" points={`${endX},135 ${endX},23 ${endX-fadeOutWidth},23`}/>}
+        </svg>
         <div className="cut-region" style={{left:`${start/audio.duration*100}%`,width:`${(end-start)/audio.duration*100}%`}} aria-hidden="true"/>
-        {(["start","end"] as const).map(side=><button key={side} data-handle={side} className={`cut-handle ${side}`} style={{left:`${(side==="start"?start:end)/audio.duration*100}%`}} disabled={busy} role="slider" aria-label={side==="start"?(en?"Selection start":"Auswahlbeginn"):(en?"Selection end":"Auswahlende")} aria-valuemin={side==="start"?0:start+.05} aria-valuemax={side==="start"?end-.05:audio.duration} aria-valuenow={side==="start"?start:end} aria-valuetext={clock(side==="start"?start:end)} onKeyDown={e=>keyboard(e,side)}><span>{side==="start"?"A":"B"}</span></button>)}
+        {(["start","end"] as const).map(side=><button key={side} data-handle={side} className={`cut-handle ${side}`} style={{left:`${(side==="start"?start:end)/audio.duration*100}%`}} disabled={busy} role="slider" aria-label={side==="start"?(en?"Selection start":"Auswahlbeginn"):(en?"Selection end":"Auswahlende")} aria-valuemin={side==="start"?0:start+.05} aria-valuemax={side==="start"?end-.05:audio.duration} aria-valuenow={side==="start"?start:end} aria-valuetext={clock(side==="start"?start:end)} onFocus={() => setFocused(side)} onBlur={() => setFocused(null)} onKeyDown={e=>keyboard(e,side)}><span>{side==="start"?"A":"B"}</span></button>)}
         {cursor>=start&&cursor<=end&&<i className="cut-playhead" style={{left:`${cursor/audio.duration*100}%`}} aria-hidden="true"/>}
       </div>
+      {detail && <AudioCutLoupe audio={audio} at={detail === "start" ? start : end} side={detail} lang={lang}/>}
       <p className="utility-hint">{en?"Drag A/B, click near a marker or enter times. Arrow keys adjust by 0.01 s; Shift adjusts by 1 s.":"A/B ziehen, nahe einer Marke klicken oder Zeiten eingeben. Pfeiltasten: 0,01 s; mit Umschalt: 1 s."}</p>
-      <div className="utility-settings"><label className="utility-field">{en?"Start (seconds)":"Start (Sekunden)"}<input type="number" min={0} max={end-.05} step={.001} value={Number(start.toFixed(3))} disabled={busy} onChange={e=>position("start",Number(e.target.value))}/></label><label className="utility-field">{en?"End (seconds)":"Ende (Sekunden)"}<input type="number" min={start+.05} max={audio.duration} step={.001} value={Number(end.toFixed(3))} disabled={busy} onChange={e=>position("end",Number(e.target.value))}/></label><label className="utility-field">Fade-in (s)<input type="number" min={0} max={Math.min(5,(end-start)/2)} step={.005} disabled={busy} value={fadeIn} onChange={e=>{invalidate();setFadeIn(Math.max(0,Math.min(5,(end-start)/2,Number(e.target.value))))}}/></label><label className="utility-field">Fade-out (s)<input type="number" min={0} max={Math.min(5,(end-start)/2)} step={.005} disabled={busy} value={fadeOut} onChange={e=>{invalidate();setFadeOut(Math.max(0,Math.min(5,Number(e.target.value))))}}/></label></div>
+      <div className="utility-settings"><label className="utility-field">{en?"Start (seconds)":"Start (Sekunden)"}<input type="number" min={0} max={end-.05} step={.001} value={Number(start.toFixed(3))} disabled={busy} onChange={e=>position("start",Number(e.target.value))}/></label><label className="utility-field">{en?"End (seconds)":"Ende (Sekunden)"}<input type="number" min={start+.05} max={audio.duration} step={.001} value={Number(end.toFixed(3))} disabled={busy} onChange={e=>position("end",Number(e.target.value))}/></label><label className="utility-field">Fade-in (s)<input type="number" min={0} max={Math.min(5,(end-start)/2)} step={.005} disabled={busy} value={fadeIn} onChange={e=>{invalidate();setFadeIn(fadeInput(e.target.value,end-start))}}/></label><label className="utility-field">Fade-out (s)<input type="number" min={0} max={Math.min(5,(end-start)/2)} step={.005} disabled={busy} value={fadeOut} onChange={e=>{invalidate();setFadeOut(fadeInput(e.target.value,end-start))}}/></label></div>
       <div className="cut-controls"><button disabled={busy} onClick={()=>void preview()}>{playing?<Square size={16}/>:<Play size={16}/>} {playing?(en?"Stop":"Stoppen"):(en?"Audition selection":"Auswahl vorhören")}</button><button disabled={busy} onClick={()=>{invalidate();setStart(0);setEnd(audio.duration)}}>{en?"Select all":"Alles auswählen"}</button></div>
       <label className="utility-field">{en?"WAV export":"WAV-Export"}<select value={depth} disabled={busy} onChange={e=>{invalidate();setDepth(e.target.value as WavDepth)}}><option value="24">24-bit PCM</option><option value="16">16-bit PCM</option><option value="32f">32-bit Float</option></select></label>
       <button className="conflict-run" disabled={busy} onClick={()=>void render()}><Scissors size={18}/>{en?"Cut and export WAV":"Schneiden und WAV exportieren"}</button>

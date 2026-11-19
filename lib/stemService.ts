@@ -22,5 +22,7 @@ export async function stemFetch(userId: string, path: string, init: RequestInit 
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${secret}`);
   headers.set("X-Owner", createHmac("sha256", secret).update(userId).digest("hex"));
-  return fetch(`${process.env.STEM_WORKER_URL!.replace(/\/$/, "")}${path}`, { ...init, headers, cache: "no-store", signal: AbortSignal.timeout(120_000) });
+  const timeout = AbortSignal.timeout(120_000);
+  const signal = init.signal ? AbortSignal.any([timeout, init.signal]) : timeout;
+  return fetch(`${process.env.STEM_WORKER_URL!.replace(/\/$/, "")}${path}`, { ...init, headers, cache: "no-store", signal });
 }

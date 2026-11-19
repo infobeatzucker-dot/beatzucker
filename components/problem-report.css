@@ -1,0 +1,63 @@
+.bz-report-launch {
+  position: fixed;
+  z-index: 39;
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--accent-cyan);
+  border-radius: 9px;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  box-shadow: 0 3px 14px var(--ui-shadow, #0006);
+  font-size: .77rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bz-report-launch svg { color: var(--accent-cyan); }
+.bz-report-launch:focus-visible, .bz-report-dialog :is(button,a,textarea):focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 3px; }
+.bz-report-launch:hover { background: color-mix(in srgb, var(--bg-elevated) 85%, var(--accent-cyan)); }
+.bz-report-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(540px, calc(100% - 26px));
+  max-height: min(90dvh, 760px);
+  margin: auto;
+  padding: clamp(15px, 4vw, 24px);
+  overflow: auto;
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  box-shadow: 0 14px 55px var(--ui-shadow, #0008);
+}
+.bz-report-dialog::backdrop { background: #060914a0; }
+.bz-report-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bz-report-heading h2 { font-size: 1.3rem; font-weight: 750; }
+.bz-report-heading button { display: grid; place-items: center; min-width: 34px; min-height: 34px; border-radius: 6px; cursor: pointer; }
+.bz-report-dialog p { margin: 8px 0; color: var(--text-secondary); font-size: .83rem; line-height: 1.45; }
+.bz-report-dialog label { display: grid; gap: 4px; margin: 12px 0; font-weight: 650; font-size: .85rem; }
+.bz-report-dialog textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-glow);
+  border-radius: 6px;
+  resize: vertical;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-weight: 400;
+}
+.bz-report-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0 6px; }
+.bz-report-actions :is(button,a) {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 10px;
+  border: 1px solid var(--border-glow); border-radius: 6px; background: var(--bg-secondary); font-size: .82rem; font-weight: 650;
+}
+.bz-report-actions a, .bz-report-contact a { color: var(--accent-cyan); }
+.bz-report-actions button:not(:disabled) { cursor: pointer; }
+.bz-report-actions button:disabled { opacity: .55; }
+@media (max-width: 520px) {
+  .bz-report-launch { left: max(9px, env(safe-area-inset-left)); padding: 6px 9px; min-height: 38px; }
+}

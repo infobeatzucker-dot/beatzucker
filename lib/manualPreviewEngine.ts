@@ -8,6 +8,8 @@ import { PreviewLoopPlayer } from "./previewLoopPlayer";
  */
 export class ManualPreviewEngine {
   readonly analyser: AnalyserNode;
+  readonly left: AnalyserNode;
+  readonly right: AnalyserNode;
   readonly ready: Promise<void>;
 
   private readonly ctx: AudioContext;
@@ -85,6 +87,11 @@ export class ManualPreviewEngine {
     const satLow2 = this.ctx.createBiquadFilter(); satLow2.type = "lowpass"; satLow2.frequency.value = cutoff; satLow2.Q.value = -3.0103;
     satLow1.connect(satLow2).connect(this.shaper).connect(this.finalAir);
     limiter.connect(this.analyser).connect(this.output).connect(this.ctx.destination);
+    const stereo = this.ctx.createChannelSplitter(2);
+    this.left = this.ctx.createAnalyser(); this.right = this.ctx.createAnalyser();
+    this.left.fftSize = this.right.fftSize = 1024;
+    this.output.connect(stereo);
+    stereo.connect(this.left, 0); stereo.connect(this.right, 1);
 
     this.ready = Promise.resolve().then(async () => {
       if (!this.ctx.audioWorklet) throw Error("AudioWorklet is required for live preview");

@@ -11,16 +11,29 @@ function load(file){
  const mod={exports:{}};
  const source=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
  vm.runInNewContext(source,{module:mod,exports:mod.exports,process:{env},Headers,Response,Request,File,Blob,FormData,Uint8Array,TextDecoder,URL,AbortSignal,setTimeout,clearTimeout,globalThis:{},console,
- fetch:async(url,init)=>{calls.push({url,init});assert.match(init.headers.get('X-Owner'),/^[a-f0-9]{64}$/);assert.equal(init.headers.get('Authorization'),'Bearer '+env.STEM_WORKER_SECRET);return url.includes('/audio/')?new Response('private-audio'):Response.json({id:'a'.repeat(32),mode:jobMode,tool,status:'done',stems:['vocals']})},
+ fetch:async(url,init)=>{
+   calls.push({url,init});
+   assert.match(init.headers.get('X-Owner'),/^[a-f0-9]{64}$/);
+   assert.equal(init.headers.get('Authorization'),'Bearer '+env.STEM_WORKER_SECRET);
+   if(!url.includes('/audio/'))return Response.json({id:'a'.repeat(32),mode:jobMode,tool,status:'done',stems:['vocals']});
+   if(init.headers.get('Range')==='bytes=100-')return new Response(null,{status:416,headers:{'Content-Range':'bytes */13'}});
+   if(init.headers.get('Range')==='bytes=0-3')return new Response('priv',{status:206,headers:{'Content-Range':'bytes 0-3/13','Content-Length':'4','Accept-Ranges':'bytes'}});
+   return new Response('private-audio');
+ },
  require:name=>name==='next-auth'?{getServerSession:async()=>session}:['@/lib/authOptions','./authOptions'].includes(name)?{authOptions:{}}:['@/lib/db','./db'].includes(name)?{db}:name==='@/lib/adminAccess'?{requireAdmin:async()=>admin}:name==='@/lib/rateLimit'?{rateLimit:()=>true}:name.startsWith('@/')?load(name.slice(2)+'.ts'):name.startsWith('./')?load('lib/'+name.slice(2)+'.ts'):require(name)
  });cache.set(file,mod.exports);return mod.exports;
 }
 (async()=>{
  const route=load('app/api/stems/route.ts'), access=load('app/api/admin/stem-access/route.ts');
- const get=()=>new NextRequest('http://localhost:3013/api/stems?id='+ 'a'.repeat(32)+'&asset=vocals');
+ const get=(range,play=false)=>new NextRequest('http://localhost:3013/api/stems?id='+ 'a'.repeat(32)+'&asset=vocals'+(play?'&play=1':''), {headers:range?{Range:range}:undefined});
  session=null;assert.equal((await route.GET(get())).status,401);session={user:{id:user.id},passwordVersion:0};
  assert.equal((await route.GET(get())).status,403);assert.equal(calls.length,1,'No full asset should be fetched');
  user.stemSeparationEnabled=true;assert.equal((await route.GET(get())).status,200);
+ const chunk=await route.GET(get('bytes=0-3',true));assert.equal(chunk.status,206);assert.equal(chunk.headers.get('content-range'),'bytes 0-3/13');assert.equal(chunk.headers.get('accept-ranges'),'bytes');assert.equal(chunk.headers.get('content-length'),'4');assert.match(chunk.headers.get('cache-control'),/no-transform/);assert.equal(calls.at(-1).init.headers.get('accept-encoding'),'identity');assert.match(chunk.headers.get('content-disposition'),/^inline/);assert.equal(await chunk.text(),'priv');
+ assert.match((await route.GET(get())).headers.get('content-disposition'),/^attachment/);
+ const outOfRange=await route.GET(get('bytes=100-'));assert.equal(outOfRange.status,416);assert.equal(outOfRange.headers.get('content-range'),'bytes */13');
+ assert.equal((await route.GET(get('bytes=0-3,10-11'))).status,416);
+ user.stemSeparationEnabled=false;assert.equal((await route.GET(get('bytes=0-3',true))).status,403);
  user.stemSeparationEnabled=false;assert.equal((await route.GET(get())).status,403,'Revocation is checked on every fetch');
  user.vocalRemoverEnabled=true;assert.equal((await route.GET(get())).status,403,'Permissions are independent');
  tool='vocal-remover';assert.equal((await route.GET(get())).status,200);

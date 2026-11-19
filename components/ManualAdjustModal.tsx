@@ -1,4 +1,5 @@
 "use client";
+import ManualRenderComparison from "./ManualRenderComparison";
 
 
 import { uiColor } from "@/lib/uiTheme";
@@ -10,7 +11,8 @@ import {
   PARAM_DEFS, TABS, seedValues, changedOnly, formatValue, t,
   type ParamKey, type ParamValues, type TabId, type ParamDef,
 } from "@/lib/masteringParams";
-import { GoniometerScope, SaturationScope, GainReductionScope, MultibandScope } from "@/components/manual/AdjustScopes";
+import { GoniometerScope, SaturationScope, MultibandScope } from "@/components/manual/AdjustScopes";
+import { StudioDial, StudioMeter } from "./StudioControls";
 import { ManualPreviewEngine } from "@/lib/manualPreviewEngine";
 import { stopGlobalAudio } from "@/lib/globalAudio";
 import type { AnalysisData, ReferenceInput, Lang, Platform, Preset } from "@/lib/types/mastering";
@@ -73,23 +75,46 @@ const Fader = memo(function Fader({ def, value, onChange, lang }: {
   </div>;
 });
 
-function EqCurve({ values }: { values: ParamValues }) {
+function EqCurve({ values, params, lang }: { values: ParamValues; params?: Record<string, unknown> | null; lang: Lang }) {
+  const filters = useMemo(() => {
+    if (typeof OfflineAudioContext === "undefined") return [];
+    const ctx = new OfflineAudioContext(1, 1, 48000);
+    return (["highpass", "lowshelf", "peaking", "peaking", "highshelf"] as const).map(type => {
+      const filter = ctx.createBiquadFilter(); filter.type = type; return filter;
+    });
+  }, []);
   const path = useMemo(() => {
-    const gains = [values.low_shelf_gain ?? 0, values.mid_notch_gain ?? 0, values.presence_gain ?? 0, values.air_gain ?? 0];
-    const xs = [90, 300, 550, 790];
-    const points: string[] = [];
-    for (let x = 0; x <= 900; x += 12) {
-      let y = 28;
-      gains.forEach((gain, index) => { const d = (x - xs[index]) / 175; y -= gain * 3.2 * Math.exp(-d * d); });
-      points.push(`${x},${y.toFixed(1)}`);
-    }
+    if (!filters.length) return "";
+    const freq = [values.highpass_freq ?? 30, 80, Number(params?.mid_notch_freq ?? 280), Number(params?.presence_freq ?? 3000), 12000];
+    const gain = [0, values.low_shelf_gain ?? 0, values.mid_notch_gain ?? 0, values.presence_gain ?? 0, values.air_gain ?? 0];
+    const q = [.707, 1, Number(params?.mid_notch_q ?? 2), 1.2, 1];
+    const frequencies = Float32Array.from({ length: 151 }, (_, index) => 20 * 1000 ** (index / 150));
+    const magnitude = new Float32Array(frequencies.length), phase = new Float32Array(frequencies.length);
+    const sum = new Float32Array(frequencies.length);
+    filters.forEach((filter, index) => {
+      filter.frequency.value = freq[index]; filter.gain.value = gain[index]; filter.Q.value = q[index];
+      filter.getFrequencyResponse(frequencies, magnitude, phase);
+      magnitude.forEach((value, i) => { sum[i] += 20 * Math.log10(Math.max(1e-6, value)); });
+    });
+    const points = Array.from(sum, (db, index) => `${index * 6},${(28 - Math.max(-11, Math.min(11, db)) * 2.3).toFixed(1)}`);
     return `M${points.join(" L")}`;
-  }, [values]);
-  return <svg className="adjust-eqcurve" viewBox="0 0 900 56" preserveAspectRatio="none" aria-hidden="true">
+  }, [values, params, filters]);
+  return <svg className="adjust-eqcurve" viewBox="0 0 900 56" preserveAspectRatio="none" role="img" aria-label={lang === "en" ? "Static preview EQ response, 20 Hz to 20 kHz" : "Statischer EQ-Frequenzgang der Vorschau, 20 Hz bis 20 kHz"}>
     <defs><linearGradient id="bz-eqfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="rgb(var(--bz-paint-48bfff))" stopOpacity=".32" /><stop offset="100%" stopColor="rgb(var(--bz-paint-48bfff))" stopOpacity="0" /></linearGradient></defs>
     <path d={`${path} L900,56 L0,56 Z`} fill="url(#bz-eqfill)" /><path d={path} fill="none" stroke="rgb(var(--bz-paint-48bfff))" strokeWidth="2" strokeLinecap="round" />
     <line x1="0" y1="28" x2="900" y2="28" stroke="rgba(var(--bz-paint-ffffff),0.08)" />
   </svg>;
+}
+
+function LiveBusMeter({ playing, read, lang }: { playing: boolean; read: () => number; lang: Lang }) {
+  const [reduction, setReduction] = useState(0);
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(() => { if (!document.hidden) setReduction(Math.max(0, read())); }, 100);
+    return () => clearInterval(id);
+  }, [playing, read]);
+  return <div className="bz-bus-display"><StudioMeter label={lang === "en" ? "Bus gain reduction" : "Bus-Pegelreduktion"}
+    reading={playing ? `−${reduction.toFixed(1)} dB` : "—"} fraction={playing ? reduction / 12 : 0} reduction/></div>;
 }
 
 function SpectrumBackdrop({ analyser, playing }: { analyser: AnalyserNode | null; playing: boolean }) {
@@ -137,7 +162,9 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   const [engineBusy, setEngineBusy] = useState(false), [previewError, setPreviewError] = useState<string | null>(null);
   const [waveBars, setWaveBars] = useState(emptyBars), [waveLoading, setWaveLoading] = useState(false);
   const [auditionBase, setAuditionBase] = useState(false), auditionBaseRef = useRef(false);
-  const [controlUrl, setControlUrl] = useState(""), [controlBusy, setControlBusy] = useState(false), [controlError, setControlError] = useState("");
+  const [control, setControl] = useState<{ url: string; blob: Blob; key: string } | null>(null);
+  const [controlBusy, setControlBusy] = useState(false), [controlError, setControlError] = useState("");
+  const controlUrl = control?.url ?? "";
   const controlAbort = useRef<AbortController | null>(null), controlAudio = useRef<HTMLAudioElement | null>(null);
   const sourceUrl = useMemo(
     () => `/api/preview?file_id=${encodeURIComponent(fileId)}&upload_token=${encodeURIComponent(uploadToken)}`,
@@ -148,23 +175,26 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
     [fileId, uploadToken],
   );
   const startSec = region.start, endSec = Math.min(dur, region.start + region.len);
+  const previewPlayhead = useCallback(() => engineRef.current?.currentTime ?? -1, []);
+  const readBusReduction = useCallback(() => engineRef.current?.busReduction ?? 0, []);
   const dirty = useMemo(() => Object.keys(changedOnly(values, base)).length, [values, base]);
   const controlKey = JSON.stringify([values, startSec, endSec, fileId, platform, preset, intensity, character, referenceAnalysis]);
+  const controlReady = control?.key === controlKey ? control : null;
   useEffect(() => {
     controlAbort.current?.abort(); controlAudio.current?.pause();
-    setControlUrl(""); setControlError(""); setControlBusy(false);
+    setControl(null); setControlError(""); setControlBusy(false);
     return () => { controlAbort.current?.abort(); controlAudio.current?.pause(); };
   }, [controlKey, open]);
   useEffect(() => () => { if (controlUrl) URL.revokeObjectURL(controlUrl); }, [controlUrl]);
   const renderControl = async () => {
     controlAbort.current?.abort(); const controller = new AbortController(); controlAbort.current = controller;
-    engineRef.current?.pause(); controlAudio.current?.pause(); stopGlobalAudio(); setControlBusy(true); setControlError(""); setControlUrl("");
+    engineRef.current?.pause(); controlAudio.current?.pause(); stopGlobalAudio(); setControlBusy(true); setControlError(""); setControl(null);
     try {
       const response = await fetch("/api/control-preview", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
         body: JSON.stringify({ file_id: fileId, upload_token: uploadToken, start: startSec, end: endSec, analysis, reference_analysis: referenceAnalysis, platform, preset, intensity, character, target_lufs: serverParams?.target_lufs, overrides: values }) });
       if (!response.ok) throw Error(String(response.status));
       const blob = await response.blob(); if (controller.signal.aborted) return;
-      setControlUrl(URL.createObjectURL(blob));
+      setControl({ url: URL.createObjectURL(blob), blob, key: controlKey });
     } catch (error) {
       if (!controller.signal.aborted) setControlError(error instanceof Error && error.message === "429"
         ? (lang === "en" ? "Please wait before rendering another section." : "Bitte kurz warten, bevor du einen weiteren Ausschnitt renderst.")
@@ -332,39 +362,45 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   const tabDefs = PARAM_DEFS.filter((definition) => definition.tab === tab), wide = tab === "ms" || tab === "sat" || tab === "bus";
   if (!open || typeof document === "undefined") return null;
   return createPortal(<div className="adjust-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) handleClose(); }} role="dialog" aria-modal="true" aria-label={lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}>
-    <motion.div className="adjust-modal" onPointerDown={(event) => event.stopPropagation()} initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
+    <motion.div className="adjust-modal bz-hardware bz-manual-rack" onPointerDown={(event) => event.stopPropagation()} initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}>
       <header className="adjust-head"><div><h2><span className="adjust-dot" />{lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}<span className="adjust-live-badge"><Radio size={10} /> LIVE</span></h2>
         <p>{filename}{dirty > 0 && <span className="adjust-dirty"> · {dirty} {lang === "en" ? "changed" : "geändert"}</span>}</p></div>
         <button type="button" className="adjust-close" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleClose(); }} aria-label={lang === "en" ? "Close" : "Schließen"}><X size={16} /></button></header>
 
-      <section className="adjust-wave"><div className="adjust-wave-bar"><div className="adjust-transport">
+      <div className="adjust-wave-bar bz-rack-transport"><div className="adjust-transport">
         <button type="button" className="adjust-play" onClick={() => void togglePlay()} disabled={engineBusy} aria-label={playing ? (lang === "en" ? "Pause live preview" : "Live-Vorschau pausieren") : (lang === "en" ? "Play live preview" : "Live-Vorschau abspielen")}>{engineBusy ? <Loader2 size={15} className="adjust-spin" /> : playing ? <Pause size={15} /> : <Play size={15} />}</button>
         <span className="adjust-range-chip"><span ref={chipTimeRef}>{fmtTime(startSec)}–{fmtTime(endSec)}</span>{playing && " · LOOP"}</span>
         <div className="adjust-ab" aria-label={lang === "en" ? "Compare base settings and manual changes in live preview" : "Ausgangseinstellungen und Änderungen in der Live-Vorschau vergleichen"}>
-          <button className={auditionBase ? "is-active" : ""} onClick={() => { if (!auditionBase) toggleAudition(); }} disabled={!dirty}>A <span>{lang === "en" ? "Base settings" : "Ausgangswerte"}</span></button>
-          <button className={!auditionBase ? "is-active" : ""} onClick={() => { if (auditionBase) toggleAudition(); }} disabled={!dirty}>B <span>{lang === "en" ? "Changes" : "Änderungen"}</span></button>
+          <button aria-pressed={auditionBase} className={auditionBase ? "is-active" : ""} onClick={() => { if (!auditionBase) toggleAudition(); }} disabled={!dirty}>A <span>{lang === "en" ? "Base settings" : "Ausgangswerte"}</span></button>
+          <button aria-pressed={!auditionBase} className={!auditionBase ? "is-active" : ""} onClick={() => { if (auditionBase) toggleAudition(); }} disabled={!dirty}>B <span>{lang === "en" ? "Changes" : "Änderungen"}</span></button>
         </div>
         <button className="adjust-loudest" onClick={locateLoudest} disabled={waveLoading}><LocateFixed size={12} />{lang === "en" ? "Loudest part" : "Lauteste Stelle"}</button>
         <div className="adjust-lenpicker">{[5, 8, 12, 20].filter((length) => length <= dur || length === 5).map((length) => <button key={length} className={Math.abs(region.len - Math.min(length, dur)) < .1 ? "is-active" : ""} onClick={() => { const current = regionRef.current; setRegionLive(current.start + current.len / 2 - length / 2, length); commitRegion(); }}>{length}s</button>)}</div>
       </div>{engineBusy && <span role="status">{lang === "en" ? "Loading loop section …" : "Loopausschnitt wird geladen …"}</span>}{previewError && <span className="adjust-error">{previewError}</span>}</div>
-      <canvas ref={waveRef} className="adjust-wave-canvas" onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { ratio: ratioAt(event.clientX), start: regionRef.current.start, moved: false }; }} />
+      <section className="adjust-wave"><canvas ref={waveRef} className="adjust-wave-canvas" onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { ratio: ratioAt(event.clientX), start: regionRef.current.start, moved: false }; }} />
       <p className="adjust-hint">{waveLoading ? (lang === "en" ? "Reading waveform…" : "Wellenform wird analysiert…") : (lang === "en" ? "Click to position · drag to move the loop" : "Klicken zum Positionieren · Ziehen verschiebt den Loop")}</p></section>
 
       <nav className="adjust-tabs" role="tablist">{TABS.map((item) => <button key={item.id} role="tab" aria-selected={tab === item.id} className={`adjust-tab${tab === item.id ? " is-active" : ""}`} onClick={() => setTab(item.id)}>{t(item.label, lang)}</button>)}</nav>
-      <div className={`adjust-strip${wide ? " is-wide" : ""}${tab === "mb" ? " is-multiband" : ""}`}>
-        {tab === "eq" && <><SpectrumBackdrop analyser={analyser} playing={playing} /><EqCurve values={values} /></>}
-        {tab === "mb" && <MultibandScope analyser={analyser} playing={playing} values={values} lang={lang} />}
-        {tabDefs.map((definition) => <div key={definition.key} className={wide ? "adjust-channel-fixed" : "adjust-channel-flex"}><Fader def={definition} value={values[definition.key] ?? definition.min} onChange={setParam} lang={lang} /></div>)}
-        {tab === "ms" && <GoniometerScope width={values.stereo_width ?? 1} lang={lang} analyser={analyser} playing={playing} />}
+      <div className={`adjust-strip${wide ? " is-wide" : ""}${tab === "mb" ? " is-multiband" : ""}${tab === "eq" ? " bz-rack-eq" : ""}`}>
+        {tab === "eq" && <div className="bz-rack-screen"><SpectrumBackdrop analyser={analyser} playing={playing} /><EqCurve values={auditionBase ? base : values} params={serverParams} lang={lang}/><div aria-hidden="true"><span>20 Hz</span><span>200 Hz</span><span>2 kHz</span><span>20 kHz</span></div></div>}
+        {tab === "mb" && <MultibandScope analyser={analyser} playing={playing} lang={lang} />}
+        {tabDefs.map((definition) => {
+          const value = values[definition.key] ?? definition.min;
+          return <div key={definition.key} className={wide ? "adjust-channel-fixed" : "adjust-channel-flex"}>{tab === "eq"
+            ? <StudioDial label={t(definition.label, lang)} reading={formatValue(definition, value)} value={value} min={definition.min} max={definition.max} step={definition.step} change={next => setParam(definition.key, next)} inputClassName="adjust-fadinput"/>
+            : <Fader def={definition} value={value} onChange={setParam} lang={lang}/>}</div>;
+        })}
+        {tab === "ms" && <GoniometerScope width={(auditionBase ? base : values).stereo_width ?? 1} lang={lang} left={engineRef.current?.left} right={engineRef.current?.right} playing={playing} />}
         {tab === "sat" && <SaturationScope drive={values.saturation_amount ?? 0} lang={lang} analyser={analyser} playing={playing} />}
-        {tab === "bus" && <GainReductionScope threshold={values.bus_comp_threshold ?? -24} ratio={values.bus_comp_ratio ?? 1.4} lang={lang} analyser={analyser} playing={playing} getReduction={() => engineRef.current?.busReduction ?? 0} />}
+        {tab === "bus" && <LiveBusMeter playing={playing} read={readBusReduction} lang={lang}/>}
       </div>
       <section className="adjust-control-render" aria-label={lang === "en" ? "Server control render" : "Server-Kontrollrender"}>
         <div><button className="adjust-ghost" disabled={controlBusy || !analysis || endSec - startSec < .4} onClick={() => void renderControl()}>{controlBusy ? <Loader2 size={13} className="adjust-spin"/> : <Play size={13}/>} {lang === "en" ? "Render section on server" : "Ausschnitt auf Server prüfen"}</button>
           {controlBusy && <button className="adjust-ghost" onClick={() => { controlAbort.current?.abort(); setControlBusy(false); }}>{lang === "en" ? "Cancel" : "Abbrechen"}</button>}</div>
         <p>{lang === "en" ? "Same processing chain as export · up to 20 seconds · no master quota used. Section loudness and boundary context differ from a full-track export; this is a control render, not an identical excerpt of the final master." : "Gleiche Bearbeitungskette wie beim Export · bis 20 Sekunden · verbraucht kein Master-Kontingent. Abschnittslautheit und Randkontext unterscheiden sich vom Gesamttrack; dies ist ein Kontrollrender, kein identischer Ausschnitt des fertigen Masters."}</p>
         <div role="status" aria-live="polite">{controlError || (controlBusy ? (lang === "en" ? "Rendering selected section …" : "Ausgewählter Ausschnitt wird gerendert …") : "")}</div>
-        {controlUrl && <audio ref={controlAudio} controls preload="metadata" src={controlUrl} onPlay={() => { engineRef.current?.pause(); stopGlobalAudio(); }}/>}
+        {controlReady && <audio ref={controlAudio} controls preload="metadata" src={controlReady.url} onPlay={() => { engineRef.current?.pause(); stopGlobalAudio(); }}/>}
+        <ManualRenderComparison key={controlKey} blob={controlReady?.blob} analyser={analyser} playing={playing && !auditionBase} start={startSec} end={endSec} playhead={previewPlayhead} lang={lang}/>
       </section>
       <footer className="adjust-foot"><button className="adjust-ghost" disabled={!dirty} onClick={() => { setValues(base); setAuditionBase(false); auditionBaseRef.current = false; engineRef.current?.update(base); }}><RotateCcw size={13} />{lang === "en" ? "Reset" : "Zurücksetzen"}</button>
         <div className="adjust-live-note"><span />{lang === "en" ? "Instant Web Audio preview · final export uses the full mastering engine" : "Sofortige Web-Audio-Vorschau · finaler Export nutzt die vollständige Mastering-Engine"}</div>

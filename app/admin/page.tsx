@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { ArrowDown } from "lucide-react";
 import Header from "@/components/Header";
 import ToolUsageStats from "@/components/admin/ToolUsageStats";
 import UserDailyLimit from "@/components/admin/UserDailyLimit";
@@ -317,6 +318,11 @@ export default function AdminPage() {
           <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: "0.4rem" }}>
             {session?.user?.email}
           </p>
+          <a href="#recent-masters" className="mt-4 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-4"
+            style={{ color: "var(--accent-cyan)", borderColor: "var(--border-glow)", background: "var(--bg-elevated)" }}>
+            {lang === "en" ? "Jump to recent masters" : "Zu den letzten Masterings"}
+            <ArrowDown size={15} aria-hidden="true"/>
+          </a>
         </div>
 
         {/* Stats grid */}
@@ -568,9 +574,9 @@ export default function AdminPage() {
 
         {/* ── RECENT MASTERS ── */}
         <div>
-          <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--accent-purple)",
+          <h2 id="recent-masters" tabIndex={-1} style={{ scrollMarginTop: "7rem", fontSize: "0.85rem", fontWeight: 700, color: "var(--accent-purple)",
             letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 1rem" }}>
-            Letzte Masters (20)
+            {lang === "en" ? "Recent masters (20)" : "Letzte Masterings (20)"}
           </h2>
           {card(
             <div style={{ overflowX: "auto" }}>

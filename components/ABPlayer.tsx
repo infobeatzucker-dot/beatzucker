@@ -14,12 +14,13 @@ import { useUiThemeSnapshot } from "@/lib/useUiThemeSnapshot";
  *  • Smooth scrubber + keyboard shortcuts
  */
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, type ReactNode } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import ABModeSwitch from "@/components/ABModeSwitch";
 import { useAudioEngine } from "@/contexts/AudioEngineContext";
-import type { Lang } from "@/lib/types/mastering";
+import type { Lang, AnalysisData } from "@/lib/types/mastering";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
+import { StudioMeter } from "./StudioControls";
 
 function formatTime(s: number) {
   if (!isFinite(s) || isNaN(s)) return "0:00";
@@ -31,9 +32,10 @@ function formatTime(s: number) {
 interface Props {
   filename: string;
   lang?: Lang;
+  monitor?: { original: AnalysisData; master: AnalysisData; download: ReactNode };
 }
 
-export default function ABPlayer({ filename, lang = "de" }: Props) {
+export default function ABPlayer({ filename, lang = "de", monitor }: Props) {
   const uiTheme = useUiThemeSnapshot();
   const reduced = useReducedMotion();
   const engine = useAudioEngine();
@@ -282,9 +284,9 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
 
   return (
     <div
-      className="studio-ab-player rounded-2xl overflow-hidden mb-6"
+      className={`studio-ab-player rounded-2xl overflow-hidden mb-6${monitor ? " bz-hardware bz-master-monitor" : ""}`}
       data-mode={mode}
-      style={{
+      style={monitor ? undefined : {
         background: "rgba(var(--bz-paint-080a12),0.85)",
         border: `1px solid ${isB ? "rgba(var(--bz-paint-38bdf8),0.25)" : "rgba(var(--bz-paint-8b5cf6),0.25)"}`,
         backdropFilter: "blur(20px)",
@@ -319,11 +321,20 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
 
       {/* Selection animation never controls or delays audio. */}
       <div className="px-5 pt-4 pb-3">
-        <ABModeSwitch mode={mode} onChange={engine.setMode} available={!masterUnavailable && !!masteredUrl} lang={lang} />
+        <ABModeSwitch mode={mode} onChange={engine.setMode} available={!masterUnavailable && !!masteredUrl} lang={lang} hardware={!!monitor} />
       </div>
 
+      {monitor && <div className="bz-master-sources">
+        {([["A", "Original", monitor.original], ["B", lang === "en" ? "Mastered" : "Master", monitor.master]] as const).map(([source, label, analysis]) => {
+          const level = analysis?.true_peak;
+          const measured = Number.isFinite(level);
+          return <StudioMeter key={source} label={`${label} · True Peak`} reading={measured ? `${level.toFixed(1)} dBTP` : "—"}
+            fraction={measured ? (level + 36) / 36 : 0} active={source === mode}/>;
+        })}
+      </div>}
+
       {/* Optional level matching; original levels are the default. */}
-      <div className="flex items-center justify-between gap-3 px-5 pb-3">
+      <div className={`flex items-center justify-between gap-3 px-5 pb-3${monitor ? " bz-monitor-controls" : ""}`}>
         <button
           type="button"
           role="switch"
@@ -357,6 +368,7 @@ export default function ABPlayer({ filename, lang = "de" }: Props) {
             {engine.loudnessCompensatedSource} {engine.loudnessCompensationDb.toFixed(1)} dB
           </span>
         )}
+        {monitor?.download}
       </div>
 
       {/* Waveform + Oscilloscope canvas area — clickable to seek */}

@@ -1,4 +1,5 @@
 import { normalizeLoopRegion } from "./manualLoop";
+import { withDspAdmissionRetry } from "./dspAdmissionRetry";
 
 /** A bounded decoded loop, not a media-element seek on every repetition. */
 export class PreviewLoopPlayer {
@@ -36,10 +37,11 @@ export class PreviewLoopPlayer {
     this.loadingListener(true);
     const promise = (async () => {
       const query = new URL(this.url, "https://beatzucker.de").searchParams;
-      const response = await fetch("/api/preview-section", {
-        method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.any([abort.signal, AbortSignal.timeout(25000)]),
+      const signal = AbortSignal.any([abort.signal, AbortSignal.timeout(25000)]);
+      const response = await withDspAdmissionRetry(() => fetch("/api/preview-section", {
+        method: "POST", headers: { "Content-Type": "application/json" }, signal,
         body: JSON.stringify({ file_id: query.get("file_id"), upload_token: query.get("upload_token"), start: region.start, end: region.end }),
-      });
+      }), signal);
       if (!response.ok) throw Error("Preview source unavailable");
       const bytes = await response.arrayBuffer(); if (bytes.byteLength > 8000000) throw Error("Preview source too large");
       const buffer = await this.ctx.decodeAudioData(bytes);

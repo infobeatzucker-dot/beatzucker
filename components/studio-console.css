@@ -1,0 +1,126 @@
+.bz-hardware {
+  --rack-edge: color-mix(in srgb, var(--ui-metal, var(--text-muted)) 52%, var(--bg-primary));
+  --rack-metal: color-mix(in srgb, var(--bg-elevated) 84%, var(--ui-metal, var(--accent-purple)));
+  --rack-metal-low: color-mix(in srgb, var(--bg-tertiary) 91%, var(--accent-purple));
+  --rack-screen: color-mix(in srgb, var(--bg-primary) 94%, var(--accent-cyan));
+  --rack-line: color-mix(in srgb, var(--text-primary) 15%, transparent);
+  --rack-shadow: var(--ui-shadow, #0006);
+  --rack-cap-top: var(--ui-face1, #e1e7f7);
+  --rack-cap-mid: var(--ui-face2, #adb8d0);
+  --rack-cap-low: var(--ui-face3, #7a87a4);
+  --rack-cap-edge: var(--ui-knurl, #1e2841);
+  --rack-led: var(--accent-cyan);
+  --rack-warn: var(--accent-gold);
+  --rack-peak: var(--accent-red);
+  color: var(--text-primary);
+  border: 1px solid var(--rack-edge);
+  border-bottom: 4px solid var(--rack-edge);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in srgb, var(--text-primary) 3%, transparent) 3px 4px),
+    linear-gradient(155deg, var(--rack-metal), var(--rack-metal-low));
+  box-shadow: inset 0 1px var(--rack-line), 0 12px 24px var(--rack-shadow);
+}
+.bz-hardware :is(button,input):focus-visible { outline: 2px solid var(--rack-led); outline-offset: 3px; }
+.bz-hardware :is(.bz-hardware-keys button, .bz-album-channels button, .bz-album-transport button, .bz-median, .studio-ab-switch button, .studio-download-jump,
+  .adjust-tab, .adjust-ab button, .adjust-lenpicker button, .adjust-loudest, .adjust-play, .vocal-transport button, .vocal-presets button) {
+  color: var(--text-primary);
+  border: 1px solid var(--rack-edge);
+  border-radius: 6px;
+  background: linear-gradient(var(--rack-metal), var(--rack-metal-low));
+  box-shadow: inset 0 1px var(--rack-line), 0 2px 4px var(--rack-shadow);
+}
+.bz-hardware :is(.bz-hardware-keys button, .bz-album-channels button, .studio-ab-switch button, .adjust-ab button)[aria-pressed="true"],
+.bz-hardware :is(.adjust-tab[aria-selected="true"], .adjust-lenpicker button.is-active, .vocal-presets button.active) {
+  border-color: var(--rack-led);
+  background: linear-gradient(color-mix(in srgb, var(--rack-led) 22%, var(--rack-metal)), var(--rack-metal-low));
+  box-shadow: inset 0 1px var(--rack-line), 0 0 10px color-mix(in srgb, var(--rack-led) 23%, transparent);
+}
+.bz-hardware :is(.bz-hardware-keys button, .bz-album-channels button, .bz-median, .studio-ab-switch button) {
+  min-height: 38px; padding: 7px 11px; font-weight: 700; font-size: .8rem; cursor: pointer;
+}
+.bz-hardware button:disabled { cursor: not-allowed; opacity: .5; }
+.bz-hardware-heading, .bz-hardware-keys { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.bz-hardware-heading { margin-bottom: 11px; }
+.bz-hardware-heading h3 { margin: 0; font-size: 1.1rem; font-weight: 740; }
+.bz-hardware-heading svg { color: var(--rack-led); }
+.bz-hardware-dial { min-width: 0; display: grid; justify-items: center; gap: 7px; text-align: center; padding: 8px 2px; }
+.bz-hardware-dial > span { min-height: 1.2em; font-size: .76rem; font-weight: 700; color: var(--text-primary); overflow-wrap: anywhere; }
+.bz-hardware-dial output, .bz-hardware-meter output {
+  color: var(--text-primary); font: .72rem ui-monospace,monospace; font-variant-numeric: tabular-nums;
+}
+.bz-hardware-dial output { background: var(--rack-screen); border: 1px solid var(--rack-edge); padding: 3px 6px; border-radius: 4px; }
+.bz-hardware-knob {
+  position: relative; display: grid; place-items: center; isolation: isolate;
+  width: clamp(52px, 8vw, 73px); aspect-ratio: 1; border-radius: 50%;
+  background: conic-gradient(from 225deg, var(--rack-led) 0 var(--dial-value), var(--rack-line) var(--dial-value) 270deg, transparent 270deg);
+  cursor: ns-resize; touch-action: none;
+}
+.bz-hardware-knob > i {
+  position: absolute; inset: 5px; border-radius: 50%; transform: rotate(var(--dial-angle));
+  background: repeating-conic-gradient(var(--rack-cap-edge) 0deg 5deg, color-mix(in srgb, var(--rack-cap-edge) 69%, var(--rack-cap-mid)) 5deg 7deg);
+  box-shadow: 0 4px 7px var(--rack-shadow), inset 0 1px var(--rack-line);
+}
+.bz-hardware-knob > i::before {
+  content: ""; position: absolute; inset: 5px; border-radius: 50%;
+  background: radial-gradient(ellipse at 35% 25%, var(--rack-cap-top), transparent 74%), linear-gradient(var(--rack-cap-mid),var(--rack-cap-low));
+  border: 1px solid var(--rack-cap-edge);
+}
+.bz-hardware-knob > i::after { content: ""; position: absolute; top: 2px; left: calc(50% - 1.5px); width: 3px; height: 11px; border-radius: 2px; background: var(--rack-led); box-shadow: 0 0 0 1px var(--rack-cap-edge); }
+.bz-hardware-knob input[type="range"] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
+.bz-hardware-knob:focus-within { outline: 2px solid var(--rack-led); outline-offset: 3px; }
+.bz-hardware-knob:has(input:disabled) { opacity: .55; cursor: not-allowed; }
+.bz-hardware-meter { min-width: 0; padding: 7px 9px; border: 1px solid var(--rack-edge); border-radius: 6px; background: var(--rack-screen); box-shadow: inset 0 2px 6px var(--rack-shadow); }
+.bz-hardware-meter > div:first-child { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; color: var(--text-secondary); font-size: .72rem; }
+.bz-hardware-leds { display: grid; grid-template-columns: repeat(24, minmax(0,1fr)); gap: 2px; margin-top: 6px; }
+.bz-hardware-leds i { height: 7px; border-radius: 1px; background: var(--rack-line); }
+.bz-hardware-leds i[data-lit="true"] { background: var(--rack-led); box-shadow: 0 0 3px color-mix(in srgb, var(--rack-led) 50%, transparent); }
+.bz-hardware-leds i[data-lit="true"]:nth-child(n+21) { background: var(--rack-peak); }
+.bz-hardware-meter[data-reduction="true"] .bz-hardware-leds i[data-lit="true"] { background: var(--rack-warn); }
+.bz-hardware-meter[data-active="false"] .bz-hardware-leds i[data-lit="true"] { opacity: .58; }
+.bz-hardware.vocal-console, .bz-hardware.adjust-modal, .bz-hardware.bz-master-monitor { border-color: var(--rack-edge); }
+.bz-vocal-monitor { display: grid; grid-template-columns: minmax(82px, .7fr) minmax(0, 2.5fr); align-items: center; gap: 12px; margin: 12px 0; }
+.bz-vocal-meters { display: grid; gap: 6px; }
+.bz-album-desk { margin-top: 14px; padding: 12px; border-radius: 12px; }
+.bz-album-master { display: grid; grid-template-columns: minmax(94px, .55fr) minmax(0, 2.1fr); align-items: center; gap: 10px; }
+.bz-album-master p { margin: 6px 0; font-size: .77rem; color: var(--text-secondary); }
+.bz-album-master .bz-median { margin-top: 6px; }
+.bz-album-transport {
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 8px;
+  margin: 9px 0; padding: 6px; border: 1px solid var(--rack-edge); border-radius: 6px;
+  background: var(--rack-screen); color: var(--text-primary); font: .73rem ui-monospace,monospace;
+}
+.bz-album-transport button { display: grid; place-items: center; min-width: 34px; min-height: 34px; cursor: pointer; }
+.bz-album-transport input { width: 100%; min-width: 0; accent-color: var(--rack-led); }
+.bz-album-channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 155px),1fr)); gap: 8px; margin-top: 10px; }
+.bz-album-channels article { display: grid; gap: 7px; padding: 9px; border: 1px solid var(--rack-edge); border-radius: 7px; background: var(--rack-metal-low); align-content: start; }
+.bz-album-channels article[data-active="true"] { border-top-color: var(--rack-led); }
+.bz-album-channels article > strong { overflow-wrap: anywhere; font-size: .82rem; }
+.bz-album-channels article p { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 3px 5px; margin: 0; color: var(--text-secondary); font-size: .74rem; }
+.bz-album-channels article button { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.bz-master-monitor .studio-ab-marker { display: none; }
+.bz-master-monitor .studio-ab-switch button { flex: 1 1 0; min-width: 0; min-height: 45px; display: flex; justify-content: center; align-items: center; gap: 7px; }
+.bz-master-monitor .studio-ab-switch button[aria-pressed="true"] .studio-ab-dot { background: var(--rack-led); width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 7px var(--rack-led); }
+.bz-master-sources { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; margin: 0 20px 10px; }
+.bz-monitor-controls { flex-wrap: wrap; }
+.bz-master-monitor .studio-download-jump { padding: 6px 9px; margin: 0; width: auto; min-height: 32px; font-size: .76rem; }
+.bz-manual-rack .bz-rack-transport { position: sticky; top: 0; z-index: 4; padding: 8px 14px; background: var(--rack-screen); border-block: 1px solid var(--rack-edge); box-shadow: 0 4px 9px var(--rack-shadow); }
+.bz-manual-rack .adjust-tabs { margin-top: 5px; }
+.bz-manual-rack .adjust-wave-canvas { background: var(--rack-screen); }
+.bz-manual-rack .adjust-strip.bz-rack-eq { flex-wrap: wrap; align-items: stretch; min-height: 0; gap: 8px; padding-top: 12px; }
+.bz-rack-eq .adjust-channel-flex { flex: 1 1 74px; border: 1px solid var(--rack-edge); border-radius: 7px; background: var(--rack-metal-low); }
+.bz-rack-screen { position: relative; flex: 1 0 100%; height: 99px; border-radius: 8px; border: 1px solid var(--rack-edge); background: var(--rack-screen); overflow: hidden; }
+.bz-rack-screen .adjust-eqcurve, .bz-rack-screen .adjust-spectrum { inset: 4px 8px auto; width: calc(100% - 16px); height: 73px; }
+.bz-rack-screen > div { position: absolute; inset: auto 8px 4px; display: flex; justify-content: space-between; font: .62rem ui-monospace,monospace; color: var(--text-secondary); }
+.bz-manual-rack .adjust-scope, .bz-bus-display { background: var(--rack-screen); border: 1px solid var(--rack-edge); border-radius: 9px; }
+.bz-bus-display { display: grid; align-content: center; flex: 1 1 135px; min-width: 0; padding: 10px; }
+.bz-bus-display .bz-hardware-meter { border: 0; }
+@media(max-width: 520px) {
+  .bz-manual-rack .bz-rack-transport { padding: 6px 8px; }
+  .bz-manual-rack .adjust-strip.bz-rack-eq { padding-inline: 10px; }
+  .bz-master-monitor .studio-download-jump { padding-inline: 5px; }
+  .bz-master-monitor .studio-ab-switch button { font-size: .73rem; }
+  .bz-vocal-monitor { gap: 7px; }
+}
+@media (forced-colors: active) {
+  .bz-hardware-knob input[type="range"] { opacity: 1; pointer-events: auto; }
+}

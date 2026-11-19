@@ -21,9 +21,27 @@ export async function GET(req: NextRequest) {
       const job = await infoResponse.json();
       // Re-read current DB permission on every asset request, not just submission.
       if (job.mode === "full" && !stemAllowed(user, job.tool)) return fail("Access revoked / Freischaltung aufgehoben", 403);
-      const result = await stemFetch(user.id, `/jobs/${id}/audio/${asset}`);
+      const range = req.headers.get("range");
+      if (range && !/^bytes=(?:\d{1,16}-\d{0,16}|-\d{1,16})$/.test(range)) return fail("Unsupported audio range", 416);
+      const requestHeaders = new Headers({ "Accept-Encoding": "identity" });
+      if (range) requestHeaders.set("Range", range);
+      const result = await stemFetch(user.id, `/jobs/${id}/audio/${asset}`, { signal: req.signal, headers: requestHeaders });
+      const transportHeaders = new Headers(headers);
+      transportHeaders.set("Cache-Control", "private, no-store, no-transform");
+      for (const key of ["content-range", "accept-ranges"]) {
+        const value = result.headers.get(key);
+        if (value) transportHeaders.set(key, value);
+      }
+      if (result.status === 416) {
+        void result.body?.cancel().catch(() => {});
+        return new Response(null, { status: 416, headers: transportHeaders });
+      }
       if (!result.ok) return fail("Audio unavailable", result.status);
-      return new Response(result.body, { headers: { ...headers, "Content-Type": "audio/wav", "Content-Disposition": `${job.mode === "full" ? "attachment" : "inline"}; filename="beatzucker-${asset}.wav"` } });
+      const length = result.headers.get("content-length");
+      if (length) transportHeaders.set("Content-Length", length);
+      transportHeaders.set("Content-Type", "audio/wav");
+      transportHeaders.set("Content-Disposition", `${job.mode === "full" && req.nextUrl.searchParams.get("play") !== "1" ? "attachment" : "inline"}; filename="beatzucker-${asset}.wav"`);
+      return new Response(result.body, { status: result.status, headers: transportHeaders });
     }
     const result = await stemFetch(user.id, id ? `/jobs/${id}` : "/jobs");
     if (!result.ok) return fail("Job unavailable", result.status);

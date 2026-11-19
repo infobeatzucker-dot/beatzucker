@@ -43,7 +43,35 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   await page.getByRole('button',{name:'Assistent öffnen',exact:true}).click();await dialog.getByRole('button',{name:'Manuell nachjustieren',exact:true}).click();await dialog.waitFor({state:'hidden'});
   const manual=page.getByRole('dialog',{name:'Manuelle Feinabstimmung',exact:true});
   await manual.waitFor({state:'visible'});
+  const monitor=page.locator('.bz-master-monitor');
+  assert.equal(await monitor.locator('.bz-master-sources .bz-hardware-meter').count(),2);
+  const rack=manual.locator('.bz-manual-rack');
+  assert.ok(await rack.locator('.bz-rack-eq .bz-hardware-knob').count());
+  const studioThemes=['original','light','analog','aurora','sandstone','obsidian-gold','midnight-cobalt','velvet-plum','arctic-ice','pistachio-studio','rose-quartz'];
+  const colors=await page.evaluate(themes=>themes.map(theme=>{
+    document.documentElement.dataset.uiTheme=theme;
+    return ['.bz-manual-rack','.bz-master-monitor'].map(selector=>getComputedStyle(document.querySelector(selector)).backgroundImage);
+  }),studioThemes);
+  assert.equal(new Set(colors.map(pair=>pair[0])).size,studioThemes.length);
+  assert.equal(new Set(colors.map(pair=>pair[1])).size,studioThemes.length);
+  await page.evaluate(theme=>{document.documentElement.dataset.uiTheme=theme;},qaTheme);
+  await manual.getByRole('tab',{name:'Stereo',exact:true}).click();
+  await manual.getByText('Stereo-Vektorskop',{exact:true}).waitFor();
+  await manual.getByRole('tab',{name:'Bus & Limiter',exact:true}).click();
+  assert.equal(await rack.locator('.bz-bus-display output').textContent(),'—');
+  await manual.getByRole('button',{name:'Live-Vorschau abspielen',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('.bz-bus-display output')?.textContent?.includes('dB'));
+  await manual.getByRole('tab',{name:'EQ',exact:true}).click();
+  const comparison=manual.locator('.bz-manual-compare');
+  await comparison.scrollIntoViewIfNeeded();
+  await comparison.locator('circle').first().waitFor({timeout:25000});
+  await manual.getByRole('button',{name:'Ausschnitt auf Server prüfen',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('.bz-manual-compare .bz-trace-b')?.getAttribute('d')?.length>20,{},{timeout:60000});
+  const profile=page.locator('.bz-sound-profile');
+  assert.equal(await profile.locator('.bz-signal-stats dt').count(),3);
+  assert.ok((await profile.locator('.bz-profile-a path').getAttribute('d')).length>20);
   await manual.locator('input.adjust-fadinput').first().press('ArrowRight');
+  assert.equal(await comparison.locator('.bz-trace-b').getAttribute('d'),'');
   const manualResponse=page.waitForResponse(r=>r.url()===base+'/api/master'&&r.status()===200,{timeout:180000});
   await manual.getByRole('button',{name:'Neuen Master erstellen',exact:true}).click();
   await manualResponse;
@@ -84,6 +112,12 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     const format=new Intl.DateTimeFormat('de-DE',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Berlin'});
     await row.getByRole('cell',{name:format.format(updatedUser.lastMasteredAt),exact:true}).first().waitFor();
     console.log('PASS admin activity API returns both timestamps to admin only');
+    await adminPage.getByRole('link',{name:'Zu den letzten Masterings',exact:true}).press('Enter');
+    await adminPage.waitForFunction(()=>{
+      const heading=document.querySelector('#recent-masters'),top=heading?.getBoundingClientRect().top;
+      return location.hash==='#recent-masters'&&top>=85&&top<innerHeight&&heading===document.activeElement;
+    });
+    console.log('PASS keyboard jump reaches and focuses recent masters below the fixed header');
    }finally{await admin.close();}
   }
   try{await db.user.update({where:{email},data:{dailyMasterLimit:0}})}finally{await db.$disconnect()}

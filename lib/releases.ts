@@ -10,6 +10,30 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"2.0.0",date:"2026-11-19",
+  title:{de:"Beatzucker 2.0 mit neuem Studio-Look",en:"Beatzucker 2.0 brings a new studio look"},
+  summary:{de:"Vergleiche Original und Master anhand gemessener Werte und spring direkt zu markanten Pegeländerungen. Drei Audio-Tools zeigen dir mehr vom Signal.",en:"Compare original and master using measured data, and jump to distinct level changes. Three audio tools show you more of the signal."},
+  improvements:{
+    de:[
+      "In der neuen Abhörsektion wechselst du zwischen Original und Master, vergleichst die gemessenen Spitzenpegel und gelangst direkt zum Download. Die Zeitleiste führt zu auffälligen Pegeländerungen.",
+      "Die manuelle Feinabstimmung hat ein Mastering-Rack mit EQ-Drehreglern, Stereo-Vektorskop und gemessener Bus-Pegelreduktion. Live-Loop und A/B bleiben beim Scrollen erreichbar.",
+      "In der Vocal Chain vergleichst du Original und Bearbeitung während der Wiedergabe. Ein Drehregler bestimmt den Bearbeitungsanteil, und Anzeigen zeigen, wie stark De-Esser und Kompressor eingreifen.",
+      "In der Album-Abhöre hörst du einzelne Songs bei Originalpegel oder mit vorgeschlagener Pegelanpassung. Ein gemeinsamer Regler setzt das Vergleichsziel.",
+      "Vocal Remover und Stem Separation haben ein Mischpult mit Fadern, Solo, Mute und LED-Pegelanzeigen. Die Studio-Bedienelemente folgen dem gewählten Farbschema.",
+      "Kick und Bass in vier Frequenzbereichen prüfen. Im Audio-Cutter zeigen Schnittlupe und Fade-Markierungen, wo du genau schneidest.",
+      "Über „Problem melden“ kannst du eine E-Mail mit Fehlerbeschreibung, Seitenpfad und Versionsnummer vorbereiten. Wissen und Ablauf erklären die neuen Funktionen.",
+    ],
+    en:[
+      "Switch between original and master in the monitoring section, compare measured true peaks, and jump to the downloads. The timeline takes you to distinct local level changes.",
+      "Manual fine-tuning adds a mastering rack with EQ dials, a stereo vectorscope and measured bus gain reduction. Live looping and A/B stay within reach as you scroll.",
+      "Compare original and processed vocals during playback. Set the blend with a dial and see how much gain the de-esser and compressor reduce.",
+      "Audition album tracks individually at original or matched levels, and set a shared comparison target.",
+      "Vocal Remover and Stem Separation have a mixing console with faders, solo, mute and LED peak meters. Studio controls follow your selected color theme.",
+      "Inspect kick and bass in four frequency ranges. The audio cutter shows fades and magnifies the waveform at each cut.",
+      "Use “Report a problem” to prepare an email with the error details, page path and app version. The knowledge and workflow guides explain the new features.",
+    ],
+  },
+}, {
   version:"1.8.1",date:"2026-11-19",
   title:{de:"Verlässlich nachjustieren und dokumentieren",en:"Reliable fine-tuning and reports"},
   summary:{de:"Manuelle Feinabstimmung behält die Einstellungen des fertigen Masters. Der PDF-Bericht zeigt, welche Bearbeitungsstufen ausgeführt wurden.",en:"Manual fine-tuning keeps the settings of the completed master. The PDF report shows which processing stages ran."},

@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Layers3, Mic2, Upload, LockKeyhole, Download, Waves } from "lucide-react";
 import type { Lang } from "@/lib/types/mastering";
 import ToolLanguageNav from "./ToolLanguageNav";
+import StemMixer from "./StemMixer";
 import "./stem-tool.css";
 
 type Job = { id: string; tool: string; mode: "preview" | "full"; status: string; stems: string[]; error?: string };
@@ -11,8 +12,7 @@ export default function StemTool({ lang, tool }: { lang: Lang; tool: "vocal-remo
   const en = lang === "en", vocal = tool === "vocal-remover";
   const [available, setAvailable] = useState(false), [signedIn, setSignedIn] = useState(true), [allowed, setAllowed] = useState(false);
   const [file, setFile] = useState<File | null>(null), [busy, setBusy] = useState(false), [loaded, setLoaded] = useState(false);
-  const [job, setJob] = useState<Job | null>(null), [message, setMessage] = useState(""), [stem, setStem] = useState("vocals");
-  const audio = useRef<HTMLAudioElement>(null);
+  const [job, setJob] = useState<Job | null>(null), [message, setMessage] = useState("");
   useEffect(() => {
     const controller = new AbortController(); let timer: ReturnType<typeof setTimeout>;
     async function poll() {
@@ -31,7 +31,7 @@ export default function StemTool({ lang, tool }: { lang: Lang; tool: "vocal-remo
   }, [tool, vocal]);
   async function submit(mode: "preview" | "full") {
     if (!file || busy) return;
-    audio.current?.pause(); setBusy(true); setMessage(""); setStem("vocals");
+    setBusy(true); setMessage("");
     try {
       const form = new FormData(); form.set("file", file); form.set("tool", tool); form.set("mode", mode);
       const response = await fetch("/api/stems", { method: "POST", body: form });
@@ -59,8 +59,8 @@ export default function StemTool({ lang, tool }: { lang: Lang; tool: "vocal-remo
       {busy && <p role="status">{en ? "Uploading…" : "Wird hochgeladen…"}</p>}
       {status && <div className={`stem-job ${active ? "is-active" : ""}`} role="status"><Waves size={24}/>{status}</div>}
       {message && <p role="alert">{message}</p>}
-      {canPlay && <div className="stem-results"><div className="stem-tabs">{job.stems.map(name => <button key={name} aria-pressed={stem === name} onClick={() => { audio.current?.pause(); setStem(name); }}>{({ vocals: en ? "Vocals" : "Stimme", instrumental: "Instrumental", drums: "Drums", bass: "Bass", other: en ? "Other" : "Übrige" } as Record<string,string>)[name]}</button>)}</div>
-        <audio ref={audio} key={`${job.id}-${stem}`} controls preload="none" controlsList={job.mode === "preview" ? "nodownload" : undefined} src={`/api/stems?id=${job.id}&asset=${stem}`}/>
+      {canPlay && !busy && job.stems.length > 0 && <div className="stem-results">
+        <StemMixer key={`${job.id}:${job.stems.join(",")}`} id={job.id} stems={job.stems} lang={lang}/>
         {job.mode === "full" && allowed ? <div className="stem-downloads">{job.stems.map(name => <a key={name} href={`/api/stems?id=${job.id}&asset=${name}`} download><Download size={16}/>{name} · WAV</a>)}</div> : <p>{en ? "Trial: only the first 20 seconds are processed. Full stems are not provided. Audio played in a browser can still be recorded." : "Test: Nur die ersten 20 Sekunden werden verarbeitet. Vollständige Spuren werden nicht bereitgestellt. Im Browser abgespieltes Audio lässt sich dennoch aufnehmen."}</p>}
       </div>}
     </div>

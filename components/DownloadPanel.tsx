@@ -7,6 +7,7 @@ import ABPlayer from "./ABPlayer";
 import DonateButton from "./DonateButton";
 import MasterReadyReveal from "./MasterReadyReveal";
 import DownloadJumpButton from "./DownloadJumpButton";
+import MasteringSoundProfile from "./MasteringSoundProfile";
 import { openMasteringReport } from "@/lib/openMasteringReport";
 
 interface Props {
@@ -108,9 +109,9 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
     <div className="mt-6">
       {/* A/B Comparison Player — URLs are provided via AudioEngineContext */}
       <MasterReadyReveal key={masterData.master_id} lang={lang}>
-        <ABPlayer filename={filename} lang={lang} />
-        <DownloadJumpButton target={downloadHeading} targetId={downloadHeadingId} lang={lang} />
+        <ABPlayer filename={filename} lang={lang} monitor={{ original: preAnalysis, master: masterData.post_analysis, download: <DownloadJumpButton target={downloadHeading} targetId={downloadHeadingId} lang={lang} /> }} />
       </MasterReadyReveal>
+      {masterData.post_analysis && <MasteringSoundProfile original={preAnalysis} master={masterData.post_analysis} lang={lang}/>}
 
       {/* Success Banner */}
       <div

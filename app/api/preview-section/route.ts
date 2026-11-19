@@ -25,7 +25,14 @@ export async function POST(request: Request) {
     const relative = path.relative(actualRoot, file);
     if (relative.startsWith("..") || path.isAbsolute(relative)) return Response.json({ error: "Forbidden" }, { status: 403 });
     const response = await fetch(`${process.env.PYTHON_SERVICE_URL || "http://localhost:8001"}/preview-section`, { method: "POST", headers: pythonServiceHeaders(), signal: AbortSignal.any([request.signal, AbortSignal.timeout(20000)]), body: JSON.stringify({ file_path: file, start, end }) });
-    if (!response.ok) return Response.json({ error: "Preview unavailable" }, { status: response.status === 503 ? 503 : 422 });
+    if (!response.ok) {
+      const busy = response.status === 503;
+      // A bounded preview may compete with its own waveform request. Only an
+      // explicit admission rejection authorizes a short client retry.
+      const headers = busy && response.headers.has("Retry-After") ? { "Retry-After": "1" } : undefined;
+      void response.body?.cancel().catch(() => {});
+      return Response.json({ error: "Preview unavailable" }, { status: busy ? 503 : 422, headers });
+    }
     return new Response(response.body, { headers: { "Content-Type": "audio/wav", "Cache-Control": "private, no-store" } });
   } catch (error) { return Response.json({ error: "Preview unavailable" }, { status: error instanceof JsonBodyError ? error.status : 503 }); }
 }

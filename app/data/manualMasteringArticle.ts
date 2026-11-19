@@ -7,7 +7,7 @@ export const MANUAL_MASTERING_ARTICLE: RessourceArticle = {
   category: "Tipps",
   categoryColor: "var(--accent-purple)",
   publishedAt: "2025-03-20",
-  updatedAt: "2026-10-24",
+  updatedAt: "2026-11-19",
   heroIcon: "Sliders",
   readingTimeMinutes: 5,
   title: {
@@ -54,8 +54,8 @@ export const MANUAL_MASTERING_ARTICLE: RessourceArticle = {
       {
         h2: { de: "3. EQ, Dynamik und Stereo behutsam einstellen", en: "3. Adjust EQ, dynamics and stereo gently" },
         body: {
-          de: "Beginne mit einer kleinen EQ-Änderung, wenn die Balance stört. Bei zu viel Verdichtung lohnt es sich, die Kompression vorsichtig zurückzunehmen und auf die Transienten zu hören. Prüfe Stereobreite und Bass-Bündelung auch im Hinblick auf Mono-Kompatibilität; breiter ist nicht automatisch besser.\n\nMit A/B in der manuellen Vorschau vergleichst du die Ausgangseinstellungen mit deinen Änderungen. Das ist ein anderer Vergleich als Original gegen fertigen Master im Hauptplayer. „Zurücksetzen“ stellt die Ausgangswerte im Dialog wieder her.",
-          en: "Start with a small EQ change if the balance feels wrong. If the sound is too dense, ease back compression carefully and listen to transients. Judge stereo width and bass narrowing with mono compatibility in mind; wider is not automatically better.\n\nA/B in manual preview compares base settings with your changes. This differs from comparing the original with the finished master in the main player. Reset restores the dialog’s base settings.",
+          de: "Beginne mit einer kleinen Änderung an den EQ-Drehreglern. Die Kurve zeigt den statischen Frequenzgang der Vorschau. Bei zu viel Verdichtung kannst du die Kompression zurücknehmen und auf die Transienten hören. Das LED-Meter im Bus-Modul zeigt die gemessene Pegelreduktion der laufenden Vorschau. Im Stereo-Modul zeigen Punkte die Verteilung des echten linken und rechten Signals. Prüfe neben der Breite auch die Mono-Kompatibilität.\n\nDie Leiste für Live-Loop und A/B bleibt beim Scrollen erreichbar. Vergleiche damit die Ausgangseinstellungen mit deinen Änderungen. Im Hauptplayer vergleichst du Original und fertigen Master. „Zurücksetzen“ stellt die Ausgangswerte im Dialog wieder her.",
+          en: "Start with a small change on the EQ dials. The curve shows the static frequency response of the preview EQ. If the sound is too dense, ease back compression and listen to transients. The bus module’s LED meter shows measured gain reduction during playback. The stereo module plots actual left and right audio. Check mono compatibility alongside width.\n\nLive loop and A/B remain within reach as you scroll. Use them to compare base settings with your edits. In the main player, you compare the original with the finished master. Reset restores the dialog’s base settings.",
         },
       },
       {
