@@ -10,6 +10,14 @@ export const RELEASES: {
   improvements: Record<Lang, string[]>;
   retrospective?: boolean;
 }[] = [{
+  version:"2.3.2",date:"2026-11-20",
+  title:{de:"Mastering-Fortschritt im Studio Mode auf einen Blick",en:"See Studio Mode mastering progress at a glance"},
+  summary:{de:"Wenn du im Studio Mode auf „Track mastern“ klickst, öffnet sich ein Fortschrittsfenster mit Prozentanzeige und den Verarbeitungsschritten.",en:"Select “Master track” in Studio Mode to open a progress window with the percentage and processing stages."},
+  improvements:{
+    de:["FAQ, Wissen und „So funktioniert’s“ erklären den Studio Mode vom Demo-Track bis zur Feinabstimmung und zum Download."],
+    en:["FAQ, Knowledge and How It Works explain Studio Mode from playing the demo through fine-tuning and downloading your master."],
+  },
+}, {
   version:"2.3.1",date:"2026-11-19",
   title:{de:"Upload und Mastering-Start im Studio Mode leichter finden",en:"Find upload and mastering more easily in Studio Mode"},
   summary:{de:"Das Upload-Feld steht jetzt am Anfang der Konsole. Der größere Master-Button leuchtet kurz auf, sobald dein Track bereit ist.",en:"The upload area is now at the top of the console. The larger Master button glows briefly when your track is ready."},

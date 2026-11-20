@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = pageMetadata({
   title: "Features – Professionelles adaptives Audio-Mastering",
   description:
-    "12-stufige DSP-Pipeline, adaptive Parameterauswahl, A/B-Vergleichsplayer, 7 Exportformate und Echtzeit-Visualizer. Alle Features von Beatzucker im Überblick.",
+    "So funktioniert Beatzucker: automatisches Online-Mastering, Studio Mode mit Live-Spektrum, A/B-Vergleich, manueller Feinabstimmung und Export.",
   alternates: {
     canonical: "https://beatzucker.de/features",
     languages: {

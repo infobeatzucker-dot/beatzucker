@@ -374,7 +374,7 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
   );
   const progressPanel = <MasteringProgressModal
     isOpen={appState === "mastering"} completed={appState === "done" && !masteringError}
-    step={currentProgress} lang={lang} inline={Boolean(studio)}
+    step={currentProgress} lang={lang}
   />;
   const uploadCard = (
     <AnimatePresence mode="wait">
@@ -560,7 +560,6 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
             </div>
 
             {studio && <>
-              {progressPanel}
               <section id="beta-manual" className="beta-manual-bay" tabIndex={-1} aria-label={lang === "en" ? "Manual fine-tuning" : "Manuelle Feinabstimmung"}>
                 {adjustOpen && appState === "done" ? (
                   <Suspense fallback={<p role="status">{lang === "en" ? "Loading fine-tuning…" : "Feinabstimmung wird geladen…"}</p>}>{manualEditor}</Suspense>
@@ -721,7 +720,8 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
         )}
       </AnimatePresence>
 
-      {!studio && <>{progressPanel}{manualEditor}</>}
+      {progressPanel}
+      {!studio && manualEditor}
 
       {/* Auth modal — opened from the "Sign In / Register" prompt inside UploadZone */}
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} lang={lang} />

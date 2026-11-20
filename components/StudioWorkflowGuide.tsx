@@ -4,10 +4,17 @@ import type { Lang } from "@/lib/types/mastering";
 export default function StudioWorkflowGuide({ lang }: { lang: Lang }) {
   const en = lang === "en";
   const tools = en ? "/en/tools" : "/tools";
+  const studio = en ? "/en/studio-beta" : "/studio-beta";
   const article = en ? "/en/knowledge/re-beatz-online-mastering-mit-kontrolle" : "/ressourcen/re-beatz-online-mastering-mit-kontrolle";
   return <section id="studio-guide" className="glass-panel p-5 mt-6 scroll-mt-28" style={{ color: "var(--text-secondary)" }}>
     <h3 className="text-lg font-bold mb-3" style={{ color: "var(--text-primary)" }}>{en ? "Listening and adjusting in the studio" : "Im Studio hören und nachjustieren"}</h3>
     <div className="grid sm:grid-cols-2 gap-4 text-sm leading-relaxed">
+      <div><h4 className="font-semibold"><Link href={studio}>{en ? "Try Studio Mode →" : "Studio Mode ausprobieren →"}</Link></h4><p>{en
+        ? "Try the demo without signing in and switch between the waveform and the live spectrum. For your own track, sign in and use the upload area at the top of the console. After analysis, choose your settings and export format. Select “Master track” to follow the processing stages in a pop-up."
+        : "Höre den Demo-Track ohne Anmeldung und wechsle zwischen Wellenform und Live-Spektrum. Melde dich für deinen eigenen Track an und nutze das Upload-Feld oben in der Konsole. Nach der Analyse wählst du Einstellungen und Exportformat. Mit „Track mastern“ öffnet sich das Pop-up mit den Verarbeitungsschritten."}</p></div>
+      <div><h4 className="font-semibold">{en ? "Fine-tune directly in Studio Mode" : "Direkt im Studio Mode feinabstimmen"}</h4><p>{en
+        ? "After mastering, compare Original and Master in the monitor. Open Fine-tuning to adjust EQ, dynamics, stereo and saturation directly in the console. Audition a loop, create a new master to apply your changes to the entire track, then open Downloads. The up arrow returns you to the top."
+        : "Vergleiche nach dem Mastering Original und Master im Monitor. Unter „Feinabstimmung“ passt du EQ, Dynamik, Stereo und Sättigung direkt in der Konsole an. Höre einen Loop vor, erstelle einen neuen Master für den ganzen Track und öffne anschließend „Downloads“. Der Pfeil unten bringt dich zurück nach oben."}</p></div>
       <div><h4 className="font-semibold">{en ? "After mastering" : "Nach dem Mastering"}</h4><p>{en
         ? "Switch between Original and Mastered in the monitoring section. The True Peak displays describe the exported files. Turn on loudness matching to compare tone at a similar level. The sound fingerprint shows measured frequency bands, and timeline markers jump to distinct local level changes."
         : "Wechsele in der Abhörsektion zwischen Original und Master. Die True-Peak-Anzeigen zeigen die Messwerte der Dateien. Nutze den Lautheitsabgleich für einen Klangvergleich bei ähnlichem Pegel. Der Klang-Fingerabdruck zeigt gemessene Frequenzbänder. Über die Zeitleiste springst du zu auffälligen Pegeländerungen."}</p></div>

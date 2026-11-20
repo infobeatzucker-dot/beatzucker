@@ -6,30 +6,30 @@ import { sonicStage } from "@/lib/sonicCore";
 import MasteringSonicCore from "@/components/MasteringSonicCore";
 import { MASTERING_STAGES, masteringStageState } from "@/lib/masteringStages";
 
-interface Props { isOpen: boolean; step: ProgressStep | null; lang?: Lang; completed?: boolean; inline?: boolean }
+interface Props { isOpen: boolean; step: ProgressStep | null; lang?: Lang; completed?: boolean }
 
-export default function MasteringProgressModal({ isOpen, step, lang = "de", completed = false, inline = false }: Props) {
+export default function MasteringProgressModal({ isOpen, step, lang = "de", completed = false }: Props) {
   const reduced = useReducedMotion(), titleId = useId(), descriptionId = useId(), dialog = useRef<HTMLDivElement>(null);
   const completion = useRef(false);
   useEffect(() => { completion.current = completed && !isOpen; }, [completed, isOpen]);
   useEffect(() => {
-    if (!isOpen || inline) return;
+    if (!isOpen) return;
     const previous = document.activeElement, overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden"; dialog.current?.focus({ preventScroll: true });
     return () => {
       document.body.style.overflow = overflow;
       if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
     };
-  }, [isOpen, inline]);
+  }, [isOpen]);
   const stage = sonicStage(step?.step);
   const progress = Number.isFinite(step?.progress) ? Math.round(Math.min(100, Math.max(0, step!.progress))) : 0;
   const label = step?.label || (lang === "de" ? "Mastering wird vorbereitet…" : "Preparing mastering…");
   return <AnimatePresence>
-    {isOpen && <motion.div key="mastering-sonic-overlay" className={inline ? "beta-inline-progress" : "sonic-progress-overlay"}
+    {isOpen && <motion.div key="mastering-sonic-overlay" className="sonic-progress-overlay"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? .1 : .38 }}>
-      <motion.div ref={dialog} tabIndex={inline ? undefined : -1} role={inline ? "region" : "dialog"} aria-modal={inline ? undefined : true} aria-labelledby={titleId} aria-describedby={descriptionId}
+      <motion.div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId}
         className="sonic-progress-card" data-stage={stage}
-        onKeyDown={inline ? undefined : event => { if (event.key === "Tab") { event.preventDefault(); dialog.current?.focus(); } }}
+        onKeyDown={event => { if (event.key === "Tab") { event.preventDefault(); dialog.current?.focus(); } }}
         initial={{ y: reduced ? 0 : 18, scale: reduced ? 1 : .98 }} animate={{ y: 0, scale: 1 }} exit={{ y: reduced ? 0 : -5, scale: 1 }}
         transition={{ duration: reduced ? .1 : .38, ease: [.22, 1, .36, 1] }}>
         <div className="sonic-progress-top"><span><i /> BEATZUCKER / MASTERING</span><span>{stage === "waiting" ? (lang === "de" ? "WARTET" : "QUEUED") : "IN SESSION"}</span></div>

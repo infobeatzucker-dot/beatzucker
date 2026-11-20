@@ -5,7 +5,7 @@ import HelpPage from "@/app/help/page";
 export const metadata: Metadata = pageMetadata({
   title: { absolute: "Help & FAQ – Audio Mastering Support | Beatzucker" },
   description:
-    "Answers about Beatzucker's workflow, DSP chain, A/B player, platform presets, manual fine-tuning, downloads and audio-file privacy.",
+    "Help with Beatzucker and Studio Mode, from upload and mastering progress to A/B comparison, manual fine-tuning and downloads.",
   alternates: {
     canonical: "https://beatzucker.de/en/help",
     languages: {
@@ -48,7 +48,7 @@ const faqJsonLd = {
       name: "How long are my files available?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Uploaded originals are removed after processing or within 60 minutes. Finished masters remain available for download for 24 hours and are then deleted automatically.",
+        text: "Inactive original uploads are normally cleaned up after about 60 minutes. Finished masters are available for 24 hours after completion and then removed in a cleanup cycle.",
       },
     },
   ],

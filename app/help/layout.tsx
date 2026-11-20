@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = pageMetadata({
   title: "Hilfe & FAQ – Audio Mastering Support",
   description:
-    "Antworten auf alle Fragen zu Beatzucker: Quickstart, Mastering-Pipeline, A/B-Player, Plattform-Presets, Funktionen, Tastaturkürzel und technische Details.",
+    "Hilfe zu Beatzucker und Studio Mode: Upload, Mastering-Fortschritt, A/B-Vergleich, manuelle Feinabstimmung und Downloads.",
   alternates: {
     canonical: "https://beatzucker.de/help",
     languages: {
@@ -16,7 +16,7 @@ export const metadata: Metadata = pageMetadata({
   openGraph: {
     title: "Beatzucker Hilfe & FAQ",
     description:
-      "Frequently asked questions about Beatzucker audio mastering. Quickstart guide, platform presets, features, keyboard shortcuts and more.",
+      "Antworten zum Beatzucker-Mastering und Studio Mode. Vom Upload über das Fortschrittsfenster bis zur Feinabstimmung und zum Download.",
     url: "https://beatzucker.de/help",
   },
 });
@@ -39,7 +39,7 @@ const faqJsonLd = {
       name: "Wie lange dauert das Mastering?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Die Analyse dauert ca. 5–10 Sekunden. Das vollständige Mastering (DSP-Pipeline + alle Exportformate) dauert je nach Tracklänge 30 Sekunden bis 3 Minuten.",
+        text: "Die Dauer hängt von Tracklänge, Samplerate, dem gewählten Exportformat und der Serverauslastung ab. Gerendert werden das gewählte Format und eine MP3-Vorschau.",
       },
     },
     {

@@ -28,17 +28,17 @@ const T = {
     de: [
       { n: "01", title: "Datei hochladen", desc: "WAV, MP3, FLAC oder AIFF reinziehen oder per Klick auswählen." },
       { n: "02", title: "Ziel festlegen", desc: "Zielplattform wie Spotify, Apple Music oder Club wählen, dazu passenden Stil." },
-      { n: "03", title: "Auf \"M\" tippen", desc: "Mastern klicken oder einfach M drücken — die KI übernimmt den Rest." },
+      { n: "03", title: "Mastering starten", desc: "Klicke auf „Mastern“. Im Studio Mode heißt die Taste „Track mastern“." },
       { n: "04", title: "Download", desc: "Als WAV 32-bit, FLAC 24-bit, MP3 320 und weiteren Formaten sofort holen." },
     ],
     en: [
       { n: "01", title: "Upload your file", desc: "Drop in WAV, MP3, FLAC or AIFF — or just click to browse." },
       { n: "02", title: "Set your target", desc: "Pick where it's headed — Spotify, Apple Music, club — plus the matching genre." },
-      { n: "03", title: "Hit \"M\"", desc: "Click Master or press M — the AI takes it from there." },
+      { n: "03", title: "Start mastering", desc: "Click Master. In Studio Mode, the button is labelled “Master track”." },
       { n: "04", title: "Download", desc: "Grab it instantly as WAV 32-bit, FLAC 24-bit, MP3 320 and more." },
     ],
   },
-  kbd_title: { de: "Shortcuts", en: "Shortcuts" },
+  kbd_title: { de: "Tastaturkürzel der klassischen Konsole", en: "Classic console shortcuts" },
   kbd_sub:   { de: "Ohne Maus durch den Workflow", en: "Move through the workflow without the mouse" },
   kbd_keys: {
     de: [
@@ -351,6 +351,18 @@ const FAQ_CATEGORIES = [
         aEn: "After signing in and uploading, review analysis and choose platform, genre, intensity and character. Optionally combine up to three references. Master starts real processing with stage progress. Then compare A/B, fine-tune manually, rerender and download your chosen format plus a PDF report.",
       },
       {
+        qDe: "Wie starte ich im Studio Mode und wo sehe ich den Fortschritt?",
+        qEn: "How do I start in Studio Mode, and where can I see progress?",
+        aDe: "Öffne „Studio Mode ausprobieren“ auf der Startseite. Der Demo-Track ist ohne Anmeldung abspielbar. Für deinen eigenen Track meldest du dich an und lädst die Datei oben in der Konsole hoch. Nach der Analyse startet „Track mastern“ die Verarbeitung. Das Pop-up zeigt den Fortschritt und die zwölf möglichen Verarbeitungsschritte. Einzelne Schritte können je nach Track entfallen.",
+        aEn: "Open “Try Studio Mode” on the homepage. You can play the demo without signing in. For your own track, sign in and upload the file at the top of the console. After analysis, select “Master track”. The pop-up shows progress and the twelve possible processing stages. Some stages may be bypassed depending on the track.",
+      },
+      {
+        qDe: "Wo finde ich Feinabstimmung und Downloads im Studio Mode?",
+        qEn: "Where do I find fine-tuning and downloads in Studio Mode?",
+        aDe: "Nach dem ersten Master hörst du Original und Master im Monitor. „Feinabstimmung“ öffnet die Regler direkt in der Konsole. Höre deine Änderungen im Loop und wähle „Neuen Master erstellen“, um den ganzen Track zu rendern. Unter „Downloads“ findest du die Ausgabe. Der Pfeil unten rechts führt zurück zum Seitenanfang.",
+        aEn: "After the first master, compare Original and Master in the monitor. “Fine-tune” opens the controls directly in the console. Audition your changes on a loop and select “Create new master” to render the whole track. The result is under “Downloads”. The arrow at the lower right takes you back to the top.",
+      },
+      {
         qDe: "Welche Formate kann ich hoch- und runterladen?",
         qEn: "Which formats does upload and export support?",
         aDe: "Mastering-Uploads unterstützen WAV, MP3, FLAC, AIFF, OGG und M4A bei gültigem Codec, Mono/Stereo und 8–192 kHz. Es gelten 200 MB und das angezeigte Speicher-/Dauerbudget. Wähle pro Durchlauf ein Ausgabeformat; zusätzlich entsteht eine MP3-Vorschau. Zur Wahl stehen WAV 32-bit Float, WAV 24-bit, WAV 16-bit (mit Dither), FLAC 24-bit, MP3 320 kbps, MP3 128 kbps und AAC 256 kbps zur Verfügung.",
@@ -475,8 +487,8 @@ const FAQ_CATEGORIES = [
       {
         qDe: "Wozu dient die Taste M?",
         qEn: "What's the M key for?",
-        aDe: "M startet das Mastering — genau wie ein Klick auf den Mastern-Button, nur schneller. Praktisch, wenn du gleich mehrere Tracks hintereinander bearbeitest. Mit der Leertaste steuerst du Start und Stopp der Wiedergabe.",
-        aEn: "M kicks off mastering — same result as clicking the Master button, just faster. Handy when you're running several tracks back to back. Space bar handles play/stop.",
+        aDe: "In der klassischen Konsole startet M das Mastering. Dort kannst du die Wiedergabe auch mit der Leertaste steuern. Im Studio Mode startest du über „Track mastern“ und steuerst die Wiedergabe über den Monitor.",
+        aEn: "In the classic console, M starts mastering and Space toggles playback. In Studio Mode, select “Master track” to start mastering and use the monitor for playback.",
       },
       {
         qDe: "Kann ich mehrere Tracks nacheinander mastern?",

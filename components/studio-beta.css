@@ -465,14 +465,6 @@
   height: clamp(150px, 24vw, 210px);
   min-height: 0;
 }
-.beta-inline-progress { margin: 12px 0; }
-.bz-beta .beta-inline-progress .sonic-progress-card {
-  width: 100%; display: grid; grid-template-columns: minmax(0, .65fr) minmax(0, 1fr);
-  border-color: var(--beta-edge); background: var(--beta-module); border-radius: 12px;
-  box-shadow: inset 0 1px color-mix(in srgb, var(--text-primary) 16%, transparent);
-}
-.beta-inline-progress .sonic-progress-top { grid-column: 1 / -1; }
-.beta-inline-progress .sonic-progress-art { align-self: center; }
 
 @media (max-width: 690px) {
   .beta-monitor-bay { grid-template-columns: minmax(0, 1fr); }
@@ -483,6 +475,4 @@
   .beta-processor .bz-hardware-dial > span { font-size: .67rem; }
   .beta-scope-scale span:nth-child(even) { display: none; }
   .beta-output .beta-master-key { flex-basis: 100%; }
-  .bz-beta .beta-inline-progress .sonic-progress-card { grid-template-columns: minmax(0, 1fr); }
-  .beta-inline-progress .sonic-progress-art { height: 145px; }
 }
