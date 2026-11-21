@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import ToolUsageStats from "@/components/admin/ToolUsageStats";
 import UserDailyLimit from "@/components/admin/UserDailyLimit";
 import UserStemAccess from "@/components/admin/UserStemAccess";
+import UserMasteringLabAccess from "@/components/admin/UserMasteringLabAccess";
 import ShowcaseManager from "@/components/admin/ShowcaseManager";
 import DonationPopupSetting from "@/components/admin/DonationPopupSetting";
 import { useUiLanguage } from "@/lib/useUiLanguage";
@@ -22,6 +23,7 @@ interface Stats {
 interface AdminUser {
   dailyMasterLimit: number | null;
   vocalRemoverEnabled: boolean;
+  masteringLabEnabled: boolean;
   stemSeparationEnabled: boolean;
   dailyLimit: number;
   dailyUsed: number;
@@ -551,7 +553,7 @@ export default function AdminPage() {
                       <td style={{ ...tdStyle, color: "var(--text-primary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</td>
                       <td style={tdStyle}>{u.name ?? "—"}</td>
                       <td style={{ ...tdStyle, textAlign: "center" }}>{u.mastersCount}</td>
-                      <td style={tdStyle}><UserDailyLimit lang={lang} userId={u.id} email={u.email} value={u.dailyMasterLimit} used={u.dailyUsed} onSaved={quota => setData(current => current ? { ...current, users: current.users.map(user => user.id === u.id ? { ...user, ...quota } : user) } : current)} /><UserStemAccess userId={u.id} vocal={u.vocalRemoverEnabled} stems={u.stemSeparationEnabled} en={lang === "en"}/></td>
+                      <td style={tdStyle}><UserDailyLimit lang={lang} userId={u.id} email={u.email} value={u.dailyMasterLimit} used={u.dailyUsed} onSaved={quota => setData(current => current ? { ...current, users: current.users.map(user => user.id === u.id ? { ...user, ...quota } : user) } : current)} /><UserStemAccess userId={u.id} vocal={u.vocalRemoverEnabled} stems={u.stemSeparationEnabled} en={lang === "en"}/><UserMasteringLabAccess userId={u.id} enabled={u.masteringLabEnabled} en={lang === "en"}/></td>
                       <td style={tdStyle}>{fmtDate(u.createdAt)}</td>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{u.lastSeenAt ? formatActivityDate(u.lastSeenAt, lang) : lang === "en" ? "Not recorded" : "Nicht erfasst"}</td>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{u.lastMasteredAt ? formatActivityDate(u.lastMasteredAt, lang) : "—"}</td>

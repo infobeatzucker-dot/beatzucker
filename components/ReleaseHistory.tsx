@@ -22,6 +22,7 @@ export default function ReleaseHistory({ lang }: { lang: Lang }) {
           <div className="release-meta"><span className="release-version">v{release.version}</span><time dateTime={release.date}>{new Intl.DateTimeFormat(en ? "en-GB" : "de-DE", { dateStyle: "long", timeZone: "Europe/Berlin" }).format(new Date(`${release.date}T12:00:00Z`))}</time>{index === 0 && <span className="release-latest">{en ? "Latest update" : "Neuestes Update"}</span>}</div>
           <h2>{release.title[lang]}</h2><p>{release.summary[lang]}</p>
           <ul>{release.improvements[lang].map(text => <li key={text}><Check size={17} aria-hidden="true" /><span>{text}</span></li>)}</ul>
+          {release.link && <Link className="release-language" href={release.link[lang].href}>{release.link[lang].label} <ArrowRight size={14} /></Link>}
         </article>)}
       </div>
       <p className="release-footnote">{en ? "Earlier entries were compiled from our development history and numbered retrospectively. Their dates refer to development milestones rather than individual deployment dates." : "Ältere Einträge wurden aus unserem Entwicklungsverlauf zusammengestellt und nachträglich nummeriert. Die Datumsangaben beziehen sich dort auf die Entwicklung, nicht auf einzelne Veröffentlichungstermine."}</p>

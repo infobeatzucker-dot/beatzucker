@@ -8,8 +8,28 @@ export const RELEASES: {
   title: Record<Lang, string>;
   summary: Record<Lang, string>;
   improvements: Record<Lang, string[]>;
+  link?: Record<Lang, { href: string; label: string }>;
   retrospective?: boolean;
 }[] = [{
+  version:"2.4.0",date:"2026-11-21",
+  title:{de:"Mastering Lab für deinen eigenen Sound",en:"Mastering Lab for your own sound"},
+  summary:{de:"Stell deinen Master von Hand ein oder lass dir Startwerte vorschlagen. Mit der Live-Vorschau hörst du Änderungen direkt und kannst deine Lieblingspassagen im Loop vergleichen.",en:"Build your master by hand or get suggested starting settings. Hear changes live and loop your favourite sections for comparison."},
+  improvements:{
+    de:[
+      "Bearbeite EQ, Dynamik und Stereo mit Drehreglern oder Fadern. Wähle Presets für den ganzen Master oder einzelne Module und speichere zwei Bearbeitungsstände im Browser.",
+      "Vergleiche Original und Bearbeitung in der Wellenform und im Live-Spektrum. Für den Hörvergleich kannst du die Lautstärke angleichen.",
+      "Kick & Bass senkt den Tiefbass bei erkannten Schlägen kurz ab. Die Live-Kurve zeigt dir, wann und wie stark das Modul eingreift.",
+      "Bearbeiten und Vorhören sind frei zugänglich. Mit freigeschaltetem Download stehen sieben Formate zur Wahl, inklusive gemessener Lautheit und Spitzenpegel der fertigen Datei.",
+    ],
+    en:[
+      "Adjust EQ, dynamics and stereo with knobs or faders. Use presets for the whole master or individual modules and save two versions in your browser.",
+      "Compare the original and processed audio in the waveform and live spectrum. Turn on level matching for listening comparisons.",
+      "Kick & Bass briefly turns down the low end when it detects a hit. The live graph shows when it acts and how much it applies.",
+      "Editing and listening are freely available. Once downloads are enabled, choose from seven formats and see the finished file’s measured loudness and peak level.",
+    ],
+  },
+  link:{de:{href:"/mastering-lab",label:"Mastering Lab öffnen"},en:{href:"/en/mastering-lab",label:"Open Mastering Lab"}},
+}, {
   version:"2.3.2",date:"2026-11-20",
   title:{de:"Mastering-Fortschritt im Studio Mode auf einen Blick",en:"See Studio Mode mastering progress at a glance"},
   summary:{de:"Wenn du im Studio Mode auf „Track mastern“ klickst, öffnet sich ein Fortschrittsfenster mit Prozentanzeige und den Verarbeitungsschritten.",en:"Select “Master track” in Studio Mode to open a progress window with the percentage and processing stages."},

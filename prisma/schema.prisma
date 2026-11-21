@@ -38,6 +38,13 @@ model User {
   dailyCharges     DailyMasterCharge[]
   savedReferences  SavedReference[]
   registrationNotification RegistrationNotification?
+  masteringLabAccess MasteringLabAccess?
+}
+
+model MasteringLabAccess {
+  userId    String   @id
+  grantedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Enqueued atomically with NEW accounts only; no backfill for existing users.

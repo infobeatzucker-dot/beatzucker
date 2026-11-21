@@ -38,6 +38,7 @@ export async function GET() {
       select: {
         id: true, email: true, name: true, createdAt: true, dailyMasterLimit: true,
         vocalRemoverEnabled: true, stemSeparationEnabled: true, lastSeenAt: true, lastMasteredAt: true,
+        masteringLabAccess: { select: { userId: true } },
         _count: { select: { masters: true } },
       },
     }),
@@ -96,6 +97,7 @@ export async function GET() {
       dailyMasterLimit: u.dailyMasterLimit,
       vocalRemoverEnabled: u.vocalRemoverEnabled,
       stemSeparationEnabled: u.stemSeparationEnabled,
+      masteringLabEnabled: Boolean(u.masteringLabAccess),
       dailyLimit: dailyMasterLimit(u.dailyMasterLimit),
       dailyUsed: quotaByUser.get(u.id) ?? 0,
     })),

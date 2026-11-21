@@ -10,6 +10,7 @@ import logging
 import re
 import hmac
 import subprocess
+from dataclasses import asdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -34,6 +35,7 @@ from audio_limits import validate_full_dsp_audio
 from control_preview import render_control
 from preview_section import read_preview_section
 from showcase_prepare import prepare_showcase
+from mastering_lab_export import export_lab
 
 
 # ─── Cleanup job on startup ────────────────────────────────────────────────────
@@ -82,6 +84,7 @@ app.add_middleware(
 
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
 PROTECTED_PATHS = {"/speech-clean", "/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview", "/preview-section", "/showcase-prepare"}
+PROTECTED_PATHS.update({"/mastering-lab/profile", "/mastering-lab/export"})
 # Full-track DSP temporarily allocates several arrays per stage. The small
 # production host must not run two such allocations on top of each other.
 # Larger installations can still explicitly opt into a higher capacity.
@@ -420,6 +423,41 @@ async def control_preview(req: ControlPreviewRequest, request: Request):
         return Response(data, media_type="audio/wav", headers={"Cache-Control": "no-store"})
     except ValueError as error:
         raise HTTPException(422, str(error))
+    finally:
+        lease.release_when_done()
+
+
+class LabProfileRequest(BaseModel):
+    analysis: dict
+    platform: str
+    preset: str
+    intensity: int = Field(65, ge=0, le=100)
+    target_lufs: float | None = Field(None, ge=-23, le=-6)
+
+
+class LabExportRequest(FilePathRequest):
+    format: str
+    ceiling: float = Field(0, ge=-6, le=0)
+    target: float | None = Field(None, ge=-23, le=-6)
+
+
+@app.post("/mastering-lab/profile")
+async def lab_profile(req: LabProfileRequest):
+    return asdict(get_mastering_params(req.analysis, req.platform, req.preset, req.intensity, req.target_lufs))
+
+
+@app.post("/mastering-lab/export")
+async def lab_export(req: LabExportRequest, request: Request):
+    file_path = validate_file_path(req.file_path)
+    permit = await acquire_dsp_slot(master=True)
+    lease = DspLease(permit)
+    try:
+        if await request.is_disconnected():
+            raise HTTPException(499, "Client disconnected")
+        return await lease.run(export_lab, file_path, req.format, req.ceiling, req.target)
+    except (ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        logger.info("Lab export failed: %s", type(error).__name__)
+        raise HTTPException(422, "Lab export failed")
     finally:
         lease.release_when_done()
 
