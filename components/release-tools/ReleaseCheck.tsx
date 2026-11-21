@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Lang } from "@/lib/types/mastering";
 import { responseError, toolError } from "@/lib/toolClient";
 import { releaseCheckMaxBytes } from "@/lib/releaseTools";
+import { receiveReleaseFile } from "@/lib/releaseHandoff";
 import { useToolJob } from "@/lib/useToolJob";
 import { downloadToolBlob, ToolError, ToolPanel } from "./ToolPanel";
 import styles from "./release-tools.module.css";
@@ -21,6 +22,8 @@ export default function ReleaseCheck({ lang }: { lang: Lang }) {
   const [error, setError] = useState("");
   const [target, setTarget] = useState(-14);
   const [ceiling, setCeiling] = useState(-1);
+  const [handoff,setHandoff]=useState<File>();
+  useEffect(()=>{const file=receiveReleaseFile("release-check");if(file)setHandoff(file);},[]);
   const rows = report ? [
     ["LUFS-I", report.integrated_lufs == null ? "—" : report.integrated_lufs.toFixed(1) + " LUFS"],
     ["True Peak", report.true_peak == null ? "—" : report.true_peak.toFixed(2) + " dBTP"],
@@ -62,9 +65,12 @@ export default function ReleaseCheck({ lang }: { lang: Lang }) {
     } finally { if (job.active(task)) setBusy(false); }
   }
   return <ToolPanel>
+    {handoff && <div className={styles.row}>
+      <span>{handoff.name}</span><button data-action onClick={()=>{setHandoff(undefined);void inspect(handoff);}}>{t("Übergebenen Master messen","Measure transferred master")}</button>
+    </div>}
     <label>{t("Fertige Datei auswählen", "Choose a finished file")}
       <input type="file" accept=".wav,.mp3,.aac,.m4a,audio/wav,audio/mpeg,audio/aac,audio/mp4" onChange={event => {
-        const file = event.currentTarget.files?.[0]; if (file) void inspect(file);
+        const file = event.currentTarget.files?.[0]; if (file) {setHandoff(undefined);void inspect(file);}
       }} />
     </label>
     <p className={styles.hint}>{t("Bis 192 MiB und 10 Minuten. Die Datei wird zur Prüfung vorübergehend an Beatzucker gesendet.", "Up to 192 MiB and 10 minutes. The file is temporarily sent to Beatzucker for inspection.")}</p>

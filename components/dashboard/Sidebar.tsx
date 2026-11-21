@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { label: "Übersicht", en: "Overview", href: "/dashboard",         icon: LayoutDashboard },
   { label: "Bibliothek", en: "Library", href: "/dashboard/library",  icon: Library },
   { label: "Uploads", en: "Uploads", href: "/dashboard/uploads",  icon: UploadCloud },
-  { label: "Referenzen", en: "References", href: "/dashboard/presets", icon: SlidersHorizontal },
+  { label: "Presets & Referenzen", en: "Presets & references", href: "/dashboard/presets", icon: SlidersHorizontal },
   { label: "Profil", en: "Profile", href: "/dashboard/profile",  icon: UserCircle },
 ];
 

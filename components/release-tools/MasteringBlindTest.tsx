@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { decodeAudio } from "@/lib/clientAudio";
 import { toolError } from "@/lib/toolClient";
 import { useToolJob } from "@/lib/useToolJob";
 import type { Lang } from "@/lib/types/mastering";
 import { inspect } from "@/components/mastering-lab/settings";
+import { receiveReleaseFile } from "@/lib/releaseHandoff";
 import { ToolPanel, ToolError } from "./ToolPanel";
 import { useAudioTransport } from "./useAudioTransport";
 import styles from "./release-tools.module.css";
@@ -24,6 +25,7 @@ export default function MasteringBlindTest({ lang }: { lang: Lang }) {
   const [choice, setChoice] = useState<number>();
   const [active, setActive] = useState(0);
   const [order, setOrder] = useState<0 | 1>(0);
+  useEffect(()=>{const file=receiveReleaseFile("mastering-blindtest");if(file)setFiles([undefined,file]);},[]);
   const duration = pair ? Math.min(pair[0].buffer.duration, pair[1].buffer.duration) : 0;
   const tracks = useMemo(() => {
     if (!pair) return [];
@@ -58,6 +60,7 @@ export default function MasteringBlindTest({ lang }: { lang: Lang }) {
   return <ToolPanel>
     {!pair ? <>
       <div className={styles.grid}>{([0,1] as const).map(i => <label key={i}>{t("Master", "Master")} {i + 1}
+        {files[i] && <small>{files[i]?.name}</small>}
         <input type="file" accept="audio/*,.wav,.aiff,.m4a,.flac,.mp3" disabled={busy} onChange={event => {
           const file = event.currentTarget.files?.[0];
           setFiles(previous => { const next: [File?,File?] = [...previous]; next[i] = file; return next; });

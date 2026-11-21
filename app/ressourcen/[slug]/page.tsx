@@ -9,6 +9,7 @@ import Breadcrumb from "@/components/ressourcen/Breadcrumb";
 import ArticleBody from "@/components/ressourcen/ArticleBody";
 import ArticleCTA from "@/components/ressourcen/ArticleCTA";
 import ReleaseToolsGuide from "@/components/ReleaseToolsGuide";
+import TrackRouteFinder from "@/components/TrackRouteFinder";
 import RelatedArticles from "@/components/ressourcen/RelatedArticles";
 import { ARTICLES, getArticleBySlug, getRelatedArticles } from "@/app/data/ressourcen";
 import { HeroIcon } from "@/lib/heroIcons";
@@ -166,6 +167,7 @@ export default async function ArticlePage({ params }: Props) {
           {/* CTA */}
           {article.slug === "mastering-lab-pegel-kick-bass" && <p className="my-6 flex gap-5 flex-wrap"><a href="/mastering-lab">Mastering Lab öffnen →</a><a href="/tools/kick-bass-sidechain">Kick &amp; Bass testen →</a></p>}
           {article.slug === "master-vergleichen-und-veroeffentlichen" && <ReleaseToolsGuide lang="de" />}
+          {["mastering-lab-pegel-kick-bass","master-vergleichen-und-veroeffentlichen"].includes(article.slug) && <TrackRouteFinder lang="de" compact/>}
           <ArticleCTA lang="de" variant={article.slug === "hitverdaechtiger-song" ? "hero" : "default"} />
 
           {/* Related articles */}

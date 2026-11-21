@@ -16,6 +16,10 @@ import MasteringJsonLd from "@/components/MasteringJsonLd";
 import MasterOverview, { type MasterOverviewData } from "@/components/MasterOverview";
 import MasteringGuideSection from "@/components/MasteringGuideSection";
 import LabHomeFeature from "@/components/LabHomeFeature";
+import { QuickMasterComparison } from "@/components/QuickMasterComparison";
+import TrackRouteFinder from "@/components/TrackRouteFinder";
+import Link from "next/link";
+import listeningStyles from "@/components/ListeningEntry.module.css";
 
 type Lang = "de" | "en";
 
@@ -111,9 +115,9 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
               <a href={lang === "en" ? "/en/studio-beta" : "/studio-beta"} style={{ display: "inline-flex", alignItems: "center", gap: 6, margin: "8px 0", color: "var(--accent-cyan)", fontSize: ".82rem", textDecoration: "underline", textUnderlineOffset: "3px" }}>
                 <Sparkles size={14} aria-hidden="true" />{lang === "en" ? "Try Studio Mode" : "Studio Mode ausprobieren"}
               </a>
+              {!masterOverview && <QuickMasterComparison lang={lang}/>}
 
               <div id="home-express-slot" />
-              <a className="release-language" href={lang === "en" ? "/en/mastering-lab" : "/mastering-lab"}>{lang === "en" ? "Open Mastering Lab" : "Mastering Lab öffnen"} <ArrowRight size={16} aria-hidden="true" /></a>
               <div className="hero-usps">
                 {USPS.map(({ icon: Icon, title, desc }) => (
                   <div className="hero-usp" key={title.de}>
@@ -141,8 +145,14 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
         </section>
 
         <LabHomeFeature lang={lang} />
+        <TrackRouteFinder lang={lang}/>
         <FeaturesSection lang={lang} />
         <BeforeAfterShowcase lang={lang} />
+        <section className={listeningStyles.flow}>
+          <h2>{lang==="en"?"How other artists master their tracks":"Wie andere Künstler ihre Tracks mastern"}</h2>
+          <p>{lang==="en"?"Explore community comparisons and the settings behind them, or submit an excerpt of your own.":"Höre Vergleiche aus der Community, sieh die Einstellungen dahinter oder reiche deinen eigenen Ausschnitt ein."}</p>
+          <Link href={(lang==="en"?"/en":"")+"/community-masters"}>{lang==="en"?"Community listening examples":"Community-Hörbeispiele"} →</Link>
+        </section>
         <MasteringGuideSection lang={lang} />
         <TestimonialsSection lang={lang} />
       </main>

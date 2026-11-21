@@ -47,7 +47,9 @@ export default function MasteringListeningShowcase({ lang = "de", initialTracks 
   useEffect(() => {
     mounted.current = true;
     const unsubscribe = subscribeGlobalAudio(active => { if (active) engine.current?.pause(); });
-    return () => { mounted.current = false; unsubscribe(); engine.current?.destroy(); engine.current = null; };
+    const halt=()=>engine.current?.pause();
+    window.addEventListener("beatzucker-quick-audition",halt);
+    return () => { mounted.current = false; unsubscribe(); window.removeEventListener("beatzucker-quick-audition",halt); engine.current?.destroy(); engine.current = null; };
   }, []);
   useEffect(() => {
     if (initialTracks) return; // The examples page already supplies the current server-rendered publication.
@@ -62,7 +64,7 @@ export default function MasteringListeningShowcase({ lang = "de", initialTracks 
   const reportError = useCallback(() => { if (mounted.current) { setError(true); setPlaying(false); setLoading(false); } }, []);
   async function toggle() {
     if (playing || loading) { engine.current?.pause(); return; }
-    stopGlobalAudio(); setError(false);
+    stopGlobalAudio();window.dispatchEvent(new Event("beatzucker-quick-audition"));setError(false);
     try { await ensure().play(); } catch { reportError(); }
   }
   function selectTrack(next: number) {

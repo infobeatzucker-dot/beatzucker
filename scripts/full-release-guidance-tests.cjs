@@ -21,7 +21,7 @@ for(const lang of ['de','en']){
 }
 const {APP_VERSION}=load('lib/releases.ts');assert.equal(require('../package.json').version,APP_VERSION);const lock=require('../package-lock.json');assert.equal(lock.version,APP_VERSION);assert.equal(lock.packages[''].version,APP_VERSION);
 for(const file of ['components/Header.tsx','components/ReleaseHistory.tsx'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bBeta\b/i);
-const map=load('app/sitemap.ts').default();assert.equal(map.length,102);for(const prefix of ['/ressourcen/','/en/knowledge/'])for(const slug of ['lufs-erklaert','sample-rate-bit-depth'])assert.equal(map.find(r=>r.url.endsWith(prefix+slug)).lastModified.toISOString().slice(0,10),'2026-10-18');
+const map=load('app/sitemap.ts').default();assert.equal(map.length,104);for(const prefix of ['/ressourcen/','/en/knowledge/'])for(const slug of ['lufs-erklaert','sample-rate-bit-depth'])assert.equal(map.find(r=>r.url.endsWith(prefix+slug)).lastModified.toISOString().slice(0,10),'2026-10-18');
 for(const route of ['/mastering-lab','/tools/kick-bass-sidechain','/tools/release-check','/tools/mastering-blindtest','/tools/dj-loop-editor','/tools/audio-visualizer'])for(const prefix of ['','/en']){
  const row=map.find(item=>item.url.endsWith('beatzucker.de'+prefix+route));assert.ok(row);
  assert.equal(row.alternates.languages.en,'https://beatzucker.de/en'+route);

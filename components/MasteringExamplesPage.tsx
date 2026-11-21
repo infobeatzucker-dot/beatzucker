@@ -43,6 +43,10 @@ export default async function MasteringExamplesPage({ lang }: { lang: Lang }) {
         <span className="examples-access"><ShieldCheck size={14}/>{en ? "No account needed to listen. Playback starts only when you press play." : "Anhören ohne Konto. Wiedergabe startet erst mit deinem Klick auf Play."}</span>
       </header>
       <MasteringListeningShowcase lang={lang} initialTracks={tracks}/>
+      <section className="examples-content"><h2>{en?"Hear masters from the community":"Master aus der Community hören"}</h2>
+        <p>{en?"Artists share their own A/B excerpts and the settings that helped. You can submit a comparison for review.":"Künstler teilen ihre eigenen A/B-Ausschnitte und erklären, welche Einstellungen geholfen haben. Du kannst einen eigenen Vergleich zur Prüfung einreichen."}</p>
+        <Link href={(en?"/en":"")+"/community-masters"}>{en?"Open community examples":"Community-Hörbeispiele öffnen"} <ArrowRight size={15}/></Link>
+      </section>
       <section className="examples-content" aria-labelledby="examples-reading">
         <div className="examples-section-heading"><AudioLines size={20}/><div><span className="examples-eyebrow">{en ? "LISTEN FIRST. READ SECOND." : "ERST HÖREN. DANN EINORDNEN."}</span><h2 id="examples-reading">{en ? "What should you listen for?" : "Worauf solltest du beim Vergleich achten?"}</h2></div></div>
         <div className="examples-guide-grid">

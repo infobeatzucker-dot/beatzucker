@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...pair("/in-eigener-sache", "/en/support", "2026-10-11", 0.5),
     ...pair("/versionen", "/en/updates", RELEASE_DATE, 0.5),
     ...pair("/hoervergleich", "/en/mastering-examples", "2026-10-18", 0.8),
+    ...pair("/community-masters","/en/community-masters","2026-11-22",0.7),
     ...pair("/mix-check", "/en/mix-check", GUIDANCE_UPDATED, 0.9),
     ...pair("/tools", "/en/tools", "2026-11-21", 0.9),
     ...pair("/mastering-lab", "/en/mastering-lab", "2026-11-21", 0.9),

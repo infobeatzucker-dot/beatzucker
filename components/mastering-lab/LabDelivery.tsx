@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AudioLines, Download, LockKeyhole, Sparkles } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
+import ReleaseHandoff from "@/components/ReleaseHandoff";
 import { DONATE_URL } from "@/lib/constants";
 import { labFormats, labGenres, labMaxBytes, labPlatforms, labTargets, type LabFormat } from "@/lib/masteringLab";
 import type { AnalysisData } from "@/lib/types/mastering";
@@ -14,7 +15,7 @@ import { type Module, type Settings } from "./settings";
 import styles from "./lab.module.css";
 
 type Analysis = { fileId: string; uploadToken: string; analysis: AnalysisData };
-type DeliveryResult = { loudness: string | null; peak: string | null; correction: string | null; name: string; reached: boolean };
+type DeliveryResult = { loudness: string | null; peak: string | null; correction: string | null; name: string; reached: boolean; file: File };
 const genreLabels = {
   auto: ["Automatisch", "Auto"], pop: ["Pop", "Pop"], electronic: ["Electronic", "Electronic"],
   hiphop: ["Hip-Hop", "Hip-hop"], rock: ["Rock", "Rock"], metal: ["Metal", "Metal"],
@@ -179,7 +180,7 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
       window.setTimeout(() => URL.revokeObjectURL(url), 30000);
       const loudness = response.headers.get("X-Lab-LUFS");
       const peak = response.headers.get("X-Lab-True-Peak");
-      setResult({ name: filename, loudness, peak, correction: response.headers.get("X-Lab-Gain"),
+      setResult({ name: filename, file: new File([blob],filename,{type:blob.type}), loudness, peak, correction: response.headers.get("X-Lab-Gain"),
         reached: target !== null && loudness !== null && peak !== null && Math.abs(Number(loudness) - target) <= .55 && Number(peak) <= ceiling + .05 });
     } catch (error) {
       if (!task.signal.aborted) {
@@ -268,6 +269,7 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
         <div className={styles.deliveryLinks}><a href={DONATE_URL} target="_blank" rel="noreferrer">{t("Projekt unterstützen", "Support the project")}</a>
           <Link href={en ? "/en/support" : "/in-eigener-sache"}>{t("Informationen zur Unterstützung", "Support information")}</Link></div>
       </>}
+      {result && !sidechain && <ReleaseHandoff lang={lang} filename={result.name} file={result.file}/>}
       {result && <div className={styles.deliveryResult} data-reached={result.reached} role="status">
         <strong>{result.name}</strong>
         {result.reached && <p>{t("Zielpegel der Exportdatei erreicht", "Export file meets target level")}</p>}

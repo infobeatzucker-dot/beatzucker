@@ -39,6 +39,37 @@ model User {
   savedReferences  SavedReference[]
   registrationNotification RegistrationNotification?
   masteringLabAccess MasteringLabAccess?
+  labPresets LabPreset[]
+  communityExamples CommunityExample[]
+}
+
+model LabPreset {
+  id String @id @default(cuid())
+  userId String
+  name String
+  settingsJson String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, name])
+  @@index([userId, updatedAt])
+}
+
+model CommunityExample {
+  id String @id
+  userId String
+  trackJson String
+  artist String
+  problem String
+  settings String
+  language String
+  original Bytes
+  master Bytes
+  createdAt DateTime @default(now())
+  publishedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
+  @@index([publishedAt, createdAt])
 }
 
 model MasteringLabAccess {

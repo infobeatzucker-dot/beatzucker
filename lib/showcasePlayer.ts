@@ -37,7 +37,8 @@ export class ShowcasePlayer {
     if (this.pending) return this.pending;
     const ctx = this.context();
     this.pending = Promise.all((["original", "master"] as const).map(async side => {
-      const response = await fetch(this.track[side].url, { signal: AbortSignal.any([this.abort.signal, AbortSignal.timeout(30000)]), cache: "force-cache" });
+      const url=this.track[side].url;
+      const response = await fetch(url, { signal: AbortSignal.any([this.abort.signal, AbortSignal.timeout(30000)]), cache:url.startsWith("/api/community/")?"no-store":"force-cache" });
       if (!response.ok) throw Error("Preview unavailable");
       const bytes = await response.arrayBuffer();
       if (bytes.byteLength > 2000000) throw Error("Preview too large");

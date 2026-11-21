@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useId, useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { MasterData, AnalysisData, type Lang } from "@/lib/types/mastering";
 import ABPlayer from "./ABPlayer";
 import DonateButton from "./DonateButton";
@@ -9,6 +9,7 @@ import MasterReadyReveal from "./MasterReadyReveal";
 import DownloadJumpButton from "./DownloadJumpButton";
 import MasteringSoundProfile from "./MasteringSoundProfile";
 import { openMasteringReport } from "@/lib/openMasteringReport";
+import ReleaseHandoff from "./ReleaseHandoff";
 
 interface Props {
   masterData:  MasterData;
@@ -68,6 +69,7 @@ function resultSummary(masterData: MasterData, platform: string, preset: string,
 export default function DownloadPanel({ masterData, fileId, filename, platform, preset, intensity, preAnalysis, onReset, onRemaster, onManualAdjust, embeddedPlayer, lang = "de" }: Props) {
   const downloadHeading = useRef<HTMLHeadingElement>(null), downloadHeadingId = useId();
   const displayNotes = resultSummary(masterData, platform, preset, intensity, lang);
+  const [selectedDownload, setSelectedDownload] = useState<FormatKey>();
 
   // Build clean base name: strip extension + sanitize for filename
   const cleanName = filename
@@ -100,12 +102,16 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
 
   // fmtKey = "mp3128", ext = "mp3"  →  beatzucker_trackname_mp3128.mp3
   const handleDownload = (fmtKey: string, ext: string, url: string) => {
+    setSelectedDownload(fmtKey as FormatKey);
     const a = document.createElement("a");
     a.href = url;
     a.download = `beatzucker_${cleanName}_${fmtKey}.${ext}`;
     a.click();
   };
 
+  const choice=FORMAT_CONFIG.find(item=>item.key===selectedDownload && masterData.formats[item.key])
+    ?? FORMAT_CONFIG.find(item=>item.key===masterData.selected_format && masterData.formats[item.key])
+    ?? FORMAT_CONFIG.find(item=>masterData.formats[item.key]);
   return (
     <div className="mt-6">
       {/* A/B Comparison Player — URLs are provided via AudioEngineContext */}
@@ -167,6 +173,7 @@ export default function DownloadPanel({ masterData, fileId, filename, platform, 
 
       {/* Download Options */}
       <h3 ref={downloadHeading} id={downloadHeadingId} tabIndex={-1} className="studio-download-target label mb-3">{lang === "de" ? "Download-Formate" : "Download formats"}</h3>
+      {choice && <ReleaseHandoff key={masterData.master_id} lang={lang} url={masterData.formats[choice.key]} filename={`${cleanName}-master.${choice.ext}`}/>}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {FORMAT_CONFIG.map((fmt) => {
           const url = masterData.formats[fmt.key as FormatKey];

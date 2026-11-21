@@ -7,6 +7,7 @@ import { createAudioCut } from "@/lib/audioCut";
 import { waveformPeaksAsync } from "@/lib/audioWorker";
 import { toolError } from "@/lib/toolClient";
 import { useToolJob } from "@/lib/useToolJob";
+import { receiveReleaseFile } from "@/lib/releaseHandoff";
 import { drawVisualizer,renderVisualizer } from "@/lib/visualizerVideo";
 import { downloadToolBlob,ToolError,ToolPanel } from "./ToolPanel";
 import styles from "./release-tools.module.css";
@@ -34,6 +35,7 @@ export default function AudioVisualizer({lang}: {lang:Lang}) {
   useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview.url);},[preview]);
   useEffect(()=>()=>{cover?.close();},[cover]);
   useEffect(()=>{alive.current=true;return()=>{alive.current=false;revision.current++;};},[]);
+  useEffect(()=>{const file=receiveReleaseFile("audio-visualizer");if(file)void readAudio(file);},[]);
   useEffect(()=>{if(!busy&&canvas.current)drawVisualizer(canvas.current,visual);},[visual,busy]);
   useEffect(()=>{
     if(!source||duration<1){setWaves(undefined);return;}

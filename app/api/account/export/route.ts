@@ -25,6 +25,8 @@ export async function GET() {
         orderBy: { day: "desc" },
         select: { id: true, masterId: true, day: true },
       },
+      labPresets: {select:{id:true,name:true,settingsJson:true,createdAt:true,updatedAt:true}},
+      communityExamples: {select:{id:true,artist:true,problem:true,settings:true,language:true,trackJson:true,createdAt:true,publishedAt:true}},
       masters: {
         orderBy: { createdAt: "desc" },
         select: {
@@ -62,6 +64,8 @@ export async function GET() {
     linkedAccounts: user.accounts,
     masters: user.masters,
     savedReferences: user.savedReferences,
+    labPresets: user.labPresets,
+    communityExamples: user.communityExamples,
     dailyQuotaReceipts: user.dailyCharges,
     omittedSecurityData: [
       "password hash", "password-reset token", "one-time login code", "active session token",

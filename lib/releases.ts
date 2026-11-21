@@ -11,6 +11,27 @@ export const RELEASES: {
   link?: Record<Lang, { href: string; label: string }>;
   retrospective?: boolean;
 }[] = [{
+  version:"3.1.0",date:"2026-11-22",
+  title:{de:"Vom Hörvergleich zum fertigen Release",en:"From listening comparison to release"},
+  summary:{de:"Hör den Unterschied zwischen Original und Master direkt auf der Startseite und finde den passenden nächsten Schritt für deinen Track.",en:"Hear the difference between the original and the master right on the homepage and find the next step for your track."},
+  improvements:{
+    de:[
+      "Schalte im Hörvergleich zwischen Original und Master um und gleiche die Lautheit auf Wunsch an.",
+      "Öffne deinen fertigen Master direkt im Release-Check, im Blindtest oder im Audio-Visualizer.",
+      "Speichere eigene Mastering-Lab-Presets im Konto und verwalte sie im Dashboard.",
+      "Finde passende Tools und Praxisbeispiele für deinen Mix, dein Mastering oder deinen Release.",
+      "Höre Vorher-Nachher-Beispiele aus der Community oder reiche einen eigenen Vergleich mit deinen Einstellungen ein.",
+    ],
+    en:[
+      "Switch between the original and the master during playback, with optional level matching.",
+      "Open your finished master directly in Release Check, the Blind Test or the Audio Visualizer.",
+      "Save custom Mastering Lab presets to your account and manage them in the dashboard.",
+      "Find tools and practical examples for your mix, mastering session or release.",
+      "Listen to community before-and-after examples or submit a comparison with your own settings.",
+    ],
+  },
+  link:{de:{href:"/community-masters",label:"Community-Hörbeispiele öffnen"},en:{href:"/en/community-masters",label:"Explore community examples"}},
+}, {
   version:"3.0.0",date:"2026-11-21",
   title:{de:"Beatzucker V3 mit Mastering Lab und Kick & Bass Sidechain",en:"Beatzucker V3 with Mastering Lab and Kick & Bass Sidechain"},
   summary:{de:"Das Mastering Lab ist direkt auf der Startseite erreichbar. Wähle oben ein Preset, hör Änderungen live und sieh auf einen Blick, welche Module aktiv sind und wie viel Pegelreserve bleibt.",en:"Open Mastering Lab directly from the homepage. Select a preset at the top, hear edits live and see which modules are active and how much headroom remains."},

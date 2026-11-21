@@ -10,6 +10,7 @@ import UserDailyLimit from "@/components/admin/UserDailyLimit";
 import UserStemAccess from "@/components/admin/UserStemAccess";
 import UserMasteringLabAccess from "@/components/admin/UserMasteringLabAccess";
 import ShowcaseManager from "@/components/admin/ShowcaseManager";
+import CommunityExamplesManager from "@/components/admin/CommunityExamplesManager";
 import DonationPopupSetting from "@/components/admin/DonationPopupSetting";
 import { useUiLanguage } from "@/lib/useUiLanguage";
 
@@ -341,6 +342,7 @@ export default function AdminPage() {
         <DonationPopupSetting lang={lang}/>
         <ToolUsageStats />
         <ShowcaseManager />
+        <CommunityExamplesManager />
 
         {/* ── ADMIN PASSWORD RESET ── */}
         <div style={{ marginBottom: "2.5rem" }}>

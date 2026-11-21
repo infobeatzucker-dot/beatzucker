@@ -8,6 +8,7 @@ import { LabAudio } from "./audio";
 import { LabScope, spectrumPosition, spectrumTicks } from "./LabScope";
 import { LabDelivery } from "./LabDelivery";
 import { LabHelp } from "./LabHelp";
+import AccountLabPresets from "@/components/AccountLabPresets";
 import { genreStart, inspect, loudestPassage, neutral, presets, presetSettings, ranges, resetModule, toDb, type Module, type Settings } from "./settings";
 import { useComparison } from "./useComparison";
 import { settingsWarnings } from "./warnings";
@@ -738,6 +739,10 @@ export default function MasteringLab({ lang, sidechain = false, children }: { la
           <button onClick={() => setListenSlot(undefined)}>{t("Zur aktuellen Bearbeitung", "Back to current edit")}</button>
         </div>}
       </div>}
+      {!sidechain && <AccountLabPresets lang={lang} current={{settings,target:deliveryTarget}} onApply={entry=>{
+        setSettings(entry.settings);setDeliveryTarget(entry.target);setPreset("custom");setProfileLabel(entry.name);setProfileAdjusted(false);
+        setAppliedModules({});setListenSlot(undefined);setModuleSolo(undefined);setOriginal(false);
+      }}/>}
       <LabDelivery lang={lang} source={source?.file} buffer={audio?.buffer} settings={settings} target={deliveryTarget} onTarget={setDeliveryTarget} sidechain={sidechain} moduleNames={moduleNames}
         onProfile={(next, target, name) => {
           setSettings(next);
