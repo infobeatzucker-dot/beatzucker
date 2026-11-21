@@ -244,6 +244,38 @@
 .deliveryResult b { color: var(--lab-second); margin-left: 4px; }
 .delivery .deliveryWarning { grid-column: 1/-1; color: var(--lab-text); margin: 0; }
 .duckingHint { color: var(--lab-text); font-size: .82rem; line-height: 1.5; margin: .25rem 0 1rem; }
+.jumpLinks button { display:inline-flex; gap:6px; align-items:center; }
+.masterPresetBadge select { max-width:min(15rem, 100%); font-size:.73rem; }
+.chainCount { color:var(--lab-muted); font-size:.72rem; margin:4px 0; }
+.modules button small.chainStatus { display:inline-block; padding:2px 7px; margin-top:4px; border:1px solid var(--lab-line); border-radius:999px; color:var(--lab-muted); }
+.modules button small.chainStatus[data-active="true"] { color:var(--lab-text); border-color:var(--lab-accent); }
+.modules button small.chainStatus[data-engaged="true"] { color:var(--lab-inset); background:var(--lab-second); border-color:var(--lab-second); }
+.levelCard { border:1px solid var(--lab-line); padding:10px; border-radius:9px; background:var(--lab-inset); font-size:.75rem; }
+.levelCard[data-reached="true"],.deliveryResult[data-reached="true"] { border-color:#36a879; background:color-mix(in srgb,var(--lab-panel) 88%,#36a879); }
+.levelCard strong,.levelCard small { display:block; }
+.levelCard small,.levelCard p { color:var(--lab-muted); margin:5px 0; }
+.snapshotMonitor { grid-column:1/-1; display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--lab-muted); }
+.delivery[data-sidechain="true"] { grid-template-columns:minmax(0,1fr); }
+.analysisDisplay { margin-top:12px; padding:10px; border:1px solid var(--lab-line); border-radius:10px; background:var(--lab-inset); }
+.analysisSweep { height:86px; display:flex; align-items:center; justify-content:space-evenly; gap:3px; overflow:hidden; border-radius:6px; background:repeating-linear-gradient(90deg,transparent 0 calc(12.5% - 1px),var(--lab-line) calc(12.5% - 1px) 12.5%); }
+.analysisSweep i { width:2%; border-radius:999px; background:linear-gradient(var(--lab-second),var(--lab-accent)); animation:labAnalysis 1.2s ease-in-out infinite alternate; }
+.analysisDisplay ol { display:grid; gap:4px; margin:10px 0 0; padding-left:1.35rem; list-style:decimal; font-size:.76rem; color:var(--lab-muted); }
+.analysisDisplay li[data-state="active"] { color:var(--lab-text); font-weight:750; }
+.analysisDisplay li[data-state="done"] { color:var(--lab-second); }
+.deliveryResult > .bandReadout { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin:10px 0; }
+.bandReadout > div { display:grid; gap:3px; padding:4px; border:1px solid var(--lab-line); border-radius:5px; font-size:.66rem; }
+.bandReadout meter { width:100%; accent-color:var(--lab-second); }
+.bandReadout small { margin:0; font-size:.66rem; }
+@keyframes labAnalysis { from { transform:scaleY(.45); opacity:.5; } to { transform:scaleY(1); opacity:1; } }
+.helpDialog { width:min(650px, calc(100% - 24px)); max-height:min(80svh,760px); overflow:auto; padding:clamp(16px,3vw,30px); margin:auto; border:1px solid var(--lab-line); border-radius:14px; box-shadow:0 30px 70px #0008; background:var(--lab-panel); color:var(--lab-text); }
+.helpDialog::backdrop { background:#020816b0; }
+.helpDialog header { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+.helpDialog input { width:100%; display:block; padding:8px; border-radius:7px; border:1px solid var(--lab-line); background:var(--lab-inset); color:var(--lab-text); margin:5px 0 12px; }
+.helpDialog details,.helpBasics section { border:1px solid var(--lab-line); border-radius:8px; margin:6px 0; padding:8px 11px; }
+.helpDialog summary { cursor:pointer; font-weight:700; }
+.helpDialog p,.helpDialog dd { margin:6px 0; color:var(--lab-muted); font-size:.84rem; line-height:1.5; }
+.helpDialog dt { font-weight:650; margin-top:6px; }
+@media (prefers-reduced-motion:reduce) { .analysisSweep i { animation:none; } }
 .warnings { --lab-warning: #f8c68b; margin-top: 15px; border: 1px solid color-mix(in srgb,var(--lab-warning) 55%,var(--lab-line)); border-radius: 8px; padding: 8px; background: color-mix(in srgb,var(--lab-warning) 9%,var(--lab-panel)); }
 .lab[data-light="true"] .warnings { --lab-warning: #833c11; }
 .warnings h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; color: var(--lab-warning); font-size: .75rem; }

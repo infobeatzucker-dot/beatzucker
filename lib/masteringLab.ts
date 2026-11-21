@@ -10,8 +10,13 @@ export const labFormats = {
 
 export type LabFormat = keyof typeof labFormats;
 export const labMaxBytes = 192 * 1024 * 1024;
-export const labGenres = ["auto", "pop", "electronic", "hiphop", "rock", "metal", "rnb", "jazz", "classical", "ambient", "country"] as const;
-export const labTargets = ["spotify", "apple", "youtube", "club", "broadcast", "custom"] as const;
+export const labGenres = ["auto", "pop", "electronic", "dance", "edm", "house", "techno", "dnb", "hiphop", "trap", "rock", "metal", "rnb", "latin", "reggae", "jazz", "classical", "acoustic", "ambient", "country", "lofi", "podcast"] as const;
+export const labPlatforms = {
+  spotify: ["Spotify", -14], apple: ["Apple Music", -16], youtube: ["YouTube", -14], tidal: ["Tidal", -14],
+  amazon: ["Amazon Music", -14], deezer: ["Deezer", -15], tiktok: ["TikTok", -13], soundcloud: ["SoundCloud", -8],
+  club: ["Club", -9], broadcast: ["Broadcast", -23], custom: ["", null],
+} as const;
+export const labTargets = Object.keys(labPlatforms) as (keyof typeof labPlatforms)[];
 export const labNoStore = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex" };
 
 export function labFormat(value: unknown): value is LabFormat {

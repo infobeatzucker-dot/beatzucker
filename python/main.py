@@ -23,6 +23,7 @@ import soundfile as sf
 import librosa
 
 from analyzer import analyze_audio, analysis_to_dict
+from release_check import check_release
 from ai_params import get_mastering_params
 from mastering import master_audio
 from waveform import extract_waveform_peaks
@@ -85,6 +86,7 @@ app.add_middleware(
 SERVICE_SECRET = os.environ.get("PYTHON_SERVICE_SECRET", "")
 PROTECTED_PATHS = {"/speech-clean", "/info", "/analyze", "/waveform", "/master", "/jobs", "/trim-normalize", "/codec-preview", "/meter", "/control-preview", "/preview-section", "/showcase-prepare"}
 PROTECTED_PATHS.update({"/mastering-lab/profile", "/mastering-lab/export"})
+PROTECTED_PATHS.add("/release-check")
 # Full-track DSP temporarily allocates several arrays per stage. The small
 # production host must not run two such allocations on top of each other.
 # Larger installations can still explicitly opt into a higher capacity.
@@ -301,6 +303,20 @@ async def meter(req: FilePathRequest):
         lease.release_when_done()
 
 
+@app.post("/release-check")
+async def release_check(req: FilePathRequest):
+    path = validate_file_path(req.file_path)
+    lease = DspLease(await acquire_dsp_slot())
+    try:
+        return await lease.run(check_release, path)
+    except subprocess.TimeoutExpired:
+        raise HTTPException(504, "Release inspection timed out")
+    except (ValueError, KeyError, subprocess.CalledProcessError):
+        raise HTTPException(422, "Could not inspect this release file")
+    finally:
+        lease.release_when_done()
+
+
 @app.post("/speech-clean")
 async def speech_clean(req: SpeechCleanRequest):
     req.file_path = validate_file_path(req.file_path)
@@ -443,7 +459,21 @@ class LabExportRequest(FilePathRequest):
 
 @app.post("/mastering-lab/profile")
 async def lab_profile(req: LabProfileRequest):
-    return asdict(get_mastering_params(req.analysis, req.platform, req.preset, req.intensity, req.target_lufs))
+    lab_presets = {
+        "house": ("dance", {"stereo_width": 1.13, "mb_sub_ratio": 2.7, "air_gain": 1.25}),
+        "dnb": ("electronic", {"stereo_width": 1.14, "mb_sub_ratio": 3.2, "bass_mono_amount": 0.36}),
+        "reggae": ("rnb", {"low_shelf_gain": 1.15, "air_gain": 0.45, "bus_comp_ratio": 1.65}),
+        "acoustic": ("jazz", {"stereo_width": 1.03, "saturation_amount": 0.04, "presence_gain": 0.7}),
+    }
+    parent, values = lab_presets.get(req.preset, (req.preset, {}))
+    params = get_mastering_params(req.analysis, req.platform, parent, req.intensity, req.target_lufs)
+    strength = req.intensity / 100
+    for key, value in values.items():
+        baseline = 1.0 if key in {"stereo_width", "bus_comp_ratio", "mb_sub_ratio"} else 0.0
+        setattr(params, key, baseline + (value - baseline) * strength)
+    if values:
+        params.genre = req.preset
+    return asdict(params)
 
 
 @app.post("/mastering-lab/export")

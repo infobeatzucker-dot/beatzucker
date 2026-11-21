@@ -15,6 +15,7 @@ import HomePopups from "@/components/HomePopups";
 import MasteringJsonLd from "@/components/MasteringJsonLd";
 import MasterOverview, { type MasterOverviewData } from "@/components/MasterOverview";
 import MasteringGuideSection from "@/components/MasteringGuideSection";
+import LabHomeFeature from "@/components/LabHomeFeature";
 
 type Lang = "de" | "en";
 
@@ -112,6 +113,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
               </a>
 
               <div id="home-express-slot" />
+              <a className="release-language" href={lang === "en" ? "/en/mastering-lab" : "/mastering-lab"}>{lang === "en" ? "Open Mastering Lab" : "Mastering Lab öffnen"} <ArrowRight size={16} aria-hidden="true" /></a>
               <div className="hero-usps">
                 {USPS.map(({ icon: Icon, title, desc }) => (
                   <div className="hero-usp" key={title.de}>
@@ -138,6 +140,7 @@ export default function Home({ initialLang = "de" }: { initialLang?: Lang }) {
           </div>
         </section>
 
+        <LabHomeFeature lang={lang} />
         <FeaturesSection lang={lang} />
         <BeforeAfterShowcase lang={lang} />
         <MasteringGuideSection lang={lang} />

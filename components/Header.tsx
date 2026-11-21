@@ -27,6 +27,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
   const featuresHref = lang === "en" ? "/en/features" : "/features";
   const helpHref = lang === "en" ? "/en/help" : "/help";
   const toolsHref = lang === "en" ? "/en/tools" : "/tools";
+  const masteringLabHref = lang === "en" ? "/en/mastering-lab" : "/mastering-lab";
 
   // Subscribe to global audio state
   useEffect(() => {
@@ -98,6 +99,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
               { label: lang === "de" ? "So funktioniert's" : "How it works", href: `${homeHref}#features` },
               { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
               { label: lang === "de" ? "Tools" : "Tools", href: toolsHref },
+              { label: "Mastering Lab", href: masteringLabHref },
               { label: "FAQ", href: helpHref },
               ...(session ? [{ label: "Dashboard", href: `/dashboard?lang=${lang}` }] : []),
             ].map((item) => (
@@ -221,6 +223,7 @@ export default function Header({ lang = "de" }: { lang?: Lang }) {
                   { label: lang === "de" ? "Hilfe" : "Help", href: helpHref },
                   { label: lang === "de" ? "Wissen" : "Knowledge", href: knowledgeHref },
                   { label: lang === "de" ? "Tools" : "Tools", href: toolsHref },
+                  { label: "Mastering Lab", href: masteringLabHref },
                   { label: lang === "de" ? "Impressum" : "Legal notice", href: lang === "en" ? "/legal-notice" : "/impressum" },
                   { label: lang === "de" ? "Datenschutz" : "Privacy", href: lang === "de" ? "/datenschutz" : "/privacy" },
                 ].map((item) => (

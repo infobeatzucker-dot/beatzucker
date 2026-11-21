@@ -90,7 +90,7 @@ def parse_meter_report(log):
     raise ValueError("Meter returned no valid measurements.")
 
 
-def meter_audio(file_path, deadline=None, validate=True):
+def meter_audio(file_path, deadline=None, validate=True, local_protocols_only=False):
     if validate:
         validate_audio(file_path)
     if deadline is None:
@@ -98,6 +98,7 @@ def meter_audio(file_path, deadline=None, validate=True):
     ffmpeg = os.environ.get("FFMPEG_BINARY", "ffmpeg")
     log = run_process([
         ffmpeg, "-hide_banner", "-nostats", "-nostdin", "-v", "info", "-threads", "1",
+        *(["-protocol_whitelist", "file", "-max_streams", "4"] if local_protocols_only else []),
         "-i", str(file_path), "-map", "0:a:0", "-vn", "-sn", "-dn", "-filter_threads", "1",
         "-af", "loudnorm=I=-14:TP=-1:LRA=11:print_format=json", "-f", "null", "-",
     ], deadline)

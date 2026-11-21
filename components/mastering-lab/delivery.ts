@@ -40,32 +40,35 @@ export function appliedAutoProfile(profile: Record<string, unknown>, lufs: numbe
   };
 }
 
-export function wavByteLength(frames: number) {
-  return 44 + frames * 8;
+export function wavByteLength(frames: number, channels = 2) {
+  return 44 + frames * channels * 4;
 }
 
 export function deliveryWav(buffer: AudioBuffer) {
-  const length = wavByteLength(buffer.length);
+  const channels = buffer.numberOfChannels;
+  if (channels < 1 || channels > 2) throw Error("Invalid WAV channel count");
+  const frameBytes = channels * 4;
+  const length = wavByteLength(buffer.length, channels);
   if (length > labMaxBytes) throw new RangeError("Audio exceeds the export size limit");
   const header = new DataView(new ArrayBuffer(44));
   const tag = (position: number, name: string) => {
     for (let i = 0; i < name.length; i++) header.setUint8(position + i, name.charCodeAt(i));
   };
   tag(0, "RIFF"); header.setUint32(4, length - 8, true); tag(8, "WAVE"); tag(12, "fmt ");
-  header.setUint32(16, 16, true); header.setUint16(20, 3, true); header.setUint16(22, 2, true);
-  header.setUint32(24, buffer.sampleRate, true); header.setUint32(28, buffer.sampleRate * 8, true);
-  header.setUint16(32, 8, true); header.setUint16(34, 32, true);
+  header.setUint32(16, 16, true); header.setUint16(20, 3, true); header.setUint16(22, channels, true);
+  header.setUint32(24, buffer.sampleRate, true); header.setUint32(28, buffer.sampleRate * frameBytes, true);
+  header.setUint16(32, frameBytes, true); header.setUint16(34, 32, true);
   tag(36, "data"); header.setUint32(40, length - 44, true);
   const left = buffer.getChannelData(0);
-  const right = buffer.numberOfChannels === 2 ? buffer.getChannelData(1) : left;
+  const right = channels === 2 ? buffer.getChannelData(1) : null;
   const blocks: ArrayBuffer[] = [header.buffer];
   const size = 65536;
   for (let start = 0; start < buffer.length; start += size) {
     const frames = Math.min(size, buffer.length - start);
-    const block = new DataView(new ArrayBuffer(frames * 8));
+    const block = new DataView(new ArrayBuffer(frames * frameBytes));
     for (let i = 0; i < frames; i++) {
-      block.setFloat32(i * 8, left[start + i], true);
-      block.setFloat32(i * 8 + 4, right[start + i], true);
+      block.setFloat32(i * frameBytes, left[start + i], true);
+      if (right) block.setFloat32(i * frameBytes + 4, right[start + i], true);
     }
     blocks.push(block.buffer);
   }

@@ -53,6 +53,8 @@ export function LabScope({ audio, selected, running, accent, second, eqColor, sp
     const [sr, sg, sb] = rgb(second);
     let lastTrail = -Infinity;
     const duckHistory = new Float32Array(100);
+    const duckHits = new Uint8Array(duckHistory.length);
+    let lastHit = audio?.reduction.duckTriggers ?? 0;
     let historyIndex = 0;
     const response = new Float32Array(hz.length);
     const phase = new Float32Array(hz.length);
@@ -165,6 +167,9 @@ export function LabScope({ audio, selected, running, accent, second, eqColor, sp
         if (running && now - lastTrail >= 28) {
           lastTrail = now;
           duckHistory[historyIndex] = depth;
+          const hits = audio?.reduction.duckTriggers ?? 0;
+          duckHits[historyIndex] = Number(hits !== lastHit);
+          lastHit = hits;
           historyIndex = (historyIndex + 1) % duckHistory.length;
         }
         const top = 18, plot = height - 44;
@@ -187,6 +192,12 @@ export function LabScope({ audio, selected, running, accent, second, eqColor, sp
         ctx.strokeStyle = accent;
         ctx.lineWidth = 2;
         ctx.stroke();
+        ctx.fillStyle = second;
+        for (let i = 0; i < duckHits.length; i++) {
+          if (!duckHits[(historyIndex + i) % duckHits.length]) continue;
+          const x = 42 + i / (duckHits.length - 1) * (width - 44);
+          ctx.fillRect(x - 1, top - 8, 2, 6);
+        }
         ctx.fillStyle = accent;
         ctx.textAlign = "right";
         ctx.fillText(`${depth >= .05 ? "−" : ""}${depth.toFixed(1)} dB`, width - 4, height - 6);

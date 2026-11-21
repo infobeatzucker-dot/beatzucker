@@ -8,6 +8,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import Breadcrumb from "@/components/ressourcen/Breadcrumb";
 import ArticleBody from "@/components/ressourcen/ArticleBody";
 import ArticleCTA from "@/components/ressourcen/ArticleCTA";
+import ReleaseToolsGuide from "@/components/ReleaseToolsGuide";
 import RelatedArticles from "@/components/ressourcen/RelatedArticles";
 import { ARTICLES, getArticleBySlug, getRelatedArticles } from "@/app/data/ressourcen";
 import { HeroIcon } from "@/lib/heroIcons";
@@ -93,6 +94,8 @@ export default async function EnglishArticlePage({ params }: Props) {
             </div>
           </header>
           <ArticleBody article={article} initialLang="en" />
+          {article.slug === "mastering-lab-pegel-kick-bass" && <p className="my-6 flex gap-5 flex-wrap"><a href="/en/mastering-lab">Open Mastering Lab →</a><a href="/en/tools/kick-bass-sidechain">Try Kick &amp; Bass →</a></p>}
+          {article.slug === "master-vergleichen-und-veroeffentlichen" && <ReleaseToolsGuide lang="en" />}
           <ArticleCTA lang="en" variant={article.slug === "hitverdaechtiger-song" ? "hero" : "default"} />
           <RelatedArticles articles={related} lang="en" />
         </div>

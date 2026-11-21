@@ -22,7 +22,7 @@ export default function UserMasteringLabAccess({ userId, enabled, en }: { userId
   }
   return <div style={{ fontSize: 11, marginTop: 10 }}>
     <label><input type="checkbox" checked={granted} disabled={busy} onChange={event => void save(event.target.checked)} />{" "}
-      {en ? "Mastering Lab downloads (permanent)" : "Mastering-Lab-Downloads (dauerhaft)"}</label>
+      {en ? "Mastering Lab and Kick & Bass downloads (permanent)" : "Downloads für Mastering Lab und Kick & Bass (dauerhaft)"}</label>
     <div role="status">{message}</div>
   </div>;
 }

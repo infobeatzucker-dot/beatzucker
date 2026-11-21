@@ -11,6 +11,7 @@ class BassDucker {
   wait = 0;
   hold = 0;
   armed = true;
+  triggers = 0;
   attack = coefficient(3);
   fastRate = 1 - coefficient(8);
   slowRate = 1 - coefficient(90);
@@ -23,6 +24,7 @@ class BassDucker {
     this.depthGain = gain(-Math.min(8, Math.max(0, data.duckDepth ?? 0)));
     this.threshold = gain(Math.max(-60, Math.min(0, data.duckThreshold ?? -31))) ** 2;
     this.cutoff = lowPassRate(Math.max(45, Math.min(150, data.duckFrequency ?? 85)));
+    this.detectorRate = lowPassRate(Math.max(50, Math.min(250, data.duckDetectorFrequency ?? 150)));
     this.release = coefficient(Math.max(50, Math.min(380, data.duckRelease ?? 145)) / 3);
     if (this.depthGain === 1) this.hold = 0;
   }
@@ -41,6 +43,7 @@ class BassDucker {
     if (this.fast < this.slow * 1.5) this.armed = true;
     if (this.depthGain < 1 && this.armed && this.wait === 0 && this.fast > Math.max(this.threshold, this.slow * 2.1)) {
       this.armed = false;
+      this.triggers++;
       this.wait = this.cooldownFrames;
       this.hold = this.holdFrames;
     }
@@ -230,7 +233,8 @@ class MasteringLabPreview extends AudioWorkletProcessor {
     if (this.meters && ++this.frame % 14 === 0) {
       const norm = Math.sqrt(this.energy[0] * this.energy[1]);
       this.port.postMessage({
-        bands: Array.from(this.reductions), limit: this.limitGain, bus: this.busGain, deesser: this.deessGain, ducking: this.ducker.gain,
+        bands: Array.from(this.reductions), limit: this.limitGain, bus: this.busGain, deesser: this.deessGain,
+        ducking: this.ducker.gain, duckTriggers: this.ducker.triggers,
         correlation: norm > 1e-8 ? Math.max(-1, Math.min(1, this.energy[2] / norm)) : 0,
       });
       this.energy.fill(0);
@@ -240,3 +244,33 @@ class MasteringLabPreview extends AudioWorkletProcessor {
 }
 
 registerProcessor("mastering-lab-preview", MasteringLabPreview);
+
+class KickBassStems extends AudioWorkletProcessor {
+  constructor(options) {
+    super();
+    this.ducker = new BassDucker();
+    this.configure(options?.processorOptions?.settings ?? {});
+    this.meters = options?.processorOptions?.meters !== false;
+    this.block = 0;
+    this.port.onmessage = ({data}) => this.configure(data);
+  }
+
+  configure(data) {
+    this.ducker.configure(data, hz => 1 - Math.exp(-2 * Math.PI * hz / sampleRate));
+  }
+
+  process(inputs, outputs) {
+    const kick = inputs[0], bass = inputs[1], output = outputs[0];
+    const ducker = this.ducker;
+    for (let i = 0; i < output[0].length; i++) {
+      const left = kick[0]?.[i] ?? 0, right = kick[1]?.[i] ?? left;
+      ducker.track(left, right);
+      for (let channel = 0; channel < output.length; channel++)
+        output[channel][i] = (bass[channel]?.[i] ?? bass[0]?.[i] ?? 0) * ducker.gain;
+    }
+    if (this.meters && ++this.block % 10 === 0)
+      this.port.postMessage({gain:ducker.gain,triggers:ducker.triggers});
+    return true;
+  }
+}
+registerProcessor("kick-bass-stems", KickBassStems);

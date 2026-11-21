@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { Activity, AudioLines, ArrowUpLeft, AudioWaveform, ChevronLeft, ChevronRight, CircleGauge, Headphones, Info, LocateFixed, Pause, Play, Power, Repeat, RotateCcw, SlidersHorizontal, TriangleAlert, Upload } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { UI_THEMES, getUiTheme, isUiTheme, type UiThemeId } from "@/lib/uiTheme";
 import { LabAudio } from "./audio";
 import { LabScope, spectrumPosition, spectrumTicks } from "./LabScope";
 import { LabDelivery } from "./LabDelivery";
+import { LabHelp } from "./LabHelp";
 import { genreStart, inspect, loudestPassage, neutral, presets, presetSettings, ranges, resetModule, toDb, type Module, type Settings } from "./settings";
 import { useComparison } from "./useComparison";
 import { settingsWarnings } from "./warnings";
@@ -22,8 +23,8 @@ const demo = "/audio/showcase/xplore-belgium-original-dae291b6f6fc.mp3";
 const modules = [
   { id: "input", icon: SlidersHorizontal, title: ["Eingang", "Input"], detail: ["Pegel vor dem EQ", "Level before EQ"] },
   { id: "eq", icon: AudioWaveform, title: ["Equalizer", "Equalizer"], detail: ["4 Bänder", "4 bands"] },
-  { id: "deesser", icon: AudioLines, title: ["De-Esser", "De-esser"], detail: ["Zischlaute und Spitzen", "Sibilance and harsh peaks"] },
   { id: "ducking", icon: Activity, title: ["Kick & Bass", "Kick & bass"], detail: ["Bass-Ducking bei Kick-Schlägen", "Kick-triggered bass ducking"] },
+  { id: "deesser", icon: AudioLines, title: ["De-Esser", "De-esser"], detail: ["Zischlaute und Spitzen", "Sibilance and harsh peaks"] },
   { id: "dynamics", icon: Activity, title: ["Multiband-Dynamik", "Multiband dynamics"], detail: ["4 Frequenzbereiche", "4 frequency ranges"] },
   { id: "stereo", icon: Headphones, title: ["Stereo", "Stereo"], detail: ["Breite & Bass-Mono", "Width & mono bass"] },
   { id: "saturation", icon: AudioLines, title: ["Sättigung", "Saturation"], detail: ["Weiche Spitzen", "Soft peak shaping"] },
@@ -96,14 +97,21 @@ function Dial({ label, help, helpLabel, value, min, max, step, unit, mode, onCha
   </div>;
 }
 
-export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
+const duckingSettings: Settings = { ...neutral, active: { ...neutral.active, eq: false, input: false, ducking: true } };
+
+export default function MasteringLab({ lang, sidechain = false, children }: { lang: "de" | "en"; sidechain?: boolean; children?: ReactNode }) {
   const t = (de: string, en: string) => lang === "en" ? en : de;
   const lng = lang === "en" ? 1 : 0;
   const audioRef = useRef<LabAudio | null>(null);
   const request = useRef(0);
   const [audio, setAudio] = useState<LabAudio | null>(null);
-  const [module, selectModule] = useState<Module>("eq");
-  const [settings, setSettings] = useState(neutral);
+  const [module, selectModule] = useState<Module>(sidechain ? "ducking" : "eq");
+  const [settings, setSettings] = useState(sidechain ? duckingSettings : neutral);
+  const [help, setHelp] = useState<Module | "overview">();
+  const [listenSlot, setListenSlot] = useState<0 | 1>();
+  const [slotMatch, setSlotMatch] = useState(true);
+  const [moduleSolo, setModuleSolo] = useState<Module>();
+  const [engaged, setEngaged] = useState<Module[]>([]);
   const [preset, setPreset] = useState<number | "custom">(0);
   const [basePreset, setBasePreset] = useState(0);
   const [profileLabel, setProfileLabel] = useState("");
@@ -129,6 +137,11 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
   const [deliveryTarget, setDeliveryTarget] = useState<number | null>(null);
   const [snapshots, setSnapshots] = useState<Snapshots>([null, null]);
   const [draft, setDraft] = useState<[number, number]>();
+  const activeModules = sidechain ? modules.filter(item => item.id === "ducking") : modules;
+  const moduleNames = Object.fromEntries(modules.map(item => [item.id, item.title[lng]])) as Record<Module, string>;
+  const controlGuides = Object.fromEntries(Object.entries(moduleControls).map(([key, keys]) => [key, keys.map(control => ({
+    label: controls[control].label[lng], help: controls[control].help[lng],
+  }))]));
   const drag = useRef<{ id: number; first: number; left: number; width: number; from: number; span: number } | null>(null);
   const inputMeter = useRef<HTMLMeterElement>(null);
   const outputMeter = useRef<HTMLMeterElement>(null);
@@ -144,12 +157,31 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
   };
   const masterPresetText = `${profileLabel || presets[basePreset].name[lng]}${(profileLabel ? profileAdjusted : preset === "custom") ? t(" · angepasst", " · adjusted") : ""}`;
   const comparison = useComparison(audio?.buffer, settings);
+  const comparingSlots = listenSlot !== undefined && Boolean(snapshots[0] && snapshots[1]);
+  const slotA = useComparison(comparingSlots ? audio?.buffer : undefined, snapshots[0]?.settings ?? neutral);
+  const slotB = useComparison(comparingSlots ? audio?.buffer : undefined, snapshots[1]?.settings ?? neutral);
+  const slotALufs = slotA.stats?.lufs;
+  const slotBLufs = slotB.stats?.lufs;
+  const slotLevelsReady = slotA.current && slotB.current && slotALufs != null && slotBLufs != null;
+  const monitorSettings = useMemo(() => {
+    if (listenSlot !== undefined) return snapshots[listenSlot]?.settings ?? settings;
+    return moduleSolo ? { ...settings, active: { ...settings.active, [moduleSolo]: false } } : settings;
+  }, [settings, listenSlot, snapshots, moduleSolo]);
   const warnings = settingsWarnings(settings, comparison.current ? comparison.stats?.peak : undefined);
   const beforeLufs = source?.stats.lufs ?? null;
   const afterLufs = comparison.stats?.lufs ?? null;
   const canMatch = beforeLufs !== null && afterLufs !== null;
   const matchDb = levelMatch && canMatch ? Math.max(-18, Math.min(18,
     beforeLufs + (audio?.buffer?.numberOfChannels === 1 ? 10 * Math.log10(2) : 0) - afterLufs)) : 0;
+  const listenGain = comparingSlots
+    ? (slotMatch && slotLevelsReady ? Math.min(0, (listenSlot === 0 ? slotBLufs - slotALufs : slotALufs - slotBLufs)) : 0)
+    : moduleSolo ? 0 : matchDb;
+  const measured = comparison.current ? comparison.stats : undefined;
+  const ceiling = settings.active.limiter ? settings.ceiling : -.1;
+  const headroom = measured ? ceiling - measured.estimatedTruePeak : undefined;
+  const gap = deliveryTarget !== null && measured?.lufs != null ? deliveryTarget - measured.lufs : undefined;
+  const atTarget = gap !== undefined && headroom !== undefined && Math.abs(gap) <= .55 && headroom >= 0;
+  const needsLimiting = headroom !== undefined && gap !== undefined && gap > Math.max(0, headroom) + .55;
 
   useEffect(() => {
     try {
@@ -166,16 +198,22 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
     };
   }, []);
 
-  useEffect(() => { audio?.update(settings, original, matchDb); }, [audio, settings, original, matchDb]);
+  useEffect(() => { audio?.update(monitorSettings, original && !comparingSlots, listenGain); }, [audio, monitorSettings, original, comparingSlots, listenGain]);
 
   useEffect(() => {
     if (!playing || !audio) {
+      setEngaged([]);
       for (const meter of [inputMeter.current, outputMeter.current]) if (meter) meter.value = -60;
       return;
     }
     const meters = [audio.input, audio.output].map(node => ({ node, samples: new Float32Array(node.fftSize) }));
     const tick = setInterval(() => {
       setPosition(audio.time);
+      const { deesser, ducking, bands, bus, limit } = audio.reduction;
+      const next = ([
+        ["deesser", deesser], ["ducking", ducking], ["dynamics", Math.min(...bands)], ["bus", bus], ["limiter", limit],
+      ] as const).filter(([, gain]) => gain < .985).map(([key]) => key);
+      setEngaged(previous => String(previous) === String(next) ? previous : next);
       meters.forEach(({ node, samples }, i) => {
         node.getFloatTimeDomainData(samples);
         let peak = 0;
@@ -188,6 +226,7 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
   }, [audio, playing]);
 
   const update = (patch: Partial<Settings>, target = module) => {
+    setListenSlot(undefined);
     setStatus("");
     setSettings(previous => ({ ...previous, ...patch }));
     setPreset("custom");
@@ -199,6 +238,8 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
   };
 
   const choose = (index: number) => {
+    setListenSlot(undefined);
+    setModuleSolo(undefined);
     setStatus("");
     setSettings(presetSettings(index));
     setPreset(index);
@@ -219,6 +260,8 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
   function restoreSnapshot(index: number) {
     const snapshot = snapshots[index];
     if (!snapshot) return;
+    setListenSlot(undefined);
+    setModuleSolo(undefined);
     setSettings(snapshot.settings);
     setDeliveryTarget(snapshot.target);
     setPreset("custom");
@@ -350,7 +393,7 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
   const spectrumTitle = t("Live-Spektrum · Original und Bearbeitung", "Live spectrum · original and processed");
   const scale = module === "stereo" ? ["−1", "0", "+1"] : module === "dynamics" ? ranges : [names.title[lng]];
 
-  return <main className={styles.lab} data-light={theme.light} style={style}>
+  return <main lang={lang} className={styles.lab} data-light={theme.light} style={style}>
     <div className={styles.shell}>
       <header className={styles.header}>
         <Link className={styles.home} href={lang === "en" ? "/en" : "/"}><ArrowUpLeft size={16} /> Beatzucker</Link>
@@ -367,14 +410,16 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
             setThemeId(next);
             try { localStorage.setItem(preference, next); } catch {}
           }}>{UI_THEMES.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <Link href={lang === "en" ? "/mastering-lab" : "/en/mastering-lab"} hrefLang={lang === "en" ? "de" : "en"}>{t("EN", "DE")}</Link>
+          <Link href={`${lang === "en" ? "" : "/en"}${sidechain ? "/tools/kick-bass-sidechain" : "/mastering-lab"}`} hrefLang={lang === "en" ? "de" : "en"}>{t("EN", "DE")}</Link>
         </div>
       </header>
       <div className={styles.heading}>
-        <div><h1>Mastering Lab</h1><p>{t("Manuelle Audiobearbeitung mit Live-Vorschau.", "Hands-on audio mastering with live monitoring.")}</p></div>
+        <div><h1>{sidechain ? t("Kick & Bass Sidechain für EDM", "Kick & Bass Sidechain for EDM") : "Mastering Lab"}</h1>
+          <p>{sidechain ? t("Eigenen Stereotrack öffnen und Bass-Ducking bei Kick-Impulsen live hören.", "Open your stereo track and audition kick-triggered bass ducking live.") : t("Manuelles Online-Mastering mit Live-Vorschau.", "Manual online mastering with live monitoring.")}</p></div>
         <div className={styles.jumpLinks}>
-          <a href="#lab-autoprof">{t("Auto-Master-Werte", "Auto-master settings")}</a>
+          {!sidechain && <a href="#lab-autoprof">{t("Auto-Master-Werte", "Auto-master settings")}</a>}
           <a href="#lab-delivery">{t("Export", "Export")}</a>
+          <button type="button" onClick={() => setHelp("overview")}><Info size={14} aria-hidden="true"/> {t("Hilfe", "Help")}</button>
         </div>
       </div>
 
@@ -469,9 +514,18 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
               setLoop(!loop);
               if (playing) audio?.start(audio.time, !loop ? region : undefined);
             }}><Repeat size={16}/> Loop</button>
-            <div className={styles.masterPresetBadge} data-testid="current-master-preset">
+            {!sidechain && <div className={styles.masterPresetBadge} data-testid="current-master-preset">
               <span>{t("Master-Preset", "Master preset")}</span> <strong>{masterPresetText}</strong>
-            </div>
+              <select aria-label={t("Mastering-Presets", "Mastering presets")} value={preset} onChange={event => choose(+event.target.value)}>
+                {preset === "custom" && <option value="custom" disabled>{t("Preset wechseln …", "Change preset…")}</option>}
+                <optgroup label={t("Klangcharakter", "Sonic character")}>
+                  {presets.slice(0, genreStart).map((item, index) => <option key={index} value={index}>{item.name[lng]}</option>)}
+                </optgroup>
+                <optgroup label="Genre">
+                  {presets.slice(genreStart).map((item, index) => <option key={index} value={index + genreStart}>{item.name[lng]}</option>)}
+                </optgroup>
+              </select>
+            </div>}
           </div>
           <div className={styles.passageTools} role="group" aria-label={t("Passage zum Abhören", "Audition passage")}>
             <button disabled={!source} aria-pressed={marking} onClick={() => {
@@ -506,29 +560,25 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
           </div>
         </div>}
 
-        <div className={styles.rack}>
+        <div className={styles.rack} id="lab-modules">
           <nav className={styles.modules} aria-label={t("Signalkette", "Signal chain")}>
             <h2>{t("Signalkette", "Signal chain")}</h2>
-            {modules.map(({ id, icon: Icon, title, detail }) => <button key={id} type="button" aria-pressed={id === module} onClick={() => selectModule(id)}>
-              <Icon size={23}/><span><strong>{title[lng]}</strong><small data-preset={Boolean(appliedModules[id])}>{modulePresetText(id) ?? detail[lng]}</small></span>
-              <i className={styles.led} data-on={settings.active[id]} aria-hidden="true" />
+            <p className={styles.chainCount}>{activeModules.filter(({id}) => settings.active[id]).length} / {activeModules.length} {t("aktiv", "active")}</p>
+            {activeModules.map(({ id, icon: Icon, title, detail }) => <button key={id} type="button" aria-pressed={id === module} onClick={() => { selectModule(id); setSpectrumOnly(false); }}>
+              <Icon size={23}/><span><strong>{title[lng]}</strong><small data-preset={Boolean(appliedModules[id])}>{modulePresetText(id) ?? detail[lng]}</small>
+                <small className={styles.chainStatus} data-active={settings.active[id]} data-engaged={!original && !comparingSlots && settings.active[id] && engaged.includes(id)}>
+                  {!settings.active[id] ? "Bypass" : !original && !comparingSlots && engaged.includes(id) ? t("Greift ein", "Reducing gain") : t("Aktiv", "Active")}
+                </small></span>
             </button>)}
-            <div className={styles.presets}>
-              <label><span>{t("Mastering-Presets", "Mastering presets")}</span><select aria-label={t("Mastering-Presets", "Mastering presets")} value={preset} onChange={event => choose(+event.target.value)}>
-                {preset === "custom" && <option value="custom" disabled>{t("Eigene Einstellungen", "Custom settings")}</option>}
-                <optgroup label={t("Klangcharakter", "Sonic character")}>
-                  {presets.slice(0, genreStart).map((item, index) => <option key={index} value={index}>{item.name[lng]}</option>)}
-                </optgroup>
-                <optgroup label={t("Genre", "Genre")}>
-                  {presets.slice(genreStart).map((item, index) => <option key={index} value={index + genreStart}>{item.name[lng]}</option>)}
-                </optgroup>
-              </select></label>
-              {preset !== "custom" && <p>{presets[preset].description[lng]}</p>}
-            </div>
           </nav>
           <section className={styles.module} aria-label={names.title[lng]}>
             <div className={styles.sectionHead}><h2><names.icon size={20} aria-hidden="true" />{names.title[lng]}</h2>
               <div className={styles.moduleActions}>
+                <button type="button" onClick={() => setHelp(module)}><Info size={13} aria-hidden="true"/> {t("Hilfe", "Help")}</button>
+                {!sidechain && <button type="button" disabled={!settings.active[module] && moduleSolo !== module}
+                  aria-pressed={moduleSolo === module} onClick={() => {
+                    setOriginal(false); setListenSlot(undefined); setModuleSolo(moduleSolo === module ? undefined : module);
+                  }}>{moduleSolo === module ? t("Modul wieder hören", "Hear module again") : t("Kette ohne dieses Modul hören", "Hear chain without this module")}</button>}
                 <button type="button" title={t("Nur die Regler dieses Moduls zurücksetzen", "Reset this module’s controls only")} onClick={() => {
                   update(resetModule(module));
                   setAppliedModules(previous => ({ ...previous, [module]: undefined }));
@@ -628,7 +678,26 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
               <div><dt>LUFS-I {t("Original", "original")}</dt><dd>{beforeLufs?.toFixed(1) ?? "—"}</dd></div>
               <div><dt>LUFS-I {t("Vorschau", "preview")}</dt><dd>{afterLufs?.toFixed(1) ?? "—"}</dd></div>
             </dl>}
-            <button className={styles.analyze} disabled={!source || pending} onClick={() => setAnalysis(true)}><SlidersHorizontal size={16}/> {t("Track analysieren", "Analyze track")}</button>
+            {source && <section className={styles.levelCard} data-reached={atTarget} aria-label={t("Ausgangspegel", "Output level")}>
+              <strong>{atTarget ? t("Zielpegel erreicht", "Target level reached") : t("Ausgangspegel prüfen", "Check output level")}</strong>
+              {measured && headroom !== undefined ? <>
+                <small>{measured.lufs == null ? "—" : `${measured.lufs.toFixed(1)} LUFS`} · ≈ {measured.estimatedTruePeak.toFixed(1)} dBTP</small>
+                {deliveryTarget !== null && <small>{t("Ziel", "Target")} {deliveryTarget.toFixed(1)} LUFS</small>}
+                <p>{headroom < 0 ? t("Spitzengrenze überschritten. Pegel oder Limiter prüfen.", "Above the peak ceiling. Check gain or limiting.")
+                  : t(`${headroom.toFixed(1)} dB Reserve bis zur Spitzengrenze. `, `${headroom.toFixed(1)} dB of headroom to the peak ceiling. `) +
+                    (needsLimiting ? t("Mehr Lautheit würde stärker begrenzen.", "More loudness would need more limiting.")
+                      : gap !== undefined && gap < -.55 ? t("Pegel etwas senken, um das Ziel zu treffen.", "Lower the level slightly to meet the target.")
+                        : atTarget || gap === undefined || gap <= .55 ? t("Aktuellen Pegel beibehalten.", "Keep the current level.")
+                        : t(`Eingangspegel um bis zu ${Math.min(gap, headroom).toFixed(1)} dB anheben und nachmessen.`, `Try up to ${Math.min(gap, headroom).toFixed(1)} dB of input gain, then measure again.`))}</p>
+                {engaged.includes("limiter") && <small>{t("Limiter greift während der Wiedergabe ein.", "The limiter is active during playback.")}</small>}
+                {!sidechain && !atTarget && (needsLimiting || headroom < 0 || (gap !== undefined && Math.abs(gap) > .55)) &&
+                  <button onClick={() => selectModule(needsLimiting || headroom < 0 ? "limiter" : "input")}>
+                    {needsLimiting || headroom < 0 ? t("Zum Limiter", "Open limiter") : t("Eingangspegel prüfen", "Check input gain")}
+                  </button>}
+                {!sidechain && deliveryTarget === null && <a href="#lab-delivery">{t("Lautheitsziel auswählen", "Choose a loudness target")}</a>}
+              </> : <small>{comparison.error ? t("Vorschau konnte nicht gemessen werden.", "Could not measure the preview.") : t("Vorschau wird gemessen …", "Measuring preview…")}</small>}
+            </section>}
+            {!sidechain && <button className={styles.analyze} disabled={!source || pending} onClick={() => setAnalysis(true)}><SlidersHorizontal size={16}/> {t("Track analysieren", "Analyze track")}</button>}
             {warnings.length > 0 && <section className={styles.warnings} aria-label={t("Hinweise zu Einstellungen", "Setting warnings")}>
               <h3><TriangleAlert size={16} aria-hidden="true" /> {t("Einstellungen prüfen", "Check settings")}</h3>
               <ul>{warnings.map(warning => <li key={warning[lng === 0 ? "de" : "en"]}>
@@ -642,7 +711,7 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
                 {comparison.current && comparison.stats && <div><dt>{t("Peak bearbeitet", "Processed peak")}</dt><dd>{comparison.stats.peak.toFixed(1)} dBFS</dd></div>}
               </dl>
               <p>{source.stats.peak > -1 ? t("Hohe Pegelspitzen: Eine niedrigere Obergrenze prüfen.", "High sample peaks: audition a lower ceiling.")
-                : t("Pegelreserve vorhanden. Ein dezentes Preset kann als Ausgangspunkt dienen.", "Headroom available. Try a subtle preset as a starting point.")}</p>
+                : t("Die Pegelkarte darüber zeigt dir die nutzbare Reserve und den nächsten Schritt.", "The output card above shows the available headroom and the next step.")}</p>
               {source.stats.peak > -1
                 ? <button onClick={() => { update({ active: { ...settings.active, limiter: true }, ceiling: -1 }, "limiter"); selectModule("limiter"); setOriginal(false); }}>{t("Limiter übernehmen", "Apply limiter")}</button>
                 : <button onClick={() => choose(1)}>{t("Preset übernehmen", "Apply preset")}</button>}
@@ -650,7 +719,7 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
           </aside>
         </div>
       </div>
-      <div className={styles.snapshots} aria-label={t("Bearbeitungsstände", "Snapshots")}>
+      {!sidechain && <div className={styles.snapshots} aria-label={t("Bearbeitungsstände", "Snapshots")}>
         <h2>{t("Bearbeitungsstände", "Snapshots")}</h2>
         {snapshots.map((snapshot, index) => {
           const slot = index ? "B" : "A";
@@ -658,12 +727,22 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
             <strong>{slot}</strong><span title={snapshot?.label}>{snapshot?.label || t("Leer", "Empty")}</span>
             <button aria-label={`${t("Stand speichern", "Save snapshot")} ${slot}`} onClick={() => saveSnapshot(index)}>{t("Speichern", "Save")}</button>
             <button aria-label={`${t("Stand laden", "Load snapshot")} ${slot}`} disabled={!snapshot} onClick={() => restoreSnapshot(index)}>{t("Laden", "Load")}</button>
+            <button aria-label={`${t("Stand abhören", "Monitor snapshot")} ${slot}`} aria-pressed={listenSlot === index} disabled={!source || !snapshots[0] || !snapshots[1]}
+              onClick={() => { setModuleSolo(undefined); setOriginal(false); setListenSlot(index === 0 ? 0 : 1); }}>{t("Abhören", "Monitor")}</button>
           </div>;
         })}
-      </div>
-      <LabDelivery lang={lang} source={source?.file} buffer={audio?.buffer} settings={settings} target={deliveryTarget} onTarget={setDeliveryTarget}
+        {comparingSlots && <div className={styles.snapshotMonitor}>
+          <button aria-pressed={slotMatch} onClick={() => setSlotMatch(!slotMatch)}>{t("A/B-Pegelabgleich", "A/B level match")}</button>
+          {slotMatch && <small>{slotLevelsReady ? t("Lautheit angeglichen", "Loudness matched")
+            : slotA.updating || slotB.updating ? t("Lautheiten werden gemessen …", "Measuring loudness…") : t("Kein Pegelabgleich für diesen Track", "Level match unavailable for this track")}</small>}
+          <button onClick={() => setListenSlot(undefined)}>{t("Zur aktuellen Bearbeitung", "Back to current edit")}</button>
+        </div>}
+      </div>}
+      <LabDelivery lang={lang} source={source?.file} buffer={audio?.buffer} settings={settings} target={deliveryTarget} onTarget={setDeliveryTarget} sidechain={sidechain} moduleNames={moduleNames}
         onProfile={(next, target, name) => {
           setSettings(next);
+          setListenSlot(undefined);
+          setModuleSolo(undefined);
           setDeliveryTarget(target);
           setPreset("custom");
           setAppliedModules({});
@@ -671,13 +750,16 @@ export default function MasteringLab({ lang }: { lang: "de" | "en" }) {
           setProfileLabel(`Auto · ${name}`);
           setProfileAdjusted(false);
         }} />
+      {children}
     </div>
     {source && <div className={styles.compare} role="group" aria-label={t("Abhörsignal", "Monitor source")}>
       <Headphones size={16} aria-hidden="true" />
-      <button aria-pressed={original} onClick={() => setOriginal(true)}><span aria-hidden="true">A</span> Original</button>
-      <button aria-pressed={!original} onClick={() => setOriginal(false)}><span aria-hidden="true">B</span> {t("Bearbeitet", "Processed")}</button>
+      {moduleSolo && <small>{t("Abhöre ohne", "Monitoring without")} {moduleNames[moduleSolo]}</small>}
+      <button aria-pressed={original && !comparingSlots} onClick={() => { setListenSlot(undefined); setModuleSolo(undefined); setOriginal(true); }}><span aria-hidden="true">A</span> Original</button>
+      <button aria-pressed={!original && !comparingSlots && !moduleSolo} onClick={() => { setListenSlot(undefined); setModuleSolo(undefined); setOriginal(false); }}><span aria-hidden="true">B</span> {t("Bearbeitet", "Processed")}</button>
       <button className={styles.match} title={t("Gleicht die Lautheit nur fürs Abhören an.", "Matches loudness for monitoring only.")}
-        aria-pressed={levelMatch} disabled={!canMatch} onClick={() => setLevelMatch(!levelMatch)}>{t("Pegelabgleich", "Level match")}</button>
+        aria-pressed={levelMatch} disabled={!canMatch || comparingSlots || Boolean(moduleSolo)} onClick={() => setLevelMatch(!levelMatch)}>{t("Pegelabgleich", "Level match")}</button>
     </div>}
+    {help && <LabHelp lang={lang} selected={help} onClose={() => setHelp(undefined)} moduleNames={moduleNames} sidechain={sidechain} controlGuides={controlGuides}/>}
   </main>;
 }

@@ -1,12 +1,14 @@
 import Link from "next/link";
 import type { Lang } from "@/lib/types/mastering";
+import MasteringLabGuide from "./MasteringLabGuide";
+import ReleaseToolsGuide from "./ReleaseToolsGuide";
 
 export default function StudioWorkflowGuide({ lang }: { lang: Lang }) {
   const en = lang === "en";
   const tools = en ? "/en/tools" : "/tools";
   const studio = en ? "/en/studio-beta" : "/studio-beta";
   const article = en ? "/en/knowledge/re-beatz-online-mastering-mit-kontrolle" : "/ressourcen/re-beatz-online-mastering-mit-kontrolle";
-  return <section id="studio-guide" className="glass-panel p-5 mt-6 scroll-mt-28" style={{ color: "var(--text-secondary)" }}>
+  return <><section id="studio-guide" className="glass-panel p-5 mt-6 scroll-mt-28" style={{ color: "var(--text-secondary)" }}>
     <h3 className="text-lg font-bold mb-3" style={{ color: "var(--text-primary)" }}>{en ? "Listening and adjusting in the studio" : "Im Studio hören und nachjustieren"}</h3>
     <div className="grid sm:grid-cols-2 gap-4 text-sm leading-relaxed">
       <div><h4 className="font-semibold"><Link href={studio}>{en ? "Try Studio Mode →" : "Studio Mode ausprobieren →"}</Link></h4><p>{en
@@ -37,5 +39,5 @@ export default function StudioWorkflowGuide({ lang }: { lang: Lang }) {
     <p className="mt-4 text-sm leading-relaxed">{en
       ? "Choose a color theme in the navigation. The studio controls follow it, and you can save your choice in your dashboard. If something goes wrong, select “Report a problem” at the bottom left to prepare an email draft."
       : "Wähle ein Farbschema in der Navigation. Die Studio-Bedienelemente passen sich an und du kannst deine Auswahl im Dashboard speichern. Wenn etwas schiefläuft, öffne unten links „Problem melden“, um eine E-Mail vorzubereiten."}</p>
-  </section>;
+  </section><MasteringLabGuide lang={lang} compact/><ReleaseToolsGuide lang={lang}/></>;
 }

@@ -817,6 +817,10 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
         )}
 
         {/* ── FAQ ── */}
+        <p className="text-sm mb-6 flex flex-wrap gap-5">
+          <a href={lang === "en" ? "/en/mastering-lab" : "/mastering-lab"}>Mastering Lab →</a>
+          <a href={lang === "en" ? "/en/tools/kick-bass-sidechain" : "/tools/kick-bass-sidechain"}>Kick &amp; Bass Sidechain →</a>
+        </p>
         <section style={{ marginBottom: "3rem" }}>
           {!search && (
             <div style={{ textAlign: "center", marginBottom: "2rem" }}>

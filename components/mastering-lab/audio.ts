@@ -49,12 +49,12 @@ function configure(context: BaseAudioContext, trim: GainNode, filters: BiquadFil
 }
 
 const processorName = "mastering-lab-preview";
-const scriptPath = "/audio/mastering-lab-preview.js?v=2";
+export const labWorkletUrl = "/audio/mastering-lab-preview.js?v=4";
 const stereo = { outputChannelCount: [2], channelCount: 2, channelCountMode: "explicit" } as const;
 
 async function render(buffer: AudioBuffer, settings: Settings) {
   const context = new OfflineAudioContext(2, buffer.length, buffer.sampleRate);
-  await context.audioWorklet.addModule(scriptPath);
+  await context.audioWorklet.addModule(labWorkletUrl);
   const trim = context.createGain();
   const filters = filtersFor(context);
   const processor = new AudioWorkletNode(context, processorName, {
@@ -94,7 +94,7 @@ export class LabAudio {
   readonly dryMonitor = this.context.createGain();
   readonly wetMonitor = this.context.createGain();
   readonly ready = this.connect();
-  reduction = { bands: [1, 1, 1, 1], limit: 1, bus: 1, correlation: 0, deesser: 1, ducking: 1 };
+  reduction = { bands: [1, 1, 1, 1], limit: 1, bus: 1, correlation: 0, deesser: 1, ducking: 1, duckTriggers: 0 };
   private processor?: AudioWorkletNode;
   private source?: AudioBufferSourceNode;
   private offset = 0;
@@ -104,7 +104,7 @@ export class LabAudio {
   finished?: () => void;
 
   private async connect() {
-    await this.context.audioWorklet.addModule(scriptPath);
+    await this.context.audioWorklet.addModule(labWorkletUrl);
     const processor = new AudioWorkletNode(this.context, processorName, { ...stereo, outputChannelCount: [2] });
     this.processor = processor;
     processor.port.onmessage = ({ data }) => { this.reduction = data; };

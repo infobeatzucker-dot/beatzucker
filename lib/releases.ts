@@ -11,6 +11,29 @@ export const RELEASES: {
   link?: Record<Lang, { href: string; label: string }>;
   retrospective?: boolean;
 }[] = [{
+  version:"3.0.0",date:"2026-11-21",
+  title:{de:"Beatzucker V3 mit Mastering Lab und Kick & Bass Sidechain",en:"Beatzucker V3 with Mastering Lab and Kick & Bass Sidechain"},
+  summary:{de:"Das Mastering Lab ist direkt auf der Startseite erreichbar. Wähle oben ein Preset, hör Änderungen live und sieh auf einen Blick, welche Module aktiv sind und wie viel Pegelreserve bleibt.",en:"Open Mastering Lab directly from the homepage. Select a preset at the top, hear edits live and see which modules are active and how much headroom remains."},
+  improvements:{
+    de:[
+      "Vorgeschlagene Auto-Werte lassen sich vor dem Übernehmen prüfen. Die Analyse zeigt ihren Fortschritt, zusätzliche Genres und mehr Lautheitsziele stehen zur Auswahl.",
+      "Höre zwei gespeicherte Bearbeitungsstände bei angeglichener Lautheit ab oder vergleiche die Kette mit und ohne ein einzelnes Modul.",
+      "Kick & Bass gibt es auch als eigenes Tool. Probiere Bass-Ducking im Loop mit deinem eigenen Track. Downloads werden für beide Angebote gemeinsam freigeschaltet.",
+      "Eine durchsuchbare Hilfe im Lab und neue Praxisbeispiele erklären Regler, Pegelreserve und den Weg zum Export.",
+      "Vergleiche fertige Master im Blindtest, prüfe deine Release-Datei, erstelle DJ-Loops und gestalte Hochkantvideos zu deiner Musik.",
+      "Im Kick-&-Bass-Tool kann eine separate Kickspur gezielt die Absenkung der Bassspur steuern.",
+    ],
+    en:[
+      "Review suggested auto settings before applying them. Analysis shows its progress, and you can choose from more genres and loudness targets.",
+      "Compare two saved edits at matched loudness, or listen to the chain with and without one module.",
+      "Kick & Bass is also available as a standalone tool. Try bass ducking in a loop using your own track. One activation enables downloads in both tools.",
+      "Searchable in-app help and practical examples explain the controls, headroom and how to export.",
+      "Blind-test finished masters, check your release file, make DJ loops and create vertical videos for your music.",
+      "In Kick & Bass, a separate kick stem can trigger ducking on the bass stem.",
+    ],
+  },
+  link:{de:{href:"/mastering-lab",label:"Mastering Lab öffnen"},en:{href:"/en/mastering-lab",label:"Open Mastering Lab"}},
+}, {
   version:"2.4.0",date:"2026-11-21",
   title:{de:"Mastering Lab für deinen eigenen Sound",en:"Mastering Lab for your own sound"},
   summary:{de:"Stell deinen Master von Hand ein oder lass dir Startwerte vorschlagen. Mit der Live-Vorschau hörst du Änderungen direkt und kannst deine Lieblingspassagen im Loop vergleichen.",en:"Build your master by hand or get suggested starting settings. Hear changes live and loop your favourite sections for comparison."},

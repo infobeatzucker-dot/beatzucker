@@ -4,6 +4,14 @@ import type { Lang } from "@/lib/types/mastering";
 import ToolLanguageNav from "./ToolLanguageNav";
 import ToolCardArt from "./ToolCardArt";
 import { PracticeHub } from "./ToolPractice";
+import { AUDIO_RELEASE_TOOLS, releaseToolHref, releaseToolSlugs } from "@/lib/releaseTools";
+
+const releaseArt = {
+  "release-check": {kind:"mix",icon:Gauge},
+  "mastering-blindtest": {kind:"reference",icon:GitCompareArrows},
+  "dj-loop-editor": {kind:"cutter",icon:Disc3},
+  "audio-visualizer": {kind:"stream",icon:Activity},
+} as const;
 
 export default function ToolsHub({ lang }: { lang: Lang }) {
   const en = lang === "en";
@@ -15,6 +23,20 @@ export default function ToolsHub({ lang }: { lang: Lang }) {
       <p>{en ? "Analyze, preview and prepare your music directly in the browser — technically transparent and without permanent audio storage." : "Analysiere, simuliere und bereite deine Musik direkt im Browser vor – technisch transparent und ohne dauerhafte Audiospeicherung."}</p>
     </section>
     <section className="tools-grid">
+      {releaseToolSlugs.map(slug=>{
+        const copy=AUDIO_RELEASE_TOOLS[slug][lang], {kind,icon}=releaseArt[slug];
+        return <Link className="tool-card" key={slug} href={releaseToolHref(slug,lang)}>
+          <ToolCardArt kind={kind} icon={icon}/><h2>{copy.title}</h2><p>{copy.summary}</p>
+          <strong>{copy.action} <ArrowRight size={16}/></strong>
+        </Link>;
+      })}
+      <Link className="tool-card" href={en ? "/en/tools/kick-bass-sidechain" : "/tools/kick-bass-sidechain"}>
+        <ToolCardArt kind="kick" icon={Activity}/><span className="tool-status live">{en ? "TRY WITH YOUR TRACK" : "MIT EIGENEM TRACK TESTEN"}</span>
+        <h2>{en ? "Kick & Bass Sidechain for EDM" : "Kick & Bass Sidechain für EDM"}</h2>
+        <p>{en ? "Ducking on detected kicks with a live gain trace and looped A/B. Downloads with Mastering Lab activation." : "Tiefbass bei erkannten Kicks absenken, den Eingriff live sehen und im Loop vergleichen. Download mit Lab-Freischaltung."}</p>
+        <div className="tool-tags"><span>EDM</span><span>DUCKING</span><span>A/B</span></div>
+        <strong>{en ? "Open sidechain tool" : "Sidechain-Tool öffnen"} <ArrowRight size={16} /></strong>
+      </Link>
       <Link className="tool-card" href={en ? "/en/tools/key-bpm" : "/tools/key-bpm"}>
         <ToolCardArt kind="key" icon={Music2}/><span className="tool-status live">LIVE</span>
         <h2>{en ? "Key & BPM Detector" : "Tonart- & BPM-Detector"}</h2>

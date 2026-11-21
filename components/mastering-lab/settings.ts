@@ -143,6 +143,7 @@ export function inspect(buffer: AudioBuffer, compareEnergy = true) {
   const moment = Math.max(1, Math.round(buffer.sampleRate * .1));
   const weighted = new Float64Array(Math.ceil(buffer.length / moment));
   let peak = 0;
+  let interSamplePeak = 0;
   let sum = 0;
   let samples = 0;
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
@@ -156,6 +157,14 @@ export function inspect(buffer: AudioBuffer, compareEnergy = true) {
       minimum[bin] = Math.min(minimum[bin], sample);
       maximum[bin] = Math.max(maximum[bin], sample);
       peak = Math.max(peak, amplitude);
+      // Quarter-sample cubic interpolation is a quick preview estimate.
+      if (!compareEnergy && i >= 1 && i + 2 < pcm.length) {
+        const a = pcm[i - 1], b = sample, c = pcm[i + 1], d = pcm[i + 2];
+        interSamplePeak = Math.max(interSamplePeak,
+          Math.abs((-7 * a + 105 * b + 35 * c - 5 * d) / 128),
+          Math.abs((-a + 9 * b + 9 * c - d) / 16),
+          Math.abs((-5 * a + 35 * b + 105 * c - 7 * d) / 128));
+      }
       const power = sample * sample;
       if (energy) energy[bin] += power;
       sum += power;
@@ -170,7 +179,7 @@ export function inspect(buffer: AudioBuffer, compareEnergy = true) {
     }
   }
   return {
-    waveform: { minimum, maximum }, energy, peak: toDb(peak), rms: toDb(Math.sqrt(sum / samples)),
+    waveform: { minimum, maximum }, energy, peak: toDb(peak), estimatedTruePeak: toDb(Math.max(peak, interSamplePeak)), rms: toDb(Math.sqrt(sum / samples)),
     lufs: integratedLoudness(weighted, moment, buffer.length), seconds: buffer.duration, rate: buffer.sampleRate,
   };
 }

@@ -1,3 +1,5 @@
+import { MASTERING_LAB_ARTICLE } from "./masteringLabArticle";
+import { RELEASE_TOOLS_ARTICLE } from "./releaseToolsArticle";
 import { MANUAL_MASTERING_ARTICLE } from "./manualMasteringArticle";
 import { LUFS_ARTICLE, SAMPLE_RATE_ARTICLE } from "./audioBasicsArticles";
 import { PLATFORM_COMPARISON_ARTICLE } from "./platformComparisonArticle";
@@ -51,6 +53,8 @@ export const getRelatedArticles = (slugs: string[]) =>
 // ─── Articles ────────────────────────────────────────────────────────────────
 
 export const ARTICLES: RessourceArticle[] = [
+  RELEASE_TOOLS_ARTICLE,
+  MASTERING_LAB_ARTICLE,
 
   // ── 1 ──────────────────────────────────────────────────────────────────────
   {

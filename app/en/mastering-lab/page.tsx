@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
 import MasteringLab from "@/components/mastering-lab/MasteringLab";
+import MasteringLabGuide from "@/components/MasteringLabGuide";
+import { masteringLabMetadata } from "@/lib/masteringLabSeo";
 
-export const metadata: Metadata = {
-  title: "Mastering Lab – Preview",
-  robots: { index: false, follow: true },
-};
+export const metadata = masteringLabMetadata("en");
 
-export default function EnglishMasteringLabPage() {
-  return <MasteringLab lang="en" />;
+export default function MasteringLabPage() {
+  return <MasteringLab lang="en"><MasteringLabGuide lang="en" /></MasteringLab>;
 }
