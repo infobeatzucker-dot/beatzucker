@@ -14,6 +14,7 @@ function getSecret(): string {
 
 // ── Password hashing ────────────────────────────────────────────────
 export async function hashPassword(plain: string): Promise<string> {
+  if (Buffer.byteLength(plain, "utf8") > 72) throw new RangeError("Password exceeds 72 UTF-8 bytes");
   return bcrypt.hash(plain, 12);
 }
 

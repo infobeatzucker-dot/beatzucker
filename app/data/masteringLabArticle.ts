@@ -5,6 +5,7 @@ export const MASTERING_LAB_ARTICLE: RessourceArticle = {
   category: "Technik",
   categoryColor: "#3fbdf2",
   publishedAt: "2026-11-21",
+  updatedAt: "2026-11-22",
   heroIcon: "🎚",
   readingTimeMinutes: 5,
   title: { de:"Manuelles Mastering mit Pegelreserve und Kick-Ducking", en:"Manual mastering with headroom and kick ducking" },
@@ -21,7 +22,7 @@ export const MASTERING_LAB_ARTICLE: RessourceArticle = {
       { h2: { de:"Praxisbeispiel 2 – Kick und Bass im EDM-Loop", en:"Example 2 – Kick and bass in an EDM loop" },
         body: { de:"Markiere eine Passage mit Kick und Bass und starte mit 1–2 dB Absenkung. Beobachte die Impulsmarkierungen und verkürze die Rückkehr, wenn der Bass zu lange wegbleibt. Vergleiche danach Original und Bearbeitung mit angeglichener Lautheit. Bei einem fertigen Stereomix wird auch der tiefe Anteil der Kick mitbearbeitet. Getrennte Kick- und Bassspuren erlauben gezielteres Sidechaining im Mix.", en:"Loop a passage with kick and bass and start with 1–2 dB of ducking. Watch the hit markers and shorten recovery if the bass stays down too long. Compare the original and processed versions at matched loudness. A stereo mix includes the kick in its low band. Separate kick and bass stems allow more targeted sidechaining in the mix." } },
       { h2: { de:"Bearbeitungsstände vergleichen und exportieren", en:"Compare snapshots and export" },
-        body: { de:"Speichere eine dezente und eine kräftigere Einstellung in A und B. Schalte im selben Loop zwischen beiden um und gleiche die Lautheit an. Übernimm den bevorzugten Stand zum Export. Beide Tools verwenden für den Download dieselbe persönliche Freischaltung. Maßgeblich sind die Messwerte der fertigen Datei nach dem Codieren.", en:"Save a subtle and a stronger setting in A and B. Switch between them in the same loop and match loudness. Load the preferred version before export. Both tools use the same account activation for downloads. Use the measurements of the encoded file for delivery." } },
+        body: { de:"Speichere eine dezente und eine kräftigere Einstellung in A und B. Höre im selben Loop bei angeglichener Lautheit. Beim Export siehst du Samplerate und Kanäle vorab. Nach dem Export kannst du für Dateien bis 40 MiB einen kurzen Vergleich von Lab-Vorschau und tatsächlicher Ausgabe erstellen. Für die Auslieferung zählen die Messwerte der fertigen Datei.", en:"Save a subtle and stronger setting in A and B and listen to the same loop at matched loudness. Before export, review the delivery sample rate and channels. After export, files up to 40 MiB can be used for a short comparison of the Lab preview and the actual delivery file. Use the finished file's measurements for delivery." } },
     ],
   },
 };

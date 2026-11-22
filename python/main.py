@@ -209,7 +209,7 @@ async def health():
 
 @app.get("/jobs")
 async def active_jobs():
-    return {"active_master_ids": sorted(ACTIVE_MASTER_IDS)}
+    return {"active_master_ids": sorted(ACTIVE_MASTER_IDS), "dsp_in_use": MAX_CONCURRENT_DSP_JOBS - DSP_SLOTS._value}
 
 
 @app.post("/info")

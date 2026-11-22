@@ -10,7 +10,7 @@ try{const token=validator.signAnalysis('fixture',a);assert.ok(validator.verifyAn
 console.log('PASS signed, duration-bound, bounded sections; invented semantic labels and tampering rejected');
 const drag={current:null};const Dial=load('components/CharacterDial.tsx',name=>name==='react'?{useId:()=>':local-dial:',useRef:()=>drag}:name==='react/jsx-runtime'?{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})}:{}).default;
 let value=.5;const render=(lang='de')=>Dial({value,onChange:n=>value=n,lang,sections:plan});
-function find(node,predicate){if(!node||typeof node!=='object')return null;if(predicate(node))return node;for(const child of [node.props?.children].flat(Infinity)){const result=find(child,predicate);if(result)return result;}return null;}
+function find(node,predicate){if(!node||typeof node!=='object')return null;if(predicate(node))return node;if(typeof node.type==='function')return find(node.type(node.props),predicate);for(const child of [node.props?.children].flat(Infinity)){const result=find(child,predicate);if(result)return result;}return null;}
 const knob=()=>find(render(),n=>n.props?.role==='slider').props;
 function key(key,shiftKey=false){knob().onKeyDown({key,shiftKey,preventDefault(){}});}
 key('End');assert.equal(value,1);key('ArrowUp');assert.equal(value,1);key('Home');assert.equal(value,0);key('ArrowRight',true);assert.equal(value,.05);key('PageUp');assert.equal(value,.15);knob().onDoubleClick();assert.equal(value,.5);

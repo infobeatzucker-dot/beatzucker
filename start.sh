@@ -3,10 +3,21 @@ set -e
 
 DB_PATH="/app/data/production.db"
 DB_BACKUP="/app/data/production.db.bak"
+BASELINE_USERS=0
+HAS_SNAPSHOT=0
+
+restore_snapshot() {
+  # Services have not started. Remove stale journals from the failed database
+  # before replacing it with a self-contained, verified snapshot.
+  rm -f "$DB_PATH-wal" "$DB_PATH-shm" "$DB_PATH-journal"
+  python /app/python/sqlite_backup.py snapshot "$DB_BACKUP" "$DB_PATH"
+}
 
 # Backup existing DB before schema changes
 if [ -f "$DB_PATH" ]; then
-  cp "$DB_PATH" "$DB_BACKUP"
+  python /app/python/sqlite_backup.py snapshot "$DB_PATH" "$DB_BACKUP"
+  BASELINE_USERS=$(python /app/python/sqlite_backup.py count "$DB_BACKUP")
+  HAS_SNAPSHOT=1
   echo "DB backed up before prisma db push"
 fi
 
@@ -14,21 +25,18 @@ fi
 echo "Running Prisma db push..."
 node node_modules/prisma/build/index.js db push --skip-generate 2>&1 || {
   echo "prisma db push failed — restoring backup"
-  if [ -f "$DB_BACKUP" ]; then
-    cp "$DB_BACKUP" "$DB_PATH"
+  if [ "$HAS_SNAPSHOT" = 1 ]; then
+    restore_snapshot
     echo "Backup restored. Startup aborted to prevent a code/schema mismatch."
   fi
   exit 1
 }
 
-# Verify DB has data — if User table is empty but backup has data, restore
-if [ -f "$DB_BACKUP" ]; then
-  CURRENT_SIZE=$(wc -c < "$DB_PATH" 2>/dev/null || echo 0)
-  BACKUP_SIZE=$(wc -c < "$DB_BACKUP" 2>/dev/null || echo 0)
-  # If current DB is significantly smaller than backup, data was likely lost
-  if [ "$BACKUP_SIZE" -gt 0 ] && [ "$CURRENT_SIZE" -lt "$((BACKUP_SIZE / 2))" ]; then
-    echo "WARNING: DB shrank from ${BACKUP_SIZE} to ${CURRENT_SIZE} bytes — restoring backup!"
-    cp "$DB_BACKUP" "$DB_PATH"
+# Validate actual account rows rather than comparing SQLite file sizes.
+if [ "$HAS_SNAPSHOT" = 1 ]; then
+  if ! CURRENT_USERS=$(python /app/python/sqlite_backup.py count "$DB_PATH") || [ "$CURRENT_USERS" -ne "$BASELINE_USERS" ]; then
+    echo "Account count check failed — restoring snapshot."
+    restore_snapshot
     echo "Backup restored."
     exit 1
   fi

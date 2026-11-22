@@ -137,6 +137,7 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
   const [customLufs,       setCustomLufs]       = useState<number>(-14);
   const [preset,           setPreset]           = useState<Preset>("auto");
   const [character, setCharacter] = useState(.5);
+  const [listenToExport, setListenToExport] = useState<string>();
   const [intensity,        setIntensity]        = useState<number>(65);
   const [currentProgress,  setCurrentProgress]  = useState<ProgressStep | null>(null);
   const [selectedFormat,   setSelectedFormat]   = useState<string>("mp3128");
@@ -338,6 +339,7 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
       fileId: uploadedFile.file_id,
       uploadToken: uploadedFile.upload_token,
       originalName: uploadedFile.filename,
+      workspace: studio ? "studio" : "classic",
       ...settings,
       analysis: analysis ?? undefined,
       referenceAnalysis: renderReference ?? undefined,
@@ -350,15 +352,19 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
     }); } finally { run.finish(); }
   }, [uploadedFile, platform, customLufs, preset, intensity, selectedFormat, analysis,
       referenceAnalysis, masterReference, masterData, completedSettings, character, lang, handleMasteringStart, handleProgressUpdate,
-      handleMasteringComplete, handleMasteringError]);
+      handleMasteringComplete, handleMasteringError, studio]);
 
   // Audio engine URLs
   const originalUrl = uploadedFile
-    ? `/api/preview?file_id=${encodeURIComponent(uploadedFile.file_id)}&upload_token=${encodeURIComponent(uploadedFile.upload_token)}`
+    ? `/api/preview?file_id=${encodeURIComponent(uploadedFile.file_id)}`
     : "";
   // Prefer the high-quality browser preview. MP3 128 remains a valid selected
   // delivery format, but should not be the default source for critical A/B.
-  const masteredUrl = masterData?.formats.mp3320 || masterData?.formats.mp3128 || masterData?.formats.wav16 || "";
+  const exportFormat = masterData?.selected_format as keyof NonNullable<typeof masterData>["formats"] | undefined;
+  const exactMasterUrl = exportFormat ? masterData?.formats[exportFormat] : undefined;
+  const previewMasterUrl = masterData?.formats.mp3320 || masterData?.formats.mp3128 || masterData?.formats.wav16 || "";
+  const exactAudition = Boolean(exactMasterUrl && listenToExport === masterData?.master_id);
+  const masteredUrl = exactAudition ? exactMasterUrl! : previewMasterUrl;
   const expressCanStart = canStartExpress({state:appState,hasFile:!!uploadedFile,hasAnalysis:!!analysis,authenticated:sessionStatus==="authenticated",used:dailyUsed,limit:dailyLimit});
   const openExpress = () => {stopGlobalAudio();setExpressStep(masterData?5:analysis?Math.min(expressStep,4):0);setExpressOpen(true);};
   const showExpressResult = () => {setExpressOpen(false);setTimeout(()=>{
@@ -420,6 +426,7 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
         <AudioEngineProvider
           originalUrl={originalUrl}
           masteredUrl={masteredUrl}
+          streamMaster={exactAudition}
           originalLufs={analysis?.integrated_lufs}
           masteredLufs={masterData?.post_analysis.integrated_lufs}
         >
@@ -616,6 +623,15 @@ export default function MasteringWorkspace({ lang, onResultChange, studio }: Pro
             {/* Download Panel — includes A/B player with master */}
             {/* downloadRef marks the scroll target for auto-scroll after mastering */}
             <div ref={downloadRef} id={studio ? "beta-exports" : undefined} />
+            {appState==="done"&&masterData&&<div className="mt-3 mb-3 flex flex-wrap items-center gap-2 text-sm">
+              <span>{exactAudition
+                ? (lang==="en"?"A/B uses the actual export":"A/B spielt die tatsächliche Exportdatei")
+                : (lang==="en"?"A/B uses the master preview (usually MP3 320)":"A/B spielt die Master-Vorschau (meist MP3 320)")}</span>
+              {exactMasterUrl&&exactMasterUrl!==previewMasterUrl&&<button type="button" aria-pressed={exactAudition}
+                onClick={()=>setListenToExport(exactAudition?undefined:masterData.master_id)}>
+                {lang==="en"?"Listen to export":"Exportdatei abhören"}
+              </button>}
+            </div>}
             <AnimatePresence>
               {appState === "done" && masterData && (
                 <motion.div

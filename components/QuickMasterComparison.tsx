@@ -14,9 +14,11 @@ export function QuickMasterComparison({ lang, track = SHOWCASE_TRACKS[0], compac
   const player = useRef<ShowcasePlayer | null>(null);
   const [side, setSide] = useState<ShowcaseSide>("original");
   const [matched, setMatched] = useState(false);
+  const [canMatch,setCanMatch] = useState(true);
   const [state, setState] = useState({playing:false,loading:false});
   const [error, setError] = useState(false);
   useEffect(() => {
+    setCanMatch(typeof AudioContext === "function");
     // Starting another Beatzucker player also stops this preview.
     const halt = () => player.current?.pause();
     window.addEventListener("beatzucker-quick-audition", halt);
@@ -44,11 +46,13 @@ export function QuickMasterComparison({ lang, track = SHOWCASE_TRACKS[0], compac
       {(["original","master"] as const).map(value=><button key={value} type="button" aria-pressed={side===value} onClick={()=>{setSide(value);player.current?.select(value);}}>
         {value==="original"?"Original":"Master"}
       </button>)}
-      <button type="button" aria-pressed={matched} onClick={()=>{setMatched(!matched);player.current?.setMatched(!matched);}}>{en?"Level match":"Pegelabgleich"}</button>
+      <button type="button" disabled={!canMatch} aria-pressed={matched} onClick={()=>{setMatched(!matched);player.current?.setMatched(!matched);}}>{en?"Level match":"Pegelabgleich"}</button>
     </div>
     {error && <p role="alert">{en?"Playback failed. Try again.":"Wiedergabe fehlgeschlagen. Bitte erneut versuchen."}</p>}
+    {!canMatch && <p>{en?"Playback uses original levels in this browser.":"Dieser Browser spielt die Hörprobe mit Originalpegeln ab."}</p>}
     {!compact && <div className={styles.row}>
       <a href="#mastering">{en?"Master my track":"Eigenen Track mastern"} →</a>
+      <a href="#home-express-slot">{en?"Guided mastering":"Geführt mastern"} →</a>
       <Link href={en?"/en/mastering-lab":"/mastering-lab"}>{en?"Open Mastering Lab":"Mastering Lab öffnen"} →</Link>
     </div>}
   </section>;

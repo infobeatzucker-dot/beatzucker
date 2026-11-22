@@ -44,8 +44,8 @@ export function wavByteLength(frames: number, channels = 2) {
   return 44 + frames * channels * 4;
 }
 
-export function deliveryWav(buffer: AudioBuffer) {
-  const channels = buffer.numberOfChannels;
+export function deliveryWav(buffer: AudioBuffer, mono = false) {
+  const channels = mono ? 1 : buffer.numberOfChannels;
   if (channels < 1 || channels > 2) throw Error("Invalid WAV channel count");
   const frameBytes = channels * 4;
   const length = wavByteLength(buffer.length, channels);
@@ -60,15 +60,16 @@ export function deliveryWav(buffer: AudioBuffer) {
   header.setUint16(32, frameBytes, true); header.setUint16(34, 32, true);
   tag(36, "data"); header.setUint32(40, length - 44, true);
   const left = buffer.getChannelData(0);
-  const right = channels === 2 ? buffer.getChannelData(1) : null;
+  const right = buffer.numberOfChannels === 2 ? buffer.getChannelData(1) : null;
   const blocks: ArrayBuffer[] = [header.buffer];
   const size = 65536;
   for (let start = 0; start < buffer.length; start += size) {
     const frames = Math.min(size, buffer.length - start);
     const block = new DataView(new ArrayBuffer(frames * frameBytes));
     for (let i = 0; i < frames; i++) {
-      block.setFloat32(i * frameBytes, left[start + i], true);
-      if (right) block.setFloat32(i * frameBytes + 4, right[start + i], true);
+      const sample = left[start + i];
+      block.setFloat32(i * frameBytes, mono && right ? (sample + right[start + i]) / 2 : sample, true);
+      if (channels === 2 && right) block.setFloat32(i * frameBytes + 4, right[start + i], true);
     }
     blocks.push(block.buffer);
   }

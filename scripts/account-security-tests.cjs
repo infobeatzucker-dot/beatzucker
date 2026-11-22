@@ -12,7 +12,7 @@ function load(file, mocks) {
   vm.runInNewContext(code, { module, exports: module.exports, require: name => {
     if (!(name in mocks)) throw Error(`Unmocked dependency ${name}`);
     return mocks[name];
-  }, Date, console, Set, process: { env: {} } }, { filename: file });
+  }, Date, console, Set, Buffer, process: { env: {} } }, { filename: file });
   return module.exports;
 }
 class RequestError extends Error { constructor(message, status) { super(message); this.status = status; } }
@@ -80,7 +80,10 @@ async function main() {
     "next-auth/providers/google": { default: config => config },
     "next-auth/providers/credentials": { default: config => config },
     "@auth/prisma-adapter": { PrismaAdapter: () => ({}) },
-    "@/lib/db": { db: { user: { findUnique: async () => user } } },
+    "@/lib/db": { db: { user: {
+      findUnique: async () => user,
+      updateMany: async ({ data }) => { Object.assign(user, data); events.push("update-activity"); return { count: 1 }; },
+    } } },
     "@/lib/auth": {}, "@/lib/email": {}, "@/lib/rateLimit": {},
   }).authOptions;
   await test("password reset during login cannot grant a fresh session", async () => {
@@ -92,6 +95,18 @@ async function main() {
     const token = { id: "u1", pwChangedAt: 0, authenticatedAt: 123, authProvider: "google", lastPwCheck: Date.now() };
     const result = await authOptions.callbacks.jwt({ token, trigger: "update", session: { authenticatedAt: Date.now() } });
     assert.equal(result.authenticatedAt, 123);
+  });
+  await test("continuous sessions record activity once per five minutes and reject revoked tokens", async () => {
+    const token = { id: "u1", pwChangedAt: 0 };
+    await authOptions.callbacks.jwt({ token });
+    await authOptions.callbacks.jwt({ token });
+    assert.deepEqual(events, ["update-activity"]);
+    user.lastSeenAt = new Date(Date.now() - 6 * 60_000);
+    await authOptions.callbacks.jwt({ token });
+    assert.deepEqual(events, ["update-activity", "update-activity"]);
+    user.passwordChangedAt = new Date();
+    const revoked = await authOptions.callbacks.jwt({ token });
+    assert.equal(revoked.id, undefined);
   });
   await test("unauthenticated mutations are rejected before processing", async () => {
     session = null;

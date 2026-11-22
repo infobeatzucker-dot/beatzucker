@@ -19,3 +19,10 @@
 .formGrid .full,.formGrid .rights { grid-column:1/-1; }
 .formGrid .rights { display:flex;align-items:start;gap:.5rem; }
 .communityReview { border:1px solid var(--border-subtle);background:var(--bg-elevated);border-radius:12px;padding:.85rem;margin:.8rem 0;overflow-wrap:anywhere; }
+.quick :is(button,a,input,select):focus-visible,.flow :is(button,a,input,select,textarea):focus-visible {
+  outline:2px solid var(--text-primary);
+  outline-offset:3px;
+}
+.quick button,.flow button {min-height:32px;}
+.quick a,.flow a {color:var(--text-primary);text-decoration:underline;}
+.quick button:disabled,.flow button:disabled {opacity:.55;cursor:not-allowed;}

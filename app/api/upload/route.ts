@@ -12,6 +12,7 @@ import { signUpload } from "@/lib/uploadAuthorization";
 import { sanitizeOriginalFilename } from "@/lib/filename";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { readBoundedMultipart, uploadRequestFailure } from "@/lib/boundedMultipart";
+import { db } from "@/lib/db";
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 const MAX_SIZE = 200 * 1024 * 1024; // 200MB
@@ -163,6 +164,12 @@ export async function POST(req: NextRequest) {
       }, { status: 503 });
     }
 
+    try {
+      await db.temporaryUpload.create({data:{id:fileId,userId:session.user.id,expiresAt:new Date(Date.now()+60*60_000)}});
+    } catch (error) {
+      await unlink(/*turbopackIgnore: true*/ filePath).catch(() => {});
+      throw error;
+    }
     return NextResponse.json({
       file_id: fileId,
       upload_token: uploadToken,
@@ -170,7 +177,7 @@ export async function POST(req: NextRequest) {
       duration,
       format: ext.toUpperCase(),
       size: file.size,
-    });
+    }, {headers:{"Cache-Control":"private, no-store"}});
   } catch (err) {
     const failure = uploadRequestFailure(err);
     if (failure) return failure;

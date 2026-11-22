@@ -25,10 +25,12 @@ export default async function CommunityMastersPage({lang}:{lang:Lang}){
       <h1 className="text-3xl font-bold mt-4">{en?"Community mastering examples":"Mastering-Hörbeispiele aus der Community"}</h1>
       <p>{en?"Hear original and master side by side and read what helped each track.":"Höre Original und Master direkt im Vergleich und lies, welche Einstellungen beim jeweiligen Track geholfen haben."}</p>
       {rows===null?<p role="status">{en?"The examples could not be loaded.":"Die Beispiele konnten nicht geladen werden."}</p>:
-      !rows.length?<p>{en?"Be the first to submit a comparison.":"Reiche den ersten Community-Hörvergleich ein."}</p>:rows.map(item=><article className={styles.communityReview} key={item.id}>
+      !rows.length?<p>{en?"Be the first to submit a comparison.":"Reiche den ersten Community-Hörvergleich ein."}{" "}
+        <Link href={en?"/en/mastering-examples":"/hoervergleich"}>{en?"Listen to the Beatzucker examples":"Beatzuckers Hörbeispiele anhören"} →</Link></p>:rows.map(item=><article className={styles.communityReview} key={item.id}>
         <h2>{item.track.title}</h2><p>{item.artist} · {item.track.genre}</p>
-        <div lang={item.language}><p><strong>{en?"Starting problem":"Ausgangsproblem"}</strong> {item.problem}</p><p><strong>{en?"Settings that helped":"Diese Einstellungen haben geholfen"}</strong> {item.settings}</p></div>
+        <div><p><strong>{en?"Starting problem":"Ausgangsproblem"}</strong> <span lang={item.language}>{item.problem}</span></p><p><strong>{en?"Settings that helped":"Diese Einstellungen haben geholfen"}</strong> <span lang={item.language}>{item.settings}</span></p></div>
         <QuickMasterComparison lang={lang} track={item.track} compact/>
+        <a href={`mailto:info@re-beatz.com?subject=${encodeURIComponent((en?"Report community example":"Community-Hörbeispiel melden")+" "+item.id)}`}>{en?"Report this example":"Dieses Beispiel melden"}</a>
       </article>)}
       <CommunitySubmission lang={lang}/>
     </section>

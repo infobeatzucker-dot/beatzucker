@@ -11,6 +11,7 @@ from analyzer import analyze_audio, analysis_to_dict, compute_true_peak
 from codec_preview import render_codec
 from speech_cleaner import clean_speech
 from mastering import master_audio, load_and_verify_export
+from release_check import check_release
 
 
 def run_self_test():
@@ -30,6 +31,11 @@ def run_self_test():
         audio, rate = load_and_verify_export(result.paths["wav24"], "wav24", sr)
         if rate != sr or audio.shape[0] != 2 or not np.all(np.isfinite(audio)) or compute_true_peak(audio, rate) > -.9:
             raise RuntimeError("Synthetic master output invalid")
+        lossless = Path(directory) / "mixcheck-self-test.flac"
+        sf.write(lossless, audio.T, rate, subtype="PCM_24")
+        inspection = check_release(lossless)
+        if inspection["bits"] != 24 or inspection["sample_rate"] != sr or inspection["integrated_lufs"] is None:
+            raise RuntimeError("Synthetic FLAC release check invalid")
         for codec in ["mp3128", "aac256"]:
             encoded, _, values = render_codec(result.paths["wav24"], codec)
             if len(encoded) < 100 or not all(value is not None and np.isfinite(value) for value in values.values()):
@@ -37,7 +43,7 @@ def run_self_test():
         cleaned, report = clean_speech(str(source), "gentle", True, True)
         if len(cleaned) < 100 or report["channels"] != 2 or report["true_peak"] > -.8:
             raise RuntimeError("Synthetic speech cleanup invalid")
-        return {"ok": True, "checks": ["analysis", "mastering", "WAV24", "true-peak", "MP3", "AAC", "speech-cleanup"]}
+        return {"ok": True, "checks": ["analysis", "mastering", "WAV24", "true-peak", "FLAC release-check", "MP3", "AAC", "speech-cleanup"]}
 
 
 if __name__ == "__main__":

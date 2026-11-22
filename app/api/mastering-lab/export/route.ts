@@ -12,6 +12,7 @@ import { sanitizeOriginalFilename } from "@/lib/filename";
 import { labFormat, labFormats, labMaxBytes, labNoStore } from "@/lib/masteringLab";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { rateLimit } from "@/lib/rateLimit";
+import { isDeploying } from "@/lib/deployMaintenance";
 
 export const maxDuration = 300;
 const state = globalThis as typeof globalThis & { __labActiveExports?: Set<string>; __labLastPrune?: number };
@@ -33,6 +34,7 @@ async function pruneScratch(root: string) {
 }
 
 export async function POST(req: NextRequest) {
+  if (isDeploying()) return fail("Export unavailable during update",503);
   const userId = (await getServerSession(authOptions))?.user?.id;
   if (!userId) return fail("Sign in required", 401);
   if (req.headers.get("origin") !== new URL(process.env.NEXTAUTH_URL ?? "https://beatzucker.de").origin) return fail("Forbidden", 403);
@@ -98,13 +100,24 @@ export async function POST(req: NextRequest) {
     const output = path.join(directory, `delivery.${ext}`);
     const result = await stat(output);
     const headers = new Headers(labNoStore);
-    const filename = sanitizeOriginalFilename(params.get("name")).replace(/\.[^.]+$/, "") || "track";
+    let submittedName: string | null = null;
+    try { submittedName = decodeURIComponent(req.headers.get("x-export-name") ?? ""); } catch { /* Generic filename for invalid metadata. */ }
+    const originalName = sanitizeOriginalFilename(submittedName);
+    const filename = originalName.replace(/\.[^.]+$/, "") || "track";
     headers.set("Content-Disposition", `attachment; filename="beatzucker-master.${ext}"; filename*=UTF-8''${encodeURIComponent(filename + "-master." + ext).replace(/[!'()*]/g, letter => "%" + letter.charCodeAt(0).toString(16))}`);
     headers.set("Content-Type", mime);
     headers.set("Content-Length", String(result.size));
     headers.set("X-Content-Type-Options", "nosniff");
+    if (["target","ceiling","codec","level"].includes(measurements.gain_reason)) headers.set("X-Lab-Gain-Reason",measurements.gain_reason);
     for (const [key, header] of [["integrated_lufs", "X-Lab-LUFS"], ["true_peak", "X-Lab-True-Peak"], ["gain_db", "X-Lab-Gain"]]) {
       if (typeof measurements[key] === "number" && Number.isFinite(measurements[key])) headers.set(header, String(measurements[key]));
+    }
+    if (req.headers.get("x-export-workspace") !== "kick-bass") {
+      const completedAt=new Date();
+      await db.$transaction([
+        db.labRender.create({data:{userId,originalName,format,targetLufs:target,completedAt}}),
+        db.user.updateMany({where:{id:userId,OR:[{lastMasteredAt:null},{lastMasteredAt:{lt:completedAt}}]},data:{lastMasteredAt:completedAt}}),
+      ]);
     }
     const stream = createReadStream(output);
     stream.once("close", () => { void clean(); });

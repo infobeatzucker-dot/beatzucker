@@ -5,53 +5,74 @@ import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { dailyMasterLimit, startOfMasteringDay } from "@/lib/masterQuota";
+import type { Prisma } from "@prisma/client";
+import { activeDspMasterIds } from "@/lib/dspJobs";
+import { removeMasterFiles, removeUploadFiles } from "@/lib/storage";
 
 // GET /api/admin — returns full dashboard data
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!await requireAdmin(session)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const search = (req.nextUrl.searchParams.get("q") ?? "").trim().slice(0,120);
+  const requested = Number(req.nextUrl.searchParams.get("page"));
+  const page = Number.isSafeInteger(requested) && requested > 0 ? Math.min(requested, 10000) : 1;
+  const pageSize = 50;
+  const userFilter: Prisma.UserWhereInput = search ? {OR:[{email:{contains:search}},{name:{contains:search}}]} : {};
+  const day = startOfMasteringDay();
   const [
     totalUsers,
     totalMasters,
+    totalLabRenders,
+    studioCompleted,
     recentMasters,
+    recentLabRenders,
     users,
     promo,
-    quotaUsage,
-    chargedUsage,
+    matchingUsers,
   ] = await Promise.all([
     db.user.count(),
     db.master.count(),
+    db.labRender.count(),
+    db.master.count({where:{workspace:"studio",status:"done"}}),
     db.master.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
       select: {
-        id: true, originalName: true, platform: true, status: true,
+        id: true, originalName: true, platform: true, status: true, workspace:true,
         createdAt: true,
         user: { select: { email: true } },
       },
     }),
+    db.labRender.findMany({orderBy:{completedAt:"desc"},take:20,select:{id:true,originalName:true,format:true,targetLufs:true,completedAt:true,user:{select:{email:true}}}}),
     db.user.findMany({
-      orderBy: { createdAt: "desc" },
+      where: userFilter,
+      orderBy: [{createdAt:"desc"},{id:"desc"}],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       select: {
         id: true, email: true, name: true, createdAt: true, dailyMasterLimit: true,
         vocalRemoverEnabled: true, stemSeparationEnabled: true, lastSeenAt: true, lastMasteredAt: true,
         masteringLabAccess: { select: { userId: true } },
-        _count: { select: { masters: true } },
+        _count: { select: { masters: true, labRenders:true } },
       },
     }),
     db.promotion.findUnique({ where: { id: "singleton" } }),
-    db.master.groupBy({ by: ["userId"], where: { status: { in: ["done", "processing"] }, createdAt: { gte: startOfMasteringDay() }, dailyCharge: { is: null } }, _count: { _all: true } }),
-    db.dailyMasterCharge.groupBy({ by: ["userId"], where: { day: { gte: startOfMasteringDay() }, OR: [{ masterId: null }, { master: { status: { in: ["done", "processing"] } } }] }, _count: { _all: true } }),
+    db.user.count({where:userFilter}),
   ]);
 
+  const visibleIds = users.map(user=>user.id);
+  const [quotaUsage, chargedUsage] = await Promise.all([
+    db.master.groupBy({ by: ["userId"], where: { userId:{in:visibleIds}, status:{in:["done","processing"]}, createdAt:{gte:day}, dailyCharge:{is:null} }, _count:{_all:true} }),
+    db.dailyMasterCharge.groupBy({ by: ["userId"], where: { userId:{in:visibleIds}, day:{gte:day}, OR:[{masterId:null},{master:{status:{in:["done","processing"]}}}] }, _count:{_all:true} }),
+  ]);
   const quotaByUser = new Map(quotaUsage.map(usage => [usage.userId, usage._count._all]));
   const hasHistoricalMasters = users.some(user => !user.lastMasteredAt && user._count.masters > 0);
   const historicalMasters = hasHistoricalMasters ? await db.master.groupBy({
     by: ["userId"],
-    where: { user: { is: { lastMasteredAt: null } }, status: "done" },
+    where: { userId:{in:visibleIds}, user: { is: { lastMasteredAt: null } }, status: "done" },
     _max: { createdAt: true, completedAt: true },
   }) : [];
   const historicalLastMaster = new Map<string, Date>();
@@ -70,19 +91,21 @@ export async function GET() {
   } catch { /* service unreachable */ }
 
   // Masters today
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const [mastersToday, masterErrors] = await Promise.all([
-    db.master.count({ where: { createdAt: { gte: startOfDay } } }),
+  const [mastersToday, labRendersToday, masterErrors] = await Promise.all([
+    db.master.count({ where: { createdAt: { gte: day } } }),
+    db.labRender.count({where:{completedAt:{gte:day}}}),
     db.master.count({ where: { status: "error" } }),
   ]);
 
   return NextResponse.json({
     promo: promo ?? null,
+    pagination:{page,pageSize,total:matchingUsers},
     stats: {
       totalUsers,
-      totalMasters,
-      mastersToday,
+      totalMasters:totalMasters+totalLabRenders,
+      mastersToday:mastersToday+labRendersToday,
+      labCompleted:totalLabRenders,
+      studioCompleted,
       masterErrors,
       pythonStatus,
     },
@@ -93,7 +116,8 @@ export async function GET() {
       createdAt: u.createdAt,
       lastSeenAt: u.lastSeenAt,
       lastMasteredAt: u.lastMasteredAt ?? historicalLastMaster.get(u.id) ?? null,
-      mastersCount: u._count.masters,
+      mastersCount: u._count.masters+u._count.labRenders,
+      labMastersCount:u._count.labRenders,
       dailyMasterLimit: u.dailyMasterLimit,
       vocalRemoverEnabled: u.vocalRemoverEnabled,
       stemSeparationEnabled: u.stemSeparationEnabled,
@@ -101,14 +125,17 @@ export async function GET() {
       dailyLimit: dailyMasterLimit(u.dailyMasterLimit),
       dailyUsed: quotaByUser.get(u.id) ?? 0,
     })),
-    recentMasters: recentMasters.map(m => ({
+    recentMasters: [...recentMasters.map(m => ({
       id: m.id,
       originalName: m.originalName,
       platform: m.platform,
       status: m.status,
       createdAt: m.createdAt,
       userEmail: m.user?.email ?? "—",
-    })),
+      workspace:m.workspace??"legacy",
+    })),...recentLabRenders.map(m=>({id:m.id,originalName:m.originalName,
+      platform:m.targetLufs===null?m.format:`${m.targetLufs} LUFS`,status:"done",createdAt:m.completedAt,userEmail:m.user.email,workspace:"lab",
+    }))].sort((a,b)=>b.createdAt.getTime()-a.createdAt.getTime()).slice(0,20),
   });
 }
 
@@ -156,6 +183,9 @@ export async function PATCH(req: NextRequest) {
   // --- Action: reset admin's own password ---
   if (action === "reset-admin-password") {
     const { newPassword } = body as { newPassword: string };
+    if (Buffer.byteLength(newPassword, "utf8") > 72) {
+      return NextResponse.json({ error: "Passwort darf höchstens 72 UTF-8-Bytes umfassen. / Password may contain at most 72 UTF-8 bytes." }, { status: 400 });
+    }
     if (!newPassword || newPassword.length < 8 || newPassword.length > 128) {
       return NextResponse.json({ error: "Passwort muss 8–128 Zeichen lang sein" }, { status: 400 });
     }
@@ -167,7 +197,7 @@ export async function PATCH(req: NextRequest) {
     const hashed = await hashPassword(newPassword);
     await db.user.update({
       where: { id: adminUser.id },
-      data: { password: hashed },
+      data: { password: hashed, passwordChangedAt: new Date(), passwordResetToken: null, passwordResetExpires: null, loginOtp: null, loginOtpExpires: null },
     });
     console.log(`[admin] password reset for ${adminUser.email}`);
     return NextResponse.json({ ok: true });
@@ -185,7 +215,22 @@ export async function DELETE(req: NextRequest) {
 
   const userId = req.nextUrl.searchParams.get("userId");
   if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+  if (session?.user.id === userId) return NextResponse.json({error:"Use account settings to delete your own account."},{status:409});
+  let active: Set<string>;
+  try { active=await activeDspMasterIds(); } catch { return NextResponse.json({error:"Processing status unavailable"},{status:503}); }
+  const owned=await db.$transaction(async tx=>{
+    const account=await tx.user.findUnique({where:{id:userId},select:{masters:{select:{id:true,fileId:true,status:true}},temporaryUploads:{select:{id:true}}}});
+    if (!account || account.masters.some(master=>["pending","processing"].includes(master.status)||active.has(master.id))) return account ? "active" : null;
+    await tx.master.deleteMany({where:{userId}});
+    await tx.user.delete({where:{id:userId}});
+    return account;
+  });
+  if (!owned) return NextResponse.json({error:"Account not found"},{status:404});
+  if (owned==="active") return NextResponse.json({error:"Mastering still running"},{status:409});
+  const ids=new Set([...owned.masters.map(master=>master.fileId),...owned.temporaryUploads.map(upload=>upload.id)]);
+  const cleanup=await Promise.allSettled([...owned.masters.map(master=>removeMasterFiles(master.id,true)),...Array.from(ids,id=>removeUploadFiles(id,true))]);
+  const cleanupPending=cleanup.some(item=>item.status==="rejected");
+  if (cleanupPending) console.warn("[admin] orphan audio cleanup pending");
 
-  await db.user.delete({ where: { id: userId } });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, cleanupPending });
 }

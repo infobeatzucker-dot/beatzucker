@@ -54,9 +54,12 @@ export function inspectAudioMetadata(bytes: ArrayBuffer): { sampleRate: number; 
 
 export async function decodeAudio(file: File, maxBytes = 80 * 1024 * 1024) {
   if (file.size <= 0 || file.size > maxBytes) throw new Error(maxBytes === 80 * 1024 * 1024 ? "LOCAL_SIZE" : "SIZE");
-  const bytes = await file.arrayBuffer();
-  const metadata = inspectAudioMetadata(bytes);
+  return decodeAudioBytes(await file.arrayBuffer());
+}
+
+export async function decodeAudioBytes(bytes: ArrayBuffer, metadata = inspectAudioMetadata(bytes)) {
   if (metadata && (metadata.channels < 1 || metadata.channels > 2)) throw new Error("Only mono and stereo audio are supported");
+  if (metadata && (metadata.sampleRate < 8000 || metadata.sampleRate > 192000)) throw new Error("Invalid sample rate");
   if (metadata && metadata.frames * metadata.channels > MAX_DECODED_SAMPLES) throw new Error("Audio exceeds the browser memory budget");
   // Preserve known native rates instead of resampling WAV/FLAC to the device rate.
   const context = new OfflineAudioContext(2, 1, metadata?.sampleRate || 48000);

@@ -51,9 +51,14 @@ const nextConfig: NextConfig = {
               "connect-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",
+              "frame-ancestors 'none'",
               "form-action 'self'",
             ].join("; "),
           },
+          ...(process.env.BEATZUCKER_CSP_REPORT_ONLY === "1" ? [{
+            key: "Content-Security-Policy-Report-Only",
+            value: "script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+          }] : []),
         ],
       },
     ];

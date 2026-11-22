@@ -119,14 +119,56 @@ if ! timeout 180s sudo docker run --rm --name "$SMOKE_CONTAINER" \
   cleanup_old_images
   exit 1
 fi
+if [ "$(sudo docker inspect --format '{{.State.Running}}' "$CONTAINER" 2>/dev/null)" = true ]; then
+  DRAIN_FLAG="$APP_DIR/data/.release-drain"
+  if ! mkdir "$DRAIN_FLAG"; then
+    echo "FATAL: could not reserve the maintenance flag."
+    exit 1
+  fi
+  trap 'rmdir "$DRAIN_FLAG" 2>/dev/null || true' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  echo "=== Waiting for active mastering jobs before switching containers ==="
+  quiet=0
+  for attempt in $(seq 1 24); do
+    if sudo docker exec -i "$CONTAINER" node - <<'NODE'
+const { PrismaClient } = require("@prisma/client");
+const db = new PrismaClient();
+(async () => {
+  try {
+    const jobs = db.master.count({ where: { status: { in: ["pending", "processing"] } } });
+    const { active_master_ids, dsp_in_use } = await fetch((process.env.PYTHON_SERVICE_URL || "http://127.0.0.1:8001") + "/jobs", {
+      headers: { "X-Beatzucker-Service-Token": process.env.PYTHON_SERVICE_SECRET || "" },
+      signal: AbortSignal.timeout(4500),
+    }).then(response => { if (!response.ok) throw Error("DSP unavailable"); return response.json(); });
+    if (!Array.isArray(active_master_ids) || active_master_ids.length || dsp_in_use || (await jobs)) process.exitCode = 1;
+  } catch { process.exitCode = 1; }
+  finally { await db.$disconnect(); }
+})();
+NODE
+    then
+      quiet=$((quiet+1))
+      [ "$quiet" -ge 2 ] && break
+    else
+      quiet=0
+    fi
+    sleep 5
+  done
+  if [ "$quiet" -lt 2 ]; then
+    echo "FATAL: active jobs or unavailable job status. Deployment postponed."
+    exit 1
+  fi
+fi
 if [ -n "$PREBUILT_IMAGE" ]; then
   sudo docker tag "$CANDIDATE_IMAGE" "$IMAGE" || exit 1
 fi
 sudo docker stop "$CONTAINER" 2>/dev/null || true
 sudo docker rm "$CONTAINER" 2>/dev/null || true
+if [ -n "${DRAIN_FLAG:-}" ]; then rmdir "$DRAIN_FLAG" || exit 1; fi
 sudo docker run -d \
   --name "$CONTAINER" \
   --restart unless-stopped \
+  --log-opt max-size=10m --log-opt max-file=3 \
   -p 127.0.0.1:3001:3000 \
   --env-file "$APP_DIR/.env" \
   -v "$APP_DIR/uploads:/app/uploads" \
@@ -156,6 +198,7 @@ if [ -n "$ROLLBACK_TAG" ]; then
   sudo docker run -d \
     --name "$CONTAINER" \
     --restart unless-stopped \
+    --log-opt max-size=10m --log-opt max-file=3 \
     -p 127.0.0.1:3001:3000 \
     --env-file "$APP_DIR/.env" \
     -v "$APP_DIR/uploads:/app/uploads" \
@@ -165,7 +208,7 @@ if [ -n "$ROLLBACK_TAG" ]; then
     "$ROLLBACK_TAG" /app/rollback-tools/start.sh
   sleep 10
   # Current rollback images support DB/Python readiness; do not hide a broken DSP service.
-  if bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
+  if REQUIRE_RELEASE_ROUTES=0 bash "$APP_DIR/deploy/smoketest.sh" "http://localhost:3001"; then
     echo "Rollback to previous image succeeded. Deploy of $NEW_SHA was aborted."
   else
     echo "FATAL: rollback also failed smoke test — manual intervention required!"

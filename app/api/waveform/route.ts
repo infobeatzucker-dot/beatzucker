@@ -5,7 +5,7 @@ import { readdir } from "fs/promises";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { rateLimit } from "@/lib/rateLimit";
-import { verifyUpload } from "@/lib/uploadAuthorization";
+import { db } from "@/lib/db";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 
 export const maxDuration = 120;
@@ -23,11 +23,11 @@ export async function GET(req: NextRequest) {
     }
 
     const fileId = req.nextUrl.searchParams.get("file_id");
-    const uploadToken = req.nextUrl.searchParams.get("upload_token");
     if (!fileId || !FILE_ID_PATTERN.test(fileId)) {
       return NextResponse.json({ error: "Ungültige Datei-ID" }, { status: 400 });
     }
-    if (!verifyUpload(fileId, session.user.id, uploadToken)) {
+    const owned = await db.temporaryUpload.findFirst({where:{id:fileId,userId:session.user.id,expiresAt:{gt:new Date()}},select:{id:true}});
+    if (!owned) {
       return NextResponse.json({ error: "Kein Zugriff auf diesen Upload" }, { status: 403 });
     }
 

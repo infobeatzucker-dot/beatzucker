@@ -19,6 +19,8 @@ interface Stats {
   totalMasters: number;
   mastersToday: number;
   masterErrors: number;
+  labCompleted: number;
+  studioCompleted: number;
 }
 
 interface AdminUser {
@@ -33,6 +35,7 @@ interface AdminUser {
   name: string | null;
   createdAt: string;
   mastersCount: number;
+  labMastersCount: number;
   lastSeenAt: string | null;
   lastMasteredAt: string | null;
 }
@@ -44,6 +47,7 @@ interface RecentMaster {
   status: string;
   createdAt: string;
   userEmail: string;
+  workspace: string;
 }
 
 interface PromoData {
@@ -154,10 +158,14 @@ export default function AdminPage() {
     users: AdminUser[];
     recentMasters: RecentMaster[];
     promo: PromoData | null;
+    pagination: {page:number;pageSize:number;total:number};
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [page,setPage]=useState(1);
+  const [refreshKey,refresh]=useState(0);
+  const [tableStatus,setTableStatus]=useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Admin password reset state
@@ -199,9 +207,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    fetch("/api/admin")
+    const controller=new AbortController();
+    fetch("/api/admin", {signal:controller.signal,cache:"no-store"})
       .then(r => {
-        if (r.status === 403) throw new Error("Kein Zugriff");
+        if (!r.ok) throw new Error(r.status===403?"Kein Zugriff":"Daten nicht verfügbar");
         return r.json();
       })
       .then(d => {
@@ -217,15 +226,39 @@ export default function AdminPage() {
         }
         setLoading(false);
       })
-      .catch(e => { setError(e.message); setLoading(false); });
+      .catch(e => { if (!controller.signal.aborted) { setError(e.message); setLoading(false); } });
+    return ()=>controller.abort();
   }, [status]);
+
+  useEffect(()=>{
+    if(status!=="authenticated"||loading||error)return;
+    const controller=new AbortController();
+    setTableStatus(lang==="en"?"Loading accounts…":"Nutzer werden geladen …");
+    const timer=window.setTimeout(async()=>{
+      try {
+        const response=await fetch("/api/admin?"+new URLSearchParams({q:search,page:String(page)}),{signal:controller.signal,cache:"no-store"});
+        if(!response.ok)throw Error();
+        const next=await response.json();
+        if(controller.signal.aborted)return;
+        if(next.pagination.page>1&&!next.users.length){setPage(Math.max(1,Math.ceil(next.pagination.total/next.pagination.pageSize)));return;}
+        setData(current=>current?{...current,users:next.users,pagination:next.pagination,stats:next.stats}:current);
+        setTableStatus("");
+      }catch{if(!controller.signal.aborted)setTableStatus(lang==="en"?"Could not load accounts.":"Nutzer konnten nicht geladen werden.");}
+    },250);
+    return ()=>{ controller.abort(); window.clearTimeout(timer); };
+  },[status,loading,error,search,page,refreshKey,lang]);
 
   async function deleteUser(userId: string, email: string) {
     if (!confirm(`Nutzer "${email}" wirklich löschen?`)) return;
     setDeletingId(userId);
-    await fetch(`/api/admin?userId=${userId}`, { method: "DELETE" });
-    setData(prev => prev ? { ...prev, users: prev.users.filter(u => u.id !== userId) } : prev);
-    setDeletingId(null);
+    try {
+      const response=await fetch(`/api/admin?userId=${encodeURIComponent(userId)}`,{method:"DELETE"});
+      if(!response.ok)throw Error();
+      const result=await response.json();
+      refresh(value=>value+1);
+      if(result.cleanupPending)setTableStatus(lang==="en"?"Account deleted. Audio cleanup is pending.":"Konto gelöscht. Audiobereinigung steht aus.");
+    }catch{setTableStatus(lang==="en"?"Could not delete account.":"Konto konnte nicht gelöscht werden.");}
+    finally{setDeletingId(null);}
   }
 
   async function savePromo() {
@@ -274,19 +307,20 @@ export default function AdminPage() {
 
   if (!data) return null;
 
-  const { stats, users, recentMasters } = data;
-  const filteredUsers = users.filter(u =>
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    (u.name ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const { stats, users, recentMasters, pagination } = data;
+  const workspaceName=(workspace:string)=>workspace==="lab"?"Mastering Lab":workspace==="studio"?"Studio Mode"
+    :workspace==="classic"?(lang==="en"?"Classic":"Klassisch"):(lang==="en"?"Classic / Studio (legacy)":"Klassisch / Studio (Altbestand)");
 
-  const errorRate = stats.totalMasters > 0 ? ((stats.masterErrors / stats.totalMasters) * 100).toFixed(1) : "0.0";
+  const serverMasters=stats.totalMasters-stats.labCompleted;
+  const errorRate = serverMasters > 0 ? ((stats.masterErrors / serverMasters) * 100).toFixed(1) : "0.0";
 
   const statItems = [
     { label: "Nutzer gesamt",  value: stats.totalUsers,          color: "var(--accent-purple)" },
     { label: "Masters gesamt", value: stats.totalMasters,         color: "var(--accent-cyan)" },
     { label: "Masters heute",  value: stats.mastersToday,         color: "var(--accent-gold)" },
-    { label: "Fehlerrate",     value: `${errorRate}%`,            color: stats.masterErrors > 0 ? "#f87171" : "#10b981" },
+    { label: "Studio Mode", value: stats.studioCompleted, color: "var(--accent-purple)" },
+    { label: "Mastering Lab", value: stats.labCompleted, color: "var(--accent-cyan)" },
+    { label: lang==="en"?"Classic / Studio error rate":"Fehlerrate Klassisch / Studio", value: `${errorRate}%`, color: stats.masterErrors > 0 ? "#f87171" : "#10b981" },
   ];
 
   const thStyle: React.CSSProperties = {
@@ -527,11 +561,12 @@ export default function AdminPage() {
             marginBottom: "1rem", gap: "1rem", flexWrap: "wrap" }}>
             <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--accent-purple)",
               letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
-              Nutzer ({filteredUsers.length})
+              {lang==="en"?"Accounts":"Nutzer"} ({pagination.total})
             </h2>
             <input
-              placeholder="Suche nach Email / Name…"
-              value={search} onChange={e => setSearch(e.target.value)}
+              aria-label={lang==="en"?"Search email or name":"Nach E-Mail oder Name suchen"}
+              placeholder={lang==="en"?"Email or name…":"E-Mail oder Name …"}
+              value={search} maxLength={120} onChange={e => {setSearch(e.target.value);setPage(1);}}
               style={{
                 padding: "0.4rem 0.75rem", borderRadius: "7px",
                 background: "rgba(var(--bz-paint-ffffff),0.05)", border: "1px solid rgba(var(--bz-border-ffffff),0.1)",
@@ -550,11 +585,11 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map(u => (
+                  {users.map(u => (
                     <tr key={u.id} style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)" }}>
                       <td style={{ ...tdStyle, color: "var(--text-primary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</td>
                       <td style={tdStyle}>{u.name ?? "—"}</td>
-                      <td style={{ ...tdStyle, textAlign: "center" }}>{u.mastersCount}</td>
+                      <td style={{ ...tdStyle, textAlign: "center" }}>{u.mastersCount}{u.labMastersCount>0&&<small> · Lab {u.labMastersCount}</small>}</td>
                       <td style={tdStyle}><UserDailyLimit lang={lang} userId={u.id} email={u.email} value={u.dailyMasterLimit} used={u.dailyUsed} onSaved={quota => setData(current => current ? { ...current, users: current.users.map(user => user.id === u.id ? { ...user, ...quota } : user) } : current)} /><UserStemAccess userId={u.id} vocal={u.vocalRemoverEnabled} stems={u.stemSeparationEnabled} en={lang === "en"}/><UserMasteringLabAccess userId={u.id} enabled={u.masteringLabEnabled} en={lang === "en"}/></td>
                       <td style={tdStyle}>{fmtDate(u.createdAt)}</td>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{u.lastSeenAt ? formatActivityDate(u.lastSeenAt, lang) : lang === "en" ? "Not recorded" : "Nicht erfasst"}</td>
@@ -576,6 +611,12 @@ export default function AdminPage() {
               </table>
             </div>
           )}
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button type="button" disabled={page<=1} onClick={()=>setPage(value=>value-1)}>{lang==="en"?"Previous page":"Vorherige Seite"}</button>
+            <span>{pagination.page} / {Math.max(1,Math.ceil(pagination.total/pagination.pageSize))}</span>
+            <button type="button" disabled={page*pagination.pageSize>=pagination.total} onClick={()=>setPage(value=>value+1)}>{lang==="en"?"Next page":"Nächste Seite"}</button>
+            {tableStatus&&<span role="status">{tableStatus}</span>}
+          </div>
         </div>
 
         {/* ── RECENT MASTERS ── */}
@@ -589,7 +630,7 @@ export default function AdminPage() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.07)" }}>
-                    {["Datum", "Datei", "Plattform", "Status", "User"].map(h => (
+                    {(lang==="en"?["Date","File","Workspace","Target","Status","Account"]:["Datum","Datei","Arbeitsbereich","Ziel","Status","Konto"]).map(h => (
                       <th key={h} style={thStyle}>{h}</th>
                     ))}
                   </tr>
@@ -599,6 +640,7 @@ export default function AdminPage() {
                     <tr key={m.id} style={{ borderBottom: "1px solid rgba(var(--bz-border-ffffff),0.04)" }}>
                       <td style={{ ...tdStyle, whiteSpace: "nowrap" }}>{fmtDate(m.createdAt)}</td>
                       <td style={{ ...tdStyle, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>{m.originalName}</td>
+                      <td style={tdStyle}>{workspaceName(m.workspace)}</td>
                       <td style={tdStyle}>{m.platform}</td>
                       <td style={tdStyle}><StatusBadge status={m.status} /></td>
                       <td style={{ ...tdStyle, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.userEmail}</td>

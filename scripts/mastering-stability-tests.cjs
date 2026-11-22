@@ -1,6 +1,6 @@
 /* Isolated orchestration regressions. No real DB, files, DSP or mail. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
-function load(file,imports={},globals={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:name=>name in imports?imports[name]:require(name),console,process,Buffer,URL,Response,Request,ReadableStream,TextEncoder,TextDecoder,Uint8Array,AbortController,AbortSignal,setTimeout,clearTimeout,setInterval,clearInterval,...globals});return module.exports;}
+function load(file,imports={},globals={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:name=>name==="@/lib/deployMaintenance"?{isDeploying:()=>false}:name in imports?imports[name]:require(name),console,process,Buffer,URL,Response,Request,ReadableStream,TextEncoder,TextDecoder,Uint8Array,AbortController,AbortSignal,setTimeout,clearTimeout,setInterval,clearInterval,...globals});return module.exports;}
 const watchdog=setTimeout(()=>{console.error('FAIL stability checks stalled');process.exit(1);},10000);
 (async()=>{
  const {MasteringRun}=load('lib/masteringRun.ts'),gate=new MasteringRun();

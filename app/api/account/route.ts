@@ -108,6 +108,8 @@ export async function PATCH(req: NextRequest) {
     }
     if ("newPassword" in body) {
       const password = body.newPassword;
+      if (typeof password === "string" && Buffer.byteLength(password, "utf8") > 72)
+        throw new AuthRequestError("Password may contain at most 72 UTF-8 bytes. / Passwort darf höchstens 72 UTF-8-Bytes umfassen.", 400);
       if (typeof password !== "string" || password.length < 8 || password.length > 128 ||
           !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
         throw new AuthRequestError("Password needs 8–128 characters, upper/lowercase and a number. / Passwort: 8–128 Zeichen, Groß-/Kleinbuchstaben und eine Zahl.", 400);
@@ -149,10 +151,10 @@ export async function DELETE(req: NextRequest) {
     let active: Set<string>;
     try { active = await activeDspMasterIds(); }
     catch { throw new AuthRequestError("Please try again later: worker state unavailable. / Bitte später erneut versuchen: Bearbeitungsstatus nicht verfügbar.", 503); }
-    const masters = await db.$transaction(async tx => {
+    const {masters, uploads} = await db.$transaction(async tx => {
       const user = await tx.user.findUnique({
         where: { id: session.user.id },
-        include: { masters: { select: { id: true, fileId: true, status: true } } },
+        include: { masters: { select: { id: true, fileId: true, status: true } }, temporaryUploads:{select:{id:true}} },
       });
       if (!user) throw new AuthRequestError("Please sign in again. / Bitte erneut anmelden.", 401);
       await confirmAccountAction(tx, session, user, body);
@@ -161,12 +163,14 @@ export async function DELETE(req: NextRequest) {
       }
       await tx.master.deleteMany({ where: { userId: user.id } });
       await tx.user.delete({ where: { id: user.id } });
-      return user.masters;
+      return {masters:user.masters,uploads:user.temporaryUploads??[]};
     });
     // Delete files only after the database transaction succeeds.
-    const cleanup = await Promise.allSettled(masters.flatMap(master => [
-      removeMasterFiles(master.id, true), removeUploadFiles(master.fileId, true),
-    ]));
+    const fileIds = new Set([...masters.map(master=>master.fileId), ...uploads.map(upload=>upload.id)]);
+    const cleanup = await Promise.allSettled([
+      ...masters.map(master=>removeMasterFiles(master.id,true)),
+      ...Array.from(fileIds,id=>removeUploadFiles(id,true)),
+    ]);
     const cleanupPending = cleanup.some(result => result.status === "rejected");
     if (cleanupPending) console.error("[account] orphan audio cleanup pending");
     return NextResponse.json({ ok: true, cleanupPending });

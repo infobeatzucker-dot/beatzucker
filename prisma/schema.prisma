@@ -41,6 +41,29 @@ model User {
   masteringLabAccess MasteringLabAccess?
   labPresets LabPreset[]
   communityExamples CommunityExample[]
+  temporaryUploads TemporaryUpload[]
+  labRenders LabRender[]
+}
+
+model TemporaryUpload {
+  id String @id
+  userId String
+  expiresAt DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model LabRender {
+  id String @id @default(cuid())
+  userId String
+  originalName String
+  format String
+  targetLufs Float?
+  completedAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, completedAt])
+  @@index([completedAt])
 }
 
 model LabPreset {
@@ -67,6 +90,10 @@ model CommunityExample {
   master Bytes
   createdAt DateTime @default(now())
   publishedAt DateTime?
+  consentVersion String?
+  consentAt DateTime?
+  reviewedAt DateTime?
+  rejectionReason String?
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, createdAt])
   @@index([publishedAt, createdAt])
@@ -195,6 +222,7 @@ model Master {
   originalName String
   platform     String
   preset       String
+  workspace    String?
   status       String   @default("pending") // "pending" | "processing" | "done" | "error"
 
   // Analysis results (JSON strings)

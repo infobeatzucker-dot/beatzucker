@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { AnalysisData,Lang } from "@/lib/types/mastering";
 
-export default function ToolABPlayer({a,b,aAnalysis,bAnalysis,lang}:{a:File;b:File;aAnalysis:AnalysisData;bAnalysis:AnalysisData;lang:Lang}) {
+type ListeningAnalysis = Pick<AnalysisData,"duration_seconds"|"integrated_lufs"|"true_peak">;
+export default function ToolABPlayer({a,b,aAnalysis,bAnalysis,lang,labels}:{a:File;b:File;aAnalysis:ListeningAnalysis;bAnalysis:ListeningAnalysis;lang:Lang;labels?:[string,string]}) {
   const refs=useRef<(HTMLAudioElement|null)[]>([null,null]),context=useRef<AudioContext|null>(null),gains=useRef<GainNode[]>([]),activeRef=useRef(0),starting=useRef(false);
   const [urls,setUrls]=useState<string[]>([]),[active,setActive]=useState(0),[playing,setPlaying]=useState(false),[time,setTime]=useState(0),[error,setError]=useState("");
   const en=lang==="en", duration=Math.min(aAnalysis.duration_seconds,bAnalysis.duration_seconds);
@@ -25,7 +26,7 @@ export default function ToolABPlayer({a,b,aAnalysis,bAnalysis,lang}:{a:File;b:Fi
   function seek(value:number){for(const audio of refs.current)if(audio)audio.currentTime=value;setTime(value);}
   return <div className="stream-player tool-ab-player">
     {urls.map((url,index)=><audio key={url} ref={node=>{refs.current[index]=node;}} src={url} preload="metadata" onEnded={()=>setPlaying(false)} onTimeUpdate={e=>{if(activeRef.current===index){setTime(e.currentTarget.currentTime);if(e.currentTarget.currentTime>=duration){e.currentTarget.pause();setPlaying(false);}}}}/>)}
-    <div className="stream-ab"><button aria-pressed={playing} onClick={()=>void toggle()}>{playing?(en?"Pause":"Pausieren"):(en?"Play":"Abspielen")}</button><button className={active===0?"active":""} aria-pressed={active===0} onClick={()=>void select(0)}>A · {en?"Your track":"Dein Track"}</button><button className={active===1?"active":""} aria-pressed={active===1} onClick={()=>void select(1)}>B · {en?"Reference":"Referenz"}</button></div>
+    <div className="stream-ab"><button aria-pressed={playing} onClick={()=>void toggle()}>{playing?(en?"Pause":"Pausieren"):(en?"Play":"Abspielen")}</button><button className={active===0?"active":""} aria-pressed={active===0} onClick={()=>void select(0)}>A · {labels?.[0]??(en?"Your track":"Dein Track")}</button><button className={active===1?"active":""} aria-pressed={active===1} onClick={()=>void select(1)}>B · {labels?.[1]??(en?"Reference":"Referenz")}</button></div>
     <label>{en?"Position":"Position"} · {time.toFixed(1)} s<input type="range" min="0" max={Math.max(0,duration-.01)} step=".05" value={Math.min(time,duration)} onChange={e=>seek(Number(e.target.value))}/></label>
     <p>{en?"Loudness-matched playback with shared peak headroom. Original files are unchanged.":"Lautheitsangepasste Wiedergabe mit gemeinsamer Peak-Reserve. Originaldateien bleiben unverändert."} A {trims[0].toFixed(1)} dB · B {trims[1].toFixed(1)} dB</p>
     {error&&<p role="alert">{error}</p>}

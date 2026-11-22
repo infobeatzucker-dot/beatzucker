@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createWriteStream } from "node:fs";
-import { mkdir, open, unlink } from "node:fs/promises";
+import { link, mkdir, open, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import { Readable, Transform } from "node:stream";
 import type { ReadableStream as NodeStream } from "node:stream/web";
@@ -9,15 +9,23 @@ import { NextRequest } from "next/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { releaseCheckMaxBytes } from "@/lib/releaseTools";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
+import { db } from "@/lib/db";
+import { getMasterPath } from "@/lib/storage";
+import { labFormat, labFormats } from "@/lib/masteringLab";
+import { DOWNLOAD_WINDOW_MS } from "@/lib/constants";
+import { isDeploying } from "@/lib/deployMaintenance";
 
 export const maxDuration = 300;
-const formats = new Set(["wav", "mp3", "aac", "m4a"]);
+const formats = new Set(["wav", "flac", "mp3", "aac", "m4a"]);
 const state = globalThis as typeof globalThis & { releaseCheckActive?: number };
 const headers = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex" };
 const fail = (code:string,status:number)=>Response.json({code},{status,headers});
 const ascii = (bytes:Buffer,from:number,to:number)=>bytes.toString("ascii",from,to);
 function hasExpectedHeader(bytes:Buffer, format:string) {
   if (format === "wav") return ascii(bytes,0,4)==="RIFF" && ascii(bytes,8,12)==="WAVE";
+  if (format === "flac") return ascii(bytes,0,4)==="fLaC";
   if (format === "m4a") return ascii(bytes,4,8)==="ftyp";
   if (ascii(bytes,0,3)==="ID3") return true;
   if (bytes[0]!==0xff) return false;
@@ -25,10 +33,14 @@ function hasExpectedHeader(bytes:Buffer, format:string) {
 }
 
 export async function POST(req:NextRequest) {
+  if(isDeploying())return fail("BUSY",503);
   const origin = req.headers.get("origin");
   if (origin && origin !== new URL(process.env.NEXTAUTH_URL ?? "https://beatzucker.de").origin) return fail("FORBIDDEN",403);
   const format=req.nextUrl.searchParams.get("format")??"";
-  if (!formats.has(format) || req.headers.get("content-type")!=="application/octet-stream" || !req.body) return fail("DECODE",415);
+  const masterId=req.nextUrl.searchParams.get("master_id"),masterFormat=req.nextUrl.searchParams.get("master_format");
+  if (!formats.has(format)) return fail("DECODE",415);
+  if (masterId===null && (req.headers.get("content-type")!=="application/octet-stream" || !req.body)) return fail("DECODE",415);
+  if (masterId!==null && (!/^[a-z0-9_-]{1,80}$/i.test(masterId)||!labFormat(masterFormat)||labFormats[masterFormat].ext!==format)) return fail("DECODE",415);
   if (Number(req.headers.get("content-length"))>releaseCheckMaxBytes) return fail("RELEASE_SIZE",413);
   if ((state.releaseCheckActive ?? 0) >= 2) return fail("BUSY",503);
   const ip=req.headers.get("x-real-ip")??"unknown";
@@ -40,6 +52,19 @@ export async function POST(req:NextRequest) {
     const root=path.resolve(/*turbopackIgnore: true*/ process.env.TEMP_UPLOAD_DIR??"./uploads");
     await mkdir(root,{recursive:true});
     file=path.join(root,"mixcheck-"+randomUUID()+"."+format);
+    if(masterId!==null&&labFormat(masterFormat)){
+      const userId=(await getServerSession(authOptions))?.user?.id;
+      if(!userId)return fail("SIGN_IN",401);
+      const record=await db.master.findFirst({where:{id:masterId,userId,status:"done"},select:{completedAt:true,createdAt:true}});
+      if(!record)return fail("NOT_FOUND",404);
+      if(Date.now()-(record.completedAt??record.createdAt).getTime()>DOWNLOAD_WINDOW_MS)return fail("EXPIRED",410);
+      const source=getMasterPath(masterId,masterFormat,format);
+      const metadata=await stat(source).catch(()=>null);
+      if(!metadata?.isFile())return fail("NOT_FOUND",404);
+      size=metadata.size;
+      if(size>releaseCheckMaxBytes)return fail("RELEASE_SIZE",413);
+      await link(source,file);
+    }else{
     const limit=new Transform({
       transform(chunk:Buffer,_encoding,done){
         size+=chunk.length;
@@ -50,6 +75,7 @@ export async function POST(req:NextRequest) {
     });
     await pipeline(Readable.fromWeb(req.body as NodeStream<Uint8Array>),limit,createWriteStream(file,{flags:"wx"}),
       {signal:AbortSignal.any([req.signal,AbortSignal.timeout(120000)])});
+    }
     if(size<12)return fail("DECODE",415);
     const descriptor=await open(file,"r"), bytes=Buffer.alloc(12);
     try {await descriptor.read(bytes);} finally {await descriptor.close();}

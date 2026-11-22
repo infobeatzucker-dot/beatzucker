@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { Lang } from "@/lib/types/mastering";
 import { responseError, toolError } from "@/lib/toolClient";
 import { releaseCheckMaxBytes } from "@/lib/releaseTools";
-import { receiveReleaseFile } from "@/lib/releaseHandoff";
+import { receiveReleaseFile, type MasterForReleaseCheck } from "@/lib/releaseHandoff";
 import { useToolJob } from "@/lib/useToolJob";
 import { downloadToolBlob, ToolError, ToolPanel } from "./ToolPanel";
 import styles from "./release-tools.module.css";
@@ -22,7 +22,7 @@ export default function ReleaseCheck({ lang }: { lang: Lang }) {
   const [error, setError] = useState("");
   const [target, setTarget] = useState(-14);
   const [ceiling, setCeiling] = useState(-1);
-  const [handoff,setHandoff]=useState<File>();
+  const [handoff,setHandoff]=useState<File|MasterForReleaseCheck>();
   useEffect(()=>{const file=receiveReleaseFile("release-check");if(file)setHandoff(file);},[]);
   const rows = report ? [
     ["LUFS-I", report.integrated_lufs == null ? "—" : report.integrated_lufs.toFixed(1) + " LUFS"],
@@ -44,16 +44,19 @@ export default function ReleaseCheck({ lang }: { lang: Lang }) {
           : t("True Peak liegt innerhalb deiner gewählten Grenze.", "True peak is within your chosen ceiling."),
     ...(report.channels === 1 ? [t("Die Datei ist mono. Prüfe, ob das beabsichtigt ist.", "The file is mono. Check that this is intentional.")] : []),
   ] : [];
-  async function inspect(file: File) {
+  async function inspect(file: File|MasterForReleaseCheck) {
     const task = job.start();
     setBusy(true); setReport(undefined); setName(file.name); setError("");
     try {
-      if (!/\.(wav|mp3|aac|m4a)$/i.test(file.name)) throw Error(t("Bitte WAV, MP3, AAC oder AAC-in-M4A wählen.", "Choose WAV, MP3, AAC or AAC in M4A."));
-      if (!file.size || file.size > releaseCheckMaxBytes) throw Error("RELEASE_SIZE");
+      if (!/\.(wav|flac|mp3|aac|m4a)$/i.test(file.name)) throw Error(t("Bitte WAV, FLAC, MP3, AAC oder AAC-in-M4A wählen.", "Choose WAV, FLAC, MP3, AAC or AAC in M4A."));
+      const local=file instanceof File;
+      if (local && (!file.size || file.size > releaseCheckMaxBytes)) throw Error("RELEASE_SIZE");
       const format=file.name.split(".").pop()?.toLowerCase() ?? "";
-      const res = await fetch("/api/release-check?format="+encodeURIComponent(format),
-        { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: file, signal: task.signal });
+      const params=new URLSearchParams(local?{format}:{format,master_id:file.id,master_format:file.format});
+      const res = await fetch("/api/release-check?"+params,
+        { method: "POST", headers: local ? { "Content-Type": "application/octet-stream" } : {}, body: local?file:undefined, signal: task.signal });
       if (res.status===413) throw Error("RELEASE_SIZE");
+      if (!local && [401,403,404,410].includes(res.status)) throw Error("MASTER_UNAVAILABLE");
       if (!res.ok) throw responseError(res);
       const data = (await res.json()).report as ReleaseReport;
       if (!Number.isFinite(data?.sample_rate) || typeof data.codec !== "string") throw Error("ANALYSIS");
@@ -61,6 +64,7 @@ export default function ReleaseCheck({ lang }: { lang: Lang }) {
     } catch (reason) {
       if (job.active(task)) setError(reason instanceof Error && reason.message==="RELEASE_SIZE"
         ? t("Die Datei ist leer oder überschreitet 192 MiB.", "The file is empty or exceeds 192 MiB.")
+        : reason instanceof Error && reason.message==="MASTER_UNAVAILABLE" ? t("Dieser Master ist nicht mehr verfügbar. Wähle eine heruntergeladene Datei.", "This master is no longer available. Choose a downloaded file.")
         : reason instanceof Error && reason.message.includes("M4A") ? reason.message : toolError(reason, lang));
     } finally { if (job.active(task)) setBusy(false); }
   }
@@ -69,7 +73,7 @@ export default function ReleaseCheck({ lang }: { lang: Lang }) {
       <span>{handoff.name}</span><button data-action onClick={()=>{setHandoff(undefined);void inspect(handoff);}}>{t("Übergebenen Master messen","Measure transferred master")}</button>
     </div>}
     <label>{t("Fertige Datei auswählen", "Choose a finished file")}
-      <input type="file" accept=".wav,.mp3,.aac,.m4a,audio/wav,audio/mpeg,audio/aac,audio/mp4" onChange={event => {
+      <input type="file" accept=".wav,.flac,.mp3,.aac,.m4a,audio/wav,audio/flac,audio/mpeg,audio/aac,audio/mp4" onChange={event => {
         const file = event.currentTarget.files?.[0]; if (file) {setHandoff(undefined);void inspect(file);}
       }} />
     </label>

@@ -115,7 +115,10 @@ export function startStorageCleanup() {
   async function sweep() {
     if (running) return;
     running = true;
-    try { await cleanupOldFiles(); }
+    try {
+      await cleanupOldFiles();
+      await db.temporaryUpload.deleteMany({where:{expiresAt:{lt:new Date()}}});
+    }
     catch (error) { console.error("[storage] Cleanup skipped:", error); }
     finally { running = false; }
   }

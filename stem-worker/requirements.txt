@@ -4,4 +4,10 @@ numpy==2.5.4
 soundfile==0.13.1
 fastapi==0.135.2
 uvicorn==0.42.0
-python-multipart==0.0.22
+python-multipart==0.0.31
+anyio==4.15.1
+starlette==1.7.0
+certifi==2026.11.20
+idna==3.20
+requests==2.34.2
+urllib3==2.8.0

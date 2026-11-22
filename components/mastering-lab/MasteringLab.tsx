@@ -7,6 +7,7 @@ import { UI_THEMES, getUiTheme, isUiTheme, type UiThemeId } from "@/lib/uiTheme"
 import { LabAudio } from "./audio";
 import { LabScope, spectrumPosition, spectrumTicks } from "./LabScope";
 import { LabDelivery } from "./LabDelivery";
+import { decodeAudioBytes, inspectAudioMetadata } from "@/lib/clientAudio";
 import { LabHelp } from "./LabHelp";
 import AccountLabPresets from "@/components/AccountLabPresets";
 import { genreStart, inspect, loudestPassage, neutral, presets, presetSettings, ranges, resetModule, toDb, type Module, type Settings } from "./settings";
@@ -120,7 +121,7 @@ export default function MasteringLab({ lang, sidechain = false, children }: { la
   const [themeId, setThemeId] = useState<UiThemeId>("midnight-cobalt");
   const [controlMode, setControlMode] = useState<ControlMode>("knob");
   const [appliedModules, setAppliedModules] = useState<Partial<Record<Module, { id: string; adjusted: boolean }>>>({});
-  const [source, setSource] = useState<{ name: string; file: File; stats: ReturnType<typeof inspect> }>();
+  const [source, setSource] = useState<{ name: string; file: File; stats: ReturnType<typeof inspect>; original: ReturnType<typeof inspectAudioMetadata> }>();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [playing, setPlaying] = useState(false);
@@ -286,7 +287,8 @@ export default function MasteringLab({ lang, sidechain = false, children }: { la
         return response.arrayBuffer();
       });
       const trackFile = input ?? new File([payload], "Xplore Belgium.mp3", { type: "audio/mpeg" });
-      const buffer = await engine.context.decodeAudioData(payload);
+      const original = inspectAudioMetadata(payload);
+      const buffer = await decodeAudioBytes(payload, original);
       if (id !== request.current) return;
       if (buffer.duration > 12 * 60 || buffer.numberOfChannels > 2) throw new RangeError("format");
       engine.reset();
@@ -302,7 +304,7 @@ export default function MasteringLab({ lang, sidechain = false, children }: { la
       drag.current = null;
       setRegion([0, buffer.duration]);
       setAnalysis(false);
-      setSource({ name: input?.name ?? "Xplore Belgium", file: trackFile, stats: inspect(buffer) });
+      setSource({ name: input?.name ?? "Xplore Belgium", file: trackFile, stats: inspect(buffer), original });
     } catch (failure) {
       if (id !== request.current) return;
       const range = failure instanceof RangeError;
@@ -428,7 +430,7 @@ export default function MasteringLab({ lang, sidechain = false, children }: { la
         <section className={styles.transport} aria-label={t("Audiodatei", "Audio file")}>
           <div className={styles.trackHead}>
             <div className={styles.trackName}><AudioLines size={22} /><div><strong>{source?.name ?? t("Track öffnen", "Open a track")}</strong>
-              <small>{source ? `${time(duration)} · ${(source.stats.rate / 1000).toFixed(1)} kHz` : t("Audiodateien werden im Browser verarbeitet.", "Audio files are processed in your browser.")}</small></div>
+              <small>{source ? `${time(duration)} · ${t("Bearbeitung", "Processing")} ${(source.stats.rate / 1000).toFixed(1)} kHz · ${source.original ? `${t("Datei", "File")} ${source.original.sampleRate / 1000} kHz / ${source.original.channels === 1 ? "Mono" : "Stereo"}` : t("Originalrate im Browser nicht ermittelbar", "Source rate unavailable in browser")}` : t("Audiodateien werden im Browser verarbeitet.", "Audio files are processed in your browser.")}</small></div>
             </div>
             <div className={styles.actions}>
               <input ref={file} type="file" accept="audio/*,.wav,.mp3,.flac,.aiff,.aif,.m4a" hidden onChange={event => {
@@ -682,7 +684,7 @@ export default function MasteringLab({ lang, sidechain = false, children }: { la
             {source && <section className={styles.levelCard} data-reached={atTarget} aria-label={t("Ausgangspegel", "Output level")}>
               <strong>{atTarget ? t("Zielpegel erreicht", "Target level reached") : t("Ausgangspegel prüfen", "Check output level")}</strong>
               {measured && headroom !== undefined ? <>
-                <small>{measured.lufs == null ? "—" : `${measured.lufs.toFixed(1)} LUFS`} · ≈ {measured.estimatedTruePeak.toFixed(1)} dBTP</small>
+                <small>{t("Vorschau-Schätzung", "Preview estimate")} · {measured.lufs == null ? "—" : `${measured.lufs.toFixed(1)} LUFS`} · ≈ {measured.estimatedTruePeak.toFixed(1)} dBTP</small>
                 {deliveryTarget !== null && <small>{t("Ziel", "Target")} {deliveryTarget.toFixed(1)} LUFS</small>}
                 <p>{headroom < 0 ? t("Spitzengrenze überschritten. Pegel oder Limiter prüfen.", "Above the peak ceiling. Check gain or limiting.")
                   : t(`${headroom.toFixed(1)} dB Reserve bis zur Spitzengrenze. `, `${headroom.toFixed(1)} dB of headroom to the peak ceiling. `) +
@@ -743,7 +745,7 @@ export default function MasteringLab({ lang, sidechain = false, children }: { la
         setSettings(entry.settings);setDeliveryTarget(entry.target);setPreset("custom");setProfileLabel(entry.name);setProfileAdjusted(false);
         setAppliedModules({});setListenSlot(undefined);setModuleSolo(undefined);setOriginal(false);
       }}/>}
-      <LabDelivery lang={lang} source={source?.file} buffer={audio?.buffer} settings={settings} target={deliveryTarget} onTarget={setDeliveryTarget} sidechain={sidechain} moduleNames={moduleNames}
+      <LabDelivery lang={lang} source={source?.file} buffer={audio?.buffer} settings={settings} target={deliveryTarget} onTarget={setDeliveryTarget} sidechain={sidechain} moduleNames={moduleNames} listeningRegion={loop?region:undefined}
         onProfile={(next, target, name) => {
           setSettings(next);
           setListenSlot(undefined);

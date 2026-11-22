@@ -86,7 +86,6 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.authenticatedAt = Date.now();
         token.authProvider = account?.provider;
-        token.lastPwCheck = 0;
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
           select: { passwordChangedAt: true },
@@ -96,15 +95,13 @@ export const authOptions: NextAuthOptions = {
         token.pwChangedAt = account?.provider === "credentials"
           ? (user.passwordVersion ?? 0) : (dbUser?.passwordChangedAt?.getTime() ?? 0);
       }
-      const lastCheck = (token.lastPwCheck as number) || 0;
-      if (token.id && Date.now() - lastCheck > 60 * 1000) {
+      if (token.id) {
         const dbUser = await db.user.findUnique({
           where: { id: token.id as string },
           select: { passwordChangedAt: true, lastSeenAt: true },
         });
         const currentPwChanged = dbUser?.passwordChangedAt?.getTime() ?? 0;
         if (!dbUser || currentPwChanged > ((token.pwChangedAt as number) || 0)) return {} as typeof token;
-        token.lastPwCheck = Date.now();
         const now = new Date();
         const cutoff = new Date(now.getTime() - 5 * 60_000);
         // Repeated client session checks should not write SQLite on every request.

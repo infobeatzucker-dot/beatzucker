@@ -168,12 +168,12 @@ export default function ManualAdjustModal({ open, onClose, lang = "de", fileId, 
   const controlUrl = control?.url ?? "";
   const controlAbort = useRef<AbortController | null>(null), controlAudio = useRef<HTMLAudioElement | null>(null);
   const sourceUrl = useMemo(
-    () => `/api/preview?file_id=${encodeURIComponent(fileId)}&upload_token=${encodeURIComponent(uploadToken)}`,
-    [fileId, uploadToken],
+    () => `/api/preview?file_id=${encodeURIComponent(fileId)}`,
+    [fileId],
   );
   const waveformUrl = useMemo(
-    () => `/api/waveform?file_id=${encodeURIComponent(fileId)}&upload_token=${encodeURIComponent(uploadToken)}`,
-    [fileId, uploadToken],
+    () => `/api/waveform?file_id=${encodeURIComponent(fileId)}`,
+    [fileId],
   );
   const startSec = region.start, endSec = Math.min(dur, region.start + region.len);
   const previewPlayhead = useCallback(() => engineRef.current?.currentTime ?? -1, []);

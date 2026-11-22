@@ -11,6 +11,27 @@ export const RELEASES: {
   link?: Record<Lang, { href: string; label: string }>;
   retrospective?: boolean;
 }[] = [{
+  version:"3.2.0",date:"2026-11-22",
+  title:{de:"Präzisere Exporte und einfachere Release-Prüfung",en:"More precise exports and easier release checks"},
+  summary:{de:"Im Mastering Lab siehst du vor dem Export, welche Samplerate und Kanalzahl deine Datei haben wird. Fertige FLAC-Master kannst du direkt prüfen.",en:"Mastering Lab shows the sample rate and channel count before export. You can now check finished FLAC masters directly."},
+  improvements:{
+    de:[
+      "Behalte im Lab bei WAV und FLAC die bekannte Original-Samplerate bei oder wähle eine andere. Mono bleibt standardmäßig Mono.",
+      "Vergleiche einen kurzen Ausschnitt deiner Live-Vorschau mit dem fertigen Lab-Export bei gleicher Lautheit.",
+      "Höre in der Mastering-Konsole und im Studio Mode auf Wunsch die tatsächliche Exportdatei ab.",
+      "Prüfe fertige WAV- und FLAC-Master aus der Konsole direkt im Release-Check, ohne sie erneut hochzuladen.",
+      "Überarbeite zurückgegebene Community-Beispiele und reiche sie erneut ein.",
+    ],
+    en:[
+      "Keep the original sample rate in Mastering Lab for WAV and FLAC when available, or choose another rate. Mono stays mono by default.",
+      "Compare a short section of the live preview with the finished Lab export at matched loudness.",
+      "Listen to the actual export file in the mastering console and Studio Mode.",
+      "Open finished WAV and FLAC masters directly in Release Check without uploading them again.",
+      "Edit returned community examples and submit them again.",
+    ],
+  },
+  link:{de:{href:"/mastering-lab",label:"Mastering Lab öffnen"},en:{href:"/en/mastering-lab",label:"Open Mastering Lab"}},
+}, {
   version:"3.1.0",date:"2026-11-22",
   title:{de:"Vom Hörvergleich zum fertigen Release",en:"From listening comparison to release"},
   summary:{de:"Hör den Unterschied zwischen Original und Master direkt auf der Startseite und finde den passenden nächsten Schritt für deinen Track.",en:"Hear the difference between the original and the master right on the homepage and find the next step for your track."},

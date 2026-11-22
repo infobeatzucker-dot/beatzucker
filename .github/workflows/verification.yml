@@ -1,0 +1,63 @@
+name: Verify Beatzucker
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  production-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: file:../validation-output/audit-qa-ci/test.db
+      NEXTAUTH_URL: http://localhost:3022
+      NEXTAUTH_SECRET: isolated-ci-auth-signing-key-7ba0523c
+      PYTHON_SERVICE_URL: http://127.0.0.1:31022
+      PYTHON_SERVICE_SECRET: isolated-ci-dsp-signing-key-650ef003
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: python/requirements.txt
+      - name: Install audio dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg libsndfile1 libgomp1 ripgrep
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - run: python -m pip install --upgrade pip==26.3
+      - run: python -m pip install -r python/requirements.txt pip-audit==2.10.1
+      - run: pip-audit
+      - name: Start isolated fixture
+        run: |
+          mkdir -p validation-output/audit-qa-ci/uploads
+          npm run db:generate
+          npm run db:push
+          node scripts/prepare-local-qa.cjs
+      - run: npm run test:audit
+      - run: npm run build
+      - name: Exercise real HTTP and DSP workflow
+        run: |
+          export TEMP_UPLOAD_DIR="$PWD/validation-output/audit-qa-ci/uploads"
+          python -m uvicorn main:app --app-dir python --host 127.0.0.1 --port 31022 > validation-output/audit-qa-ci/dsp.log 2>&1 &
+          worker=$!
+          node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3022 > validation-output/audit-qa-ci/web.log 2>&1 &
+          web=$!
+          trap 'kill "$worker" "$web" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3022/api/health; then break; fi
+            sleep 1
+          done
+          node scripts/local-audio-integration.cjs audit-qa-ci || {
+            tail -n 40 validation-output/audit-qa-ci/web.log validation-output/audit-qa-ci/dsp.log
+            exit 1
+          }

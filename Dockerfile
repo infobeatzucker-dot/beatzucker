@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # ── Python dependencies ───────────────────────────────────────────────────────
 COPY python/requirements.txt ./python/
-RUN pip install --no-cache-dir -r ./python/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip==26.3 && pip install --no-cache-dir -r ./python/requirements.txt
 
 # ── Python app ────────────────────────────────────────────────────────────────
 COPY python/ ./python/

@@ -16,6 +16,26 @@ const watchdog=setTimeout(()=>{console.error('FAIL showcase tests stalled');proc
  const paused=new ShowcasePlayer(tracks.SHOWCASE_TRACKS[1]);blocked=true;const wait=paused.play();await new Promise(r=>setImmediate(r));paused.pause();blocked=false;for(const release of releases.splice(0))release();await wait;assert.equal(contexts.at(-1).sources.length,0);paused.destroy();console.log('PASS cancelled playback cannot start after delayed decode');
  const broken=new ShowcasePlayer(tracks.SHOWCASE_TRACKS[0]);fail=true;await assert.rejects(broken.play());assert.equal(broken.playing,false);fail=false;await broken.play();assert.equal(broken.playing,true);broken.destroy();console.log('PASS failed loading is retryable and disposal closes audio');
  const view=fs.readFileSync('components/MasteringListeningShowcase.tsx','utf8');assert.ok(view.includes('[matched, setMatched] = useState(false)'));assert.ok(view.includes('getByteFrequencyData'));assert.ok(view.includes('startVisibleAnimation'));assert.ok(view.includes('stopGlobalAudio()'));assert.ok(view.includes('subscribeGlobalAudio'));assert.ok(!view.includes('Math.sin'));assert.ok(!view.includes('WAVE_BARS'));assert.ok(view.includes('No extra mastering; not a lossless comparison'));assert.ok(view.includes('kein verlustfreier Vergleich'));assert.ok(view.includes('engine.current === player'));console.log('PASS original-level UI default, real analyzer, main-player exclusion, DE/EN and stale UI protection');
- console.log('6 public listening comparison regression groups passed.');
+ const elements=[];
+ class Media {
+  constructor(src){this.src=src;this.currentTime=0;this.paused=true;elements.push(this);}
+  async play(){this.paused=false;}
+  pause(){this.paused=true;}
+  removeAttribute(){this.src='';}
+  load(){}
+ }
+ const Native=load('lib/showcasePlayer.ts',{'./showcaseTracks':tracks},{Audio:Media}).ShowcasePlayer;
+ const native=new Native(tracks.SHOWCASE_TRACKS[0]);
+ await native.play();
+ elements[0].currentTime=7;
+ native.select('master');
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(elements[0].paused,true);assert.equal(elements[1].paused,false);
+ assert.equal(elements[1].currentTime,7);
+ assert.equal(native.currentTime,7);
+ native.destroy();
+ assert.ok(elements.every(element=>element.paused&&element.src===''));
+ console.log('PASS native playback uses original levels, switches at the current position and releases sources');
+ console.log('7 public listening comparison regression groups passed.');
  clearTimeout(watchdog);
 })().catch(error=>{clearTimeout(watchdog);console.error(error);process.exitCode=1;});

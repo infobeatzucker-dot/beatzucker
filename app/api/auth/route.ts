@@ -64,6 +64,8 @@ export async function POST(req: NextRequest) {
 
       if (!isValidEmail(email))
         return NextResponse.json({ error: t("Ungültige E-Mail-Adresse", "Invalid email address") }, { status: 400 });
+      if (Buffer.byteLength(password, "utf8") > 72)
+        return NextResponse.json({ error: t("Passwort darf höchstens 72 UTF-8-Bytes umfassen. Umlaute und Emojis brauchen mehr Platz.", "Passwords may contain at most 72 UTF-8 bytes. Non-ASCII characters can use more than one byte.") }, { status: 400 });
       if (!isValidPassword(password))
         return NextResponse.json({ error: t("Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten", "Password needs at least 8 characters, uppercase and lowercase letters, and a digit") }, { status: 400 });
 
@@ -118,6 +120,8 @@ export async function POST(req: NextRequest) {
 
       if (!/^[a-f0-9]{64}$/.test(token))
         return NextResponse.json({ error: t("Ungültiger Token", "Invalid reset link") }, { status: 400 });
+      if (Buffer.byteLength(newPassword, "utf8") > 72)
+        return NextResponse.json({ error: t("Passwort darf höchstens 72 UTF-8-Bytes umfassen. Umlaute und Emojis brauchen mehr Platz.", "Passwords may contain at most 72 UTF-8 bytes. Non-ASCII characters can use more than one byte.") }, { status: 400 });
       if (!isValidPassword(newPassword))
         return NextResponse.json({ error: t("Passwort muss mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl enthalten", "Password needs at least 8 characters, uppercase and lowercase letters, and a digit") }, { status: 400 });
 

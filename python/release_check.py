@@ -11,11 +11,12 @@ from codec_preview import meter_audio
 
 CODECS = {
     "wav": lambda codec: codec in {"pcm_s16le", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_f64le", "pcm_u8"},
+    "flac": lambda codec: codec == "flac",
     "mp3": lambda codec: codec == "mp3",
     "aac": lambda codec: codec == "aac",
     "m4a": lambda codec: codec == "aac",
 }
-CONTAINERS = {"wav": "wav", "mp3": "mp3", "m4a": "mov", "aac": "aac"}
+CONTAINERS = {"wav": "wav", "flac": "flac", "mp3": "mp3", "m4a": "mov", "aac": "aac"}
 
 
 def check_release(file_path):
@@ -28,7 +29,7 @@ def check_release(file_path):
     deadline = time.monotonic() + 145
     report = subprocess.run(
         [str(ffprobe), "-v", "error", "-protocol_whitelist", "file", "-max_streams", "4", "-show_entries",
-         "stream=codec_type,codec_name,sample_rate,channels,bits_per_sample,bit_rate:format=format_name,duration,bit_rate",
+         "stream=codec_type,codec_name,sample_rate,channels,bits_per_sample,bits_per_raw_sample,bit_rate:format=format_name,duration,bit_rate",
          "-of", "json", str(path)],
         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=12, check=True,
     )
@@ -51,6 +52,7 @@ def check_release(file_path):
     return {
         **meter_audio(path, deadline=deadline, validate=False, local_protocols_only=True),
         "codec": codec, "container": extension, "channels": channels, "sample_rate": rate, "duration": duration,
-        "bits": int(stream.get("bits_per_sample") or 0) or None,
+        "bits": next((int(value) for value in (stream.get("bits_per_raw_sample"), stream.get("bits_per_sample"))
+                      if str(value).isdigit() and int(value) > 0), None),
         "bit_rate": int(bit_rate) if str(bit_rate).isdigit() else None,
     }

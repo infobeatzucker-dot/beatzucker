@@ -62,12 +62,14 @@ export function AudioEngineProvider({
   children,
   originalUrl,
   masteredUrl,
+  streamMaster = false,
   originalLufs,
   masteredLufs,
 }: {
   children: ReactNode;
   originalUrl: string;
   masteredUrl: string;
+  streamMaster?: boolean;
   originalLufs?: number;
   masteredLufs?: number;
 }) {
@@ -193,6 +195,10 @@ export function AudioEngineProvider({
     try {
       const res = await fetch(url, { signal });
       if (!res.ok) return null;
+      if (Number(res.headers.get("Content-Length")) > 64*1024*1024) {
+        await res.body?.cancel();
+        return null;
+      }
       const arrayBuffer = await res.arrayBuffer();
       if (signal?.aborted) return null;
       tmpCtx = new AudioContext();
@@ -256,22 +262,14 @@ export function AudioEngineProvider({
 
     setMasterUnavailable(false);
 
-    // Fetch as blob so the audio element can seek regardless of server Range support
-    fetch(masteredUrl, { signal: controller.signal })
-      .then((r) => { if (!r.ok) throw new Error("Preview unavailable"); return r.blob(); })
-      .then((blob) => {
+    function swapMaster(url: string) {
         if (controller.signal.aborted) return;
-        // Revoke old blob URL if any
-        if (masteredBlobRef.current) URL.revokeObjectURL(masteredBlobRef.current);
-        masteredBlobRef.current = URL.createObjectURL(blob);
-
-        // If currently in B mode, hot-swap to blob URL preserving position
         const audio = audioRef.current;
-        if (audio && modeRef.current === "B") {
+        if (audio && modeRef.current === "B" && !audio.src.endsWith(url)) {
           const ct = audio.currentTime;
           const wasPlaying = !audio.paused;
           audio.pause();
-          audio.src = masteredBlobRef.current;
+          audio.src = url;
           audio.load();
           audio.addEventListener("loadedmetadata", () => {
             if (controller.signal.aborted) return;
@@ -282,16 +280,29 @@ export function AudioEngineProvider({
             if (wasPlaying) audio.play().catch(() => {});
           }, { once: true });
         }
-      })
-      .catch(() => { /* fallback: use original URL, seeking may not work */ });
+    }
 
-    // Decode waveform for visualizer
-    decodeWaveform(masteredUrl, controller.signal).then((result) => {
-      if (result && !controller.signal.aborted) {
-        setStaticWaveformB(result.rms);
-        setPeakWaveformB(result.peaks);
-      }
-    });
+    // The actual export can be much larger than its MP3 preview. Range
+    // playback avoids downloading or decoding the whole file in JavaScript.
+    if(streamMaster) {
+      swapMaster(masteredUrl);
+      return ()=>controller.abort();
+    }
+    fetch(masteredUrl, { signal: controller.signal })
+      .then((r) => {
+        if (!r.ok || Number(r.headers.get("Content-Length")) > 40*1024*1024) throw new Error("Preview unavailable");
+        return r.blob();
+      })
+      .then(async blob => {
+        if (controller.signal.aborted) return;
+        masteredBlobRef.current = URL.createObjectURL(blob);
+        swapMaster(masteredBlobRef.current);
+        const result = await decodeWaveform(masteredBlobRef.current, controller.signal);
+        if (result && !controller.signal.aborted) {
+          setStaticWaveformB(result.rms);
+          setPeakWaveformB(result.peaks);
+        }
+      }).catch(()=>swapMaster(masteredUrl));
 
     return () => {
       controller.abort();
@@ -301,7 +312,7 @@ export function AudioEngineProvider({
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [masteredUrl]);
+  }, [masteredUrl, streamMaster]);
 
   // ── Init Web Audio API on first play ────────────────────────────────────────
   const initAudioContext = useCallback(() => {

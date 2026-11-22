@@ -2,20 +2,27 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { AudioLines, Download, LockKeyhole, Sparkles } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
 import ReleaseHandoff from "@/components/ReleaseHandoff";
 import { DONATE_URL } from "@/lib/constants";
+import { decodeAudio, encodeWav, resampleAudio } from "@/lib/clientAudio";
+import { createAudioCut } from "@/lib/audioCut";
 import { labFormats, labGenres, labMaxBytes, labPlatforms, labTargets, type LabFormat } from "@/lib/masteringLab";
 import type { AnalysisData } from "@/lib/types/mastering";
 import { renderLabBuffer } from "./audio";
 import { appliedAutoProfile, deliveryWav, wavByteLength } from "./delivery";
-import { type Module, type Settings } from "./settings";
+import { inspect, type Module, type Settings } from "./settings";
 import styles from "./lab.module.css";
 
 type Analysis = { fileId: string; uploadToken: string; analysis: AnalysisData };
-type DeliveryResult = { loudness: string | null; peak: string | null; correction: string | null; name: string; reached: boolean; file: File };
+type DeliveryResult = { loudness: string | null; peak: string | null; correction: string | null; name: string; reached: boolean; file: File; settings:Settings; correctionReason:string|null };
+const ToolABPlayer=lazy(()=>import("@/components/ToolABPlayer"));
+const reportExcerpt = (buffer:AudioBuffer) => {
+  const result=inspect(buffer,false);
+  return {duration_seconds:buffer.duration,integrated_lufs:result.lufs??-70,true_peak:Number.isFinite(result.estimatedTruePeak)?result.estimatedTruePeak:-70};
+};
 const genreLabels = {
   auto: ["Automatisch", "Auto"], pop: ["Pop", "Pop"], electronic: ["Electronic", "Electronic"],
   hiphop: ["Hip-Hop", "Hip-hop"], rock: ["Rock", "Rock"], metal: ["Metal", "Metal"],
@@ -34,13 +41,14 @@ async function read<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-export function LabDelivery({ lang, source, buffer, settings, target, onTarget, onProfile, sidechain = false, moduleNames, renderAudio }: {
+export function LabDelivery({ lang, source, buffer, settings, target, onTarget, onProfile, sidechain = false, moduleNames, renderAudio, listeningRegion }: {
   lang: "de" | "en"; source?: File; buffer?: AudioBuffer; settings: Settings; target: number | null;
   onTarget: (value: number | null) => void;
   onProfile: (settings: Settings, target: number, name: string) => void;
   sidechain?: boolean;
   moduleNames?: Record<Module, string>;
   renderAudio?: () => Promise<AudioBuffer>;
+  listeningRegion?: [number,number];
 }) {
   const en = lang === "en";
   const t = (de: string, enValue: string) => en ? enValue : de;
@@ -48,6 +56,8 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
   const [login, setLogin] = useState(false);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [format, setFormat] = useState<LabFormat>("wav24");
+  const [sampleRate, setSampleRate] = useState(0);
+  const [forceStereo, setForceStereo] = useState(false);
   const [platform, setPlatform] = useState<typeof labTargets[number]>("spotify");
   const [genre, setGenre] = useState<typeof labGenres[number]>("auto");
   const [intensity, setIntensity] = useState(65);
@@ -55,12 +65,20 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
   const [busy, setBusy] = useState<"analysis" | "render" | "encode" | null>(null);
   const [warning, setWarning] = useState("");
   const [result, setResult] = useState<DeliveryResult>();
+  const [listening,setListening]=useState(false);
+  const [comparison,setComparison]=useState<{a:File;b:File;aAnalysis:ReturnType<typeof reportExcerpt>;bAnalysis:ReturnType<typeof reportExcerpt>}>();
   const [phase, setPhase] = useState(0);
   const [proposal, setProposal] = useState<{ settings: Settings; target: number; name: string; analysis: AnalysisData }>();
   const request = useRef<AbortController | null>(null);
   const analyzed = useRef<{ source: File; data: Analysis } | undefined>(undefined);
   const hasTrack = Boolean(source && buffer);
-  const sizeAllowed = !buffer || wavByteLength(buffer.length, renderAudio ? buffer.numberOfChannels : 2) <= labMaxBytes;
+  const mono = !renderAudio && buffer?.numberOfChannels === 1 && !forceStereo;
+  const renderRate = sampleRate || buffer?.sampleRate || 48000;
+  const supportedRates = format === "mp3320" || format === "mp3128" ? [32000, 44100, 48000]
+    : format === "aac256" ? [8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000, 64000, 88200, 96000] : [];
+  const outputRate = supportedRates.reduce((best, rate) => Math.abs(rate - renderRate) < Math.abs(best - renderRate) ? rate : best, supportedRates[0] ?? renderRate);
+  const outputChannels = mono ? 1 : renderAudio ? buffer?.numberOfChannels ?? 2 : 2;
+  const sizeAllowed = !buffer || wavByteLength(Math.ceil(buffer.duration * outputRate), outputChannels) <= labMaxBytes;
   const envelope = useMemo(() => {
     if (!buffer?.length) return [];
     const signal = buffer.getChannelData(0);
@@ -96,6 +114,8 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
     setBusy(null);
     setWarning("");
     setResult(undefined);
+    setComparison(undefined);
+    setListening(false);
     setProposal(undefined);
     analyzed.current = undefined;
     return () => { request.current?.abort(); request.current = null; };
@@ -151,19 +171,22 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
     request.current = task;
     setWarning("");
     setResult(undefined);
+    setComparison(undefined);
     setBusy("render");
     try {
       if (!await refreshAccess(task.signal)) return;
       const rendered = await (renderAudio ? renderAudio() : renderLabBuffer(buffer, settings));
       if (task.signal.aborted) return;
-      const wav = deliveryWav(rendered);
+      const delivery = rendered.sampleRate === outputRate ? rendered : await resampleAudio(rendered, outputRate);
+      if (task.signal.aborted) return;
+      const wav = deliveryWav(delivery, mono);
       setBusy("encode");
       const name = source.name.replace(/\.[^.]+$/, "");
       const ceiling = settings.active.limiter ? settings.ceiling : -.1;
-      const query = new URLSearchParams({ name, format, ceiling: String(ceiling) });
+      const query = new URLSearchParams({ format, ceiling: String(ceiling) });
       if (target !== null) query.set("target", String(target));
       const response = await fetch("/api/mastering-lab/export?" + query, {
-        method: "POST", headers: { "Content-Type": "audio/wav" }, body: wav, signal: task.signal,
+        method: "POST", headers: { "Content-Type": "audio/wav", "X-Export-Name": encodeURIComponent(name), "X-Export-Workspace": sidechain ? "kick-bass" : "lab" }, body: wav, signal: task.signal,
       });
       if (response.status === 403) setEnabled(false);
       if (!response.ok) throw new Error(String(response.status));
@@ -180,7 +203,8 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
       window.setTimeout(() => URL.revokeObjectURL(url), 30000);
       const loudness = response.headers.get("X-Lab-LUFS");
       const peak = response.headers.get("X-Lab-True-Peak");
-      setResult({ name: filename, file: new File([blob],filename,{type:blob.type}), loudness, peak, correction: response.headers.get("X-Lab-Gain"),
+      setResult({ name: filename, file: new File([blob],filename,{type:blob.type}), loudness, peak, settings, correction: response.headers.get("X-Lab-Gain"),
+        correctionReason:response.headers.get("X-Lab-Gain-Reason"),
         reached: target !== null && loudness !== null && peak !== null && Math.abs(Number(loudness) - target) <= .55 && Number(peak) <= ceiling + .05 });
     } catch (error) {
       if (!task.signal.aborted) {
@@ -194,10 +218,38 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
     }
   }
 
+  async function prepareComparison() {
+    if(!buffer||!result||listening||request.current)return;
+    const controller=new AbortController();
+    request.current=controller;
+    setListening(true);setWarning("");
+    try {
+      const exported=await decodeAudio(result.file,40*1024*1024);
+      const length=Math.min(buffer.duration,exported.duration);
+      const first=Math.max(0,Math.min(listeningRegion?.[0]??0,length-.1));
+      const end=Math.min(length,listeningRegion?.[1]??length,first+12);
+      const lead=Math.max(0,first-2);
+      const preview=await renderLabBuffer(createAudioCut(buffer,lead,end,0,0),result.settings);
+      const a=createAudioCut(preview,first-lead,end-lead,.005,.005);
+      const b=createAudioCut(exported,first,end,.005,.005);
+      if(controller.signal.aborted)return;
+      setComparison({a:new File([encodeWav(a,"32f")],"preview.wav",{type:"audio/wav"}),b:new File([encodeWav(b,"32f")],"export.wav",{type:"audio/wav"}),
+        aAnalysis:reportExcerpt(a),bAnalysis:reportExcerpt(b)});
+    } catch {
+      if(!controller.signal.aborted)setWarning(t("Der Kontrollausschnitt ließ sich nicht erzeugen.","Could not prepare the comparison excerpt."));
+    } finally {
+      if(request.current===controller){request.current=null;setListening(false);}
+    }
+  }
+
   return <div className={styles.delivery} data-sidechain={sidechain}>
     {!sidechain && <section aria-labelledby="lab-autoprof">
       <h2 id="lab-autoprof"><Sparkles size={18} aria-hidden="true" /> {t("Auto-Master-Werte", "Auto-master settings")}</h2>
       <p>{t("Track analysieren und die passenden Startwerte in die editierbaren Lab-Regler laden.", "Analyze the track and load starting values into the editable Lab controls.")}</p>
+      <div className={styles.deliveryLinks}>
+        <button type="button" disabled={Boolean(busy)} onClick={()=>{setIntensity(35);setProposal(undefined);}}>{t("Transparenter Start · 35 %", "Transparent start · 35%")}</button>
+        <button type="button" disabled={Boolean(busy)} onClick={()=>{setPlatform("club");setIntensity(75);setProposal(undefined);}}>{t("Club-Start · −9 LUFS · 75 %", "Club start · −9 LUFS · 75%")}</button>
+      </div>
       <div className={styles.deliveryFields}>
         <label>{t("Plattform", "Platform")} <select aria-label={t("Plattform", "Platform")} disabled={Boolean(busy)} value={platform} onChange={event => { setPlatform(event.target.value as typeof platform); setProposal(undefined); }}>
           <optgroup label="Streaming">{labTargets.filter(key => !["club", "broadcast", "custom"].includes(key)).map(key => <option key={key} value={key}>{labPlatforms[key].join(" · ")} LUFS</option>)}</optgroup>
@@ -241,16 +293,22 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
     <section aria-labelledby="lab-delivery">
       <h2 id="lab-delivery"><AudioLines size={18} aria-hidden="true" /> {renderAudio ? t("Bassspur exportieren", "Export bass stem") : t("Finaler Export", "Final export")}</h2>
       <div className={styles.deliveryFields}>
-        <label>Format <select value={format} onChange={event => setFormat(event.target.value as LabFormat)}>
+        <label>Format <select disabled={Boolean(busy)} value={format} onChange={event => setFormat(event.target.value as LabFormat)}>
           {Object.entries(labFormats).map(([id, item]) => <option key={id} value={id}>{item.label}</option>)}
         </select></label>
+        <label>{t("Samplerate", "Sample rate")} <select disabled={Boolean(busy)} value={sampleRate} onChange={event => setSampleRate(+event.target.value)}>
+          <option value={0}>{t("Bearbeitungsrate beibehalten", "Keep processing rate")}</option>
+          {[44100, 48000, 88200, 96000, 192000].map(rate => <option key={rate} value={rate}>{rate / 1000} kHz</option>)}
+        </select></label>
+        {!renderAudio && buffer?.numberOfChannels === 1 && <label><input type="checkbox" checked={forceStereo} disabled={Boolean(busy)} onChange={event => setForceStereo(event.target.checked)} /> {t("Monoquelle als Stereo ausgeben", "Export mono source as stereo")}</label>}
         {!sidechain && <label>{t("Ziel-LUFS", "Target LUFS")} <select value={target === null ? "" : target} onChange={event => onTarget(event.target.value === "" ? null : +event.target.value)}>
           <option value="">{t("Pegel beibehalten", "Keep level")}</option>
           {Array.from(new Set([...Array.from({ length: 35 }, (_, i) => -23 + i * .5), ...(target === null ? [] : [target])])).sort((a,b) => a-b).map(value => <option key={value} value={value}>{value} LUFS</option>)}
         </select></label>}
       </div>
+      {buffer && <p>{t("Ausgabe", "Output")}: {outputRate / 1000} kHz · {outputChannels === 1 ? "Mono" : "Stereo"}{outputRate !== renderRate ? ` · ${t("Samplerate an Codec angepasst", "Sample rate adjusted for codec")}` : ""}</p>}
       {status === "authenticated" && enabled === true ? <>
-        <button className={styles.primary} disabled={!hasTrack || !sizeAllowed || Boolean(busy)} onClick={() => void save()}>
+        <button className={styles.primary} disabled={!hasTrack || !sizeAllowed || Boolean(busy) || listening} onClick={() => void save()}>
           <Download size={16} aria-hidden="true" /> {busy === "render" ? t("Master wird berechnet …", "Rendering master…")
             : busy === "encode" ? t("Datei wird codiert und gemessen …", "Encoding and measuring file…")
               : renderAudio ? t("Bass herunterladen", "Download bass") : t("Master exportieren", "Export master")}
@@ -276,6 +334,17 @@ export function LabDelivery({ lang, source, buffer, settings, target, onTarget, 
         <div><span>LUFS-I <b>{result.loudness === null ? "—" : Number(result.loudness).toFixed(1)}</b></span>
           <span>True Peak <b>{result.peak === null ? "—" : Number(result.peak).toFixed(1) + " dBTP"}</b></span>
           {result.correction !== null && <span>{t("Pegelkorrektur", "Gain correction")} <b>{Number(result.correction).toFixed(1)} dB</b></span>}</div>
+        {result.correctionReason&&<p>{result.correctionReason==="codec"?t("Der codierte Export brauchte zusätzliche Spitzenreserve.","The encoded file needed additional peak headroom.")
+          :result.correctionReason==="ceiling"?t("Die True-Peak-Grenze hat den endgültigen Pegel bestimmt.","The true-peak ceiling set the final level.")
+          :result.correctionReason==="target"?t("Die Korrektur richtet sich nach dem eingestellten Lautheitsziel.","The correction follows the selected loudness target.")
+          :t("Der eingestellte Pegel wurde beibehalten.","The configured level was kept.")}</p>}
+      </div>}
+      {result&&!sidechain&&!renderAudio&&<div className="mt-4">
+        {result.file.size<=40*1024*1024?<button type="button" onClick={()=>void prepareComparison()} disabled={listening||Boolean(busy)}>
+          {listening?t("Ausschnitt wird vorbereitet …","Preparing excerpt…"):t("Vorschau und Export vergleichen","Compare preview with export")}
+        </button>:<p>{t("Der lokale Kontrollausschnitt unterstützt Exportdateien bis 40 MiB.","The local comparison supports export files up to 40 MiB.")}</p>}
+        {comparison&&<Suspense fallback={<p role="status">{t("Abhöre wird geladen …","Loading comparison…")}</p>}><ToolABPlayer {...comparison} lang={lang}
+          labels={[t("Lab-Vorschau", "Lab preview"), t("Tatsächlicher Export", "Actual export")]} /></Suspense>}
       </div>}
     </section>
     {warning && <p className={styles.deliveryWarning} role="alert">{warning}</p>}

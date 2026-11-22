@@ -7,13 +7,14 @@ import { validShowcaseTrack, type ShowcaseTrack } from "@/lib/showcaseTracks";
 import { findFileById } from "@/lib/storage";
 import { verifyUpload } from "@/lib/uploadAuthorization";
 import { pythonServiceHeaders } from "@/lib/pythonService";
+import { communityConsentVersion, communityReviewDays } from "@/lib/communityPolicy";
 
-export const communitySelection={id:true,artist:true,problem:true,settings:true,language:true,trackJson:true,createdAt:true,publishedAt:true} as const;
+export const communitySelection={id:true,artist:true,problem:true,settings:true,language:true,trackJson:true,createdAt:true,publishedAt:true,reviewedAt:true,rejectionReason:true} as const;
 export const communityHeaders={"Cache-Control":"private, no-store","X-Robots-Tag":"noindex"};
 const validId=(id:unknown): id is string=>typeof id==="string"&&/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(id);
 export {validId as communityId};
 
-type Stored = {id:string;artist:string;problem:string;settings:string;language:string;trackJson:string;createdAt:Date;publishedAt:Date|null};
+type Stored = {id:string;artist:string;problem:string;settings:string;language:string;trackJson:string;createdAt:Date;publishedAt:Date|null;reviewedAt:Date|null;rejectionReason:string|null};
 export function communityEntry(row:Stored) {
   try{
     const base:unknown=JSON.parse(row.trackJson);
@@ -34,20 +35,38 @@ function textField(value:unknown,min:number,max:number) {
   if(typeof value!=="string"||value.trim().length<min||value.trim().length>max)throw new ShowcaseError("INVALID");
   return value.trim();
 }
-const state=globalThis as typeof globalThis & { __communityRenders?: Set<string> };
+const state=globalThis as typeof globalThis & { __communityRenders?: Set<string>; __communityCleanup?: ReturnType<typeof setInterval> };
+export const reviewCutoff = () => new Date(Date.now() - communityReviewDays * 86400000);
+
+export function pruneCommunitySubmissions() {
+  const cutoff = reviewCutoff();
+  return db.communityExample.deleteMany({
+    where: { publishedAt: null, OR: [{ reviewedAt: null, createdAt: { lt: cutoff } }, { reviewedAt: { lt: cutoff } }] },
+  });
+}
+
+export function startCommunityCleanup() {
+  if (state.__communityCleanup || process.env.NEXT_PHASE === "phase-production-build") return;
+  const sweep = () => { void pruneCommunitySubmissions().catch(() => console.warn("[community] cleanup deferred")); };
+  sweep();
+  state.__communityCleanup = setInterval(sweep, 3600000);
+  state.__communityCleanup.unref();
+}
 export async function submitCommunityExample(userId:string,body:Record<string,unknown>) {
   const metadata=showcaseMetadata(body);
   const artist=textField(body.artist,1,70),problem=textField(body.problem,8,360),settings=textField(body.settings,8,500);
   const language=body.language==="en"?"en":"de";
   const start=body.start;
-  if(body.consent!==true||typeof start!=="number"||!Number.isFinite(start)||start<0||start>576)throw new ShowcaseError("INVALID");
+  if(body.consent!==true||body.consentVersion!==communityConsentVersion||typeof start!=="number"||!Number.isFinite(start)||start<0||start>576)throw new ShowcaseError("INVALID");
+  const consentAt = new Date();
   const active=state.__communityRenders??=new Set();
   if(active.has(userId)||active.size>=2)throw new ShowcaseError("BUSY",503);
   const id=randomUUID();
   const assets=(["original","master"] as const).map(side=>path.join(/*turbopackIgnore: true*/ SHOWCASE_STORAGE,id+"-"+side+".mp3"));
   active.add(userId);
   try {
-    if(await db.communityExample.count({where:{userId}})>=3||await db.communityExample.count({where:{publishedAt:null}})>=30)throw new ShowcaseError("LIMIT",409);
+    await pruneCommunitySubmissions();
+    if(await db.communityExample.count({where:{userId}})>=3||await db.communityExample.count({where:{publishedAt:null,rejectionReason:null}})>=30)throw new ShowcaseError("LIMIT",409);
     const sources:string[]=[];
     for(const item of [body.original,body.master]){
       const ref=item as {file_id?:unknown;upload_token?:unknown}|null;
@@ -68,8 +87,8 @@ export async function submitCommunityExample(userId:string,body:Record<string,un
     const [original,master]=await Promise.all(assets.map(file=>readFile(/*turbopackIgnore: true*/ file)));
     if(original.length!==track.original.bytes||master.length!==track.master.bytes)throw new ShowcaseError("ALIGNMENT",502);
     return await db.$transaction(async tx=>{
-      if(await tx.communityExample.count({where:{userId}})>=3||await tx.communityExample.count({where:{publishedAt:null}})>=30)throw new ShowcaseError("LIMIT",409);
-      const row=await tx.communityExample.create({data:{id,userId,artist,problem,settings,language,trackJson:JSON.stringify(track),original,master},select:communitySelection});
+      if(await tx.communityExample.count({where:{userId}})>=3||await tx.communityExample.count({where:{publishedAt:null,rejectionReason:null}})>=30)throw new ShowcaseError("LIMIT",409);
+      const row=await tx.communityExample.create({data:{id,userId,artist,problem,settings,language,trackJson:JSON.stringify(track),original,master,consentAt,consentVersion:communityConsentVersion},select:communitySelection});
       return communityEntry(row);
     });
   } finally {

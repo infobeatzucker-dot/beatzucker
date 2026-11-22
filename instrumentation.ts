@@ -8,6 +8,8 @@ export async function register() {
     startWithdrawalQueue();
     const { startRegistrationQueue } = await import("@/lib/registrationQueue");
     startRegistrationQueue();
+    const { startCommunityCleanup } = await import("@/lib/communityExamples");
+    startCommunityCleanup();
   }
 
   // Validate required environment variables at startup

@@ -5,7 +5,7 @@ import path from "path";
 import { Readable } from "stream";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
-import { verifyUpload } from "@/lib/uploadAuthorization";
+import { db } from "@/lib/db";
 
 const UPLOAD_DIR = process.env.TEMP_UPLOAD_DIR || "./uploads";
 
@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
 
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return new Response("Unauthorized", { status: 401 });
-  const uploadToken = req.nextUrl.searchParams.get("upload_token");
-  if (!verifyUpload(fileId, session.user.id, uploadToken)) {
+  const owned = await db.temporaryUpload.findFirst({where:{id:fileId,userId:session.user.id,expiresAt:{gt:new Date()}},select:{id:true}});
+  if (!owned) {
     return new Response("Forbidden", { status: 403 });
   }
 
@@ -75,6 +75,7 @@ export async function GET(req: NextRequest) {
         "Content-Range": `bytes ${start}-${end}/${fileSize}`,
         "Accept-Ranges": "bytes",
         "Content-Length": chunkSize.toString(),
+        "Cache-Control": "private, no-store",
       },
     });
   }

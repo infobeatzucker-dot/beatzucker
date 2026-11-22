@@ -43,22 +43,7 @@ export default function CookieBanner() {
   if (!mounted || !visible) return null;
 
   return (
-    <>
-      {/* Backdrop (subtle) */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(var(--bz-paint-000000),0.35)",
-          zIndex: 9998,
-          backdropFilter: "blur(2px)",
-        }}
-        onClick={accept}
-      />
-
-      {/* Banner */}
-      <div
-        role="dialog"
+      <aside
         aria-label={en ? "Cookie information" : "Cookie-Hinweis"}
         style={{
           position: "fixed",
@@ -69,7 +54,7 @@ export default function CookieBanner() {
           background: "var(--bg-elevated, rgb(var(--bz-paint-1a1a2e)))",
           border: "1px solid rgba(var(--bz-border-8b5cf6),0.25)",
           borderRadius: "14px",
-          padding: "1.5rem 1.75rem",
+          padding: "0.85rem 1rem",
           zIndex: 9999,
           boxShadow: "0 8px 40px rgba(var(--bz-shadow-000000),0.55), 0 0 0 1px rgba(var(--bz-shadow-ffffff),0.04)",
         }}
@@ -125,7 +110,6 @@ export default function CookieBanner() {
             {en ? "Understood" : "Verstanden"}
           </button>
         </div>
-      </div>
-    </>
+      </aside>
   );
 }

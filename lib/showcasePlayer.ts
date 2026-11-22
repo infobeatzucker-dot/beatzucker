@@ -6,6 +6,7 @@ export class ShowcasePlayer {
   private gains: Record<ShowcaseSide, GainNode> | null = null;
   private sources: AudioBufferSourceNode[] = [];
   private buffers: AudioBuffer[] | null = null;
+  private media?: Record<ShowcaseSide, HTMLAudioElement>;
   private pending: Promise<AudioBuffer[]> | null = null;
   private abort = new AbortController();
   private generation = 0;
@@ -20,11 +21,15 @@ export class ShowcasePlayer {
   constructor(readonly track: ShowcaseTrack) {}
   onState(listener: typeof this.listener) { this.listener = listener; }
   get playing() { return this.running; }
-  get currentTime() { return this.running && this.ctx ? Math.min(this.duration, this.position + Math.max(0, this.ctx.currentTime - this.startedAt)) : this.position; }
+  get currentTime() {
+    if (!this.running) return this.position;
+    if (this.media) return Math.min(this.duration, this.media[this.side].currentTime);
+    return this.ctx ? Math.min(this.duration, this.position + Math.max(0, this.ctx.currentTime - this.startedAt)) : this.position;
+  }
   get duration() { return this.buffers ? Math.min(this.track.duration, ...this.buffers.map(b => b.duration)) : this.track.duration; }
   private context() {
     if (!this.ctx) {
-      const ctx = this.ctx = new AudioContext({ sampleRate: 48000, latencyHint: "balanced" });
+      const ctx = this.ctx = new AudioContext({ latencyHint: "balanced" });
       this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 2048; this.analyser.smoothingTimeConstant = .12;
       this.gains = { original: ctx.createGain(), master: ctx.createGain() };
       this.gains.original.connect(this.analyser); this.gains.master.connect(this.analyser); this.analyser.connect(ctx.destination);
@@ -51,6 +56,7 @@ export class ShowcasePlayer {
   }
   async play() {
     if (this.running || this.destroyed) return;
+    if (typeof AudioContext !== "function") return this.playMedia();
     const generation = ++this.generation, ctx = this.context();
     const resumed = ctx.resume(); // synchronous user activation, before fetch/decode
     this.listener({ playing: false, loading: true });
@@ -76,13 +82,55 @@ export class ShowcasePlayer {
       this.pause(); throw error;
     }
   }
+  private async playMedia() {
+    const generation = ++this.generation;
+    if (!this.media) {
+      const original = new Audio(this.track.original.url);
+      const master = new Audio(this.track.master.url);
+      this.media = {original,master};
+      for (const element of [original,master]) {
+        element.preload = "metadata";
+        element.onended = () => {
+          if (this.media?.[this.side] !== element || !this.running) return;
+          this.pause();
+          this.position = this.duration;
+        };
+      }
+    }
+    const audio = this.media[this.side];
+    if (this.position >= this.duration - .02) this.position = 0;
+    audio.currentTime = this.position;
+    this.listener({playing:false,loading:true});
+    try {
+      await audio.play();
+      if (generation !== this.generation || this.destroyed) return;
+      this.running = true;
+      this.listener({playing:true,loading:false});
+    } catch (error) {
+      if (generation !== this.generation || this.destroyed) return;
+      this.pause();
+      throw error;
+    }
+  }
   pause() {
     this.position = this.currentTime; this.running = false; this.generation++;
+    if (this.media) for (const element of Object.values(this.media)) element.pause();
     for (const source of this.sources) { source.onended = null; try { source.stop(); } catch { /* already ended */ } source.disconnect(); }
     this.sources = []; this.listener({ playing: false, loading: false });
     if (this.ctx?.state !== "closed") void this.ctx?.suspend().catch(() => {});
   }
-  select(side: ShowcaseSide) { this.side = side; this.applyGains(); }
+  select(side: ShowcaseSide) {
+    if (side === this.side) return;
+    if (this.media) {
+      const wasRunning = this.running;
+      this.pause();
+      this.side = side;
+      if (wasRunning) void this.play().catch(() => {});
+    } else {
+      this.side = side;
+      this.applyGains();
+    }
+  }
   setMatched(matched: boolean) { this.matched = matched; this.applyGains(); }
   private applyGains(immediate = false) {
     if (!this.ctx || !this.gains) return;
@@ -101,6 +149,14 @@ export class ShowcasePlayer {
   }
   destroy() {
     this.listener = () => {}; this.destroyed = true; this.pause(); this.abort.abort(); this.buffers = null;
+    if (this.media) {
+      for (const element of Object.values(this.media)) {
+        element.onended = null;
+        element.removeAttribute("src");
+        element.load();
+      }
+      this.media = undefined;
+    }
     this.gains?.original.disconnect(); this.gains?.master.disconnect(); this.analyser?.disconnect();
     if (this.ctx && this.ctx.state !== "closed") void this.ctx.close().catch(() => {});
   }

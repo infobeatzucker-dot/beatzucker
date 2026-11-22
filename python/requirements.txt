@@ -9,5 +9,13 @@ numpy==2.4.4
 numba==0.64.0
 soundfile==0.13.1
 ffmpeg-python==0.2.0
-python-multipart==0.0.22
+python-multipart==0.0.31
 aiofiles==25.1.0
+# Security floors for HTTP, multipart and audio-cache dependencies.
+anyio==4.15.1
+starlette==1.7.0
+certifi==2026.11.20
+idna==3.20
+requests==2.34.2
+urllib3==2.8.0
+msgpack==1.2.4

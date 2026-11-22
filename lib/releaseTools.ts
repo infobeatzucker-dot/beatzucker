@@ -4,8 +4,8 @@ export const releaseCheckMaxBytes = 192 * 1024 * 1024;
 
 export const AUDIO_RELEASE_TOOLS = {
   "release-check": {
-    de: { title: "Release-Check für fertige Masters", summary: "Miss Lautheit und True Peak deiner fertigen WAV, MP3 oder AAC und prüfe Codec, Sample-Rate und Kanäle.", action: "Master prüfen" },
-    en: { title: "Release Check for Finished Masters", summary: "Measure loudness and true peak of the finished WAV, MP3 or AAC and inspect its codec, sample rate and channels.", action: "Check master" },
+    de: { title: "Release-Check für fertige Masters", summary: "Miss Lautheit und True Peak deiner fertigen WAV-, FLAC-, MP3- oder AAC-Datei und prüfe Codec, Samplerate und Kanäle.", action: "Master prüfen" },
+    en: { title: "Release Check for Finished Masters", summary: "Measure loudness and true peak of a finished WAV, FLAC, MP3 or AAC file and inspect its codec, sample rate and channels.", action: "Check master" },
   },
   "mastering-blindtest": {
     de: { title: "Mastering-Blindtest online", summary: "Vergleiche zwei Master synchron, pegelangepasst und mit verdeckter Zuordnung.", action: "Blindtest starten" },

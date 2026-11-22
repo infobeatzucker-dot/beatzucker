@@ -53,6 +53,7 @@ export interface RunMasteringArgs {
   intensity: number;
   character?: number;
   selectedFormat: string;
+  workspace?: "classic"|"studio";
   analysis?: AnalysisData;
   referenceAnalysis?: ReferenceInput;
   overrides?: ParamValues;
@@ -74,7 +75,7 @@ export interface RunMasteringArgs {
  */
 export async function runMastering({
   fileId, uploadToken, originalName, platform, targetLufs, preset, intensity, selectedFormat,
-  analysis, referenceAnalysis, overrides, character = .5, lang = "de", signal,
+  analysis, referenceAnalysis, overrides, character = .5, lang = "de", signal, workspace,
   onProgress, onComplete, onError,
 }: RunMasteringArgs): Promise<void> {
   const fallbackError = lang === "de"
@@ -92,6 +93,7 @@ export async function runMastering({
         platform, preset, intensity, character,
         ...(platform === "custom" && Number.isFinite(targetLufs) ? { target_lufs: targetLufs } : {}),
         format: selectedFormat,
+        workspace,
         analysis,
         reference_analysis: referenceAnalysis,
         ...(overrides && Object.keys(overrides).length > 0 ? { overrides } : {}),

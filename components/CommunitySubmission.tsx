@@ -6,9 +6,10 @@ import AuthModal from "@/components/AuthModal";
 import { QuickMasterComparison } from "@/components/QuickMasterComparison";
 import type { Lang } from "@/lib/types/mastering";
 import type { ShowcaseTrack } from "@/lib/showcaseTracks";
+import { communityConsentVersion, communityReviewDays } from "@/lib/communityPolicy";
 import styles from "./ListeningEntry.module.css";
 
-type Example={id:string;publishedAt:string|null;track:ShowcaseTrack};
+type Example={id:string;publishedAt:string|null;rejectionReason:string|null;problem:string;settings:string;track:ShowcaseTrack};
 const accept=".wav,.flac,.mp3,.aiff,.aif,.ogg,.m4a";
 const formats=(newFile:File)=>newFile.size>0&&newFile.size<=40*1024*1024;
 
@@ -52,12 +53,24 @@ export default function CommunitySubmission({lang}:{lang:Lang}){
       const res=await fetch("/api/community/examples",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
         title:input.get("title"),artist:input.get("artist"),genre:input.get("genre"),problem:input.get("problem"),
         settings:input.get("settings"),start:Number(input.get("start")),consent:input.get("rights")==="on",
-        language:lang,original:refs[0],master:refs[1],
+        consentVersion:communityConsentVersion,language:lang,original:refs[0],master:refs[1],
       })});
       const result=await res.json();
       if(!res.ok||!result.example)throw Error(result.error);
       setExamples(rows=>[result.example,...rows]);form.reset();
       setMessage(t("Eingereicht. Das Team prüft den Beitrag vor einer Veröffentlichung.","Submitted. The team reviews it before publication."));
+    }catch(reason){setError(true);setMessage(errorMessage(reason instanceof Error?reason.message:""));}
+    finally{setBusy(false);}
+  }
+  async function revise(id:string, form:HTMLFormElement) {
+    const fields=new FormData(form);
+    setBusy(true);setError(false);
+    try {
+      const res=await fetch("/api/community/examples",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,problem:fields.get("problem"),settings:fields.get("settings")})});
+      const body=await res.json();
+      if(!res.ok||!body.example)throw Error(body.error);
+      setExamples(rows=>rows.map(row=>row.id===id?body.example:row));
+      setMessage(t("Änderungen zur Prüfung eingereicht.","Changes submitted for review."));
     }catch(reason){setError(true);setMessage(errorMessage(reason instanceof Error?reason.message:""));}
     finally{setBusy(false);}
   }
@@ -75,6 +88,7 @@ export default function CommunitySubmission({lang}:{lang:Lang}){
     <h2>{t("Deinen Track einreichen","Submit your track")}</h2>
     <p>{t("Teile einen 24-Sekunden-Hörvergleich und beschreibe, was beim Mastering geholfen hat. Das Team sichtet jeden Beitrag vor der Veröffentlichung. Du kannst deine Einreichung hier wieder entfernen.",
       "Share a 24-second comparison and describe what helped in mastering. The team reviews each entry before publishing. You can withdraw it here.")}</p>
+    <p>{t(`Unveröffentlichte Beiträge werden nach ${communityReviewDays} Tagen ohne neue Prüfung oder Überarbeitung gelöscht.`, `Unpublished examples are deleted after ${communityReviewDays} days without a new review or revision.`)}</p>
     {status==="unauthenticated"&&<button type="button" onClick={()=>setLogin(true)}>{t("Anmelden und einreichen","Sign in to submit")}</button>}
     {userId&&<form onSubmit={event=>{event.preventDefault();void submit(event.currentTarget);}}>
       <fieldset disabled={busy||examples.length>=3} className={styles.formGrid}>
@@ -92,8 +106,14 @@ export default function CommunitySubmission({lang}:{lang:Lang}){
       {examples.length>=3&&<p>{t("Deine drei Plätze sind belegt.","Your three submission slots are in use.")}</p>}
     </form>}
     {examples.map(item=><article className={styles.presetRow} key={item.id}><div><strong>{item.track.title}</strong>
-      <p>{item.publishedAt?t("Veröffentlicht","Published"):t("Wartet auf Prüfung","Awaiting review")}</p></div>
+      <p>{item.publishedAt?t("Veröffentlicht","Published"):item.rejectionReason?t("Abgelehnt","Declined"):t("Wartet auf Prüfung","Awaiting review")}</p></div>
       <QuickMasterComparison lang={lang} track={item.track} compact/>
+      {item.rejectionReason&&<form className={styles.formGrid} onSubmit={event=>{event.preventDefault();void revise(item.id,event.currentTarget);}}>
+        <p className={styles.full}>{item.rejectionReason}</p>
+        <label>{t("Ausgangsproblem","Starting problem")}<textarea name="problem" required minLength={8} maxLength={360} defaultValue={item.problem}/></label>
+        <label>{t("Welche Einstellungen haben geholfen?","What settings helped?")}<textarea name="settings" required minLength={8} maxLength={500} defaultValue={item.settings}/></label>
+        <button type="submit" disabled={busy}>{t("Überarbeitet einreichen","Resubmit revisions")}</button>
+      </form>}
       <button type="button" disabled={busy} onClick={()=>void withdraw(item.id)}>{t("Zurückziehen","Withdraw")}</button>
     </article>)}
     {message&&<p role={error?"alert":"status"}>{message}</p>}

@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   if (!masterId) {
     return NextResponse.json({ error: "master_id required" }, { status: 400 });
   }
-  if (!(format in FORMAT_EXT)) {
+  if (!Object.hasOwn(FORMAT_EXT, format)) {
     return NextResponse.json({ error: "Ungültiges Format" }, { status: 400 });
   }
 

@@ -74,7 +74,7 @@ export default function MasteringIntensity({ value, onChange, lang = "de" }: Pro
       </div>
 
       {/* Slider track */}
-      <div className="relative mb-2.5">
+      <div className="mastering-intensity-track relative mb-2.5">
         <div
           className="h-2 rounded-full relative overflow-hidden"
           style={{ background: "rgba(var(--bz-paint-ffffff),0.06)" }}
@@ -93,6 +93,7 @@ export default function MasteringIntensity({ value, onChange, lang = "de" }: Pro
         {/* Native range input (invisible, sits on top) */}
         <input
           type="range"
+          aria-label={lang === "de" ? "Mastering-Intensität" : "Mastering intensity"}
           min={0}
           max={100}
           step={1}

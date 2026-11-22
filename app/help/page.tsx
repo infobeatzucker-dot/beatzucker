@@ -665,6 +665,7 @@ export default function HelpPage({ initialLang = "de" }: { initialLang?: Lang })
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t(T.search_ph, lang)}
+            aria-label={t(T.search_ph, lang)}
             style={{
               width: "100%", padding: "0.75rem 1rem 0.75rem 2.75rem",
               background: "var(--bg-elevated)", border: "1px solid rgba(var(--bz-border-ffffff),0.1)",

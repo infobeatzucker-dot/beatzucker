@@ -30,6 +30,17 @@ check "Account API requires auth"      "$BASE/api/account"   401
 if [ "${REQUIRE_READINESS:-1}" = "1" ]; then
   check "Database and DSP readiness"   "$BASE/api/health"    200
 fi
+if [ "${REQUIRE_RELEASE_ROUTES:-1}" = "1" ]; then
+  check "English homepage"                "$BASE/en"                       200
+  check "German release history"          "$BASE/versionen"                200
+  check "English release history"         "$BASE/en/updates"               200
+  check "Mastering Lab"                   "$BASE/mastering-lab"            200
+  check "German community gallery"        "$BASE/community-masters"       200
+  check "English community gallery"       "$BASE/en/community-masters"    200
+  check "Private Lab presets"             "$BASE/api/account/lab-presets"  401
+  check "Private community submissions"   "$BASE/api/community/examples"   401
+  check "Admin community permission"      "$BASE/api/admin/community"      403
+fi
 
 # Python service health (only meaningful when run inside/near the container network)
 if [ -n "${PYTHON_HEALTH_URL:-}" ]; then

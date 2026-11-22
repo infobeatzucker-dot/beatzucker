@@ -17,6 +17,7 @@ import { normalizeParamOverrides } from "@/lib/masteringParams";
 import { pythonServiceHeaders } from "@/lib/pythonService";
 import { readBoundedJson, JsonBodyError } from "@/lib/boundedJson";
 import { withDspAdmissionRetry } from "@/lib/dspAdmissionRetry";
+import { isDeploying } from "@/lib/deployMaintenance";
 
 // Allow up to 10 minutes – mastering a full track can take 3–5 min
 export const maxDuration = 600;
@@ -37,6 +38,7 @@ function encodeSSE(data: object) {
 }
 
 export async function POST(req: NextRequest) {
+  if (isDeploying()) return Response.json({error:"Mastering is temporarily paused for an update. / Mastering pausiert kurz für ein Update."},{status:503,headers:{"Retry-After":"60"}});
   let body: Record<string, unknown>;
   try { body = await readBoundedJson(req); }
   catch (error) {
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
   const platform = PLATFORMS.has(platformRaw) ? platformRaw : "";
   const format = FORMATS.has(formatRaw) ? formatRaw : "";
   const originalName = sanitizeOriginalFilename(body.original_name);
+  const workspace = body.workspace === "studio" || body.workspace === "classic" ? body.workspace : null;
   const normalizedAnalysis = normalizeAnalysis(body.analysis);
   const analysisToken = body.analysis && typeof body.analysis === "object" && !Array.isArray(body.analysis)
     ? (body.analysis as Record<string, unknown>).analysis_token
@@ -132,6 +135,7 @@ export async function POST(req: NextRequest) {
         originalName,
         platform,
         preset,
+        workspace,
         status: "processing",
         preAnalysis: analysis ? JSON.stringify(analysis) : null,
       },

@@ -38,7 +38,10 @@ def export_lab(file_path, format_id, ceiling, target):
     output = source.with_name("delivery." + extension)
     executable = os.environ.get("FFMPEG_BINARY", "ffmpeg")
     trim = max(-24, min(12, target - loudness)) if target is not None and loudness is not None else 0
+    reason = "target" if target is not None and loudness is not None else "level"
     if true_peak is not None:
+        if ceiling - true_peak < trim:
+            reason = "ceiling"
         trim = min(trim, ceiling - true_peak)
     for _ in range(4):
         filters = [f"volume={trim:.8f}dB"]
@@ -55,6 +58,7 @@ def export_lab(file_path, format_id, ceiling, target):
         measured = meter_audio(output, deadline=deadline, validate=False)
         peak = measured["true_peak"]
         if peak is None or peak <= ceiling + .05:
-            return {**measured, "gain_db": round(trim, 3)}
+            return {**measured, "gain_db": round(trim, 3), "gain_reason": reason}
+        reason = "codec"
         trim -= peak - ceiling + .15
     raise ValueError("Encoded output did not meet the true-peak ceiling.")
