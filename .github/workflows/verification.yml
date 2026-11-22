@@ -34,7 +34,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg libsndfile1 libgomp1 ripgrep
       - run: npm ci
       - run: npm audit --omit=dev --audit-level=high
-      - run: python -m pip install --upgrade pip==26.3
+      - run: python -m pip install --upgrade pip==26.3 setuptools==84.1.0
       - run: python -m pip install -r python/requirements.txt pip-audit==2.10.1
       - run: pip-audit
       - name: Start isolated fixture
