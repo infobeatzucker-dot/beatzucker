@@ -5,7 +5,7 @@ const articles=load('app/data/ressourcen.ts').ARTICLES;
 assert.equal(articles.length,18);assert.equal(new Set(articles.map(a=>a.slug)).size,articles.length);
 const labGuide=articles.find(article=>article.slug==='mastering-lab-pegel-kick-bass');
 assert.ok(labGuide?.content.sections.every(section=>section.body.de&&section.body.en));
-for(const slug of ['lufs-erklaert','sample-rate-bit-depth']){const a=articles.find(a=>a.slug===slug);assert.equal(a.updatedAt,'2026-10-18');for(const lang of ['de','en']){assert.ok(a.content.intro[lang].length>150);assert.ok(a.metaDescription[lang]);assert.ok(a.content.sections.length>=5);for(const s of a.content.sections)assert.ok(s.h2[lang]&&s.body[lang]);}}
+for(const slug of ['lufs-erklaert','sample-rate-bit-depth']){const a=articles.find(a=>a.slug===slug);assert.equal(a.updatedAt,'2026-11-22');for(const lang of ['de','en']){assert.ok(a.content.intro[lang].length>150);assert.ok(a.metaDescription[lang]);assert.ok(a.content.sections.length>=5);for(const s of a.content.sections)assert.ok(s.h2[lang]&&s.body[lang]);}}
 const {stereoAdvice,stereoStatus}=load('lib/stereoGuidance.ts');
 const baseline={valid:true,widthDefined:true,width:0,correlation:1,monoLoss:0,balance:0,points:[],bands:[{name:'< 160 Hz',valid:true,correlation:1}]};
 for(const lang of ['de','en']){
@@ -21,7 +21,7 @@ for(const lang of ['de','en']){
 }
 const {APP_VERSION}=load('lib/releases.ts');assert.equal(require('../package.json').version,APP_VERSION);const lock=require('../package-lock.json');assert.equal(lock.version,APP_VERSION);assert.equal(lock.packages[''].version,APP_VERSION);
 for(const file of ['components/Header.tsx','components/ReleaseHistory.tsx'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bBeta\b/i);
-const map=load('app/sitemap.ts').default();assert.equal(new Set(map.map(item=>item.url)).size,map.length);for(const prefix of ['/ressourcen/','/en/knowledge/'])for(const slug of ['lufs-erklaert','sample-rate-bit-depth'])assert.equal(map.find(r=>r.url.endsWith(prefix+slug)).lastModified.toISOString().slice(0,10),'2026-10-18');
+const map=load('app/sitemap.ts').default();assert.equal(new Set(map.map(item=>item.url)).size,map.length);for(const prefix of ['/ressourcen/','/en/knowledge/'])for(const slug of ['lufs-erklaert','sample-rate-bit-depth'])assert.equal(map.find(r=>r.url.endsWith(prefix+slug)).lastModified.toISOString().slice(0,10),'2026-11-22');
 for(const route of ['/mastering-lab','/tools/kick-bass-sidechain','/tools/release-check','/tools/mastering-blindtest','/tools/dj-loop-editor','/tools/audio-visualizer'])for(const prefix of ['','/en']){
  const row=map.find(item=>item.url.endsWith('beatzucker.de'+prefix+route));assert.ok(row);
  assert.equal(row.alternates.languages.en,'https://beatzucker.de/en'+route);

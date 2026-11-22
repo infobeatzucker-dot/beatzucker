@@ -11,7 +11,7 @@ import { ARTICLES } from "@/app/data/ressourcen";
 export const metadata: Metadata = pageMetadata({
   title: { absolute: "Audio Mastering Wissen – Guides, Tipps & Technik | Beatzucker" },
   description:
-    "Alles über Audio Mastering: LUFS erklärt, Mastering vs. Mixing, KI-Mastering, Plattform-Lautstärken, Home-Recording-Fehler und mehr. Kostenlose Guides für Produzenten.",
+    "Praxis-Guides zu Express-Mastering, Studio Mode, Mastering Lab, LUFS und Release-Check. Vom vorbereiteten Mix bis zum geprüften Export.",
   keywords: [
     "audio mastering wissen",
     "mastering guides",
@@ -31,7 +31,7 @@ export const metadata: Metadata = pageMetadata({
   openGraph: {
     type: "website",
     title: "Audio Mastering Wissen – Guides & Tipps",
-    description: "Kostenlose Mastering-Guides, LUFS-Erklärungen, Plattform-Zielwerte und mehr.",
+    description: "Vom Mix bis zum Release mit Praxis-Guides für Mastering Lab, Studio Mode und Release-Check.",
     url: "https://beatzucker.de/ressourcen",
   },
 });
@@ -115,7 +115,7 @@ export default function RessourcenPage() {
               margin: "0 auto 0.75rem",
             }}
           >
-            Guides, Technik-Erklärungen und praktische Tipps — alles, was du über professionelles Audio Mastering wissen musst.
+            Bereite deinen Mix vor, finde den passenden Mastering-Einstieg und prüfe den fertigen Export. Die Guides zeigen dir Express-Assistent, Studio Mode, Mastering Lab und die passenden Audio-Tools.
           </p>
           <p
             style={{

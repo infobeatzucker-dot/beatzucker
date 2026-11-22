@@ -32,7 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...["vocal-remover", "stem-separation"].flatMap(slug => pair(`/tools/${slug}`, `/en/tools/${slug}`, "2026-11-19", 0.6)),
     ...Object.keys(TOOL_GUIDES).filter(slug => slug !== "mix-check").flatMap(slug =>
       pair(`/tools/${slug}`, `/en/tools/${slug}`, ["album-consistency","vocal-chain","kick-bass-conflict","audio-cutter"].includes(slug) ? "2026-11-19" : ["speech-cleaner","stereo-phase","wav-to-mp3"].includes(slug) ? "2026-10-18" : "2026-10-17", 0.8)),
-    ...pair("/ressourcen", "/en/knowledge", "2026-11-21", 0.8),
+    ...pair("/ressourcen", "/en/knowledge", "2026-11-22", 0.8),
     ...ARTICLES.flatMap(article => pair(`/ressourcen/${article.slug}`, `/en/knowledge/${article.slug}`, articleContentDate(article), 0.7)),
     ...pair("/impressum", "/legal-notice", "2026-08-23", 0.2),
     ...pair("/datenschutz", "/privacy", "2026-11-22", 0.2),

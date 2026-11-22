@@ -2,7 +2,7 @@ import type { RessourceArticle } from "./ressourcen";
 
 export const LUFS_ARTICLE: RessourceArticle = {
   slug: "lufs-erklaert", category: "Technik", categoryColor: "var(--accent-cyan)",
-  publishedAt: "2025-01-15", updatedAt: "2026-10-18", heroIcon: "BarChart3", readingTimeMinutes: 6,
+  publishedAt: "2025-01-15", updatedAt: "2026-11-22", heroIcon: "BarChart3", readingTimeMinutes: 6,
   title: { de: "LUFS erklärt: Lautheit messen, Streaming richtig einordnen", en: "LUFS explained: measure loudness, understand streaming" },
   metaTitle: { de: "LUFS erklärt: Messen, −14 LUFS & Streaming | Beatzucker", en: "LUFS Explained: Measurement, −14 LUFS & Streaming | Beatzucker" },
   metaDescription: { de: "Was bedeutet LUFS? Integrated, Short-Term und True Peak einfach erklärt – mit Rechenbeispiel, Streaming-Einordnung und kostenlosem Lautheits-Check.", en: "What does LUFS mean? Understand integrated, short-term and true peak readings, with a worked example, streaming context and a free loudness check." },
@@ -32,6 +32,18 @@ export const LUFS_ARTICLE: RessourceArticle = {
           { de: "Mit der Streaming-Vorschau die geschätzte Pegeländerung ansehen; das ist eine Simulation.", en: "Use the streaming preview to inspect estimated gain changes; it is a simulation." },
           { de: "Bei Pumpen, Verzerrung oder schwachen Anschlägen weniger stark begrenzen und erneut vergleichen.", en: "If you hear pumping, distortion or weak attacks, ease the limiting and compare again." },
         ] },
+      {
+        h2: { de: "Welche Anzeige zählt bei welchem Arbeitsschritt?", en: "Which reading matters at each stage?" },
+        body: {
+          de: "Nutze die geschätzte Lautheit und die Pegelreserve im Lab beim Einstellen der Regler. Kontrolliere nach dem Rendern die integrierte Lautheit der vollständigen Datei im Release-Check. Wenn zwei Fassungen unterschiedlich laut sind, gleiche ihren Abhörpegel im Blindtest an. Damit bleiben Ausschwingverhalten, Bass und Stimme besser vergleichbar.",
+          en: "Use estimated loudness and headroom in Mastering Lab while adjusting the controls. After rendering, measure integrated loudness over the full file in Release Check. If two versions differ in level, match their playback loudness in the blind test to compare decay, bass and vocals more easily.",
+        },
+        links: [
+          { label: { de: "Mastering Lab öffnen", en: "Open Mastering Lab" }, href: { de: "/mastering-lab", en: "/en/mastering-lab" } },
+          { label: { de: "Release-Check öffnen", en: "Open Release Check" }, href: { de: "/tools/release-check", en: "/en/tools/release-check" } },
+          { label: { de: "Mastering-Blindtest öffnen", en: "Open Mastering Blind Test" }, href: { de: "/tools/mastering-blindtest", en: "/en/tools/mastering-blindtest" } },
+        ],
+      },
     ],
     conclusion: { de: "Nutze LUFS als Orientierung zusammen mit True Peak und deinem Gehör. Ein musikalisch passender Master ist wichtiger als das exakte Treffen einer einzigen Zahl.", en: "Use LUFS alongside true peak and listening. A master that serves the music matters more than hitting one exact number." },
   },
@@ -39,7 +51,7 @@ export const LUFS_ARTICLE: RessourceArticle = {
 
 export const SAMPLE_RATE_ARTICLE: RessourceArticle = {
   slug: "sample-rate-bit-depth", category: "Technik", categoryColor: "var(--accent-purple)",
-  publishedAt: "2025-03-10", updatedAt: "2026-10-18", heroIcon: "Binary", readingTimeMinutes: 6,
+  publishedAt: "2025-03-10", updatedAt: "2026-11-22", heroIcon: "Binary", readingTimeMinutes: 6,
   title: { de: "44,1 oder 48 kHz? 16 oder 24 Bit? Audio richtig exportieren", en: "44.1 or 48 kHz? 16 or 24 bit? Export audio correctly" },
   metaTitle: { de: "44,1 oder 48 kHz? 16 vs. 24 Bit erklärt | Beatzucker", en: "44.1 or 48 kHz? 16 vs. 24 Bit Explained | Beatzucker" },
   metaDescription: { de: "Sample-Rate und Bittiefe verständlich erklärt: passende WAV-Exporte für Musik, Video und Mastering, Dithering und typische Konvertierungsfehler.", en: "Understand sample rate and bit depth: choose WAV exports for music, video and mastering, know when to dither and avoid common conversion mistakes." },
@@ -71,6 +83,17 @@ export const SAMPLE_RATE_ARTICLE: RessourceArticle = {
           { de: "Projekt-Sample-Rate behalten, bis das tatsächliche Zielformat eine Änderung verlangt.", en: "Keep the project sample rate until the actual delivery format requires a change." },
           { de: "Finale Datei erneut öffnen, Ausklang anhören und Spitzenpegel prüfen.", en: "Reopen the finished file, listen to its tail and check peak levels." },
         ] },
+      {
+        h2: { de: "Vom nativen Mix zum geprüften Lab-Export", en: "From the native mix to a verified Lab export" },
+        body: {
+          de: "Ein Mono-Mix mit 96 kHz im WAV-Format kann im Mastering Lab als 96-kHz-Mono-WAV exportiert werden. Wähle bei Bedarf eine andere Ausgaberate oder Stereo und prüfe vor dem Rendern, was tatsächlich eingestellt ist. Bei MP3 und AAC kann das Lab auf eine unterstützte Rate ausweichen. Bei FLAC zeigt der Release-Check Samplerate und Bittiefe der fertigen Datei an.",
+          en: "You can export a 96 kHz mono WAV mix as a 96 kHz mono WAV in Mastering Lab. Choose a different output rate or stereo if needed and check the indicated settings before rendering. For MP3 and AAC, the Lab can use a supported rate in place of the selected one. For FLAC, Release Check shows the sample rate and bit depth of the finished file.",
+        },
+        links: [
+          { label: { de: "Mastering Lab öffnen", en: "Open Mastering Lab" }, href: { de: "/mastering-lab", en: "/en/mastering-lab" } },
+          { label: { de: "Release-Check öffnen", en: "Open Release Check" }, href: { de: "/tools/release-check", en: "/en/tools/release-check" } },
+        ],
+      },
     ],
     conclusion: { de: "Behalte die beste vorhandene Quelle, vermeide unnötige Umwandlungen und richte den letzten Export nach dem tatsächlichen Ziel. Gute Aufnahme und saubere Bearbeitung zählen mehr als möglichst große Formatangaben.", en: "Keep the best available source, avoid unnecessary conversions and match the final export to its actual destination. Good recording and careful processing matter more than the largest format numbers." },
   },

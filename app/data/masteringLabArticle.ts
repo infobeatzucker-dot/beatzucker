@@ -23,6 +23,18 @@ export const MASTERING_LAB_ARTICLE: RessourceArticle = {
         body: { de:"Markiere eine Passage mit Kick und Bass und starte mit 1–2 dB Absenkung. Beobachte die Impulsmarkierungen und verkürze die Rückkehr, wenn der Bass zu lange wegbleibt. Vergleiche danach Original und Bearbeitung mit angeglichener Lautheit. Bei einem fertigen Stereomix wird auch der tiefe Anteil der Kick mitbearbeitet. Getrennte Kick- und Bassspuren erlauben gezielteres Sidechaining im Mix.", en:"Loop a passage with kick and bass and start with 1–2 dB of ducking. Watch the hit markers and shorten recovery if the bass stays down too long. Compare the original and processed versions at matched loudness. A stereo mix includes the kick in its low band. Separate kick and bass stems allow more targeted sidechaining in the mix." } },
       { h2: { de:"Bearbeitungsstände vergleichen und exportieren", en:"Compare snapshots and export" },
         body: { de:"Speichere eine dezente und eine kräftigere Einstellung in A und B. Höre im selben Loop bei angeglichener Lautheit. Beim Export siehst du Samplerate und Kanäle vorab. Nach dem Export kannst du für Dateien bis 40 MiB einen kurzen Vergleich von Lab-Vorschau und tatsächlicher Ausgabe erstellen. Für die Auslieferung zählen die Messwerte der fertigen Datei.", en:"Save a subtle and stronger setting in A and B and listen to the same loop at matched loudness. Before export, review the delivery sample rate and channels. After export, files up to 40 MiB can be used for a short comparison of the Lab preview and the actual delivery file. Use the finished file's measurements for delivery." } },
+      {
+        h2: { de: "Einen guten Stand sichern und wiederverwenden", en: "Save and reuse settings that work" },
+        body: {
+          de: "Übernimm Auto-Werte bei Bedarf erst nach der Prüfung von Genre und Plattform. Verwende ein Genre-Preset für den ganzen Master oder wähle gezielt ein Modul-Preset. Speichere Testvarianten in A und B. Welche Variante du hörst, kannst du im selben Loop und bei angeglichener Lautheit beurteilen. Eine Einstellung, die du später erneut nutzen möchtest, kannst du angemeldet als eigenes Preset speichern und im Dashboard verwalten. Für den finalen Download brauchst du eine Freischaltung.",
+          en: "When using suggested auto settings, review the genre and platform before applying them. Pick a genre preset for the entire master or use a preset for one module at a time. Save test versions in A and B and judge them with the same loop at matched loudness. Sign in to save reusable settings as a personal preset and manage it in your dashboard. The final download requires activation.",
+        },
+        links: [
+          { label: { de: "Mastering Lab öffnen", en: "Open Mastering Lab" }, href: { de: "/mastering-lab", en: "/en/mastering-lab" } },
+          { label: { de: "Kick & Bass Sidechain öffnen", en: "Open Kick & Bass Sidechain" }, href: { de: "/tools/kick-bass-sidechain", en: "/en/tools/kick-bass-sidechain" } },
+          { label: { de: "Release-Check öffnen", en: "Open Release Check" }, href: { de: "/tools/release-check", en: "/en/tools/release-check" } },
+        ],
+      },
     ],
   },
 };

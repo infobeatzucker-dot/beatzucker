@@ -11,6 +11,23 @@ export const RELEASES: {
   link?: Record<Lang, { href: string; label: string }>;
   retrospective?: boolean;
 }[] = [{
+  version:"3.2.1",date:"2026-11-22",
+  title:{de:"Aktualisierte Wissensdatenbank",en:"Updated mastering guides"},
+  summary:{de:"Alle 18 Ratgeber erklären auf Deutsch und Englisch, wie du die aktuellen Beatzucker-Funktionen vom Mix bis zum geprüften Export einsetzt.",en:"All 18 guides now explain in German and English how to use current Beatzucker features, from preparing your mix to checking the finished export."},
+  improvements:{
+    de:[
+      "Finde den passenden Einstieg mit Express-Assistent, Studio Mode oder Mastering Lab.",
+      "Prüfe an konkreten Beispielen Samplerate, Mono-Ausgabe, Lautheit und True Peak deiner Exportdatei.",
+      "Öffne Blindtest, Release-Check, Kick/Bass-Sidechain und weitere Tools direkt aus den Ratgebern.",
+    ],
+    en:[
+      "Choose the Express Assistant, Studio Mode or Mastering Lab for your workflow.",
+      "Use practical examples to check sample rate, mono output, loudness and true peak in your export.",
+      "Open Blind Test, Release Check, Kick/Bass Sidechain and other tools directly from the guides.",
+    ],
+  },
+  link:{de:{href:"/ressourcen",label:"Wissensdatenbank öffnen"},en:{href:"/en/knowledge",label:"Open the knowledge base"}},
+}, {
   version:"3.2.0",date:"2026-11-22",
   title:{de:"Präzisere Exporte und einfachere Release-Prüfung",en:"More precise exports and easier release checks"},
   summary:{de:"Im Mastering Lab siehst du vor dem Export, welche Samplerate und Kanalzahl deine Datei haben wird. Fertige FLAC-Master kannst du direkt prüfen.",en:"Mastering Lab shows the sample rate and channel count before export. You can now check finished FLAC masters directly."},

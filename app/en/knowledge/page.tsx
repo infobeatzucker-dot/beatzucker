@@ -11,7 +11,7 @@ import { ARTICLES } from "@/app/data/ressourcen";
 export const metadata: Metadata = pageMetadata({
   title: { absolute: "Audio Mastering Knowledge – Guides, Tips & Technology | Beatzucker" },
   description:
-    "Learn audio mastering: LUFS, mastering vs mixing, adaptive mastering, platform loudness targets, home-recording mistakes and practical release advice.",
+    "Practical guides to Express mastering, Studio Mode, Mastering Lab, LUFS and Release Check. Prepare your mix and verify the finished export.",
   alternates: {
     canonical: "https://beatzucker.de/en/knowledge",
     languages: {
@@ -23,7 +23,7 @@ export const metadata: Metadata = pageMetadata({
   openGraph: {
     type: "website",
     title: "Audio Mastering Knowledge – Guides & Tips",
-    description: "Free mastering guides, LUFS explanations, platform targets and practical production advice.",
+    description: "From mix to release with practical guides to Mastering Lab, Studio Mode and Release Check.",
     url: "https://beatzucker.de/en/knowledge",
     locale: "en_US",
   },
@@ -54,7 +54,7 @@ export default function EnglishKnowledgePage() {
             Audio Mastering <span style={{ background: "linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-cyan) 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Knowledge</span>
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "1.05rem", lineHeight: 1.65, maxWidth: "620px", margin: "0 auto 0.75rem" }}>
-            Practical guides, clear technical explanations and production advice for confident, release-ready masters.
+            Prepare your mix, choose a mastering workflow and check the finished export. The guides cover the Express Assistant, Studio Mode, Mastering Lab and the audio tools that fit each step.
           </p>
           <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>{ARTICLES.length} articles · English</p>
         </section>

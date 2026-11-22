@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { KnowledgeTools } from "../ToolPractice";
 import type { RessourceArticle, LocalizedSection } from "@/app/data/ressourcen";
 
@@ -107,6 +108,15 @@ function Section({ sec, lang }: { sec: LocalizedSection; lang: Lang }) {
           {renderBody(item.body[lang])}
         </div>
       ))}
+      {sec.links && (
+        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          {sec.links.map(({ label, href }) => (
+            <li key={href[lang]}>
+              <Link className="underline underline-offset-4" href={href[lang]}>{label[lang]}</Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

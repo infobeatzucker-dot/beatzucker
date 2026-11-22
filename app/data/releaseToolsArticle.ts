@@ -17,6 +17,17 @@ export const RELEASE_TOOLS_ARTICLE: RessourceArticle = {
       {h2:{de:"DJ-Loop und längeres Intro bauen",en:"Build a DJ loop and extend an intro"},body:{de:"Vier Takte im Vierertakt bei 120 BPM ergeben acht Sekunden. Setze den Start auf einen Downbeat und höre den Übergang im Loop. Exportiere nur die Passage fürs Sample-Pack oder wiederhole sie im ganzen Track für ein längeres DJ-Intro.",en:"Four bars in 4/4 at 120 BPM last eight seconds. Place the start on a downbeat and audition the seam. Export the loop by itself for a sample pack, or repeat it in the full track for a longer DJ intro."}},
       {h2:{de:"Kick löst Absenkung nur auf der Bassspur aus",en:"Use the kick to duck the bass stem only"},body:{de:"Exportiere Kick und Bass ab demselben Zeitnullpunkt. Lade beide als Einzelspuren und beginne mit 2 dB Absenkung. Schalte die Kick bei Bedarf in der Abhöre aus, um die Bassbewegung zu beurteilen. Exportiere nach Freischaltung den bearbeiteten Bass und ersetze ihn im Mix.",en:"Export kick and bass from the same time zero. Load both stems and start with 2 dB of ducking. Mute the kick in monitoring to hear the bass movement on its own. Once downloads are activated, export the processed bass and replace it in the mix."}},
       {h2:{de:"Einen Hörvergleich als Short zeigen",en:"Show a listening comparison as a Short"},body:{de:"Wähle eine kurze Passage und lade optional ein Cover hoch. Für A/B müssen Original und Master zeitlich zueinander passen. Das Hochkantvideo wechselt in der Mitte zum Master und zeigt die aktive Version. Du kannst das Video direkt im Browser vor dem Download ansehen.",en:"Choose a short passage and add cover art if you like. For A/B, use time-aligned original and mastered files. The vertical video switches to the master at its midpoint and labels the active version. Preview the generated video in your browser before downloading."}},
+      {
+        h2: { de: "Einen Hörvergleich mit der Community teilen", en: "Share a listening comparison with the community" },
+        body: {
+          de: "Wähle einen Ausschnitt, an dem deine Bearbeitung gut zu hören ist, und beschreibe konkret, welche Änderungen helfen. Im öffentlichen Hörvergleich kannst du dir Anregungen holen. Wenn du die Rechte für die Veröffentlichung hast, reiche dein Beispiel in der Community zur Prüfung ein. Wird es zur Überarbeitung zurückgegeben, kannst du Beschreibung oder Einstellungen im Beitrag korrigieren und ihn erneut einreichen.",
+          en: "Choose a section that makes your processing easy to hear and describe which changes helped. The public listening comparisons can give you ideas. If you have permission to publish the audio, submit your example to the community for review. If it is returned for changes, revise the description or settings in the submission and send it back for review.",
+        },
+        links: [
+          { label: { de: "Öffentliche Hörbeispiele anhören", en: "Hear the public examples" }, href: { de: "/hoervergleich", en: "/en/mastering-examples" } },
+          { label: { de: "Community-Hörbeispiele öffnen", en: "Open community examples" }, href: { de: "/community-masters", en: "/en/community-masters" } },
+        ],
+      },
     ],
   },
 };

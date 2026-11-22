@@ -7,7 +7,7 @@ export const MANUAL_MASTERING_ARTICLE: RessourceArticle = {
   category: "Tipps",
   categoryColor: "var(--accent-purple)",
   publishedAt: "2025-03-20",
-  updatedAt: "2026-11-19",
+  updatedAt: "2026-11-22",
   heroIcon: "Sliders",
   readingTimeMinutes: 5,
   title: {
@@ -71,6 +71,18 @@ export const MANUAL_MASTERING_ARTICLE: RessourceArticle = {
           de: "Referenz- und Character-Einstellungen bleiben beim Stand des abgeschlossenen Masters. Deine manuellen Reglerwerte haben Vorrang. Eine Änderung dieser Auswahl im Dashboard gilt erst für den nächsten automatischen Lauf.\n\nWenn deine Änderungen passen, wähle „Neuen Master erstellen“. Erst nach dieser vollständigen Berechnung steht der neue Export zum Download bereit. Anders als die Vorschau ist das ein regulärer Mastering-Vorgang mit dem geltenden Tageskontingent.\n\nHöre die neue Datei auch außerhalb des gewählten Loops durch und prüfe die gemessenen Nachher-Werte. Lade erst dann die gewünschte Ausgabe herunter. Falls das Problem schon im Mix steckt – etwa Clipping oder ein zu lautes Einzelinstrument –, ist eine Korrektur in der DAW oft die bessere Lösung.",
           en: "Reference and character settings stay with the completed master. Your manual values take priority. Changing these selections in the dashboard applies to the next automatic run.\n\nWhen the changes work, choose “Create new master”. The new export is available to download after full processing completes. Unlike preview, this is a regular mastering operation subject to the current daily allowance.\n\nListen beyond the selected loop and review the measured output values before choosing your download. If the problem originates in the mix, such as clipping or an overly loud instrument, fixing it in your DAW is often the better option.",
         },
+      },
+      {
+        h2: { de: "Feinabstimmung im Studio Mode oder direkt im Lab", en: "Fine-tuning in Studio Mode or working directly in the Lab" },
+        body: {
+          de: "Im Studio Mode ist die Feinabstimmung direkt in die Konsole eingebaut. Nach dem erneuten Rendern kannst du zur tatsächlichen Exportdatei umschalten und sie mit „Master prüfen“ messen. Wenn du schon vor dem ersten Master Zugriff auf die einzelnen Module willst, öffne das Mastering Lab. Starte dort neutral, mit einem Preset oder mit vorgeschlagenen Auto-Werten. Das Vorhören ist frei zugänglich. Für den Lab-Download brauchst du eine Freischaltung.",
+          en: "Studio Mode integrates fine-tuning into the console. After rendering again, switch to the actual export file and measure it with “Check master”. If you want to adjust individual modules before the first master, open Mastering Lab. Start from neutral, a preset or suggested auto settings. Previewing is freely available. Lab downloads require activation.",
+        },
+        links: [
+          { label: { de: "Studio Mode öffnen", en: "Open Studio Mode" }, href: { de: "/studio-beta", en: "/en/studio-beta" } },
+          { label: { de: "Mastering Lab öffnen", en: "Open Mastering Lab" }, href: { de: "/mastering-lab", en: "/en/mastering-lab" } },
+          { label: { de: "Release-Check öffnen", en: "Open Release Check" }, href: { de: "/tools/release-check", en: "/en/tools/release-check" } },
+        ],
       },
     ],
     conclusion: {

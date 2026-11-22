@@ -16,6 +16,7 @@ export interface LocalizedSection {
   h3Items?: { h3: LocalizedString; body: LocalizedString }[];
   list?: LocalizedString[];
   table?: { headers: LocalizedString[]; rows: LocalizedString[][] };
+  links?: { label: LocalizedString; href: LocalizedString }[];
 }
 
 export interface RessourceArticle {
@@ -62,7 +63,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Grundlagen",
     categoryColor: "var(--accent-purple)",
     publishedAt: "2025-01-10",
-    updatedAt: "2026-10-24",
+    updatedAt: "2026-11-22",
     heroIcon: "SlidersHorizontal",
     readingTimeMinutes: 6,
     title: {
@@ -128,6 +129,18 @@ export const ARTICLES: RessourceArticle[] = [
             en: "Short version: any time you're about to release something. SoundCloud upload, Spotify single, Bandcamp release, label demo — skip mastering and the track reads as unfinished next to anything properly produced.\n\nEven on a shoestring budget this isn't a problem anymore: Beatzucker offers a free automatic starting point with optional manual fine-tuning. Duration and results depend on the source and settings. Compare the finished file and keep only changes that serve your music.",
           },
         },
+        {
+          h2: { de: "Welcher Einstieg passt zu deinem Track?", en: "Which starting point suits your track?" },
+          body: {
+            de: "Für deinen ersten Mix führt dich der Express-Assistent von der Analyse und Zielwahl bis zum Hörvergleich und Download. Studio Mode bündelt den automatischen Lauf und die anschließende Feinabstimmung in einer Konsole. Im Mastering Lab kannst du direkt mit einer neutralen Kette beginnen oder vorgeschlagene Auto-Werte vor dem Übernehmen prüfen. Vorhören ist frei zugänglich. Der Lab-Export braucht eine Freischaltung.",
+            en: "For a first mix, the Express Assistant walks you through analysis and target selection, then guides you to the listening comparison and download. Studio Mode brings automatic mastering and follow-up adjustments into one console. In Mastering Lab, start from a neutral chain or review suggested auto settings before applying them. Previewing is freely available. Lab export needs account activation.",
+          },
+          links: [
+            { label: { de: "Zum Express-Assistenten", en: "Go to the Express Assistant" }, href: { de: "/#home-express-slot", en: "/en#home-express-slot" } },
+            { label: { de: "Studio Mode öffnen", en: "Open Studio Mode" }, href: { de: "/studio-beta", en: "/en/studio-beta" } },
+            { label: { de: "Mastering Lab öffnen", en: "Open Mastering Lab" }, href: { de: "/mastering-lab", en: "/en/mastering-lab" } },
+          ],
+        },
       ],
       conclusion: {
         de: "Mastering ist kein nettes Extra, sondern der Qualitätsstandard, den Hörer, Plattformen und Labels stillschweigend erwarten. Mit Beatzucker geht das unkomplizierter denn je: Track hochladen, Plattform auswählen, fertigen Master downloaden.",
@@ -145,6 +158,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Grundlagen",
     categoryColor: "var(--accent-purple)",
     publishedAt: "2025-01-20",
+    updatedAt: "2026-11-22",
     heroIcon: "Scale",
     readingTimeMinutes: 5,
     title: { de: "Mixing oder Mastering? Der Unterschied auf den Punkt gebracht", en: "Mixing or Mastering? The Difference, Simply Put" },
@@ -203,9 +217,20 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Geht Mixing und Mastering auch in Eigenregie?", en: "Can You Handle Both Yourself?" },
           body: {
-            de: "Mixing verlangt Erfahrung, verlässliche Monitore und eine halbwegs behandelte Raumakustik. Viele Produzenten mixen deshalb selbst, geben den fertigen Track dann aber an einen Mastering-Engineer oder eine KI weiter.\n\nMastering war lange ein kostspieliger Schritt, reserviert fürs Profistudio. Mit KI-Tools wie Beatzucker dauert professionelles Mastering heute nur noch Sekunden — kostenlos und ohne Spezialwissen. Die KI analysiert deinen Mix und schickt ihn durch 13 DSP-Stufen, um das bestmögliche Ergebnis herauszuholen.",
-            en: "Mixing takes experience, reliable monitors, and at least somewhat treated room acoustics. That's why many producers mix their own tracks but then hand the result off to a mastering engineer or an AI.\n\nMastering used to be an expensive step reserved for professional studios. With AI tools like Beatzucker, getting a professional master now takes seconds — free, no specialized knowledge needed. The AI analyzes your mix and runs it through 13 DSP stages to get the best possible outcome.",
+            de: "Beim Mixing kannst du einzelne Spuren korrigieren. Beim Mastering arbeitet Beatzucker mit der fertigen Summe. Die automatische Bearbeitung verwendet Messwerte und zeigt zwölf Schritte an. Welche Stufen eingreifen, hängt vom Signal und deinen Einstellungen ab.",
+            en: "Mixing lets you fix individual tracks. Mastering in Beatzucker works with the finished mix. Automatic processing uses measurements and displays twelve stages. Which stages apply depends on the signal and your settings.",
           },
+        },
+        {
+          h2: { de: "Beispiel mit einer Kick, die im Refrain untergeht", en: "Example: a kick that disappears in the chorus" },
+          body: {
+            de: "Prüfe Kick und Bass zuerst als getrennte Spuren. Mit dem Konfliktfinder findest du Stellen zum Gegenhören. Im Sidechain-Tool kannst du die Kick als Trigger verwenden und nur den Bass absenken. Arbeitest du bereits mit der fertigen Stereosumme im Lab, betrifft Bass-Ducking den gemeinsamen Tiefbass. Wenn dadurch die Kick weiter an Gewicht verliert, korrigiere die Einzelspuren im Mix.",
+            en: "Check the kick and bass as separate tracks first. Use the conflict finder to identify passages worth auditioning. In the sidechain tool, use the kick as a trigger to duck the bass alone. On a finished stereo mix in the Lab, bass ducking affects their shared low end. If the kick loses more weight, adjust the individual tracks in the mix.",
+          },
+          links: [
+            { label: { de: "Kick/Bass-Konflikte prüfen", en: "Check for Kick/Bass conflicts" }, href: { de: "/tools/kick-bass-conflict", en: "/en/tools/kick-bass-conflict" } },
+            { label: { de: "Kick & Bass Sidechain öffnen", en: "Open Kick & Bass Sidechain" }, href: { de: "/tools/kick-bass-sidechain", en: "/en/tools/kick-bass-sidechain" } },
+          ],
         },
       ],
     },
@@ -223,59 +248,60 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Plattformen",
     categoryColor: "var(--accent-cyan)",
     publishedAt: "2025-02-05",
+    updatedAt: "2026-11-22",
     heroIcon: "Globe",
     readingTimeMinutes: 5,
-    title: { de: "Wie laut soll dein Master sein? LUFS-Werte für jede Plattform", en: "How Loud Should Your Master Be? LUFS Values for Every Platform" },
-    metaTitle: { de: "LUFS-Werte 2025: Spotify, Apple Music, YouTube & mehr | Beatzucker", en: "2025 LUFS Values: Spotify, Apple Music, YouTube & More | Beatzucker" },
+    title: { de: "Wie laut soll dein Master sein? LUFS-Ziele für Streaming und Club", en: "How loud should your master be? LUFS targets for streaming and club" },
+    metaTitle: { de: "LUFS-Ziele für Spotify, Apple Music, YouTube und Club | Beatzucker", en: "LUFS Targets for Spotify, Apple Music, YouTube and Club | Beatzucker" },
     metaDescription: {
-      de: "Spotify, Apple Music, YouTube, TikTok, Amazon, Deezer, SoundCloud, Club — jede Plattform normalisiert anders. Die komplette LUFS-Tabelle für dein Mastering.",
-      en: "Spotify, Apple Music, YouTube, TikTok, Amazon, Deezer, SoundCloud, club systems — every platform normalizes differently. Your complete LUFS reference for mastering.",
+      de: "LUFS-Presets für Streaming und Club einordnen. Höre die geschätzte Wiedergabe in der Streaming-Vorschau und miss die fertige Datei im Release-Check.",
+      en: "Understand LUFS presets for streaming and club. Hear estimated playback in Streaming Preview and measure the finished file in Release Check.",
     },
     keywords: {
-      de: ["lufs tabelle 2025", "lautheit streaming plattformen", "spotify apple music lufs wert", "richtiger lufs wert mastering"],
-      en: ["lufs table 2025", "streaming platform loudness", "spotify apple music lufs value", "correct lufs value for mastering"],
+      de: ["lufs tabelle", "lautheit streaming plattformen", "spotify apple music lufs wert", "richtiger lufs wert mastering"],
+      en: ["lufs table", "streaming platform loudness", "spotify apple music lufs value", "correct lufs value for mastering"],
     },
     teaser: {
-      de: "−14, −16, −11 oder doch −6 LUFS? Die Zahl, auf die du masterst, hängt komplett davon ab, wo der Track am Ende läuft. Hier die komplette Übersicht aller relevanten Plattformen.",
-      en: "−14, −16, −11, or maybe −6 LUFS? The number you master to depends entirely on where the track ends up playing. Here's the full rundown of every platform that matters.",
+      de: "Welche Rolle spielen Plattform-Presets, Abhörpegel und True Peak? Vergleiche die Ziele und prüfe deinen fertigen Master.",
+      en: "How do platform presets, playback level and true peak fit together? Compare targets and check the finished master.",
     },
+    sources: [{ label: { de: "Spotify for Artists zur Lautheitsnormalisierung", en: "Spotify for Artists on loudness normalization" }, href: "https://support.spotify.com/artists/article/loudness-normalization/" }],
     relatedSlugs: ["lufs-erklaert", "song-klingt-leise-spotify", "true-peak-rms-lufs"],
     content: {
       intro: {
-        de: "Kaum eine Frage taucht beim Mastern so oft auf wie diese: Wie laut soll der Track eigentlich werden? Eine pauschale Antwort gibt es nicht, denn die Lautheit-Norm ändert sich von Plattform zu Plattform. Wer seinen Track auf einen Wert bringt, der für die geplante Zielplattform nicht passt, riskiert zwei Dinge: entweder wird der Track von der automatischen Normalisierung nach unten gezogen und verliert dabei Wumms, oder er bleibt im Vergleich zu anderen Songs schlicht zu leise stehen.",
-        en: "Few questions come up more often during mastering than this one: how loud should the track actually be? There's no one-size-fits-all answer, because the loudness standard shifts from platform to platform. Aim for a number that doesn't match your target platform, and you risk one of two outcomes: automatic normalization pulls the track down and strips away its punch, or it just sits there quieter than everything around it.",
+        de: "Beim Mastern legst du fest, wie laut und wie dynamisch die exportierte Datei klingt. Die Wiedergabelautheit kann davon abweichen. Spotify beschreibt beispielsweise −14 LUFS für die normale Wiedergabeeinstellung. Bei aktivierter Normalisierung ändert eine reine Pegelabsenkung die Lautstärke, während die Dynamik der Datei gleich bleibt.",
+        en: "Mastering determines the loudness and dynamics of your export. Playback loudness can differ. Spotify, for example, documents −14 LUFS for its Normal playback setting. With normalization enabled, a simple gain reduction lowers playback volume while the file’s dynamics stay the same.",
       },
       sections: [
         {
-          h2: { de: "Alle LUFS-Zielwerte auf einen Blick", en: "Every LUFS Target at a Glance" },
-          body: { de: "Aktuelle Werte, Stand 2025 — jeweils integrierte LUFS sowie der maximal erlaubte True Peak in dBTP:", en: "Current figures as of 2025 — integrated LUFS alongside the maximum allowed True Peak in dBTP:" },
+          h2: { de: "Lautheitsziele der Beatzucker-Presets", en: "Beatzucker preset loudness targets" },
+          body: { de: "Diese Werte sind Startpunkte der Beatzucker-Presets. Prüfe verbindliche Lieferanforderungen bei deinem Vertrieb oder Auftraggeber. Die tatsächliche Lautheit kann bei knapper Spitzenpegelreserve unter dem gesetzten Ziel bleiben.", en: "These values are starting points for Beatzucker presets. Check mandatory delivery requirements with your distributor or client. Limited peak headroom can keep the result below the selected target." },
           table: {
             headers: [
-              { de: "Plattform", en: "Platform" },
+              { de: "Beatzucker-Preset", en: "Beatzucker preset" },
               { de: "Ziel-LUFS", en: "Target LUFS" },
-              { de: "True Peak Max.", en: "True Peak Max." },
-              { de: "Normalisierung", en: "Normalization" },
             ],
             rows: [
-              [{ de: "Spotify", en: "Spotify" }, { de: "−14 LUFS", en: "−14 LUFS" }, { de: "−1 dBTP", en: "−1 dBTP" }, { de: "Normalisiert abwärts", en: "Normalizes downward" }],
-              [{ de: "Apple Music", en: "Apple Music" }, { de: "−16 LUFS", en: "−16 LUFS" }, { de: "−1 dBTP", en: "−1 dBTP" }, { de: "Normalisiert auf- & abwärts", en: "Normalizes up & down" }],
-              [{ de: "YouTube", en: "YouTube" }, { de: "−14 LUFS", en: "−14 LUFS" }, { de: "−1 dBTP", en: "−1 dBTP" }, { de: "Normalisiert abwärts", en: "Normalizes downward" }],
-              [{ de: "TikTok", en: "TikTok" }, { de: "−14 LUFS", en: "−14 LUFS" }, { de: "−1 dBTP", en: "−1 dBTP" }, { de: "Aktiv", en: "Active" }],
-              [{ de: "Amazon Music", en: "Amazon Music" }, { de: "−14 LUFS", en: "−14 LUFS" }, { de: "−2 dBTP", en: "−2 dBTP" }, { de: "Aktiv", en: "Active" }],
-              [{ de: "Deezer", en: "Deezer" }, { de: "−15 LUFS", en: "−15 LUFS" }, { de: "−1 dBTP", en: "−1 dBTP" }, { de: "Aktiv", en: "Active" }],
-              [{ de: "SoundCloud", en: "SoundCloud" }, { de: "−11 LUFS", en: "−11 LUFS" }, { de: "−0.1 dBTP", en: "−0.1 dBTP" }, { de: "Keine", en: "None" }],
-              [{ de: "Tidal", en: "Tidal" }, { de: "−14 LUFS", en: "−14 LUFS" }, { de: "−1 dBTP", en: "−1 dBTP" }, { de: "Aktiv", en: "Active" }],
-              [{ de: "Club / DJ-System", en: "Club / DJ system" }, { de: "−6 LUFS", en: "−6 LUFS" }, { de: "−0.1 dBTP", en: "−0.1 dBTP" }, { de: "Keine", en: "None" }],
-              [{ de: "Broadcast (EBU R128)", en: "Broadcast (EBU R128)" }, { de: "−23 LUFS", en: "−23 LUFS" }, { de: "−1 dBTP", en: "−1 dBTP" }, { de: "Aktiv", en: "Active" }],
+              [{ de: "Spotify, YouTube, Tidal, Amazon Music", en: "Spotify, YouTube, Tidal, Amazon Music" }, { de: "−14 LUFS", en: "−14 LUFS" }],
+              [{ de: "Apple Music", en: "Apple Music" }, { de: "−16 LUFS", en: "−16 LUFS" }],
+              [{ de: "TikTok", en: "TikTok" }, { de: "−13 LUFS", en: "−13 LUFS" }],
+              [{ de: "Deezer", en: "Deezer" }, { de: "−15 LUFS", en: "−15 LUFS" }],
+              [{ de: "SoundCloud", en: "SoundCloud" }, { de: "−8 LUFS", en: "−8 LUFS" }],
+              [{ de: "Club / DJ", en: "Club / DJ" }, { de: "−9 LUFS", en: "−9 LUFS" }],
+              [{ de: "TV / Broadcast", en: "TV / Broadcast" }, { de: "−23 LUFS", en: "−23 LUFS" }],
             ],
           },
         },
         {
           h2: { de: "Auf welchen Wert masterst du am besten?", en: "So Which Number Should You Actually Master To?" },
           body: {
-            de: "Erscheint dein Track gleichzeitig auf mehreren Plattformen, ist −14 LUFS (der Spotify-Wert) die sicherste Wahl als Ausgangspunkt — er ist inzwischen so etwas wie der inoffizielle Branchenstandard und funktioniert auch auf den meisten anderen Diensten ordentlich.\n\nBei Clubmusik sieht die Sache anders aus: Hier zielst du auf −6 LUFS, weil PA-Systeme nicht normalisieren und pure Lautheit im Set einen echten Unterschied macht.\n\nApple Music tickt nochmal anders. Der Zielwert liegt bei −16 LUFS, und Apple hebt zu leise Tracks sogar aktiv an — nur nach oben ist ebenfalls eine Grenze gesetzt, zu laute Master werden trotzdem eingebremst.\n\nMusst du das nicht selbst durchrechnen: Beatzucker erkennt die gewählte Zielplattform und stellt den passenden LUFS-Wert automatisch ein.",
-            en: "If your track goes out on several platforms at once, −14 LUFS — the Spotify figure — is the safest starting point. It's become something like the unofficial industry default and translates reasonably well to most other services too.\n\nClub music plays by different rules. There you're aiming for −6 LUFS, since PA systems don't normalize anything and raw loudness genuinely matters in a DJ set.\n\nApple Music is its own case entirely. The target sits at −16 LUFS, and Apple will actually boost a track that comes in too quiet — though the ceiling still applies, so an overly loud master gets pulled back down just the same.\n\nYou don't need to work any of this out by hand — Beatzucker detects the platform you've selected and sets the matching LUFS target for you automatically.",
+            de: "Wähle für Streaming einen Ausgangspunkt und höre die geschätzte Wiedergabe in der Streaming-Vorschau. Prüfe auch Spitzen in einer tatsächlich kodierten AAC- oder MP3-Version. Für einen Club-Track kannst du ein dichteres Ziel ausprobieren. Vergleiche bei gleichem Abhörpegel, ob Kick und Bass noch die gewünschte Wirkung haben. Miss zum Schluss die exportierte Datei im Release-Check.",
+            en: "Choose a starting point for streaming and audition estimated playback in Streaming Preview. Also check peaks in an actual AAC or MP3 encode. For a club track, try a louder target and compare at matched levels to see whether the kick and bass still have the intended impact. Finally, measure the export in Release Check.",
           },
+          links: [
+            { label: { de: "Streaming-Vorschau öffnen", en: "Open Streaming Preview" }, href: { de: "/tools/streaming-preview", en: "/en/tools/streaming-preview" } },
+            { label: { de: "Release-Check öffnen", en: "Open Release Check" }, href: { de: "/tools/release-check", en: "/en/tools/release-check" } },
+          ],
         },
       ],
     },
@@ -287,6 +313,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Tipps",
     categoryColor: "var(--accent-gold)",
     publishedAt: "2025-02-10",
+    updatedAt: "2026-11-22",
     heroIcon: "CheckCircle2",
     readingTimeMinutes: 6,
     title: { de: "Die Pre-Mastering-Checkliste: So machst du deinen Mix startklar", en: "The Pre-Mastering Checklist: Getting Your Mix Ready" },
@@ -320,7 +347,7 @@ export const ARTICLES: RessourceArticle[] = [
             { de: "✓ Frequenzen gegenchecken: Zu bassig? Mitten überbetont? Kein Lochband-EQ am Master? Ein Referenztrack hilft bei der Einschätzung.", en: "✓ Sanity-check the frequencies: too much low end? Mids pushed too hard? No comb-filter EQ on the master? A reference track helps you judge this." },
             { de: "✓ Stereobild prüfen: Keine groben Mono-Kompatibilitätsprobleme. Ein Phasenmeter zeigt dir, ob der Zeiger im grünen Bereich bleibt.", en: "✓ Check the stereo image: no serious mono-compatibility issues. A phase meter tells you if the needle stays in the green." },
             { de: "✓ DC-Offset entfernen: Manche älteren Interfaces erzeugen ihn automatisch. Ein High-Pass bei 5–10 Hz beseitigt das Problem.", en: "✓ Remove DC offset: some older interfaces generate it by default. A high-pass filter at 5–10 Hz clears it right up." },
-            { de: "✓ Richtiges Format exportieren: WAV mit 24-Bit oder 32-Bit Float, 44.1 kHz oder 48 kHz. MP3 hat beim Mastering-Export nichts verloren!", en: "✓ Export the right format: WAV at 24-bit or 32-bit float, 44.1 kHz or 48 kHz. MP3 has no business in a mastering export!" },
+            { de: "✓ Verlustfrei exportieren, möglichst in der Samplerate deiner Session. 24-Bit-WAV oder 32-Bit-Float sind gute Ausgangsformate.", en: "✓ Export losslessly at your session’s sample rate where possible. 24-bit WAV and 32-bit float are useful source formats." },
             { de: "✓ Pegel kontrollieren: Der integrierte LUFS-Wert sollte etwa zwischen −18 und −12 LUFS liegen — den finalen Zielwert stellt das Mastering ein.", en: "✓ Check your level: aim for an integrated LUFS reading somewhere around −18 to −12 LUFS — mastering dials in the final target from there." },
           ],
         },
@@ -334,9 +361,21 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Welches Format solltest du exportieren?", en: "Which Export Format Actually Makes Sense?" },
           body: {
-            de: "Für den Mixdown gilt: WAV mit 24-Bit (oder als 32-Bit Float), bei 44.1 kHz oder 48 kHz. Diese verlustfreien Formate bewahren jede Frequenzinformation, die im Mix steckt.\n\nMP3 ist für den Mastering-Export tabu. Das Format komprimiert verlustbehaftet, und bei jeder erneuten Kodierung entstehen zusätzliche Artefakte. Schickst du deinen Mix als MP3 ins Mastering, werden genau diese Artefakte im fertigen Master hörbar mit verstärkt.",
-            en: "For your mixdown: stick to WAV, 24-bit or 32-bit float, at 44.1 kHz or 48 kHz. These lossless formats hold on to every bit of frequency information your mix contains.\n\nMP3 is off the table for a mastering export. It's a lossy format, and each re-encode introduces fresh artifacts. Send an MP3 into mastering and those artifacts get amplified right along with everything else in the finished master.",
+            de: "Für den Mixdown eignet sich WAV mit 24 Bit oder als 32-Bit-Float. Wenn deine Session mit 48 oder 96 kHz läuft, kannst du diese Samplerate für die Arbeitsdatei beibehalten. Konvertiere erst dann, wenn ein konkreter Ausgabezweck eine andere Rate verlangt. Wenn du nur eine MP3 hast, behalte diese als Quelle. Das Umwandeln in WAV stellt die beim Kodieren entfernten Informationen nicht wieder her.",
+            en: "A 24-bit or 32-bit float WAV works well for a mixdown. If your session runs at 48 or 96 kHz, keep that rate for the working file. Convert when a specific delivery format requires another rate. If you only have an MP3, keep it as your source. Converting it to WAV cannot restore information lost during encoding.",
           },
+        },
+        {
+          h2: { de: "Vom Mix-Check zur ersten Fassung", en: "From Mix Check to a first master" },
+          body: {
+            de: "Lade deinen unveränderten Mix zuerst in den Mix-Check und höre markierte Spitzen und schwierige Abschnitte ab. Korrigiere hörbares Clipping oder Mono-Auslöschungen an der Quelle. Danach kannst du im Express-Assistenten ein Ziel wählen oder im Lab vorgeschlagene Einstellungen prüfen. Halte eine unveränderte, verlustfreie Kopie für den späteren Hörvergleich bereit.",
+            en: "Load your unchanged mix into Mix Check first and listen to flagged peaks and difficult sections. Correct audible clipping or mono cancellation at the source. Then pick a target in the Express Assistant or review suggested settings in the Lab. Keep an unchanged, lossless copy for the listening comparison.",
+          },
+          links: [
+            { label: { de: "Mix-Check öffnen", en: "Open Mix Check" }, href: { de: "/mix-check", en: "/en/mix-check" } },
+            { label: { de: "Zum Express-Assistenten", en: "Go to the Express Assistant" }, href: { de: "/#home-express-slot", en: "/en#home-express-slot" } },
+            { label: { de: "Mastering Lab öffnen", en: "Open Mastering Lab" }, href: { de: "/mastering-lab", en: "/en/mastering-lab" } },
+          ],
         },
       ],
     },
@@ -348,6 +387,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Technik",
     categoryColor: "var(--accent-purple)",
     publishedAt: "2025-02-15",
+    updatedAt: "2026-11-22",
     heroIcon: "Save",
     readingTimeMinutes: 6,
     title: { de: "WAV, FLAC, MP3 oder AAC: Welches Format wofür?", en: "WAV, FLAC, MP3, or AAC: Which Format for Which Job?" },
@@ -396,8 +436,8 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "WAV: dein Arbeitspferd fürs Mastering", en: "WAV: Your Mastering Workhorse" },
           body: {
-            de: "WAV steht für Waveform Audio File Format und ist das universelle, unkomprimierte Format, das sich in der Musikproduktion praktisch überall durchgesetzt hat. Es gibt keine Kompression und damit auch keine Kompressionsartefakte — jede Audioinformation bleibt vollständig erhalten.\n\nFür den Export vor dem Mastering ist WAV 24-Bit bei 44.1 kHz oder 48 kHz die richtige Wahl. Diese Bittiefe schafft genug Spielraum, damit die Bearbeitung im Mastering sauber greifen kann. Am Ende liefert dir Beatzucker den fertigen Master gleich in drei Varianten: als WAV 32-Bit, 24-Bit und 16-Bit.",
-            en: "WAV — short for Waveform Audio File Format — is the universal, uncompressed format that's become close to standard practice across music production. There's no compression involved, and therefore no compression artifacts either — every bit of audio information survives intact.\n\nFor your pre-mastering export, WAV at 24-bit, 44.1 kHz or 48 kHz, is the right call. That bit depth leaves enough room for the mastering stage to work cleanly. At the end of the process, Beatzucker hands your finished master back in three variants at once: WAV 32-bit, 24-bit, and 16-bit.",
+            de: "PCM-WAV speichert Audio unkomprimiert. Bewahre für den Mixdown möglichst die Samplerate deiner Session und wähle zum Weiterbearbeiten 24-Bit-WAV oder 32-Bit-Float. Als Beatzucker-Master steht zusätzlich 16-Bit-WAV zur Auswahl.",
+            en: "PCM WAV stores uncompressed audio. Keep your session’s sample rate where possible and choose 24-bit WAV or 32-bit float for further work. For Beatzucker masters you can also choose 16-bit WAV.",
           },
         },
         {
@@ -406,6 +446,17 @@ export const ARTICLES: RessourceArticle[] = [
             de: "Bei 320 kbps kann so gut wie niemand MP3 noch von einem verlustfreien Format unterscheiden. Dafür eignet es sich hervorragend:\n\n• Für Streaming-Uploads (die meisten Distributoren nehmen MP3 320 problemlos an)\n• Für Posts auf TikTok oder Instagram\n• Für Preview-Dateien, die du zum Feedback verschickst\n\nWas du aber vermeiden solltest: MP3 als Eingangsformat fürs Mastering. Die verlustbehaftete Kompression erzeugt beim Neu-Kodieren Qualitätseinbußen, die sich im fertigen Master deutlich bemerkbar machen.",
             en: "At 320 kbps, virtually nobody can tell MP3 apart from a lossless file by ear. That makes it a great fit for:\n\n• Streaming uploads (most distributors accept MP3 320 without issue)\n• TikTok or Instagram posts\n• Preview files you're sending out for feedback\n\nWhat you want to avoid, though, is feeding MP3 into mastering as your input. The lossy compression introduces quality loss when it gets re-encoded, and that loss shows up clearly in the finished master.",
           },
+        },
+        {
+          h2: { de: "Dateiformat wählen und die fertige Ausgabe hören", en: "Choose a format and hear the finished file" },
+          body: {
+            de: "Für Archiv und Weiterbearbeitung ist WAV oder FLAC sinnvoll. Die Konsole und Studio Mode bieten zur schnellen Abhöre eine MP3-Vorschau, wenn sie vorliegt. Schalte auf die Exportdatei um, um etwa den tatsächlich gerenderten FLAC-Master zu beurteilen. Mit „Master prüfen“ kannst du einen gerade dort erstellten Export im Release-Check messen. Für eine eigene WAV-, FLAC-, MP3- oder M4A-Datei öffnest du den Release-Check direkt.",
+            en: "Use WAV or FLAC for archiving and further work. The mastering console and Studio Mode offer a quick MP3 preview when available. Switch to the export file to judge the actual render, such as your FLAC master. Use “Check master” from the result to measure a file you just created there. For your own WAV, FLAC, MP3 or M4A file, open Release Check directly.",
+          },
+          links: [
+            { label: { de: "Release-Check öffnen", en: "Open Release Check" }, href: { de: "/tools/release-check", en: "/en/tools/release-check" } },
+            { label: { de: "Samplerate und Bittiefe nachlesen", en: "Read about sample rate and bit depth" }, href: { de: "/ressourcen/sample-rate-bit-depth", en: "/en/knowledge/sample-rate-bit-depth" } },
+          ],
         },
       ],
     },
@@ -417,7 +468,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Tipps",
     categoryColor: "var(--accent-gold)",
     publishedAt: "2025-02-20",
-    updatedAt: "2026-10-24",
+    updatedAt: "2026-11-22",
     heroIcon: "Mic",
     readingTimeMinutes: 7,
     title: { de: "Warum dein Homestudio-Mix woanders anders klingt: 5 Fehlerquellen", en: "Why Your Home Studio Mix Sounds Different Elsewhere: 5 Culprits" },
@@ -472,9 +523,21 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Grund 5: Der Export sabotiert die Arbeit", en: "Culprit 5: The Export Undoes All Your Work" },
           body: {
-            de: "MP3 statt WAV, 16-Bit statt 24-Bit, die falsche Sample Rate — solche Exportfehler passieren häufig und sind komplett vermeidbar. Schickst du deinen Mix als MP3 weiter und der wird dann gemastert, verstärkt sich genau die Kompressionsartefaktik, die MP3 mit sich bringt, im fertigen Master.\n\nExportiere deshalb konsequent als WAV mit 24-Bit (oder 32-Bit Float) bei 44.1 kHz oder 48 kHz. Das ist der Branchenstandard fürs professionelle Mastering — und genau das Format, das auch Beatzucker als Eingabe erwartet.",
-            en: "MP3 instead of WAV, 16-bit instead of 24-bit, the wrong sample rate — these export slip-ups are common and entirely avoidable. Send an MP3 mix into mastering, and exactly the compression artifacts that come baked into MP3 get amplified right along with everything else in the finished master.\n\nSo export consistently as WAV, 24-bit (or 32-bit float), at 44.1 kHz or 48 kHz. That's the industry standard for professional mastering — and it's also precisely the input format Beatzucker expects.",
+            de: "Exportiere den Mix für die Weiterbearbeitung möglichst verlustfrei und in der Samplerate deiner Session. WAV mit 24 Bit oder 32-Bit-Float ist ein guter Ausgangspunkt. Wenn nur eine MP3 vorliegt, bleiben beim Umwandeln in WAV die vorhandenen Kodierartefakte erhalten.",
+            en: "Export a finished mix for further work in a lossless format at your session’s sample rate where possible. A 24-bit or 32-bit float WAV is a good starting point. If the only copy is an MP3, converting it to WAV keeps the existing encoding artifacts.",
           },
+        },
+        {
+          h2: { de: "Den Fehler vor der Summe eingrenzen", en: "Diagnose the problem before the master bus" },
+          body: {
+            de: "Höre eine dünn klingende Mischung zuerst im Stereo-Labor in Mono. Bei einer scharfen Gesangsspur kannst du im Vocal-Chain-Tool De-Esser und Kompressor einzeln beurteilen, bevor du die Spur im Mix ersetzt. Hast du nur einen fertigen Song, zeigt dir die kostenlose Vocal-Remover-Demo, wie getrennte Stimmen und Instrumente im Mixer klingen können.",
+            en: "If a mix sounds thin, check it in mono in Stereo & Phase Lab first. For harsh vocals, use Vocal Chain to judge the de-esser and compressor separately before replacing the track in your mix. If all you have is a finished song, the public Vocal Remover demo lets you hear separated vocals and instruments in the mixer.",
+          },
+          links: [
+            { label: { de: "Stereo- und Phasenlabor öffnen", en: "Open Stereo & Phase Lab" }, href: { de: "/tools/stereo-phase", en: "/en/tools/stereo-phase" } },
+            { label: { de: "Vocal Chain öffnen", en: "Open Vocal Chain" }, href: { de: "/tools/vocal-chain", en: "/en/tools/vocal-chain" } },
+            { label: { de: "Vocal-Remover-Demo öffnen", en: "Open Vocal Remover demo" }, href: { de: "/tools/vocal-remover#demo", en: "/en/tools/vocal-remover#demo" } },
+          ],
         },
       ],
     },
@@ -486,13 +549,14 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Grundlagen",
     categoryColor: "var(--accent-purple)",
     publishedAt: "2025-02-25",
+    updatedAt: "2026-11-22",
     heroIcon: "Trophy",
     readingTimeMinutes: 5,
     title: { de: "Der Song ist stark — jetzt fehlt nur noch das richtige Mastering", en: "The Song Is Strong — All That's Left Is the Right Mastering" },
     metaTitle: { de: "Starker Song, fehlendes Mastering? So holst du das Maximum raus | Beatzucker", en: "Great Song, No Mastering Yet? Here's How to Get the Most Out of It | Beatzucker" },
     metaDescription: {
-      de: "Ein starker Song wird erst durch das richtige Mastering zum echten Hit. So funktioniert KI-Mastering bei Beatzucker — kostenlos und ohne Wartezeit.",
-      en: "A strong song only becomes a real hit through the right mastering. Here's how AI mastering works at Beatzucker — free and without the wait.",
+      de: "Prüfe deinen Mix im Hörvergleich, vergleiche zwei Master bei gleicher Lautheit und bereite die ausgewählte Datei für deinen Release vor.",
+      en: "Check your mix by ear, compare two masters at matched loudness, and prepare the chosen file for release.",
     },
     keywords: {
       de: ["track professionell mastern lassen", "online mastering kostenlos", "song fürs release mastern", "ki mastering ausprobieren", "hitpotenzial song mastering"],
@@ -512,28 +576,40 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "Was passiert eigentlich beim Mastering?", en: "What Actually Happens During Mastering?" },
           body: {
-            de: "Ein guter Vergleich: dein Mix ist wie ein Rohdiamant. Der Wert steckt schon drin, aber die Facetten sind noch nicht geschliffen, der Glanz liegt verborgen unter der rauen Oberfläche. Genau das übernimmt Mastering — es holt heraus, was im Track ohnehin schon angelegt ist.\n\nPraktisch heißt das: Der Track bekommt den Frequenzcharakter, den erfolgreiche Produktionen in seinem Genre haben. Der Bass sitzt auf dem richtigen Pegel, die Höhen öffnen sich, der Mix wird breiter, ohne dabei phasig zu klingen — und die Lautheit landet exakt dort, wo Spotify, Apple Music oder die Club-PA sie erwarten.\n\nDas Ergebnis ist mehr als \"besser klingen\". Es ist der Sprung zu einem Sound, der professionell wirkt.",
-            en: "Here's a fitting comparison: your mix is like a rough diamond. The value is already there, but the facets haven't been cut yet, and the shine is still hidden beneath a rough surface. That's exactly what mastering does — it draws out what's already built into the track.\n\nIn practical terms: the track gets the frequency character of the successful productions in its genre. The bass sits at the right level, the highs open up, the mix widens without turning phasy — and the loudness lands exactly where Spotify, Apple Music, or a club PA expects it.\n\nThe result is more than just \"sounding better.\" It's the leap to a sound that reads as professional.",
+            de: "Beim Mastering bearbeitest du den fertigen Mix als Ganzes. Leichte EQ-Korrekturen können die Klangbalance verändern. Kompression und Limiting beeinflussen Dynamik, Spitzenpegel und erreichbare Lautheit. Prüfe jede Änderung bei vergleichbarem Abhörpegel. Ein ausgewogener Mix braucht oft nur kleine Eingriffe.",
+            en: "Mastering works on the finished mix as a whole. Small EQ changes can shape tonal balance. Compression and limiting affect dynamics, peaks and achievable loudness. Check each change at comparable listening levels. A balanced mix often needs only small adjustments.",
           },
         },
         {
-          h2: { de: "Wo liegt der Unterschied zwischen \"gut\" und \"radiotauglich\"?", en: "Where's the Line Between \"Good\" and \"Radio-Ready\"?" },
+          h2: { de: "Woran erkennst du einen fertigen Master?", en: "How do you know the master is ready?" },
           body: {
-            de: "Zwischen einem soliden Amateur-Track und einem echten Chart-Kandidaten liegt oft weniger, als man vermutet — und genau diese Lücke schließt Mastering.\n\nEin ungemasterter Track zeigt typische Schwachstellen: zu leise im direkten Streaming-Vergleich, Frequenzen aus der Balance, ein enges Stereobild, dazu True-Peak-Ausreißer, die auf manchen Wiedergabegeräten verzerren.\n\nNach professionellem Mastering sieht das anders aus: LUFS-Werte, die zur jeweiligen Plattform passen, eine Frequenzbalance auf Genre-Niveau, ein sauber ausgebautes Stereofeld und ein True Peak, der zuverlässig unter −1 dBTP bleibt.\n\nIm Mix selbst sind das oft nur kleine Stellschrauben. Im Endergebnis machen sie den entscheidenden Unterschied.",
-            en: "The gap between a solid amateur track and a genuine chart contender is often smaller than people assume — and that's precisely the gap mastering closes.\n\nAn unmastered track shows the usual weak points: too quiet next to other streaming tracks, frequencies out of balance, a narrow stereo image, plus True Peak spikes that distort on some playback systems.\n\nAfter professional mastering, the picture changes: LUFS values matched to the target platform, genre-appropriate frequency balance, a properly widened stereo field, and a True Peak that reliably stays under −1 dBTP.\n\nThose are often small adjustments within the mix itself. In the final result, they're the difference that counts.",
+            de: "Höre deinen Track auf Kopfhörern, Lautsprechern und in Mono. Bleiben Stimme und Kick verständlich? Sind leise Passagen noch so leise wie beabsichtigt? Prüfe anschließend Lautheit und True Peak gegen die Anforderungen deines Vertriebs.",
+            en: "Listen on headphones, speakers and in mono. Are the vocals and kick still clear? Are quiet sections still as quiet as intended? Then check loudness and true peak against your distributor’s requirements.",
           },
         },
         {
-          h2: { de: "Profi-Mastering, ohne das Profi-Preisschild", en: "Pro-Level Mastering Without the Pro-Level Price Tag" },
+          h2: { de: "Den eigenen Mix online mastern", en: "Master your own mix online" },
           body: {
-            de: "Früher kostete ein professionelles Mastering zwischen 100 und 300 Euro pro Track, und man wartete ein bis zwei Tage auf das Ergebnis. Für Artists ohne großes Label im Rücken war das oft eine harte Entscheidung.\n\nBeatzucker bietet eine zugängliche Alternative: Die Plattform analysiert deinen Track automatisch und schickt ihn durch eine dokumentierte 12-stufige DSP-Pipeline. Die kostenlose Nutzung unterliegt einem fairen Tageslimit pro Konto.\n\nFür besonders kritische oder hochbudgetierte Produktionen bleibt ein erfahrener Mastering-Engineer die beste individuelle Lösung.",
-            en: "Professional mastering used to run €100–300 per track, with a one- to two-day turnaround. For independent artists without label backing, that often forced a difficult choice.\n\nBeatzucker provides an accessible alternative: it analyzes the track automatically and runs it through a documented 12-stage DSP pipeline. Free usage is subject to a fair daily limit per account.\n\nFor critical or high-budget productions, an experienced mastering engineer remains the best tailored option.",
+            de: "Mit Beatzucker kannst du einen automatischen Master innerhalb deines täglichen Kontingents erstellen und vollständig herunterladen. Höre im Vergleich, ob er deinem Mix hilft. In der Feinabstimmung kannst du gezielt nachregeln. Wenn eine einzelne Spur Probleme verursacht, kannst du sie im Mix korrigieren.",
+            en: "Beatzucker lets you create and download a full automatic master within your daily allowance. Compare it with the mix to hear whether it helps. Use fine-tuning to make targeted changes. If an individual track is causing trouble, you can fix it in the mix.",
           },
+        },
+        {
+          h2: { de: "Entscheide am Song, welche Version bleibt", en: "Let the song decide which version to keep" },
+          body: {
+            de: "Höre zuerst einen Refrain im A/B-Vergleich mit Lautheitsabgleich. Wenn du zwei fertige Master hast, verwende denselben Ausschnitt im Blindtest und entscheide erst danach, welche Datei du veröffentlichst. Prüfe den gewählten Export im Release-Check. Ein kurzes Hochkantvideo mit Wellenform und A/B-Wechsel kannst du anschließend im Audio-Visualizer erstellen.",
+            en: "Start by comparing a chorus with loudness matching enabled. If you have two finished masters, use the same section in the blind test before deciding which file to release. Measure the chosen export in Release Check. Then use the Audio Visualizer to make a short vertical clip with a waveform and an A/B switch.",
+          },
+          links: [
+            { label: { de: "Mastering-Blindtest öffnen", en: "Open Mastering Blind Test" }, href: { de: "/tools/mastering-blindtest", en: "/en/tools/mastering-blindtest" } },
+            { label: { de: "Praxisguide zur Release-Prüfung", en: "Practical release guide" }, href: { de: "/ressourcen/master-vergleichen-und-veroeffentlichen", en: "/en/knowledge/master-vergleichen-und-veroeffentlichen" } },
+            { label: { de: "Audio-Visualizer öffnen", en: "Open Audio Visualizer" }, href: { de: "/tools/audio-visualizer", en: "/en/tools/audio-visualizer" } },
+          ],
         },
       ],
       conclusion: {
-        de: "Vielleicht ist genau dieser Track dein Durchbruch. Lass ihn nicht an einem fehlenden Mastering scheitern — lade ihn jetzt bei Beatzucker hoch, kostenlos und mit Account in wenigen Sekunden angelegt.",
-        en: "This track might just be your breakthrough. Don't let a missing mastering step get in the way — upload it to Beatzucker now, free of charge, with an account set up in seconds.",
+        de: "Wähle die Fassung, in der die musikalische Idee am besten zur Geltung kommt. Sichere anschließend die geprüfte Datei für deinen Release.",
+        en: "Choose the version that best serves the music, then keep the verified file for your release.",
       },
     },
   },
@@ -544,6 +620,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Technik",
     categoryColor: "var(--accent-cyan)",
     publishedAt: "2025-03-01",
+    updatedAt: "2026-11-22",
     heroIcon: "ArrowLeftRight",
     readingTimeMinutes: 6,
     title: { de: "Warum Stereobreite über Kopfhörer und Lautsprecher entscheidet", en: "Stereo Width Explained: Getting Your Mix to Translate Everywhere" },
@@ -584,9 +661,20 @@ export const ARTICLES: RessourceArticle[] = [
         {
           h2: { de: "So geht Beatzucker mit dem Stereofeld um", en: "How Beatzucker Handles the Stereo Field" },
           body: {
-            de: "Beatzucker analysiert das Stereofeld jedes hochgeladenen Tracks automatisch und errechnet daraus den passenden Side-Gain für dein Genre. Für Electronic- und Club-Produktionen lohnt sich meist ein breiteres Feld, während Akustikgitarre oder Jazz mit einem engeren Stereobild natürlicher klingt.\n\nDie Analyse liefert dir konkrete Werte:\n\n• Stereo Width (0–100 %): Wie breit ist dein aktueller Mix?\n• Mono Compatibility Score: Wie verträgt sich der Track mit Mono-Wiedergabe?\n• Phase Correlation: Gibt es Konflikte zwischen L und R?\n\nDu siehst diese Werte im Analyse-Panel jeweils vor und nach dem Mastering — der Unterschied ist damit sofort sichtbar, nicht nur hörbar.",
-            en: "Beatzucker automatically analyzes the stereo field of every uploaded track and works out the appropriate Side gain for your genre. Electronic and club productions typically benefit from extra width, while acoustic guitar or jazz tends to sound more natural with a narrower image.\n\nThe analysis surfaces concrete numbers:\n\n• Stereo Width (0–100%): how wide is your current mix?\n• Mono Compatibility Score: how well does the track hold up in mono?\n• Phase Correlation: are there conflicts between L and R?\n\nYou'll see these figures in the analysis panel both before and after mastering, so the difference is visible, not just audible.",
+            de: "In der Analyse kannst du Stereobreite und Mono-Kompatibilität prüfen. Bei der automatischen Bearbeitung hängt der Stereo-Eingriff von Quelle und Einstellungen ab. Ein breiterer Refrain kann passen, wenn Stimme, Kick und Bass in der Mitte stabil bleiben. Prüfe das in Mono und bei vergleichbarem Pegel.",
+            en: "Use the analysis to inspect stereo width and mono compatibility. Automatic stereo processing depends on the source and settings. A wider chorus can work if vocals, kick and bass remain stable in the center. Check in mono and at comparable levels.",
           },
+        },
+        {
+          h2: { de: "Breite im Lab beurteilen", en: "Evaluate stereo width in Mastering Lab" },
+          body: {
+            de: "Wähle einen dichten Loop und speichere eine dezente Änderung in B. Höre sie gegen A bei angeglichener Lautheit und kontrolliere anschließend im Stereo-Labor die Mono-Summe. Wenn Kick oder Stimme in Mono deutlich schwächer werden, reduziere die Bearbeitung oder korrigiere den Mix. Einen Mono-Track gibt das Lab standardmäßig wieder als Mono aus. Wähle Stereo bewusst, wenn du die Stereobearbeitung auch ausliefern willst.",
+            en: "Choose a dense section and save a small adjustment to B. Compare it with A at matched loudness, then check the mono sum in Stereo & Phase Lab. If kick or vocals become noticeably weaker in mono, reduce the effect or adjust the mix. Mastering Lab exports a mono track as mono by default. Choose stereo when you want to deliver the stereo processing.",
+          },
+          links: [
+            { label: { de: "Mastering Lab öffnen", en: "Open Mastering Lab" }, href: { de: "/mastering-lab", en: "/en/mastering-lab" } },
+            { label: { de: "Stereo- und Phasenlabor öffnen", en: "Open Stereo & Phase Lab" }, href: { de: "/tools/stereo-phase", en: "/en/tools/stereo-phase" } },
+          ],
         },
       ],
     },
@@ -598,6 +686,7 @@ export const ARTICLES: RessourceArticle[] = [
     category: "Technik",
     categoryColor: "var(--accent-cyan)",
     publishedAt: "2025-03-05",
+    updatedAt: "2026-11-22",
     heroIcon: "TrendingUp",
     readingTimeMinutes: 6,
     title: { de: "True Peak, RMS und LUFS: Die drei Lautstärke-Metriken im Überblick", en: "True Peak, RMS, and LUFS: Three Loudness Metrics You Should Actually Understand" },
@@ -650,6 +739,17 @@ export const ARTICLES: RessourceArticle[] = [
             { de: "Integrated LUFS: nach dem Mastering prüfen — Zielwert hängt von der Plattform ab (−14 für Spotify, −16 für Apple).", en: "Integrated LUFS: verify after mastering — the target depends on the platform (−14 for Spotify, −16 for Apple)." },
             { de: "Short-Term LUFS: während des Mixens zur Dynamikkontrolle nutzen.", en: "Short-Term LUFS: keep an eye on it while mixing to track dynamics." },
             { de: "RMS: nur relevant bei Legacy-Systemen oder älteren Broadcast-Vorgaben.", en: "RMS: only relevant for legacy systems or older broadcast specs." },
+          ],
+        },
+        {
+          h2: { de: "Pegel der Exportdatei prüfen", en: "Measure the exported file" },
+          body: {
+            de: "Miss die fertige Datei im Release-Check. Wenn dein WAV unter der Spitzengrenze bleibt, eine AAC-Version sie aber überschreitet, senke den maximalen Ausgangspegel und beurteile die neu kodierte Ausgabe erneut. Die Vorschau im Lab zeigt dir, wo noch Pegelreserve liegt. Nach dem Export erklärt das Lab, ob etwa das Lautheitsziel, die Spitzengrenze oder der Codec die Pegelkorrektur bestimmt hat.",
+            en: "Measure the finished file in Release Check. If WAV stays within your peak ceiling but AAC exceeds it, lower the output ceiling and measure the newly encoded version. The Lab preview helps you see available headroom. After export, the Lab shows whether the loudness target, the peak ceiling or the codec determined the gain correction.",
+          },
+          links: [
+            { label: { de: "Release-Check öffnen", en: "Open Release Check" }, href: { de: "/tools/release-check", en: "/en/tools/release-check" } },
+            { label: { de: "Mastering Lab öffnen", en: "Open Mastering Lab" }, href: { de: "/mastering-lab", en: "/en/mastering-lab" } },
           ],
         },
       ],
